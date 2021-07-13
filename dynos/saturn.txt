@@ -1,0 +1,5 @@
+SUBMENU "saturn" "Saturn" "SATURN"
+	BIND "freeze_camera" "Freeze Camera" "freeze_camera" 0x0800 0x0009 0x100B 0xFFFF
+	BIND "scroll_eyes" "Toggle Eye State" "scroll_eyes" 0x0100 0x000A 0x100E 0xFFFF
+	TOGGLE "head_rotations" "Head Rotations" "head_rotations" 0
+ENDMENU

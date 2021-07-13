@@ -1,6 +1,7 @@
 #include <PR/ultratypes.h>
 
 #include "data.h"
+#include "data/dynos.c.h"
 #include "effects.h"
 #include "external.h"
 #include "heap.h"
@@ -1444,6 +1445,7 @@ void sequence_channel_process_script(struct SequenceChannel *seqChannel) {
                 // #define loBits (cmd & 0xf)
                 switch (cmd & 0xf0) {
                     case 0x00: // chan_testlayerfinished
+                        if (!dynos_sanity_check_seq(loBits)) break;
                         if (seqChannel->layers[loBits] != NULL) {
                             value = seqChannel->layers[loBits]->finished;
                         }

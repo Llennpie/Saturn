@@ -37,10 +37,10 @@ NO_PIE ?= 1
 TARGET_ARCH ?= native
 TARGET_BITS ?= 0
 
-# Disable better camera (breaks machinima camera)
-BETTERCAMERA = 0
-# Enable no drawing distance by default
-NODRAWINGDISTANCE ?= 1
+# Disable better camera by default
+BETTERCAMERA ?= 0
+# Disable no drawing distance by default
+NODRAWINGDISTANCE ?= 0
 # Disable texture fixes by default (helps with them purists)
 TEXTURE_FIX ?= 0
 # Enable extended options menu by default
@@ -48,9 +48,9 @@ EXT_OPTIONS_MENU ?= 1
 # Disable text-based save-files by default
 TEXTSAVES ?= 0
 # Load resources from external files
-EXTERNAL_DATA = 1
+EXTERNAL_DATA ?= 0
 # Enable Discord Rich Presence
-DISCORDRPC = 1
+DISCORDRPC ?= 0
 
 # Various workarounds for weird toolchains
 
@@ -431,7 +431,6 @@ SEG_FILES := $(SEGMENT_ELF_FILES) $(ACTOR_ELF_FILES) $(LEVEL_ELF_FILES)
 ##################### Compiler Options #######################
 INCLUDE_CFLAGS := -I include -I $(BUILD_DIR) -I $(BUILD_DIR)/include -I src -I .
 ENDIAN_BITWIDTH := $(BUILD_DIR)/endian-and-bitwidth
-include dynos.mk
 
 # Huge deleted N64 section was here
 

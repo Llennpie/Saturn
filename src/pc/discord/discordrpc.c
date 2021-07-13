@@ -31,7 +31,7 @@
 #endif
 
 #define DISCORDLIB DISCORDLIBFILE DISCORDLIBEXT
-#define DISCORD_APP_ID  "709083908708237342"
+#define DISCORD_APP_ID  "862767511208460318"
 #define DISCORD_UPDATE_RATE 5
 
 extern s16 gCurrCourseNum;
@@ -221,22 +221,10 @@ static void set_state(void) {
 }
 
 void set_logo(void) {
-    if (lastCourseNum)
-        snprintf(largeImageKey, sizeof(largeImageKey), "%d", lastCourseNum);
-    else 
-        strcpy(largeImageKey, "0");
-
-    /*
-    if (lastActNum)
-        snprintf(smallImageKey, sizeof(largeImageKey), "%d", lastActNum);
-    else
-        smallImageKey[0] = '\0';
-    */
-
-    discordRichPresence.largeImageKey = largeImageKey;
-    //discordRichPresence.largeImageText = "";
-    //discordRichPresence.smallImageKey = smallImageKey;
-    //discordRichPresence.smallImageText = "";
+    discordRichPresence.largeImageKey = "logo-bg2-saturn";
+    discordRichPresence.largeImageText = "Saturn";
+    discordRichPresence.smallImageKey = "circle2-512";
+    discordRichPresence.smallImageText = "v64.dev";
 }
 
 void discord_update_rich_presence(void) {
@@ -275,7 +263,7 @@ void discord_init(void) {
         init_discord();
 
         discordRichPresence.details = stage;
-        discordRichPresence.state = act;
+        discordRichPresence.state = "In-Game [Machinima]";
 
         lastUpdatedTime = 0;
     }

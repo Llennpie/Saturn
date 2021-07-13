@@ -18,6 +18,8 @@
 #include "surface_terrains.h"
 #include "thread6.h"
 
+#include "data/dynos.c.h"
+
 s32 check_common_idle_cancels(struct MarioState *m) {
     mario_drop_held_object(m);
     if (m->floor->normal.y < 0.29237169f) {
@@ -133,15 +135,27 @@ s32 act_idle(struct MarioState *m) {
     } else {
         switch (m->actionState) {
             case 0:
-                set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_LEFT);
+                if (dynos_opt_get_value("head_rotations") == 1) {
+                    set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_LEFT);
+                } else {
+                    set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
+                }
                 break;
 
             case 1:
-                set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_RIGHT);
+                if (dynos_opt_get_value("head_rotations") == 1) {
+                    set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_RIGHT);
+                } else {
+                    set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
+                }
                 break;
 
             case 2:
-                set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_CENTER);
+                if (dynos_opt_get_value("head_rotations") == 1) {
+                    set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_CENTER);
+                } else {
+                    set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
+                }
                 break;
         }
 

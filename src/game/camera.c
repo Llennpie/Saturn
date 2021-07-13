@@ -30,6 +30,9 @@
 #include "level_table.h"
 #include "pc/configfile.h"
 
+#include "data/dynos.c.h"
+#define FREEZE_BUTTON   0x0800
+
 #define CBUTTON_MASK (U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS)
 
 /**
@@ -483,6 +486,10 @@ CameraTransition sModeTransitions[] = {
 // Move these two tables to another include file?
 extern u8 sDanceCutsceneIndexTable[][4];
 extern u8 sZoomOutAreaMasks[];
+
+static void skip_camera_interpolation(void) {
+    gLakituState.skipCameraInterpolationTimestamp = gGlobalTimer;
+}
 
 /**
  * Starts a camera shake triggered by an interaction
@@ -3017,6 +3024,7 @@ void update_lakitu(struct Camera *c) {
     gLakituState.defMode = c->defMode;
 }
 
+u8 frozen = 0;
 
 /**
  * The main camera update function.
@@ -3202,39 +3210,35 @@ void update_camera(struct Camera *c) {
     start_cutscene(c, get_cutscene_from_mario_status(c));
     stub_camera_2(c);
     gCheckingSurfaceCollisionsForCamera = FALSE;
-    if (gCurrLevelNum != LEVEL_CASTLE) {
-        // If fixed camera is selected as the alternate mode, then fix the camera as long as the right
-        // trigger is held
+    if (true) {
+        // Fixed camera has been rewritten as a Machinima freeze camera
+        // The camera will be fixed in any level, as long as frozen is equal to 1
         if ((c->cutscene == 0 &&
-            (gPlayer1Controller->buttonDown & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED)
+            (frozen == 1))
             || (gCameraMovementFlags & CAM_MOVE_FIX_IN_PLACE)
             || (sMarioCamState->action) == ACT_GETTING_BLOWN) {
 
-            // If this is the first frame that R_TRIG is held, play the "click" sound
-            if (c->cutscene == 0 && (gPlayer1Controller->buttonPressed & R_TRIG)
-                && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
-                sCameraSoundFlags |= CAM_SOUND_FIXED_ACTIVE;
-                play_sound_rbutton_changed();
-            }
-
-            // Fixed mode only prevents Lakitu from moving. The camera pos still updates, so
-            // Lakitu will fly to his next position as normal whenever R_TRIG is released.
+            // Fixed mode now prevents Lakitu from both moving and rotating
+            // Lakitu will only rotate in Mario camera
             gLakituState.posHSpeed = 0.f;
             gLakituState.posVSpeed = 0.f;
+            if (set_cam_angle(0) != CAM_ANGLE_MARIO) {
+                gLakituState.focHSpeed = 0.f;
+                gLakituState.focVSpeed = 0.f;
+            }
 
             c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
             c->yaw = c->nextYaw;
             gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
-        } else {
-            // Play the "click" sound when fixed mode is released
-            if (sCameraSoundFlags & CAM_SOUND_FIXED_ACTIVE) {
-                play_sound_rbutton_changed();
-                sCameraSoundFlags &= ~CAM_SOUND_FIXED_ACTIVE;
-            }
         }
-    } else {
-        if ((gPlayer1Controller->buttonPressed & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
-            play_sound_button_change_blocked();
+    }
+
+    // Toggle frozen 0/1
+    if (gPlayer1Controller->buttonPressed & FREEZE_BUTTON) {
+        if (frozen == 0) {
+            frozen = 1;
+        } else if (frozen == 1) {
+            frozen = 0;
         }
     }
 
@@ -5552,6 +5556,7 @@ s32 set_camera_mode_fixed(struct Camera *c, s16 x, s16 y, s16 z) {
         c->mode = CAMERA_MODE_FIXED;
         vec3f_set(c->pos, sFixedModeBasePosition[0], sMarioCamState->pos[1],
                   sFixedModeBasePosition[2]);
+        skip_camera_interpolation();
     }
     return basePosSet;
 }
@@ -5714,6 +5719,7 @@ BAD_RETURN(s32) cam_rr_enter_building_side(struct Camera *c) {
     if (c->mode != CAMERA_MODE_FIXED) {
         sStatusFlags &= ~CAM_FLAG_SMOOTH_MOVEMENT;
         c->mode = CAMERA_MODE_FIXED;
+        skip_camera_interpolation();
     }
 }
 
@@ -5909,6 +5915,7 @@ BAD_RETURN(s32) cam_castle_enter_lobby(struct Camera *c) {
         sStatusFlags &= ~CAM_FLAG_SMOOTH_MOVEMENT;
         set_fixed_cam_axis_sa_lobby(c->mode);
         c->mode = CAMERA_MODE_FIXED;
+        skip_camera_interpolation();
     }
 }
 
@@ -7279,6 +7286,7 @@ BAD_RETURN(s32) cutscene_unused_loop(UNUSED struct Camera *c) {
 BAD_RETURN(s32) cutscene_ending_mario_fall_start(struct Camera *c) {
     vec3f_set(c->focus, -26.f, 0.f, -137.f);
     vec3f_set(c->pos, 165.f, 4725.f, 324.f);
+    skip_camera_interpolation();
 }
 
 /**
@@ -7311,6 +7319,7 @@ BAD_RETURN(s32) cutscene_ending_mario_fall(struct Camera *c) {
 BAD_RETURN(s32) cutscene_ending_mario_land_closeup(struct Camera *c) {
     vec3f_set(c->focus, 85.f, 826.f, 250.f);
     vec3f_set(c->pos, -51.f, 988.f, -202.f);
+    skip_camera_interpolation();
     player2_rotate_cam(c, -0x2000, 0x2000, -0x2000, 0x2000);
 }
 
@@ -7320,6 +7329,7 @@ BAD_RETURN(s32) cutscene_ending_mario_land_closeup(struct Camera *c) {
 BAD_RETURN(s32) cutscene_ending_reset_spline(UNUSED struct Camera *c) {
     sCutsceneVars[9].point[0] = 0.f;
     cutscene_reset_spline();
+    skip_camera_interpolation();
 }
 
 /**
@@ -7355,6 +7365,7 @@ BAD_RETURN(s32) cutscene_ending_peach_appear_closeup(struct Camera *c) {
     vec3f_set(c->pos, 179.f, 2463.f, -1216.f);
     c->pos[1] = gCutsceneFocus->oPosY + 35.f;
     vec3f_set(c->focus, gCutsceneFocus->oPosX, gCutsceneFocus->oPosY + 125.f, gCutsceneFocus->oPosZ);
+    skip_camera_interpolation();
 }
 
 /**
@@ -7373,6 +7384,7 @@ BAD_RETURN(s32) cutscene_ending_peach_appears(struct Camera *c) {
 BAD_RETURN(s32) cutscene_ending_peach_descends_start(UNUSED struct Camera *c) {
     cutscene_reset_spline();
     sCutsceneVars[2].point[1] = 150.f;
+    skip_camera_interpolation();
 }
 
 /**
@@ -7459,6 +7471,7 @@ BAD_RETURN(s32) cutscene_ending_peach_wakeup(struct Camera *c) {
 BAD_RETURN(s32) cutscene_ending_dialog(struct Camera *c) {
     vec3f_set(c->focus, 11.f, 983.f, -1273.f);
     vec3f_set(c->pos, -473.f, 970.f, -1152.f);
+    skip_camera_interpolation();
     player2_rotate_cam(c, -0x800, 0x2000, -0x2000, 0x2000);
 }
 
@@ -7469,6 +7482,7 @@ BAD_RETURN(s32) cutscene_ending_kiss_closeup(struct Camera *c) {
     set_fov_function(CAM_FOV_SET_29);
     vec3f_set(c->focus, 350.f, 1034.f, -1216.f);
     vec3f_set(c->pos, -149.f, 1021.f, -1216.f);
+    skip_camera_interpolation();
 }
 
 /**
@@ -7504,6 +7518,7 @@ BAD_RETURN(s32) cutscene_ending_kiss(struct Camera *c) {
 BAD_RETURN(s32) cutscene_ending_look_at_sky(struct Camera *c) {
     move_point_along_spline(c->focus, sEndingLookAtSkyFocus, &sCutsceneSplineSegment, &sCutsceneSplineSegmentProgress);
     vec3f_set(c->pos, 699.f, 1680.f, -703.f);
+    skip_camera_interpolation();
 }
 
 /**
@@ -10340,6 +10355,7 @@ BAD_RETURN(s32) cutscene_door_start(struct Camera *c) {
 BAD_RETURN(s32) cutscene_door_fix_cam(struct Camera *c) {
     vec3f_copy(c->pos, sCutsceneVars[0].point);
     vec3f_copy(c->focus, sCutsceneVars[1].point);
+    skip_camera_interpolation();
 }
 
 /**
@@ -10373,6 +10389,7 @@ BAD_RETURN(s32) cutscene_door_move_behind_mario(struct Camera *c) {
     }
 
     offset_rotated(c->pos, sMarioCamState->pos, camOffset, sCutsceneVars[0].angle);
+    skip_camera_interpolation();
 }
 
 /**

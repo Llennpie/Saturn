@@ -1,4 +1,5 @@
 #ifdef EXT_OPTIONS_MENU
+#ifdef DYNOS_INL
 
 #include "sm64.h"
 #include "text_strings.h"
@@ -630,3 +631,4 @@ void optmenu_check_buttons(void) {
 }
 
 #endif // EXT_OPTIONS_MENU
+#endif
