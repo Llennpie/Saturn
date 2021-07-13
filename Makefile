@@ -136,7 +136,7 @@ endif
 endif
 endif
 
-TARGET := sm64.$(VERSION)
+TARGET := saturn.$(VERSION)
 VERSION_CFLAGS := -D$(VERSION_DEF) -D_LANGUAGE_C
 VERSION_ASFLAGS := --defsym $(VERSION_DEF)=1
 
