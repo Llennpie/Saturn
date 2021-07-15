@@ -221,7 +221,7 @@ static void set_state(void) {
 }
 
 void set_logo(void) {
-    discordRichPresence.largeImageKey = "logo-bg2-saturn";
+    discordRichPresence.largeImageKey = "icon-bg2-saturn";
     discordRichPresence.largeImageText = "Saturn";
     discordRichPresence.smallImageKey = "circle2-512";
     discordRichPresence.smallImageText = "v64.dev";
