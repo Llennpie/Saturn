@@ -223,7 +223,17 @@ static void set_state(void) {
 void set_logo(void) {
     discordRichPresence.largeImageKey = "icon-bg2-saturn";
     discordRichPresence.largeImageText = "Saturn";
-    discordRichPresence.smallImageKey = "circle2-512";
+    if (gCurrLevelNum == LEVEL_SA) {
+        if (gCurrAreaIndex == 1) {
+            discordRichPresence.smallImageKey = "green";
+        } else if (gCurrAreaIndex == 2) {
+            discordRichPresence.smallImageKey = "blue";
+        } else if (gCurrAreaIndex == 3) {
+            discordRichPresence.smallImageKey = "pink";
+        }
+    } else {
+        discordRichPresence.smallImageKey = "circle2-512";
+    }
     discordRichPresence.smallImageText = "v64.dev";
 }
 
