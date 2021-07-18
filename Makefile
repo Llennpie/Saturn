@@ -52,6 +52,9 @@ EXTERNAL_DATA = 1
 # Enable Discord Rich Presence
 DISCORDRPC = 1
 
+# Enable Project64 control scheme
+PJ64_CONTROLS ?= 1
+
 # Various workarounds for weird toolchains
 
 NO_BZERO_BCOPY ?= 0
@@ -610,6 +613,12 @@ endif
 ifeq ($(LEGACY_GL),1)
   CC_CHECK += -DLEGACY_GL
   CFLAGS += -DLEGACY_GL
+endif
+
+# Use Project64 controls
+ifeq ($(PJ64_CONTROLS),1)
+  CC_CHECK += -DPJ64_CONTROLS
+  CFLAGS += -DPJ64_CONTROLS
 endif
 
 # Load external textures
