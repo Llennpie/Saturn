@@ -567,10 +567,6 @@ s8 correct_shadow_solidity_for_animations(s32 isLuigi, u8 initialSolidity, struc
             break;
     }
 
-    if (gCurrLevelNum == LEVEL_SA || dynos_opt_get_value("shadow") == 0) {
-        ret = SHADOW_SOLIDITY_NO_SHADOW;
-    }
-
     return ret;
 }
 
@@ -858,6 +854,11 @@ Gfx *create_shadow_hardcoded_rectangle(f32 xPos, f32 yPos, f32 zPos, UNUSED s16 
  */
 Gfx *create_shadow_below_xyz(f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, u8 shadowSolidity,
                              s8 shadowType) {
+
+    if (gCurrLevelNum == LEVEL_SA || dynos_opt_get_value("shadow") == 0) {
+        return NULL;
+    }
+
     Gfx *displayList = NULL;
     struct Surface *pfloor;
     find_floor(xPos, yPos, zPos, &pfloor);
