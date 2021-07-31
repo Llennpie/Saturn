@@ -6,25 +6,21 @@
 #### Features
 
 - New camera system
-  - Doesn't rely on M64MM's pause camera method, allowing more freedom
-  - You can rotate the frozen camera by entering Mario camera
-  - Works in all levels
 - Live model loading
-  - Not only allows color codes, but also custom textures AND/OR models
-  - Can be used in the pause menu (don't need to restart the game)
-  - Supports Fast64
-  - *A color code tutorial/conversion tool is in progress*
-- Changeable eye states
-  - When paired with texture packs, you can create custom eye textures
+  - Not only allows color codes, but also custom textures AND/OR Fast64 models
+- Changeable eye states/textures
 - Completely rebindable controls
   - All controls in the game, including those used for machinima, are 100% configurable
-  - Controller support
-  - HUD, head rotations, fullscreen, etc. can also be toggled in the pause menu
+
+## Installation
+
+For building instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).<br>
+Saturn currently supports Windows ([MSYS2](https://www.msys2.org/)) and Linux.
+
+*See [here](https://github.com/sm64pc/sm64ex/wiki) for other untested build platforms. These may require source code modifications.*
 
 ![Screenshot](screenshot.png)
 
-## Building
+*In case you feel this project deserves some extra love, I have a Ko-fi below.*
 
-For building instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).
-
-*Note that building for Windows requires [MSYS2](https://www.msys2.org/).*
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J05B5WR)
