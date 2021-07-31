@@ -90,5 +90,8 @@ else:
             f.write(filedata)
             f.close()
 
+            # Copy over new texture
+            shutil.copy("textures/saturn/mario_logo.rgba16.png", fp_destination)
+
             print("\nFinished writing to " + cc_name + ".\nYou can find your CC under the DynOS Menu > Model Packs.")
             print("\nIf you want to edit textures, you can find them under build/us_pc/dynos/packs/" + cc_name + ".\nYou may also have to delete mario_geo.bin in that folder to reload the model.")

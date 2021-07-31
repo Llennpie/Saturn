@@ -63,6 +63,7 @@ sm64config.txt
 /levels/**/*.png
 /actors/**/*.png
 /textures/**/*.png
+!/textures/saturn/*.png
 /assets/**/*.bin
 /sound/**/*.m64
 /sound/**/*.aiff
