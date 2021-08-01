@@ -318,6 +318,7 @@ void DynOS_Opt_SetValue(const String &aName, s32 aValue) {
             default:               break;
         }
     }
+    DynOS_Opt_SaveConfig(sDynosMenu);
 }
 
 //

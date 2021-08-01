@@ -30,9 +30,6 @@
 #include "level_table.h"
 #include "pc/configfile.h"
 
-#include "data/dynos.c.h"
-#define FREEZE_BUTTON   0x0800
-
 #define CBUTTON_MASK (U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS)
 
 /**
@@ -3024,7 +3021,6 @@ void update_lakitu(struct Camera *c) {
     gLakituState.defMode = c->defMode;
 }
 
-u8 frozen = 0;
 
 /**
  * The main camera update function.
@@ -3210,35 +3206,39 @@ void update_camera(struct Camera *c) {
     start_cutscene(c, get_cutscene_from_mario_status(c));
     stub_camera_2(c);
     gCheckingSurfaceCollisionsForCamera = FALSE;
-    if (true) {
-        // Fixed camera has been rewritten as a Machinima freeze camera
-        // The camera will be fixed in any level, as long as frozen is equal to 1
+    if (gCurrLevelNum != LEVEL_CASTLE) {
+        // If fixed camera is selected as the alternate mode, then fix the camera as long as the right
+        // trigger is held
         if ((c->cutscene == 0 &&
-            (frozen == 1))
+            (gPlayer1Controller->buttonDown & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED)
             || (gCameraMovementFlags & CAM_MOVE_FIX_IN_PLACE)
             || (sMarioCamState->action) == ACT_GETTING_BLOWN) {
 
-            // Fixed mode now prevents Lakitu from both moving and rotating
-            // Lakitu will only rotate in Mario camera
+            // If this is the first frame that R_TRIG is held, play the "click" sound
+            if (c->cutscene == 0 && (gPlayer1Controller->buttonPressed & R_TRIG)
+                && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
+                sCameraSoundFlags |= CAM_SOUND_FIXED_ACTIVE;
+                play_sound_rbutton_changed();
+            }
+
+            // Fixed mode only prevents Lakitu from moving. The camera pos still updates, so
+            // Lakitu will fly to his next position as normal whenever R_TRIG is released.
             gLakituState.posHSpeed = 0.f;
             gLakituState.posVSpeed = 0.f;
-            if (set_cam_angle(0) != CAM_ANGLE_MARIO) {
-                gLakituState.focHSpeed = 0.f;
-                gLakituState.focVSpeed = 0.f;
-            }
 
             c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
             c->yaw = c->nextYaw;
             gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
+        } else {
+            // Play the "click" sound when fixed mode is released
+            if (sCameraSoundFlags & CAM_SOUND_FIXED_ACTIVE) {
+                play_sound_rbutton_changed();
+                sCameraSoundFlags &= ~CAM_SOUND_FIXED_ACTIVE;
+            }
         }
-    }
-
-    // Toggle frozen 0/1
-    if (gPlayer1Controller->buttonPressed & FREEZE_BUTTON) {
-        if (frozen == 0) {
-            frozen = 1;
-        } else if (frozen == 1) {
-            frozen = 0;
+    } else {
+        if ((gPlayer1Controller->buttonPressed & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
+            play_sound_button_change_blocked();
         }
     }
 
@@ -10915,7 +10915,7 @@ u8 sZoomOutAreaMasks[] = {
 	ZOOMOUT_AREA_MASK(0, 0, 0, 0, 1, 0, 0, 0), // TTC            | RR
 	ZOOMOUT_AREA_MASK(1, 0, 0, 0, 1, 0, 0, 0), // CASTLE_GROUNDS | BITDW
 	ZOOMOUT_AREA_MASK(0, 0, 0, 0, 1, 0, 0, 0), // VCUTM          | BITFS
-	ZOOMOUT_AREA_MASK(1, 1, 1, 0, 1, 0, 0, 0), // SA             | BITS
+	ZOOMOUT_AREA_MASK(0, 0, 0, 0, 1, 0, 0, 0), // SA             | BITS
 	ZOOMOUT_AREA_MASK(1, 0, 0, 0, 0, 0, 0, 0), // LLL            | DDD
 	ZOOMOUT_AREA_MASK(1, 0, 0, 0, 0, 0, 0, 0), // WF             | ENDING
 	ZOOMOUT_AREA_MASK(0, 0, 0, 0, 0, 0, 0, 0), // COURTYARD      | PSS

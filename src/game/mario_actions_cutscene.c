@@ -30,6 +30,7 @@
 #include "thread6.h"
 #include "../../include/libc/stdlib.h"
 #include "pc/pc_main.h"
+#include "saturn/saturn.h"
 
 // TODO: put this elsewhere
 enum SaveOption { SAVE_OPT_SAVE_AND_CONTINUE = 1, SAVE_OPT_SAVE_AND_QUIT, SAVE_OPT_SAVE_EXIT_GAME, SAVE_OPT_CONTINUE_DONT_SAVE };
@@ -2161,7 +2162,8 @@ static void end_peach_cutscene_run_to_peach(struct MarioState *m) {
     play_step_sound(m, 9, 45);
 
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
-    m->particleFlags |= PARTICLE_DUST;
+    if (enable_dust_particles)
+        m->particleFlags |= PARTICLE_DUST;
 }
 
 // dialog 1

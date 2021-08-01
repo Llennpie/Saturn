@@ -12,8 +12,7 @@
 #include "segment2.h"
 #include "shadow.h"
 #include "sm64.h"
-
-#include "data/dynos.c.h"
+#include "saturn/saturn.h"
 
 // Avoid Z-fighting
 #define find_floor_height_and_data 0.4 + find_floor_height_and_data
@@ -566,7 +565,6 @@ s8 correct_shadow_solidity_for_animations(s32 isLuigi, u8 initialSolidity, struc
             ret = SHADOW_SOLIDITY_NOT_YET_SET;
             break;
     }
-
     return ret;
 }
 
@@ -854,11 +852,11 @@ Gfx *create_shadow_hardcoded_rectangle(f32 xPos, f32 yPos, f32 zPos, UNUSED s16 
  */
 Gfx *create_shadow_below_xyz(f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, u8 shadowSolidity,
                              s8 shadowType) {
-
-    if (gCurrLevelNum == LEVEL_SA || dynos_opt_get_value("shadow") == 0) {
+    
+    if (!enable_shadows) {
         return NULL;
     }
-
+    
     Gfx *displayList = NULL;
     struct Surface *pfloor;
     find_floor(xPos, yPos, zPos, &pfloor);

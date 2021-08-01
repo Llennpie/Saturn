@@ -40,6 +40,8 @@
 #include "gfx_cc.h"
 #include "gfx_rendering_api.h"
 
+#include "src/saturn/imgui/saturn_imgui.h"
+
 #define TEX_CACHE_STEP 512
 
 struct ShaderProgram {
@@ -655,6 +657,7 @@ static void gfx_opengl_start_frame(void) {
 }
 
 static void gfx_opengl_end_frame(void) {
+    saturn_imgui_update();
 }
 
 static void gfx_opengl_finish_render(void) {

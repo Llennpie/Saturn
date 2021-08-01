@@ -17,8 +17,7 @@
 #include "sound_init.h"
 #include "surface_terrains.h"
 #include "thread6.h"
-
-#include "data/dynos.c.h"
+#include "saturn/saturn.h"
 
 s32 check_common_idle_cancels(struct MarioState *m) {
     mario_drop_held_object(m);
@@ -135,7 +134,9 @@ s32 act_idle(struct MarioState *m) {
     } else {
         switch (m->actionState) {
             case 0:
-                if (dynos_opt_get_value("head_rotations") == 1) {
+                if (is_anim_playing)
+                    break;
+                if (enable_head_rotations) {
                     set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_LEFT);
                 } else {
                     set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
@@ -143,7 +144,9 @@ s32 act_idle(struct MarioState *m) {
                 break;
 
             case 1:
-                if (dynos_opt_get_value("head_rotations") == 1) {
+                if (is_anim_playing)
+                    break;
+                if (enable_head_rotations) {
                     set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_RIGHT);
                 } else {
                     set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
@@ -151,7 +154,9 @@ s32 act_idle(struct MarioState *m) {
                 break;
 
             case 2:
-                if (dynos_opt_get_value("head_rotations") == 1) {
+                if (is_anim_playing)
+                    break;
+                if (enable_head_rotations) {
                     set_mario_animation(m, MARIO_ANIM_IDLE_HEAD_CENTER);
                 } else {
                     set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
@@ -1104,7 +1109,8 @@ s32 act_first_person(struct MarioState *m) {
     }
 
     stationary_ground_step(m);
-    set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
+    if (!is_anim_playing)
+        set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
     return 0;
 }
 

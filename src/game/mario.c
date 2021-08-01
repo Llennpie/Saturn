@@ -39,9 +39,6 @@
 #include "bettercamera.h"
 #endif
 
-#include "data/dynos.c.h"
-#define SCROLL_EYES   0x0100
-
 u32 unused80339F10;
 s8 filler80339F1C[20];
 
@@ -1563,7 +1560,9 @@ void update_mario_info_for_cam(struct MarioState *m) {
     }
 }
 
-u8 scrollEyeState = MARIO_EYES_BLINK;
+int scrollCapState = MARIO_HAS_DEFAULT_CAP_OFF;
+int scrollEyeState = MARIO_EYES_BLINK;
+int scrollHandState = MARIO_HAND_FISTS;
 
 /**
  * Resets Mario's model, done every time an action is executed.
@@ -1573,34 +1572,11 @@ void mario_reset_bodystate(struct MarioState *m) {
 
     bodyState->capState = MARIO_HAS_DEFAULT_CAP_OFF;
     bodyState->eyeState = scrollEyeState;
-    bodyState->handState = MARIO_HAND_FISTS;
+    bodyState->handState = scrollHandState;
     bodyState->modelState = 0;
     bodyState->wingFlutter = FALSE;
 
     m->flags &= ~MARIO_METAL_SHOCK;
-
-    // Machinima
-    if (gMarioState->controller->buttonPressed & SCROLL_EYES) {
-        if (scrollEyeState == MARIO_EYES_BLINK) {
-            scrollEyeState = MARIO_EYES_OPEN;
-        } else if (scrollEyeState == MARIO_EYES_OPEN) {
-            scrollEyeState = MARIO_EYES_HALF_CLOSED;
-        } else if (scrollEyeState == MARIO_EYES_HALF_CLOSED) {
-            scrollEyeState = MARIO_EYES_CLOSED;
-        } else if (scrollEyeState == MARIO_EYES_CLOSED) {
-            scrollEyeState = MARIO_EYES_LOOK_LEFT;
-        } else if (scrollEyeState == MARIO_EYES_LOOK_LEFT) {
-            scrollEyeState = MARIO_EYES_LOOK_RIGHT;
-        } else if (scrollEyeState == MARIO_EYES_LOOK_RIGHT) {
-            scrollEyeState = MARIO_EYES_LOOK_UP;
-        } else if (scrollEyeState == MARIO_EYES_LOOK_UP) {
-            scrollEyeState = MARIO_EYES_LOOK_DOWN;
-        } else if (scrollEyeState == MARIO_EYES_LOOK_DOWN) {
-            scrollEyeState = MARIO_EYES_DEAD;
-        } else if (scrollEyeState == MARIO_EYES_DEAD) {
-            scrollEyeState = MARIO_EYES_BLINK;
-        }
-    }
 }
 
 /**

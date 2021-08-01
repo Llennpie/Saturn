@@ -36,6 +36,8 @@
 
 #include "src/pc/controller/controller_keyboard.h"
 
+#include "src/saturn/imgui/saturn_imgui.h"
+
 // TODO: figure out if this shit even works
 #ifdef VERSION_EU
 # define FRAMERATE 25
@@ -222,8 +224,8 @@ static void gfx_sdl_init(const char *window_title) {
     //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-    int xpos = (configWindow.x == WAPI_WIN_CENTERPOS) ? SDL_WINDOWPOS_CENTERED : configWindow.x;
-    int ypos = (configWindow.y == WAPI_WIN_CENTERPOS) ? SDL_WINDOWPOS_CENTERED : configWindow.y;
+    int xpos = SDL_WINDOWPOS_CENTERED;
+    int ypos = SDL_WINDOWPOS_CENTERED;
 
     wnd = SDL_CreateWindow(
         window_title,
@@ -231,6 +233,8 @@ static void gfx_sdl_init(const char *window_title) {
         SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
     ctx = SDL_GL_CreateContext(wnd);
+
+    saturn_imgui_init(wnd, ctx);
 
     gfx_sdl_set_vsync(configWindow.vsync);
 
@@ -292,6 +296,9 @@ static void gfx_sdl_onkeyup(int scancode) {
 static void gfx_sdl_handle_events(void) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+
+        saturn_imgui_handle_events(&event);
+
         switch (event.type) {
 #ifndef TARGET_WEB
             // Scancodes are broken in Emscripten SDL2: https://bugzilla.libsdl.org/show_bug.cgi?id=3259

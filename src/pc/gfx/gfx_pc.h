@@ -1,6 +1,8 @@
 #ifndef GFX_PC_H
 #define GFX_PC_H
 
+#include <PR/gbi.h>
+
 struct GfxRenderingAPI;
 struct GfxWindowManagerAPI;
 

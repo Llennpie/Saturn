@@ -37,23 +37,20 @@ NO_PIE ?= 1
 TARGET_ARCH ?= native
 TARGET_BITS ?= 0
 
-# Disable better camera (breaks machinima camera)
+# Disable better camera
 BETTERCAMERA = 0
 # Enable no drawing distance by default
 NODRAWINGDISTANCE ?= 1
-# Disable texture fixes by default (helps with them purists)
-TEXTURE_FIX ?= 0
+# Enable texture fixes by default (optional for them purists)
+TEXTURE_FIX ?= 1
 # Enable extended options menu by default
 EXT_OPTIONS_MENU ?= 1
 # Disable text-based save-files by default
 TEXTSAVES ?= 0
 # Load resources from external files
-EXTERNAL_DATA = 1
+EXTERNAL_DATA ?= 1
 # Enable Discord Rich Presence
-DISCORDRPC = 1
-
-# Enable Project64 control scheme
-PJ64_CONTROLS ?= 1
+DISCORDRPC ?= 1
 
 # Various workarounds for weird toolchains
 
@@ -61,15 +58,16 @@ NO_BZERO_BCOPY ?= 0
 NO_LDIV ?= 0
 
 # Backend selection
+# These are currently forced to GL & SDL2 because of ImGui/Saturn
 
 # Renderers: GL, GL_LEGACY, D3D11, D3D12
-RENDER_API ?= GL
+RENDER_API = GL
 # Window managers: SDL1, SDL2, DXGI (forced if D3D11 or D3D12 in RENDER_API)
-WINDOW_API ?= SDL2
+WINDOW_API = SDL2
 # Audio backends: SDL1, SDL2
-AUDIO_API ?= SDL2
+AUDIO_API = SDL2
 # Controller backends (can have multiple, space separated): SDL2, SDL1
-CONTROLLER_API ?= SDL2
+CONTROLLER_API = SDL2
 
 # Misc settings for EXTERNAL_DATA
 
@@ -296,6 +294,11 @@ ASM_DIRS :=
 ifeq ($(DISCORDRPC),1)
   SRC_DIRS += src/pc/discord
 endif
+
+# Saturn
+SRC_DIRS += src/saturn
+SRC_DIRS += src/saturn/imgui
+SRC_DIRS += src/saturn/libs/imgui
 
 BIN_DIRS := bin bin/$(VERSION)
 
@@ -559,6 +562,12 @@ else
 
 endif
 
+
+# Saturn Enable filesystem library and C++17
+CXXFLAGS := -std=c++17
+LDFLAGS += -lstdc++fs
+LDFLAGS += -lstdc++
+
 # Check for enhancement options
 
 # Check for Puppycam option
@@ -615,12 +624,6 @@ ifeq ($(LEGACY_GL),1)
   CFLAGS += -DLEGACY_GL
 endif
 
-# Use Project64 controls
-ifeq ($(PJ64_CONTROLS),1)
-  CC_CHECK += -DPJ64_CONTROLS
-  CFLAGS += -DPJ64_CONTROLS
-endif
-
 # Load external textures
 ifeq ($(EXTERNAL_DATA),1)
   CC_CHECK += -DEXTERNAL_DATA -DFS_BASEDIR="\"$(BASEDIR)\""
@@ -657,10 +660,12 @@ else
   endif
 
   ifeq ($(DISCORDRPC),1)
-    LDFLAGS += -Wl,-rpath .
+    LDFLAGS += -ldl -Wl,-rpath .
   endif
 
 endif # End of LDFLAGS
+
+LDFLAGS += -lstdc++
 
 # Prevent a crash with -sopt
 export LANG := C
@@ -986,8 +991,8 @@ $(GLOBAL_ASM_DEP).$(NON_MATCHING):
 	touch $@
 
 $(BUILD_DIR)/%.o: %.cpp
-	@$(CXX) -fsyntax-only $(CFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<
-	$(CXX) -c $(CFLAGS) -o $@ $<
+	@$(CXX) -fsyntax-only $(CFLAGS) $(CXXFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<
+	$(CXX) -c $(CFLAGS) $(CXXFLAGS) -o $@ $<
 
 $(BUILD_DIR)/%.o: %.c
 	@$(CC_CHECK) $(CC_CHECK_CFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<
