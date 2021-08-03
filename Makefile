@@ -12,8 +12,8 @@ default: all
 
 # Build debug version
 DEBUG ?= 0
-# Version of the game to build
-VERSION ?= us
+# Version of the game to build. Forced to US because of DynOS
+VERSION = us
 # Graphics microcode used
 GRUCODE ?= f3dex2e
 # If COMPARE is 1, check the output sha1sum when building 'all'
