@@ -45,6 +45,7 @@ using namespace std;
 
 void saturn_update() {
 
+    /*
     if (camera_frozen == true) {
         if (set_cam_angle(0) != CAM_ANGLE_MARIO) {
             gLakituState.focVSpeed = camera_speed;
@@ -56,6 +57,8 @@ void saturn_update() {
         gCamera->yaw = gCamera->nextYaw;
         gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
     }
+    */
+   P2CamAvtive = (camera_frozen) ? 1 : 0;
 
     if (is_anim_playing && is_anim_past_end(gMarioState)) {
         is_anim_playing = false;
@@ -87,6 +90,7 @@ void saturn_update() {
     if (gPlayer1Controller->buttonPressed & FREEZE_CAMERA) {
         camera_frozen = !camera_frozen;
     }
+
     if (gPlayer1Controller->buttonPressed & CYCLE_EYE_STATE) {
         if (scrollEyeState != 8) {
             scrollEyeState += 1;

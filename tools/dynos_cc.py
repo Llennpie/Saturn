@@ -25,15 +25,28 @@ if (os.path.exists('./.assets-local.txt') == False):
     print("Please compile the game before running this script!\n")
     quit()
 
+# Note
+
+print("Note that this converter is unfinished and doesn't always work with older color codes. For best results, use either cometSpectrum or M64MM.\n")
+
 # Declare GS code
 
-print("Enter GS code (multiline):\n")
+print("Paste GS code (then press enter twice):\n")
+
+base_address = "8107EC"
+good_addresses = ["20", "22", "28", "2A", "38", "3A", "40", "42", "50", "52", "58", "5A", "68", "6A", "70", "72", "80", "82", "88", "8A", "98", "9A", "A0", "A2"]
 
 t_lines = []
-for i in range(24):
-    t_lines.append(input())
+current_line = "a"
+while (current_line != ""):
+    current_line = input()
+    for addr in good_addresses:
+        if base_address + addr in current_line:
+            t_lines.append(current_line)
 
 t_lines.sort()
+
+print("\n")
 
 #pain
 c5 = "0x" + t_lines[0].partition(" ")[2][:2].lower() + ", 0x" + t_lines[0].partition(" ")[2][2:].lower() + ", 0x" + t_lines[1].partition(" ")[2][:2].lower() + ","
@@ -69,26 +82,24 @@ else:
             fp_destination = shutil.copytree(fp_mario, fp_model + "/mario")
             fp_modeldata = fp_destination + "/model.inc.c"
 
-            f = open(fp_modeldata, "r")
-            filedata = f.read()
-            f.close()
+            with open(fp_modeldata, 'r') as file:
+                filelines = file.readlines()
 
-            filedata = filedata.replace("0x00, 0x00, 0x7f,", c5)
-            filedata = filedata.replace("0x00, 0x00, 0xff,", c6)
-            filedata = filedata.replace("0x7f, 0x00, 0x00,", c11)
-            filedata = filedata.replace("0xff, 0x00, 0x00,", c12)
-            filedata = filedata.replace("0x7f, 0x7f, 0x7f,", c17)
-            filedata = filedata.replace("0xff, 0xff, 0xff,", c18)
-            filedata = filedata.replace("0x39, 0x0e, 0x07,", c23)
-            filedata = filedata.replace("0x72, 0x1c, 0x0e,", c24)
-            filedata = filedata.replace("0x7f, 0x60, 0x3c,", c29)
-            filedata = filedata.replace("0xfe, 0xc1, 0x79,", c30)
-            filedata = filedata.replace("0x39, 0x03, 0x00,", c35)
-            filedata = filedata.replace("0x73, 0x06, 0x00,", c36)
+            filelines[4] = "    " + c5
+            filelines[5] = "    " + c6 + " 0x28, 0x28, 0x28"
+            filelines[10] = "    " + c11
+            filelines[11] = "    " + c12 + " 0x28, 0x28, 0x28"
+            filelines[16] = "    " + c17
+            filelines[17] = "    " + c18 + " 0x28, 0x28, 0x28"
+            filelines[22] = "    " + c23
+            filelines[23] = "    " + c24 + " 0x28, 0x28, 0x28"
+            filelines[28] = "    " + c29
+            filelines[29] = "    " + c30 + " 0x28, 0x28, 0x28"
+            filelines[34] = "    " + c35
+            filelines[35] = "    " + c36 + " 0x28, 0x28, 0x28"
 
-            f = open(fp_modeldata, "w")
-            f.write(filedata)
-            f.close()
+            with open(fp_modeldata, 'w') as file:
+                file.writelines(filelines)
 
             # Copy over new texture
             shutil.copy("textures/saturn/mario_logo.rgba16.png", fp_destination)

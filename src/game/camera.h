@@ -775,4 +775,7 @@ void obj_rotate_towards_point(struct Object *o, Vec3f point, s16 pitchOff, s16 y
 
 Gfx *geo_camera_fov(s32 callContext, struct GraphNode *g, UNUSED void *context);
 
+extern u8 P2CamAvtive;
+extern f32 camVelSpeed;
+
 #endif // CAMERA_H

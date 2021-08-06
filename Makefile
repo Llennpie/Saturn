@@ -141,6 +141,10 @@ TARGET := saturn.$(VERSION)
 VERSION_CFLAGS := -D$(VERSION_DEF) -D_LANGUAGE_C
 VERSION_ASFLAGS := --defsym $(VERSION_DEF)=1
 
+# Stuff for showing the git hash in the title bar
+GIT_HASH := $(shell git rev-parse --short HEAD)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+
 # Stuff for showing the git hash in the intro on nightly builds
 # From https://stackoverflow.com/questions/44038428/include-git-commit-hash-and-or-branch-name-in-c-c-source
 ifeq ($(shell git rev-parse --abbrev-ref HEAD),nightly)
@@ -567,6 +571,12 @@ endif
 CXXFLAGS := -std=c++17
 LDFLAGS += -lstdc++fs
 LDFLAGS += -lstdc++
+
+CC_CHECK += -DGIT_HASH=\"$(GIT_HASH)\"
+CFLAGS   += -DGIT_HASH=\"$(GIT_HASH)\"
+
+CC_CHECK += -DGIT_BRANCH=\"$(GIT_BRANCH)\"
+CFLAGS   += -DGIT_BRANCH=\"$(GIT_BRANCH)\"
 
 # Check for enhancement options
 

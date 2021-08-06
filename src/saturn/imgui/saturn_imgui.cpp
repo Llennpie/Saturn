@@ -43,6 +43,8 @@ extern "C" {
 #include "pc/gfx/gfx_pc.h"
 #include "pc/configfile.h"
 #include "game/mario.h"
+#include "game/game_init.h"
+#include "game/camera.h"
 }
 
 using namespace std;
@@ -162,6 +164,11 @@ void saturn_imgui_update() {
             ImGui::SetWindowSize(ImVec2(300, 100));
             ImGui::Text("Platform: " PLATFORM " (" RAPI_NAME ")");
             ImGui::Text("Status: %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+#ifdef GIT_BRANCH
+#ifdef GIT_HASH
+            ImGui::Text("Version: " GIT_BRANCH " " GIT_HASH);
+#endif
+#endif
             imgui_bundled_space(20);
 #ifdef DISCORDRPC
             ImGui::SetWindowSize(ImVec2(300, 175));
@@ -170,6 +177,7 @@ void saturn_imgui_update() {
             imgui_bundled_space(20);
 #endif
             ImGui::Text("Press F12 to hide/show menu");
+
             ImGui::End();
             ImGui::PopStyleColor();
         }
@@ -179,13 +187,15 @@ void saturn_imgui_update() {
             ImGui::Begin("Machinima", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
             ImGui::SetWindowSize(ImVec2(300, 250));
-            ImGui::Checkbox("Freeze Camera", &camera_frozen);
-            imgui_bundled_tooltip("Freezes the camera in place, limiting movement and rotation.");
+            ImGui::Checkbox("Machinima Camera", &camera_frozen);
+            imgui_bundled_tooltip("Toggles the machinima camera.");
+            
             if (camera_frozen == true) {
-                ImGui::SliderFloat("Speed", &camera_speed, 0.0f, 0.3f);
-                imgui_bundled_tooltip("Controls camera speed while frozen.");
+                ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
+                imgui_bundled_tooltip("Controls the speed of the machinima camera. Default is 1.");
                 ImGui::Dummy(ImVec2(0, 5));
             }
+            
             const char* eyes[] = { "Blinking", "Open", "Half", "Closed", "Left", "Right", "Up", "Down", "Dead" };
             ImGui::Combo("Eye State", &scrollEyeState, eyes, IM_ARRAYSIZE(eyes));
             const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };

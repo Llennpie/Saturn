@@ -2580,6 +2580,8 @@ s32 exit_c_up(struct Camera *c) {
         vec3f_copy(curPos, c->pos);
         curDist = 80.f;
 
+        /*
+
         // Search for an open direction to zoom out in, if the camera is changing to close, free roam,
         // or spiral-stairs mode
         if (sModeInfo.lastMode == CAMERA_MODE_SPIRAL_STAIRS || sModeInfo.lastMode == CAMERA_MODE_CLOSE
@@ -2645,6 +2647,9 @@ s32 exit_c_up(struct Camera *c) {
             gCameraMovementFlags &= ~(CAM_MOVE_STARTED_EXITING_C_UP | CAM_MOVE_C_UP_MODE);
             vec3f_set_dist_and_angle(checkFoc, c->pos, curDist, curPitch, curYaw + checkYaw);
         }
+        */
+    
+        gCameraMovementFlags &= ~(CAM_MOVE_STARTED_EXITING_C_UP | CAM_MOVE_C_UP_MODE);
         play_sound_cbutton_down();
     }
     return 0;
@@ -3020,8 +3025,11 @@ void update_lakitu(struct Camera *c) {
     gLakituState.mode = c->mode;
     gLakituState.defMode = c->defMode;
 }
-
-
+#include "engine/math_util.h"
+u8 P2CamAvtive = 0;
+f32 camVelY = 0.f;
+s16 yarSpeed = 0;
+f32 camVelSpeed = 1.f;
 /**
  * The main camera update function.
  * Gets controller input, checks for cutscenes, handles mode changes, and moves the camera
@@ -3038,7 +3046,7 @@ void update_camera(struct Camera *c) {
             && c->mode != CAMERA_MODE_NEWCAM
 #endif
             ) {
-            if (gPlayer1Controller->buttonPressed & R_TRIG) {
+            if (gPlayer1Controller->buttonPressed & R_TRIG && !P2CamAvtive) {
                 if (set_cam_angle(0) == CAM_ANGLE_LAKITU) {
                     set_cam_angle(CAM_ANGLE_MARIO);
                 } else {
@@ -3138,67 +3146,126 @@ void update_camera(struct Camera *c) {
                     mode_mario_camera(c);
             }
         } else {
-            switch (c->mode) {
-                case CAMERA_MODE_BEHIND_MARIO:
-                    mode_behind_mario_camera(c);
-                    break;
+            if (P2CamAvtive) {
+                if (gPlayer1Controller->buttonDown & L_TRIG) {
+                    if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+                        camVelY += 10.f * camVelSpeed;
+                    }
+                    if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+                        camVelY -= 10.f * camVelSpeed;
+                    }
+                } else {
+                    if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+                        c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                    }
+                    if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+                        c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                    }
+                    if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
+                        c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                    }
+                    if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
+                        c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                    }
+                }
 
-                case CAMERA_MODE_C_UP:
-                    mode_c_up_camera(c);
-                    break;
+                c->pos[1] += camVelY;
+                c->focus[1] += camVelY;
+                camVelY = approach_f32_symmetric(camVelY, 0.f, 2.f);
+                camVelY = approach_f32_asymptotic(camVelY, 0.f, 0.1f);
 
-                case CAMERA_MODE_WATER_SURFACE:
-                    mode_water_surface_camera(c);
-                    break;
+                if (gPlayer1Controller->buttonPressed & R_TRIG) {
+                    if (c->mode != CAMERA_MODE_C_UP) {
+                        set_mode_c_up(c);
+                    } else {
+                        exit_c_up(c);
+                        gCameraMovementFlags &= ~(CAM_MOVE_STARTED_EXITING_C_UP | CAM_MOVE_C_UP_MODE);
+                    }
+                }
 
-                case CAMERA_MODE_INSIDE_CANNON:
-                    mode_cannon_camera(c);
-                    break;
+                if (c->mode == CAMERA_MODE_C_UP) {
+                    move_mario_head_c_up(c);
+                }
 
-                case CAMERA_MODE_8_DIRECTIONS:
-                    mode_8_directions_camera(c);
-                    break;
+                if (set_cam_angle(0) == CAM_ANGLE_MARIO) {
+                    set_cam_angle(CAM_ANGLE_LAKITU);
+                }
 
-                case CAMERA_MODE_RADIAL:
-                    mode_radial_camera(c);
-                    break;
+            } else {
+                switch (c->mode) {
+                    case CAMERA_MODE_BEHIND_MARIO:
+                        mode_behind_mario_camera(c);
+                        break;
 
-                case CAMERA_MODE_OUTWARD_RADIAL:
-                    mode_outward_radial_camera(c);
-                    break;
+                    case CAMERA_MODE_C_UP:
+                        mode_c_up_camera(c);
+                        break;
 
-                case CAMERA_MODE_CLOSE:
-                    mode_lakitu_camera(c);
-                    break;
+                    case CAMERA_MODE_WATER_SURFACE:
+                        mode_water_surface_camera(c);
+                        break;
 
-                case CAMERA_MODE_FREE_ROAM:
-                    mode_lakitu_camera(c);
-                    break;
-                case CAMERA_MODE_BOSS_FIGHT:
-                    mode_boss_fight_camera(c);
-                    break;
+                    case CAMERA_MODE_INSIDE_CANNON:
+                        mode_cannon_camera(c);
+                        break;
 
-                case CAMERA_MODE_PARALLEL_TRACKING:
-                    mode_parallel_tracking_camera(c);
-                    break;
+                    case CAMERA_MODE_8_DIRECTIONS:
+                        mode_8_directions_camera(c);
+                        break;
 
-                case CAMERA_MODE_SLIDE_HOOT:
-                    mode_slide_camera(c);
-                    break;
+                    case CAMERA_MODE_RADIAL:
+                        mode_radial_camera(c);
+                        break;
 
-                case CAMERA_MODE_FIXED:
-                    mode_fixed_camera(c);
-                    break;
+                    case CAMERA_MODE_OUTWARD_RADIAL:
+                        mode_outward_radial_camera(c);
+                        break;
 
-                case CAMERA_MODE_SPIRAL_STAIRS:
-                    mode_spiral_stairs_camera(c);
-                    break;
+                    case CAMERA_MODE_CLOSE:
+                        mode_lakitu_camera(c);
+                        break;
+
+                    case CAMERA_MODE_FREE_ROAM:
+                        mode_lakitu_camera(c);
+                        break;
+                    case CAMERA_MODE_BOSS_FIGHT:
+                        mode_boss_fight_camera(c);
+                        break;
+
+                    case CAMERA_MODE_PARALLEL_TRACKING:
+                        mode_parallel_tracking_camera(c);
+                        break;
+
+                    case CAMERA_MODE_SLIDE_HOOT:
+                        mode_slide_camera(c);
+                        break;
+
+                    case CAMERA_MODE_FIXED:
+                        mode_fixed_camera(c);
+                        break;
+
+                    case CAMERA_MODE_SPIRAL_STAIRS:
+                        mode_spiral_stairs_camera(c);
+                        break;
 
 #ifdef BETTERCAMERA
-                case CAMERA_MODE_NEWCAM:
-                    newcam_loop(c);
-                    break;
+                    case CAMERA_MODE_NEWCAM:
+                        newcam_loop(c);
+                        break;
 #endif
+                }
             }
         }
     }
