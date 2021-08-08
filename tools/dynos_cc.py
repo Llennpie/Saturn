@@ -21,10 +21,6 @@ if (os.path.isdir('./build') == False):
     print("Please compile the game before running this script!\n")
     quit()
 
-if (os.path.exists('./.assets-local.txt') == False):
-    print("Please compile the game before running this script!\n")
-    quit()
-
 # Note
 
 print("Note that this converter is unfinished and doesn't always work with older color codes. For best results, use either cometSpectrum or M64MM.\n")
