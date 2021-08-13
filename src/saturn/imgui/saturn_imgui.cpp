@@ -9,6 +9,7 @@
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
+#include "saturn/saturn_animations.h"
 #include <SDL2/SDL.h>
 
 #ifdef __MINGW32__
@@ -60,6 +61,8 @@ bool showMenu = true;
 bool showWindowStats = false;
 bool showWindowMachinima = false;
 bool showWindowDynOS = false;
+
+int anim_index = 113;
 
 // Bundled Components
 
@@ -186,36 +189,37 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Machinima", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(300, 250));
+            ImGui::SetWindowSize(ImVec2(250, 300));
             ImGui::Checkbox("Machinima Camera", &camera_frozen);
             imgui_bundled_tooltip("Toggles the machinima camera.");
             
             if (camera_frozen == true) {
                 ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
                 imgui_bundled_tooltip("Controls the speed of the machinima camera. Default is 1.");
-                ImGui::Dummy(ImVec2(0, 5));
             }
-            
-            const char* eyes[] = { "Blinking", "Open", "Half", "Closed", "Left", "Right", "Up", "Down", "Dead" };
-            ImGui::Combo("Eye State", &scrollEyeState, eyes, IM_ARRAYSIZE(eyes));
-            const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
-            ImGui::Combo("Hand State", &scrollHandState, hands, IM_ARRAYSIZE(hands));
-            //const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" };
-            //ImGui::Combo("Cap State", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+
+            ImGui::Dummy(ImVec2(0, 5));
+            ImGui::Text("Animations");
+            ImGui::Dummy(ImVec2(0, 5));
+            ImGui::Combo("", &anim_index, saturn_animations, IM_ARRAYSIZE(saturn_animations));
+            selected_animation = (MarioAnimID)anim_index;
+            if (ImGui::Button("Play")) {
+                saturn_play_animation(selected_animation);
+            }
 
             imgui_bundled_space(20, "Quick Toggles");
 
-            if (ImGui::BeginTable("quick_toggles", 2))
+            if (ImGui::BeginTable("quick_toggles", 1))
             {
                 ImGui::TableNextColumn();
                 ImGui::Checkbox("HUD", &configHUD);
                 imgui_bundled_tooltip("Controls the in-game HUD visibility.");
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("Shadows", &enable_shadows);
-                imgui_bundled_tooltip("Displays Mario's shadow.");
-                ImGui::TableNextColumn();
                 ImGui::Checkbox("Head Rotations", &enable_head_rotations);
                 imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+                ImGui::TableNextColumn();
+                ImGui::Checkbox("Shadows", &enable_shadows);
+                imgui_bundled_tooltip("Displays Mario's shadow.");
                 ImGui::TableNextColumn();
                 ImGui::Checkbox("Dust Particles", &enable_dust_particles);
                 imgui_bundled_tooltip("Displays dust particles when Mario moves.");

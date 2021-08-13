@@ -9,7 +9,6 @@
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
 #include "saturn_imgui.h"
-#include "saturn/saturn_animations.h"
 #include "data/dynos.cpp.h"
 #include <SDL2/SDL.h>
 
@@ -21,7 +20,6 @@ extern "C" {
 #include <mario_animation_ids.h>
 }
 
-int anim_index = 113;
 const Array<PackData *> &sDynosPacks = DynOS_Gfx_GetPacks();
 
 using namespace std;
@@ -33,13 +31,13 @@ void sdynos_imgui_init() {
 }
 
 void sdynos_imgui_update() {
-    ImGui::Text("Animations");
-    ImGui::Dummy(ImVec2(0, 5));
-    ImGui::Combo("", &anim_index, saturn_animations, IM_ARRAYSIZE(saturn_animations));
-    selected_animation = (MarioAnimID)anim_index;
-    if (ImGui::Button("Play")) {
-        saturn_play_animation(selected_animation);
-    }
+    const char* eyes[] = { "Blinking", "Open", "Half", "Closed", "Left", "Right", "Up", "Down", "Dead" };
+    ImGui::Combo("Eye State", &scrollEyeState, eyes, IM_ARRAYSIZE(eyes));
+    const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
+    ImGui::Combo("Hand State", &scrollHandState, hands, IM_ARRAYSIZE(hands));
+    const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
+    ImGui::Combo("Cap State", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+
     imgui_bundled_space(20, "Model Packs","These are DynOS model packs, used for live model loading.\nPlace packs in dynos/packs.");
     if (ImGui::BeginListBox("", ImVec2(200, 100))) {
         for (int i = 0; i < sDynosPacks.Count(); i++) {
