@@ -349,7 +349,7 @@ const u8 *DynOS_Level_GetAreaName(s32 aLevel, s32 aArea, bool aDecaps) {
         { "MAIN AREA", "NOT AVAILABLE", "NOT AVAILABLE", "NOT AVAILABLE" }, /* COTMC */
         { "MAIN AREA", "NOT AVAILABLE", "NOT AVAILABLE", "NOT AVAILABLE" }, /* VCUTM */
         { "MAIN AREA", "NOT AVAILABLE", "NOT AVAILABLE", "NOT AVAILABLE" }, /* WMOTR */
-        { "GREEN", "BLUE", "PINK", "NOT AVAILABLE" }, /* SA */
+        { "GREEN", "BLUE", "PINK", "SNOW" }, /* SA */
         { "MAIN AREA", "NOT AVAILABLE", "NOT AVAILABLE", "NOT AVAILABLE" }, /* Castle grounds */
         { "FIRST FLOOR", "SECOND FLOOR", "BASEMENT", "NOT AVAILABLE" }, /* Castle inside */
         { "MAIN AREA", "NOT AVAILABLE", "NOT AVAILABLE", "NOT AVAILABLE" }, /* Castle courtyard */
