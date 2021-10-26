@@ -55,8 +55,6 @@ ImGuiIO io;
 
 // Variables
 
-int frameBreak = 0;
-
 bool showMenu = true;
 bool showWindowStats = false;
 bool showWindowMachinima = false;
@@ -131,7 +129,12 @@ void saturn_imgui_handle_events(SDL_Event * event) {
         case SDL_KEYDOWN:
             if(event->key.keysym.sym == SDLK_F12)
                 showMenu = !showMenu;
-            break;
+
+        case SDL_CONTROLLERBUTTONDOWN:
+            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
+                showMenu = !showMenu;
+        
+        break;
     }
 }
 
@@ -243,19 +246,6 @@ void saturn_imgui_update() {
         }
 
         //ImGui::ShowDemoWindow();
-    }
-
-    // Attempts to only call saturn_update in 30 FPS
-    // Otherwise, this function is called twice per frame with the 60 FPS patch
-    if (ImGui::GetIO().Framerate > 40) {
-        if (frameBreak == 0) {
-            saturn_update();
-            frameBreak = 1;
-        } else {
-            frameBreak = 0;
-        }
-    } else {
-        saturn_update();
     }
 
     ImGui::Render();

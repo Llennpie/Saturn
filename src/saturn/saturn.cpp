@@ -58,7 +58,7 @@ void saturn_update() {
         gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
     }
     */
-   P2CamAvtive = (camera_frozen) ? 1 : 0;
+   machinimaMode = (camera_frozen) ? 1 : 0;
 
     if (is_anim_playing && is_anim_past_end(gMarioState)) {
         is_anim_playing = false;
@@ -100,12 +100,6 @@ void saturn_update() {
     }
     if (gPlayer1Controller->buttonPressed & LOAD_ANIMATION) {
         saturn_play_animation(selected_animation);
-    }
-
-    // ImGui
-
-    if (gPlayer1Controller->buttonPressed & TOGGLE_MENU) {
-        showMenu = !showMenu;
     }
 }
 

@@ -17,7 +17,13 @@ extern bool enable_dust_particles;
 extern bool is_anim_playing;
 extern enum MarioAnimID selected_animation;
 
-void saturn_update(void);
-void saturn_play_animation(MarioAnimID);
+#ifdef __cplusplus
+extern "C" {
+#endif
+    void saturn_update(void);
+    void saturn_play_animation(MarioAnimID);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

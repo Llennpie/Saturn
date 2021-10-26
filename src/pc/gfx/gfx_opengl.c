@@ -40,6 +40,7 @@
 #include "gfx_cc.h"
 #include "gfx_rendering_api.h"
 
+#include "src/saturn/saturn.h"
 #include "src/saturn/imgui/saturn_imgui.h"
 
 #define TEX_CACHE_STEP 512
@@ -646,7 +647,16 @@ static void gfx_opengl_init(void) {
 static void gfx_opengl_on_resize(void) {
 }
 
+u8 frameBreak = 0;
+
 static void gfx_opengl_start_frame(void) {
+    if (frameBreak == 0) {
+        saturn_update();
+        frameBreak = 1;
+    } else {
+        frameBreak = 0;
+    }
+    
     frame_count++;
 
     glDisable(GL_SCISSOR_TEST);

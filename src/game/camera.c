@@ -32,6 +32,8 @@
 
 #define CBUTTON_MASK (U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS)
 
+u8 machinimaMode = 0;
+
 /**
  * @file camera.c
  * Implements the camera system, including C-button input, camera modes, camera triggers, and cutscenes.
@@ -2650,7 +2652,8 @@ s32 exit_c_up(struct Camera *c) {
         */
     
         gCameraMovementFlags &= ~(CAM_MOVE_STARTED_EXITING_C_UP | CAM_MOVE_C_UP_MODE);
-        play_sound_cbutton_down();
+        if (machinimaMode == 0)
+            play_sound_cbutton_down();
     }
     return 0;
 }
@@ -3026,7 +3029,7 @@ void update_lakitu(struct Camera *c) {
     gLakituState.defMode = c->defMode;
 }
 #include "engine/math_util.h"
-u8 P2CamAvtive = 0;
+
 f32 camVelY = 0.f;
 s16 yarSpeed = 0;
 f32 camVelSpeed = 1.f;
@@ -3046,7 +3049,7 @@ void update_camera(struct Camera *c) {
             && c->mode != CAMERA_MODE_NEWCAM
 #endif
             ) {
-            if (gPlayer1Controller->buttonPressed & R_TRIG && !P2CamAvtive) {
+            if (gPlayer1Controller->buttonPressed & R_TRIG && !machinimaMode) {
                 if (set_cam_angle(0) == CAM_ANGLE_LAKITU) {
                     set_cam_angle(CAM_ANGLE_MARIO);
                 } else {
@@ -3146,62 +3149,71 @@ void update_camera(struct Camera *c) {
                     mode_mario_camera(c);
             }
         } else {
-            if (P2CamAvtive) {
+            if (machinimaMode) {
                 if (gPlayer1Controller->buttonDown & L_TRIG) {
                     if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
-                        camVelY += 10.f * camVelSpeed;
+                        camVelY += 5.f * camVelSpeed;
                     }
                     if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
-                        camVelY -= 10.f * camVelSpeed;
+                        camVelY -= 5.f * camVelSpeed;
                     }
-                } else {
+                } else if (gPlayer1Controller->buttonDown & R_TRIG) {
                     if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
-                        c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
-                        c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
-                        c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
-                        c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                     }
                     if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
-                        c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
-                        c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
-                        c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
-                        c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 64 * camVelSpeed;
+                        c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                     }
                     if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
-                        c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
-                        c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
-                        c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
-                        c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                     }
                     if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
-                        c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
-                        c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
-                        c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
-                        c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 64 * camVelSpeed;
+                        c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                     }
+                } else {
+                    // Zoom in / enter C-Up
+                    if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
+                        if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
+                            gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
+                            //play_sound_cbutton_up();
+                        } else {
+                            set_mode_c_up(c);
+                        }
+                    }
+                    // Zoom out
+                    if (gPlayer1Controller->buttonPressed & D_CBUTTONS) {
+                        if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
+                            exit_c_up(c);
+                            //gCameraMovementFlags |= CAM_MOVE_ZOOMED_OUT;
+                            //play_sound_cbutton_down();
+                        }
+                    }
+
+                    if (c->mode == CAMERA_MODE_C_UP) {
+                        move_mario_head_c_up(c);
+                    }
+
+                    c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
+                    c->yaw = gCamera->nextYaw;
+                    //gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
                 }
 
                 c->pos[1] += camVelY;
                 c->focus[1] += camVelY;
                 camVelY = approach_f32_symmetric(camVelY, 0.f, 2.f);
                 camVelY = approach_f32_asymptotic(camVelY, 0.f, 0.1f);
-
-                if (gPlayer1Controller->buttonPressed & R_TRIG) {
-                    if (c->mode != CAMERA_MODE_C_UP) {
-                        set_mode_c_up(c);
-                    } else {
-                        exit_c_up(c);
-                        gCameraMovementFlags &= ~(CAM_MOVE_STARTED_EXITING_C_UP | CAM_MOVE_C_UP_MODE);
-                    }
-                }
-
-                if (c->mode == CAMERA_MODE_C_UP) {
-                    move_mario_head_c_up(c);
-                }
-
-                if (set_cam_angle(0) == CAM_ANGLE_MARIO) {
-                    set_cam_angle(CAM_ANGLE_LAKITU);
-                }
 
             } else {
                 switch (c->mode) {
@@ -4009,7 +4021,7 @@ s32 find_c_buttons_pressed(u16 currentState, u16 buttonsPressed, u16 buttonsDown
 s32 update_camera_hud_status(struct Camera *c) {
     s16 status = CAM_STATUS_NONE;
 
-    if (c->cutscene != 0
+    if (c->cutscene != 0 || machinimaMode == 1
         || ((gPlayer1Controller->buttonDown & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED)) {
         status |= CAM_STATUS_FIXED;
     } else if (set_cam_angle(0) == CAM_ANGLE_MARIO) {
