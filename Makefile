@@ -570,7 +570,6 @@ endif
 # Saturn Enable filesystem library and C++17
 CXXFLAGS := -std=c++17
 LDFLAGS += -lstdc++fs
-LDFLAGS += -lstdc++
 
 CC_CHECK += -DGIT_HASH=\"$(GIT_HASH)\"
 CFLAGS   += -DGIT_HASH=\"$(GIT_HASH)\"

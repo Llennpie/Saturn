@@ -5,9 +5,12 @@
 
 #### Features
 
-- New camera system
-- Live model loading
-  - Not only allows color codes, but also custom textures AND/OR Fast64 models
+- New machinima camera system
+- Color code system
+  - Uses the common *GameShark* format
+- Live model loading (via DynOS)
+  - Uses Fast64 models
+  - Works with color codes
 - Changeable eye states/textures
 - Completely rebindable controls
   - All controls in the game, including those used for machinima, are 100% configurable

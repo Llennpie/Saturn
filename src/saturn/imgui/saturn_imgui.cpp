@@ -4,12 +4,12 @@
 #include <iostream>
 
 #include "saturn/imgui/saturn_imgui_dynos.h"
+#include "saturn/imgui/saturn_imgui_machinima.h"
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
-#include "saturn/saturn_animations.h"
 #include <SDL2/SDL.h>
 
 #ifdef __MINGW32__
@@ -59,8 +59,6 @@ bool showMenu = true;
 bool showWindowStats = false;
 bool showWindowMachinima = false;
 bool showWindowDynOS = false;
-
-int anim_index = 113;
 
 // Bundled Components
 
@@ -121,6 +119,7 @@ void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     sdynos_imgui_init();
+    smachinima_imgui_init();
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -192,42 +191,9 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Machinima", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(250, 300));
-            ImGui::Checkbox("Machinima Camera", &camera_frozen);
-            imgui_bundled_tooltip("Toggles the machinima camera.");
+            ImGui::SetWindowSize(ImVec2(250, 325));
             
-            if (camera_frozen == true) {
-                ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
-                imgui_bundled_tooltip("Controls the speed of the machinima camera. Default is 1.");
-            }
-
-            ImGui::Dummy(ImVec2(0, 5));
-            ImGui::Text("Animations");
-            ImGui::Dummy(ImVec2(0, 5));
-            ImGui::Combo("", &anim_index, saturn_animations, IM_ARRAYSIZE(saturn_animations));
-            selected_animation = (MarioAnimID)anim_index;
-            if (ImGui::Button("Play")) {
-                saturn_play_animation(selected_animation);
-            }
-
-            imgui_bundled_space(20, "Quick Toggles");
-
-            if (ImGui::BeginTable("quick_toggles", 1))
-            {
-                ImGui::TableNextColumn();
-                ImGui::Checkbox("HUD", &configHUD);
-                imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-                ImGui::TableNextColumn();
-                ImGui::Checkbox("Head Rotations", &enable_head_rotations);
-                imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
-                ImGui::TableNextColumn();
-                ImGui::Checkbox("Shadows", &enable_shadows);
-                imgui_bundled_tooltip("Displays Mario's shadow.");
-                ImGui::TableNextColumn();
-                ImGui::Checkbox("Dust Particles", &enable_dust_particles);
-                imgui_bundled_tooltip("Displays dust particles when Mario moves.");
-                ImGui::EndTable();
-            }
+            smachinima_imgui_update();
 
             ImGui::End();
             ImGui::PopStyleColor();
@@ -237,7 +203,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("DynOS", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(250, 250));
+            ImGui::SetWindowSize(ImVec2(250, 300));
 
             sdynos_imgui_update();
 

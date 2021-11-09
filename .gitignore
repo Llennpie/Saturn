@@ -79,3 +79,7 @@ sm64config.txt
 !/sound/**/*custom*/**/*.aiff
 !/assets/**/*custom*.bin
 !/assets/**/*custom*/**/*.bin
+
+# Saturn
+!/actors/mario/mario_logo.rgba16.png
+!/actors/mario_cap/mario_cap_logo.rgba16.png

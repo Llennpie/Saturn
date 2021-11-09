@@ -89,7 +89,7 @@ bool         configCameraAnalog  = true;
 bool         configCameraMouse   = false;
 #endif
 bool         configSkipIntro     = 0;
-bool         configHUD           = true;
+bool         configHUD           = false;
 #ifdef DISCORDRPC
 bool         configDiscordRPC    = true;
 #endif
