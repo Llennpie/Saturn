@@ -177,17 +177,15 @@ void MoonAddonsScreen::Draw(){
 
     focusAnim += step * (focusFlag ? -1 : 1);
 
-    int screenWidth = GetScreenWidth(false);
-    float boxWidth = SCREEN_WIDTH + 50;
+    int boxWidth = SCREEN_WIDTH - 50;
     int boxHeight = GetScreenHeight() * 0.8;
 
     float txtWidth = MoonGetTextWidth(curTitle, 1.0, true);
 
     MoonDrawRectangle(0, 0, GetScreenWidth(false), GetScreenHeight(), {0, 0, 0, 100}, false);
     MoonDrawColoredText(SCREEN_WIDTH / 2 - txtWidth / 2, 10, curTitle, 1.0, {255, 255, 255, 255}, true, true);
-    MoonDrawRectangle(screenWidth / 2 - boxWidth / 2, 35, boxWidth, boxHeight, {0, 0, 0, 100}, false);
+    MoonDrawRectangle(25, 35, boxWidth, boxHeight, {0, 0, 0, 100}, true);
 
-    return;
     Color focusColor = {255, 255, 255, 40 + focusAnim};
 
     int packAmount = texturePackList.size();
@@ -195,7 +193,6 @@ void MoonAddonsScreen::Draw(){
     int iMod = scrollModifier;
 
     for(int i = 0; i < min(packAmount, maxPacks); i++){
-
         int index = i + iMod;
 
         if(index > packAmount - 1){
