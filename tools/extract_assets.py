@@ -5,7 +5,7 @@ import json
 
 
 def read_asset_map():
-    with open("assets.json") as f:
+    with open("assets/rom.json") as f:
         ret = json.load(f)
     return ret
 
@@ -140,8 +140,7 @@ def main():
             print("Failed to open " + fname + "! " + str(e))
             sys.exit(1)
         sha1 = hashlib.sha1(roms[lang]).hexdigest()
-        with open("sm64." + lang + ".sha1", "r") as f:
-            expected_sha1 = f.read().split()[0]
+        expected_sha1 = "9bef1128717f958171a4afac3ed78ee2bb4e86ce"
         if sha1 != expected_sha1:
             print(
                 fname
@@ -185,6 +184,7 @@ def main():
                         "--only-samples",
                     ]
                     for (asset, pos, size, meta) in assets:
+                        asset = "assets/" + asset
                         print("extracting", asset)
                         args.append(asset + ":" + str(pos))
                     try:
@@ -211,6 +211,7 @@ def main():
             image = roms[lang]
 
         for (asset, pos, size, meta) in assets:
+            asset = "assets/" + asset
             print("extracting", asset)
             input = image[pos : pos + size]
             os.makedirs(os.path.dirname(asset), exist_ok=True)
@@ -220,8 +221,8 @@ def main():
                     png_file.write(input)
                     png_file.flush()
                     png_file.close()
-                    if asset.startswith("textures/skyboxes/") or asset.startswith("levels/ending/cake"):
-                        if asset.startswith("textures/skyboxes/"):
+                    if asset.startswith("assets/textures/skyboxes/") or asset.startswith("levels/ending/cake"):
+                        if asset.startswith("assets/textures/skyboxes/"):
                             imagetype = "sky"
                         else:
                             imagetype =  "cake" + ("-eu" if "eu" in asset else "")
@@ -279,7 +280,7 @@ def main():
             "",
         ]
     )
-    with open(".assets-local.txt", "w") as f:
+    with open("tools/.assets-local.txt", "w") as f:
         f.write(output)
 
 

@@ -191,7 +191,7 @@ ifneq ($(MAKECMDGOALS),distclean)
 # Make sure assets exist
 NOEXTRACT ?= 0
 ifeq ($(NOEXTRACT),0)
-DUMMY != ./extract_assets.py $(VERSION) >&2 || echo FAIL
+DUMMY != ./tools/extract_assets.py $(VERSION) >&2 || echo FAIL
 ifeq ($(DUMMY),FAIL)
   $(error Failed to extract assets)
 endif
@@ -239,16 +239,16 @@ endif
 
 ELF := $(BUILD_DIR)/$(TARGET).elf
 LD_SCRIPT := sm64.ld
-MIO0_DIR := $(BUILD_DIR)/bin
-SOUND_BIN_DIR := $(BUILD_DIR)/sound
-TEXTURE_DIR := textures
+MIO0_DIR := $(BUILD_DIR)/effects
+SOUND_BIN_DIR := $(BUILD_DIR)/assets/sound
+TEXTURE_DIR := assets/textures
 ACTOR_DIR := actors
 LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 
 # Directories containing source files
 
 # Hi, I'm a PC
-SRC_DIRS := src src/engine src/game src/audio src/menu src/buffers actors levels bin data assets src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
+SRC_DIRS := src src/engine src/effects src/game src/audio src/menu src/buffers actors levels bin data assets src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
 
 ifeq ($(WINDOWS_BUILD),1)
   VERSION_CFLAGS += -DDISABLE_CURL_SUPPORT
@@ -272,9 +272,9 @@ ifeq ($(DISCORDRPC),1)
   endif
 endif
 
-BIN_DIRS := bin bin/$(VERSION)
+BIN_DIRS := src/effects src/effects/$(VERSION)
 
-ULTRA_SRC_DIRS := lib/src lib/src/math
+ULTRA_SRC_DIRS := lib/src src/ultra64/math
 ULTRA_ASM_DIRS := lib/asm lib/data
 ULTRA_BIN_DIRS := lib/bin
 
@@ -349,17 +349,17 @@ ULTRA_C_FILES := \
   ldiv.c
 
 C_FILES := $(filter-out src/game/main.c,$(C_FILES))
-ULTRA_C_FILES := $(addprefix lib/src/,$(ULTRA_C_FILES))
+ULTRA_C_FILES := $(addprefix src/ultra64/,$(ULTRA_C_FILES))
 
 # "If we're not N64, use the above"
 
-SOUND_BANK_FILES := $(wildcard sound/sound_banks/*.json)
-SOUND_SEQUENCE_FILES := $(wildcard sound/sequences/$(VERSION)/*.m64) \
-    $(wildcard sound/sequences/*.m64) \
-    $(foreach file,$(wildcard sound/sequences/$(VERSION)/*.s),$(BUILD_DIR)/$(file:.s=.m64)) \
-    $(foreach file,$(wildcard sound/sequences/*.s),$(BUILD_DIR)/$(file:.s=.m64))
+SOUND_BANK_FILES := $(wildcard assets/sound/sound_banks/*.json)
+SOUND_SEQUENCE_FILES := $(wildcard assets/sound/sequences/$(VERSION)/*.m64) \
+    $(wildcard assets/sound/sequences/*.m64) \
+    $(foreach file,$(wildcard assets/sound/sequences/$(VERSION)/*.s),$(BUILD_DIR)/$(file:.s=.m64)) \
+    $(foreach file,$(wildcard assets/sound/sequences/*.s),$(BUILD_DIR)/$(file:.s=.m64))
 
-SOUND_SAMPLE_DIRS := $(wildcard sound/samples/*)
+SOUND_SAMPLE_DIRS := $(wildcard assets/sound/samples/*)
 SOUND_SAMPLE_AIFFS := $(foreach dir,$(SOUND_SAMPLE_DIRS),$(wildcard $(dir)/*.aiff))
 SOUND_SAMPLE_TABLES := $(foreach file,$(SOUND_SAMPLE_AIFFS),$(BUILD_DIR)/$(file:.aiff=.table))
 SOUND_SAMPLE_AIFCS := $(foreach file,$(SOUND_SAMPLE_AIFFS),$(BUILD_DIR)/$(file:.aiff=.aifc))
@@ -379,12 +379,12 @@ GODDARD_O_FILES := $(foreach file,$(GODDARD_C_FILES),$(BUILD_DIR)/$(file:.c=.o))
 RPC_LIBS :=
 ifeq ($(DISCORDRPC),1)
   ifeq ($(WINDOWS_BUILD),1)
-    RPC_LIBS := lib/discord/libdiscord-rpc.dll
+    RPC_LIBS := libs/discord/libdiscord-rpc.dll
   else ifeq ($(OSX_BUILD),1)
     # needs testing
-    RPC_LIBS := lib/discord/libdiscord-rpc.dylib
+    RPC_LIBS := libs/discord/libdiscord-rpc.dylib
   else
-    RPC_LIBS := lib/discord/libdiscord-rpc.so
+    RPC_LIBS := libs/discord/libdiscord-rpc.so
   endif
 endif
 
@@ -500,6 +500,8 @@ else ifeq ($(WINDOW_API),SDL2)
     BACKEND_LDFLAGS += -lGL
   endif
   SDL_USED := 2
+else ifeq ($(WINDOW_API),GLFW)
+  BACKEND_LDFLAGS += -lGL `pkg-config --static --libs glfw3` $(shell pkg-config --libs glew)
 endif
 
 ifeq ($(AUDIO_API),SDL2)
@@ -615,7 +617,7 @@ ifeq ($(LEGACY_GL),1)
 endif
 
 # tell skyconv to write names instead of actual texture data and save the split tiles so we can use them later
-SKYTILE_DIR := $(BUILD_DIR)/textures/skybox_tiles
+SKYTILE_DIR := $(BUILD_DIR)/assets/textures/skybox_tiles
 
 ASFLAGS := -I include -I $(BUILD_DIR) $(VERSION_ASFLAGS)
 
@@ -686,16 +688,16 @@ ifneq ($(NO_COPY),1)
 # prepares the basepack.lst
 $(BASEPACK_LST): $(EXE)
 	@touch $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/bank_sets sound/bank_sets" >> $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/sequences.bin sound/sequences.bin" >> $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/sound_data.ctl sound/sound_data.ctl" >> $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/sound_data.tbl sound/sound_data.tbl" >> $(BASEPACK_LST)
+	@echo "$(BUILD_DIR)/assets/sound/bank_sets assets/sound/bank_sets" >> $(BASEPACK_LST)
+	@echo "$(BUILD_DIR)/assets/sound/sequences.bin assets/sound/sequences.bin" >> $(BASEPACK_LST)
+	@echo "$(BUILD_DIR)/assets/sound/sound_data.ctl assets/sound/sound_data.ctl" >> $(BASEPACK_LST)
+	@echo "$(BUILD_DIR)/assets/sound/sound_data.tbl assets/sound/sound_data.tbl" >> $(BASEPACK_LST)
 	@$(foreach f, $(wildcard $(SKYTILE_DIR)/*), echo $(f) gfx/$(f:$(BUILD_DIR)/%=%) >> $(BASEPACK_LST);)
 	@find actors -name \*.png -exec echo "{} gfx/{}" >> $(BASEPACK_LST) \;
 	@find levels -name \*.png -exec echo "{} gfx/{}" >> $(BASEPACK_LST) \;
-	@find textures -name \*.png -exec echo "{} gfx/{}" >> $(BASEPACK_LST) \;
-	@find texts -name \*.json -exec echo "{} {}" >> $(BASEPACK_LST) \;
-	@find fonts -name \*.ttf -exec echo "{} {}" >> $(BASEPACK_LST) \;
+	@find assets/textures -name \*.png -exec echo "{} gfx/{}" >> $(BASEPACK_LST) \;
+	@find assets/texts -name \*.json -exec echo "{} {}" >> $(BASEPACK_LST) \;
+	@find assets/fonts -name \*.ttf -exec echo "{} {}" >> $(BASEPACK_LST) \;
 	@$(PYTHON) $(TOOLS_DIR)/mkzip.py $(BASEPACK_LST) $(BUILD_DIR)
 endif
 
@@ -744,14 +746,14 @@ $(ENDIAN_BITWIDTH): tools/determine-endian-bitwidth.c
 	@rm $@.dummy1
 	@rm $@.dummy2
 
-$(SOUND_BIN_DIR)/sound_data.ctl: sound/sound_banks/ $(SOUND_BANK_FILES) $(SOUND_SAMPLE_AIFCS) $(ENDIAN_BITWIDTH)
-	$(PYTHON) tools/assemble_sound.py $(BUILD_DIR)/sound/samples/ sound/sound_banks/ $(SOUND_BIN_DIR)/sound_data.ctl $(SOUND_BIN_DIR)/sound_data.tbl $(VERSION_CFLAGS) $$(cat $(ENDIAN_BITWIDTH))
+$(SOUND_BIN_DIR)/sound_data.ctl: assets/sound/sound_banks/ $(SOUND_BANK_FILES) $(SOUND_SAMPLE_AIFCS) $(ENDIAN_BITWIDTH)
+	$(PYTHON) tools/assemble_sound.py $(BUILD_DIR)/assets/sound/samples/ assets/sound/sound_banks/ $(SOUND_BIN_DIR)/sound_data.ctl $(SOUND_BIN_DIR)/sound_data.tbl $(VERSION_CFLAGS) $$(cat $(ENDIAN_BITWIDTH))
 
 $(SOUND_BIN_DIR)/sound_data.tbl: $(SOUND_BIN_DIR)/sound_data.ctl
 	@true
 
-$(SOUND_BIN_DIR)/sequences.bin: $(SOUND_BANK_FILES) sound/sequences.json sound/sequences/ sound/sequences/$(VERSION)/ $(SOUND_SEQUENCE_FILES) $(ENDIAN_BITWIDTH)
-	$(PYTHON) tools/assemble_sound.py --sequences $@ $(SOUND_BIN_DIR)/bank_sets sound/sound_banks/ sound/sequences.json $(SOUND_SEQUENCE_FILES) $(VERSION_CFLAGS) $$(cat $(ENDIAN_BITWIDTH))
+$(SOUND_BIN_DIR)/sequences.bin: $(SOUND_BANK_FILES) assets/sound/sequences.json assets/sound/sequences/ assets/sound/sequences/$(VERSION)/ $(SOUND_SEQUENCE_FILES) $(ENDIAN_BITWIDTH)
+	$(PYTHON) tools/assemble_sound.py --sequences $@ $(SOUND_BIN_DIR)/bank_sets assets/sound/sound_banks/ assets/sound/sequences.json $(SOUND_SEQUENCE_FILES) $(VERSION_CFLAGS) $$(cat $(ENDIAN_BITWIDTH))
 
 $(SOUND_BIN_DIR)/bank_sets: $(SOUND_BIN_DIR)/sequences.bin
 	@true
@@ -781,19 +783,19 @@ $(BUILD_DIR)/assets/demo_data.c: assets/demo_data.json $(wildcard assets/demos/*
 # Source code
 $(BUILD_DIR)/levels/%/leveldata.o: OPT_FLAGS := -g
 $(BUILD_DIR)/actors/%.o: OPT_FLAGS := -g
-$(BUILD_DIR)/bin/%.o: OPT_FLAGS := -g
+$(BUILD_DIR)/src/effects/%.o: OPT_FLAGS := -g
 $(BUILD_DIR)/src/goddard/%.o: OPT_FLAGS := -g
 $(BUILD_DIR)/src/goddard/%.o: MIPSISET := -mips1
 $(BUILD_DIR)/src/audio/%.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0
 $(BUILD_DIR)/src/audio/load.o: OPT_FLAGS := -O2 -framepointer -Wo,-loopunroll,0
-$(BUILD_DIR)/lib/src/%.o: OPT_FLAGS :=
-$(BUILD_DIR)/lib/src/math/ll%.o: MIPSISET := -mips3 -32
-$(BUILD_DIR)/lib/src/math/%.o: OPT_FLAGS := -O2
-$(BUILD_DIR)/lib/src/math/ll%.o: OPT_FLAGS :=
-$(BUILD_DIR)/lib/src/ldiv.o: OPT_FLAGS := -O2
-$(BUILD_DIR)/lib/src/string.o: OPT_FLAGS := -O2
-$(BUILD_DIR)/lib/src/gu%.o: OPT_FLAGS := -O3
-$(BUILD_DIR)/lib/src/al%.o: OPT_FLAGS := -O3
+$(BUILD_DIR)/src/ultra64/%.o: OPT_FLAGS :=
+$(BUILD_DIR)/src/ultra64/math/ll%.o: MIPSISET := -mips3 -32
+$(BUILD_DIR)/src/ultra64/math/%.o: OPT_FLAGS := -O2
+$(BUILD_DIR)/src/ultra64/math/ll%.o: OPT_FLAGS :=
+$(BUILD_DIR)/src/ultra64/ldiv.o: OPT_FLAGS := -O2
+$(BUILD_DIR)/src/ultra64/string.o: OPT_FLAGS := -O2
+$(BUILD_DIR)/src/ultra64/gu%.o: OPT_FLAGS := -O3
+$(BUILD_DIR)/src/ultra64/al%.o: OPT_FLAGS := -O3
 
 # The source-to-source optimizer copt is enabled for audio. This makes it use
 # acpp, which needs -Wp,-+ to handle C++-style comments.
