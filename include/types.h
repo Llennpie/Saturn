@@ -261,39 +261,10 @@ struct MarioBodyState
     u8 padding[4];
 };
 
-struct OffsetSizePair
-{
-    u32 offset;
-    u32 size;
-};
-
-struct MarioAnimDmaRelatedThing
-{
-    u32 count;
-    u8 *srcAddr;
-    struct OffsetSizePair anim[1]; // dynamic size
-};
-
-struct MarioAnimation
-{
-    struct MarioAnimDmaRelatedThing *animDmaTable;
+struct MarioAnimation {
     u8 *currentAnimAddr;
     struct Animation *targetAnim;
     u8 padding[4];
-};
-
-struct DemoInputsObj {
-    u32 numEntries;
-    const void *addrPlaceholder;
-    struct OffsetSizePair entries[7];
-    u8* bbh;
-    u8* ccm;
-    u8* hmc;
-    u8* jrb;
-    u8* wf;
-    u8* pss;
-    u8* unused;
-    u8* bitdw;
 };
 
 struct MarioState

@@ -310,48 +310,8 @@ void *alloc_display_list(u32 size) {
     return alloc_only_pool_alloc(gGfxAllocOnlyPool, size);
 }
 
-static struct MarioAnimDmaRelatedThing *read_dma_table(u8 *srcAddr) {
-    struct MarioAnimDmaRelatedThing *sp1C = dynamic_dma_read(srcAddr, srcAddr + sizeof(u32),
-                                                             MEMORY_POOL_LEFT);
-    u32 size = sizeof(u32) + (sizeof(u8 *) - sizeof(u32)) + sizeof(u8 *) +
-               sp1C->count * sizeof(struct OffsetSizePair);
-    main_pool_free(sp1C);
-
-    sp1C = dynamic_dma_read(srcAddr, srcAddr + size, MEMORY_POOL_LEFT);
-    sp1C->srcAddr = srcAddr;
-    return sp1C;
-}
-
-void load_dma_table(struct MarioAnimation *a, void *b, struct Animation *target) {
-    if (b != NULL) {
-        a->animDmaTable = read_dma_table(b);
-    }
-    a->currentAnimAddr = NULL;
-    a->targetAnim = target;
-}
-
-s32 load_patchable_table(struct MarioAnimation *a, u32 index) {
-    s32 ret = FALSE;
-    struct MarioAnimDmaRelatedThing *sp20 = a->animDmaTable;
-    u8 *addr;
-    u32 size;
-
-    if (index < sp20->count) {
-        do {
-            addr = sp20->srcAddr + sp20->anim[index].offset;
-            size = sp20->anim[index].size;
-        } while (0);
-        if (a->currentAnimAddr != addr) {
-            dma_read((u8 *) a->targetAnim, addr, addr + size);
-            a->currentAnimAddr = addr;
-            ret = TRUE;
-        }
-    }
-    return ret;
-}
-
-s32 load_mario_animation(struct MarioAnimation *a, u32 index) {
-    a->targetAnim = malloc(sizeof(struct Animation));
-    memcpy(a->targetAnim, anim_table[index], sizeof(struct Animation));
+s32 load_mario_animation(struct MarioAnimation *anim_ptr, u32 anim_id) {
+    anim_ptr->targetAnim = malloc(sizeof(struct Animation));
+    memcpy(anim_ptr->targetAnim, anim_table[anim_id], sizeof(struct Animation));
     return TRUE;
 }
