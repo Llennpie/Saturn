@@ -349,8 +349,6 @@ ULTRA_C_FILES := \
 C_FILES := $(filter-out src/game/main.c,$(C_FILES))
 ULTRA_C_FILES := $(addprefix lib/src/,$(ULTRA_C_FILES))
 
-# "If we're not N64, use the above"
-
 SOUND_BANK_FILES := $(wildcard sound/sound_banks/*.json)
 SOUND_SEQUENCE_FILES := $(wildcard sound/sequences/$(VERSION)/*.m64) \
     $(wildcard sound/sequences/*.m64) \

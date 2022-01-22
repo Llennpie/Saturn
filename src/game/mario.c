@@ -52,7 +52,7 @@ s8 filler80339F1C[20];
 s32 is_anim_at_end(struct MarioState *m) {
     struct Object *o = m->marioObj;
 
-    return (o->header.gfx.unk38.animFrame + 1) == o->header.gfx.unk38.curAnim->unk08;
+    return (o->header.gfx.unk38.animFrame + 1) == o->header.gfx.unk38.curAnim->loopEnd;
 }
 
 /**
@@ -61,7 +61,7 @@ s32 is_anim_at_end(struct MarioState *m) {
 s32 is_anim_past_end(struct MarioState *m) {
     struct Object *o = m->marioObj;
 
-    return o->header.gfx.unk38.animFrame >= (o->header.gfx.unk38.curAnim->unk08 - 2);
+    return o->header.gfx.unk38.animFrame >= (o->header.gfx.unk38.curAnim->loopEnd - 2);
 }
 
 /**
@@ -79,12 +79,12 @@ s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
         o->header.gfx.unk38.animYTrans = m->unkB0;
 
         if (targetAnim->flags & ANIM_FLAG_2) {
-            o->header.gfx.unk38.animFrame = targetAnim->unk04;
+            o->header.gfx.unk38.animFrame = targetAnim->startFrame;
         } else {
             if (targetAnim->flags & ANIM_FLAG_FORWARD) {
-                o->header.gfx.unk38.animFrame = targetAnim->unk04 + 1;
+                o->header.gfx.unk38.animFrame = targetAnim->startFrame + 1;
             } else {
-                o->header.gfx.unk38.animFrame = targetAnim->unk04 - 1;
+                o->header.gfx.unk38.animFrame = targetAnim->startFrame - 1;
             }
         }
     }
@@ -107,12 +107,12 @@ s16 set_mario_anim_with_accel(struct MarioState *m, s32 targetAnimID, s32 accel)
         o->header.gfx.unk38.animYTrans = m->unkB0;
 
         if (targetAnim->flags & ANIM_FLAG_2) {
-            o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->unk04 << 0x10);
+            o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->startFrame << 0x10);
         } else {
             if (targetAnim->flags & ANIM_FLAG_FORWARD) {
-                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->unk04 << 0x10) + accel;
+                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->startFrame << 0x10) + accel;
             } else {
-                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->unk04 << 0x10) - accel;
+                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->startFrame << 0x10) - accel;
             }
         }
 
