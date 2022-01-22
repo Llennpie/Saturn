@@ -248,7 +248,7 @@ LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 # Directories containing source files
 
 # Hi, I'm a PC
-SRC_DIRS := src src/engine src/game src/audio src/menu src/buffers actors levels bin data assets src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
+SRC_DIRS := src src/engine src/game src/audio src/menu src/buffers actors levels bin data assets assets/anims src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
 
 ifeq ($(WINDOWS_BUILD),1)
   VERSION_CFLAGS += -DDISABLE_CURL_SUPPORT
@@ -334,8 +334,6 @@ CXX_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))
 S_FILES := $(foreach dir,$(ASM_DIRS),$(wildcard $(dir)/*.s))
 GODDARD_C_FILES := $(foreach dir,$(GODDARD_SRC_DIRS),$(wildcard $(dir)/*.c))
 
-GENERATED_C_FILES := $(BUILD_DIR)/assets/mario_anim_data.c $(BUILD_DIR)/assets/demo_data.c
-
 ULTRA_C_FILES := \
   alBnkfNew.c \
   guLookAtRef.c \
@@ -368,8 +366,7 @@ SOUND_OBJ_FILES := $(SOUND_BIN_DIR)/sound_data.o
 # Object files
 O_FILES :=  $(foreach file,$(C_FILES),$(BUILD_DIR)/$(file:.c=.o)) \
             $(foreach file,$(CXX_FILES),$(BUILD_DIR)/$(file:.cpp=.o)) \
-            $(foreach file,$(S_FILES),$(BUILD_DIR)/$(file:.s=.o)) \
-            $(foreach file,$(GENERATED_C_FILES),$(file:.c=.o))
+            $(foreach file,$(S_FILES),$(BUILD_DIR)/$(file:.s=.o))
 
 ULTRA_O_FILES :=  $(foreach file,$(ULTRA_S_FILES),$(BUILD_DIR)/$(file:.s=.o)) \
                   $(foreach file,$(ULTRA_C_FILES),$(BUILD_DIR)/$(file:.c=.o))
@@ -771,12 +768,6 @@ $(BUILD_DIR)/levels/scripts.o: $(BUILD_DIR)/include/level_headers.h
 
 $(BUILD_DIR)/include/level_headers.h: levels/level_headers.h.in
 	$(CPP) -I . levels/level_headers.h.in | $(PYTHON) tools/output_level_headers.py > $(BUILD_DIR)/include/level_headers.h
-
-$(BUILD_DIR)/assets/mario_anim_data.c: $(wildcard assets/anims/*.inc.c)
-	$(PYTHON) tools/mario_anims_converter.py > $@
-
-$(BUILD_DIR)/assets/demo_data.c: assets/demo_data.json $(wildcard assets/demos/*.bin)
-	$(PYTHON) tools/demo_data_converter.py assets/demo_data.json $(VERSION_CFLAGS) > $@
 
 # Source code
 $(BUILD_DIR)/levels/%/leveldata.o: OPT_FLAGS := -g

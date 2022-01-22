@@ -50,7 +50,8 @@ void mem_pool_free(struct MemoryPool *pool, void *addr);
 
 void *alloc_display_list(u32 size);
 
-void func_80278A78(struct MarioAnimation *a, void *b, struct Animation *target);
+void load_dma_table(struct MarioAnimation *a, void *b, struct Animation *target);
+s32 load_mario_animation(struct MarioAnimation *a, u32 b);
 s32 load_patchable_table(struct MarioAnimation *a, u32 b);
 
 #endif // MEMORY_H

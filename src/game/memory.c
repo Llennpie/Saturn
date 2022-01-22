@@ -14,6 +14,7 @@
 #include "memory.h"
 #include "segment_symbols.h"
 #include "segments.h"
+#include "animation_table.h"
 
 // round up to the next multiple
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
@@ -309,7 +310,7 @@ void *alloc_display_list(u32 size) {
     return alloc_only_pool_alloc(gGfxAllocOnlyPool, size);
 }
 
-static struct MarioAnimDmaRelatedThing *func_802789F0(u8 *srcAddr) {
+static struct MarioAnimDmaRelatedThing *read_dma_table(u8 *srcAddr) {
     struct MarioAnimDmaRelatedThing *sp1C = dynamic_dma_read(srcAddr, srcAddr + sizeof(u32),
                                                              MEMORY_POOL_LEFT);
     u32 size = sizeof(u32) + (sizeof(u8 *) - sizeof(u32)) + sizeof(u8 *) +
@@ -321,9 +322,9 @@ static struct MarioAnimDmaRelatedThing *func_802789F0(u8 *srcAddr) {
     return sp1C;
 }
 
-void func_80278A78(struct MarioAnimation *a, void *b, struct Animation *target) {
+void load_dma_table(struct MarioAnimation *a, void *b, struct Animation *target) {
     if (b != NULL) {
-        a->animDmaTable = func_802789F0(b);
+        a->animDmaTable = read_dma_table(b);
     }
     a->currentAnimAddr = NULL;
     a->targetAnim = target;
@@ -347,4 +348,10 @@ s32 load_patchable_table(struct MarioAnimation *a, u32 index) {
         }
     }
     return ret;
+}
+
+s32 load_mario_animation(struct MarioAnimation *a, u32 index) {
+    a->targetAnim = malloc(sizeof(struct Animation));
+    memcpy(a->targetAnim, anim_table[index], sizeof(struct Animation));
+    return TRUE;
 }

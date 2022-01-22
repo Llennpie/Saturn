@@ -282,6 +282,20 @@ struct MarioAnimation
     u8 padding[4];
 };
 
+struct DemoInputsObj {
+    u32 numEntries;
+    const void *addrPlaceholder;
+    struct OffsetSizePair entries[7];
+    u8* bbh;
+    u8* ccm;
+    u8* hmc;
+    u8* jrb;
+    u8* wf;
+    u8* pss;
+    u8* unused;
+    u8* bitdw;
+};
+
 struct MarioState
 {
     /*0x00*/ u16 unk00;
