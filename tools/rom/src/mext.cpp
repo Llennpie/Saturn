@@ -75,7 +75,7 @@ void build_addon(const char* rom, const char* dir){
 
     cout << "Extracting to " << temp_dir << endl;
 
-    string assets = sm64::exec(sm64::format( CWD "/tools/extract_assets.py %s %s", temp_dir.c_str(), rom_path.c_str()));
+    string assets = sm64::exec(sm64::format("python3 %s/tools/extract_assets.py %s %s", CWD, temp_dir.c_str(), rom_path.c_str()));
     if( !nlohmann::json::accept(assets) ) return;
 
     nlohmann::json json = nlohmann::json::parse(assets);

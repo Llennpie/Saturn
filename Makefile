@@ -16,9 +16,6 @@ DEBUG ?= 0
 VERSION ?= us
 # Graphics microcode used
 GRUCODE ?= f3dex2e
-# If NON_MATCHING is 1, define the NON_MATCHING and AVOID_UB macros when building (recommended)
-NON_MATCHING ?= 1
-
 # Build for Nintendo Switch
 TARGET_SWITCH ?= 0
 
@@ -38,6 +35,9 @@ DISCORDRPC ?= 0
 # Various workarounds for weird toolchains
 NO_BZERO_BCOPY ?= 0
 NO_LDIV ?= 0
+
+# BUILD_DIR is location where all build artifacts are placed
+BUILD_DIR_BASE := build
 
 ## Backend selection
 
@@ -118,7 +118,6 @@ VERSION_DEF := VERSION_US
 
 TARGET := moon64.$(VERSION)
 VERSION_CFLAGS := -D$(VERSION_DEF) -D_LANGUAGE_C
-VERSION_ASFLAGS := --defsym $(VERSION_DEF)=1
 
 # Stuff for showing the git hash in the title bar
 GIT_HASH := $(shell git rev-parse --short HEAD)
@@ -133,7 +132,6 @@ GRUCODE_DEF := F3DEX_GBI_2E
 TARGET := $(TARGET).f3dex2e
 
 GRUCODE_CFLAGS := -D$(GRUCODE_DEF)
-GRUCODE_ASFLAGS := $(GRUCODE_ASFLAGS) --defsym $(GRUCODE_DEF)=1
 
 # Default build is for PC now
 VERSION_CFLAGS := $(VERSION_CFLAGS) -DNON_MATCHING -DAVOID_UB
@@ -144,8 +142,6 @@ endif
 ifeq ($(OSX_BUILD),1) # Modify GFX & SDL2 for OSX GL
   VERSION_CFLAGS += -DOSX_BUILD
 endif
-
-VERSION_ASFLAGS := --defsym AVOID_UB=1
 
 # Check backends
 
@@ -194,26 +190,17 @@ endif
 
 ######################### Target Executable and Sources ########################
 
-# BUILD_DIR is location where all build artifacts are placed
-BUILD_DIR_BASE := build
-
 ifeq ($(TARGET_SWITCH),1)
   BUILD_DIR := $(BUILD_DIR_BASE)/$(VERSION)_nx
 else
   BUILD_DIR := $(BUILD_DIR_BASE)/$(VERSION)_pc
 endif
 
-LIBULTRA := $(BUILD_DIR)/libultra.a
-
 ifeq ($(WINDOWS_BUILD),1)
   EXE := $(BUILD_DIR)/$(TARGET).exe
 else # Linux builds/binary namer
   EXE := $(BUILD_DIR)/$(TARGET)
 endif
-LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
-
-# Directories containing source files
-SRC_DIRS := src src/goddard src/goddard/dynlists src/ultra64 src/engine src/effects src/game src/audio src/menu src/buffers actors levels bin data assets assets/anims src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
 
 ifeq ($(WINDOWS_BUILD),1)
   VERSION_CFLAGS += -DDISABLE_CURL_SUPPORT
@@ -223,8 +210,8 @@ endif
 #      Moon64 Source Code      #
 ################################
 
-MOON_SRC := $(shell find src/moon/ -type d) $(shell find libs/ -type d)
-SRC_DIRS += $(MOON_SRC)
+MOON_SRC := $(shell find src/ -type d -not -path "src/game/behaviors") $(shell find libs/ -type d)
+SRC_DIRS :=  actors levels assets assets/anims $(MOON_SRC)
 
 ################################
 
@@ -232,8 +219,6 @@ ifeq ($(DISCORDRPC),1)
   ifneq ($(TARGET_SWITCH),0)
     $(echo Discord RPC does not work on this target)
     DISCORDRPC := 0
-  else
-    # SRC_DIRS += src/pc/discord
   endif
 endif
 
@@ -248,9 +233,9 @@ OPT_FLAGS += $(BITS)
 
 # Source code files
 LEVEL_C_FILES := $(wildcard levels/*/leveldata.c) $(wildcard levels/*/script.c) $(wildcard levels/*/geo.c)
+LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 C_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c)) $(LEVEL_C_FILES)
 CXX_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))
-
 C_FILES := $(filter-out src/game/main.c,$(C_FILES))
 
 # Object files
@@ -309,13 +294,6 @@ endif
 
 # for some reason sdl-config in dka64 is not prefixed, while pkg-config is
 SDLCROSS ?=
-
-AS := $(CROSS)as
-
-ifeq ($(OSX_BUILD),1)
-AS := i686-w64-mingw32-as
-endif
-
 CC ?= $(CROSS)gcc
 CXX ?= $(CROSS)g++
 LD := $(CC)
@@ -351,7 +329,6 @@ SDLCONFIG := $(SDLCROSS)sdl2-config
 # configure backend flags
 
 BACKEND_CFLAGS := -DRAPI_$(RENDER_API)=1 -DWAPI_$(WINDOW_API)=1 -DAAPI_$(AUDIO_API)=1
-# can have multiple controller APIs
 BACKEND_CFLAGS += $(foreach capi,$(CONTROLLER_API),-DCAPI_$(capi)=1)
 BACKEND_LDFLAGS :=
 SDL2_USED := 0
@@ -478,17 +455,6 @@ ifeq ($(NO_LDIV),1)
   CFLAGS += -DNO_LDIV
 endif
 
-# Use OpenGL 1.3
-ifeq ($(LEGACY_GL),1)
-  CC_CHECK += -DLEGACY_GL
-  CFLAGS += -DLEGACY_GL
-endif
-
-# tell skyconv to write names instead of actual texture data and save the split tiles so we can use them later
-SKYTILE_DIR := $(BUILD_DIR)/assets/textures/skybox_tiles
-
-ASFLAGS := -I include -I $(BUILD_DIR) $(VERSION_ASFLAGS)
-
 ifeq ($(WINDOWS_BUILD),1)
   LDFLAGS := $(BITS) -march=$(TARGET_ARCH) -Llib -lpthread $(BACKEND_LDFLAGS) -static
   ifeq ($(CROSS),)
@@ -519,13 +485,16 @@ export LANG := C
 
 #################################### Targets ###################################
 
+ADDONS      := addons
+ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) include) $(ADDONS_PATH)
+ADDON_FLAG := $(BUILD_DIR)/.addon
+ADDONS_PATH := $(BUILD_DIR)/$(ADDONS)/
+MEXT_PARAMETERS := ./baserom.us.z64 ./build/us_pc/addons/moon64 ./assets/fonts ./assets/textures/icons ./assets/textures/logo ./assets/textures/moon ./assets/textures/special ./assets/langs
+
 all: $(EXE)
 ifeq ($(TARGET_SWITCH),1)
 all: $(EXE).nro
 endif
-
-ADDONS      := addons
-ADDONS_PATH := $(BUILD_DIR)/$(ADDONS)/
 
 clean:
 	$(RM) -r $(BUILD_DIR_BASE)
@@ -537,17 +506,12 @@ distclean:
 	$(RM) -r $(BUILD_DIR_BASE)
 	./extract_assets.py --clean
 
-ADDON_FLAG := $(BUILD_DIR)/.addon
-MEXT_PARAMETERS := ./baserom.us.z64 ./build/us_pc/addons/moon64 ./assets/fonts ./assets/textures/icons ./assets/textures/logo ./assets/textures/moon ./assets/textures/special ./assets/langs
-
 addon:
 	./tools/rom/mext $(MEXT_PARAMETERS)
 
 $(BUILD_DIR)/$(RPC_LIBS):
 	mkdir -p $(@D)
 	cp $(RPC_LIBS) $(@D)
-
-ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) include) $(ADDONS_PATH)
 
 # Make sure build directory exists before compiling anything
 DUMMY != mkdir -p $(ALL_DIRS)
@@ -568,9 +532,6 @@ $(BUILD_DIR)/%.o: %.c
 $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.c
 	@$(CC_CHECK) $(CC_CHECK_CFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<
 	$(CC) -c $(CFLAGS) -o $@ $<
-
-$(BUILD_DIR)/%.o: %.s
-	$(AS) $(ASFLAGS) -MD $(BUILD_DIR)/$*.d -o $@ $<
 
 $(ADDON_FLAG):
 	./tools/rom/mext $(MEXT_PARAMETERS)
@@ -597,9 +558,8 @@ ifeq ($(TARGET_SWITCH), 1)
 
 endif
 
-.PHONY: addon all clean distclean default diff libultra res
+.PHONY: addon all clean default
 .SECONDARY: addon
-.PRECIOUS: $(BUILD_DIR)/bin/%.elf $(SOUND_BIN_DIR)/%.ctl $(SOUND_BIN_DIR)/%.tbl $(SOUND_SAMPLE_TABLES) $(SOUND_BIN_DIR)/%.s $(BUILD_DIR)/%
 .DELETE_ON_ERROR:
 
 # Remove built-in rules, to improve performance

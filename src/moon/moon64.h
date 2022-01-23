@@ -8,7 +8,7 @@
 
 void moon_setup(char *state);
 
-void moon_environment_save(char* key, char* value);
+void moon_environment_save(char* key, const char* value);
 
 /*
 #######################
@@ -43,8 +43,8 @@ void moon_update_window(void* window);
 ######################
 */
 
-void moon_save_texture(struct TextureData* data, char* tex);
-struct TextureData* moon_get_texture(char* tex);
+void moon_save_texture(struct TextureData* data, const char* tex);
+struct TextureData* moon_get_texture(const char* tex);
 struct TextureData* moon_create_texture();
 void moon_load_base_texture(char* data, long size, char* texture);
 void moon_load_texture(int tile, const char *fullpath, const char *rawpath, struct GfxRenderingAPI *gfx_rapi);

@@ -240,11 +240,6 @@ SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         configWindow.w = 1280;
         configWindow.h = 720;
     }
-    int xpos = 0;
-    int ypos = 0;
-#else
-    int xpos = (configWindow.x == WAPI_WIN_CENTERPOS) ? SDL_WINDOWPOS_CENTERED : configWindow.x;
-    int ypos = (configWindow.y == WAPI_WIN_CENTERPOS) ? SDL_WINDOWPOS_CENTERED : configWindow.y;
 #endif
 
     wnd = SDL_CreateWindow(

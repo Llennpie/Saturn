@@ -5,6 +5,7 @@
 
 struct GfxRenderingAPI;
 struct GfxWindowManagerAPI;
+extern size_t buf_vbo_num_tris;
 
 struct GfxDimensions {
     float width, height;
@@ -18,7 +19,7 @@ struct GfxDimensions {
 #define HASH_MASK (HASHMAP_LEN - 1)
 
 struct TextureData {
-    const uint8_t *texture_addr;
+    const char *texture_addr;
     uint8_t fmt, siz;
 
     uint32_t texture_id;

@@ -2,7 +2,7 @@
 #define ModEngineHookModule
 
 struct HookParameter {
-    char* name;
+    const char* name;
     void* parameter;
 };
 
