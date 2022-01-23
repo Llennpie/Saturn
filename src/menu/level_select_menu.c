@@ -27,7 +27,7 @@ static char gLevelSelect_StageNamesText[64][64] = {
 
 static u16 gDemoCountdown = 0;
 #ifndef VERSION_JP
-static s16 D_U_801A7C34 = 1;
+static s16 is_hello_played = 1;
 static s16 gameOverNotPlayed = 1;
 #endif
 
@@ -38,27 +38,27 @@ static s16 gameOverNotPlayed = 1;
 
 // don't shift this function from being the first function in the segment.
 // the level scripts assume this function is the first, so it cant be moved.
-int run_press_start_demo_timer(s32 timer) {
+int run_level_id_or_demo(s32 level) {
     gCurrDemoInput = NULL;
 
-    if (timer == 0) {
+    if (level == 0) {
         if (!gPlayer1Controller->buttonDown && !gPlayer1Controller->stickMag) {
             if ((++gDemoCountdown) == PRESS_START_DEMO_TIMER) {
                 // start the demo. 800 frames has passed while
                 // player is idle on PRESS START screen.
 
                 // start the Mario demo animation for the demo list.
-                load_patchable_table(&gDemo, gDemoInputListID);
+                void* demoRawData = gDemoInputs[gDemoInputListID];
 
                 // if the next demo sequence ID is the count limit, reset it back to
                 // the first sequence.
-                if (++gDemoInputListID == gDemo.animDmaTable->count) {
+                if (++gDemoInputListID == 7) {
                     gDemoInputListID = 0;
                 }
 
                 // add 1 (+4) to the pointer to skip the demoID.
-                gCurrDemoInput = ((struct DemoInput *) gDemo.targetAnim) + 1;
-                timer = (s8)((struct DemoInput *) gDemo.targetAnim)->timer;
+                gCurrDemoInput = ((struct DemoInput *) demoRawData) + 1;
+                level = (s8)((struct DemoInput *) demoRawData)->timer;
                 gCurrSaveFileNum = 1;
                 gCurrActNum = 1;
             }
@@ -66,7 +66,7 @@ int run_press_start_demo_timer(s32 timer) {
             gDemoCountdown = 0;
         }
     }
-    return timer;
+    return level;
 }
 
 extern int gDemoInputListID_2;
@@ -81,9 +81,6 @@ int start_demo(int timer)
 
     // if the next demo sequence ID is the count limit, reset it back to
     // the first sequence.
-
-    if((++gDemoInputListID_2) == gDemo.animDmaTable->count)
-        gDemoInputListID_2 = 0;
 
     gCurrDemoInput = ((struct DemoInput *) gDemo.targetAnim) + 1; // add 1 (+4) to the pointer to skip the demoID.
     timer = (s8)((struct DemoInput *) gDemo.targetAnim)->timer; // TODO: see if making timer s8 matches
@@ -161,22 +158,18 @@ s16 level_select_input_loop(void) {
 int intro_default(void) {
     s32 sp1C = 0;
 
-#ifndef VERSION_JP
-    if (D_U_801A7C34 == 1) {
+    if (is_hello_played == 1) {
         play_sound(SOUND_MARIO_HELLO, gGlobalSoundSource);
-        D_U_801A7C34 = 0;
+        is_hello_played = 0;
     }
-#endif
     print_intro_text();
 
     if (gPlayer1Controller->buttonPressed & START_BUTTON) {
         play_sound(SOUND_MENU_STAR_SOUND, gGlobalSoundSource);
         sp1C = 100 + gDebugLevelSelect;
-#ifndef VERSION_JP
-        D_U_801A7C34 = 1;
-#endif
+        is_hello_played = 1;
     }
-    return run_press_start_demo_timer(sp1C);
+    return run_level_id_or_demo(sp1C);
 }
 
 int intro_game_over(void) {
@@ -198,7 +191,7 @@ int intro_game_over(void) {
         gameOverNotPlayed = 1;
 #endif
     }
-    return run_press_start_demo_timer(sp1C);
+    return run_level_id_or_demo(sp1C);
 }
 
 int intro_play_its_a_me_mario(void) {

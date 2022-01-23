@@ -1,9 +1,9 @@
 #include "saturn_textures.h"
 #include "saturn.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 
 #include "moon/utils/moon-env.h"
-#include "moon/fs/moonfs.h"
+#include "moon/api/fs/moonfs.h"
 
 #include <iostream>
 #include <string>
@@ -59,8 +59,8 @@ void saturn_load_eye_array() {
 #endif
 
     for (const auto & entry : fs::directory_iterator(eyeDir)) {
-        size_t last_index = entry.path().filename().u8string().find_last_of("."); 
-        string stripped_name = entry.path().filename().u8string().substr(0, last_index); 
+        size_t last_index = entry.path().filename().u8string().find_last_of(".");
+        string stripped_name = entry.path().filename().u8string().substr(0, last_index);
         eye_array.push_back(stripped_name);
     }
 }
@@ -90,8 +90,8 @@ void saturn_load_emblem_array() {
 #endif
 
     for (const auto & entry : fs::directory_iterator(emblemDir)) {
-        size_t last_index = entry.path().filename().u8string().find_last_of("."); 
-        string stripped_name = entry.path().filename().u8string().substr(0, last_index); 
+        size_t last_index = entry.path().filename().u8string().find_last_of(".");
+        string stripped_name = entry.path().filename().u8string().substr(0, last_index);
         emblem_array.push_back(stripped_name);
     }
 }
@@ -121,8 +121,8 @@ void saturn_load_stache_array() {
 #endif
 
     for (const auto & entry : fs::directory_iterator(stacheDir)) {
-        size_t last_index = entry.path().filename().u8string().find_last_of("."); 
-        string stripped_name = entry.path().filename().u8string().substr(0, last_index); 
+        size_t last_index = entry.path().filename().u8string().find_last_of(".");
+        string stripped_name = entry.path().filename().u8string().substr(0, last_index);
         stache_array.push_back(stripped_name);
     }
 }
@@ -152,8 +152,8 @@ void saturn_load_button_array() {
 #endif
 
     for (const auto & entry : fs::directory_iterator(buttonDir)) {
-        size_t last_index = entry.path().filename().u8string().find_last_of("."); 
-        string stripped_name = entry.path().filename().u8string().substr(0, last_index); 
+        size_t last_index = entry.path().filename().u8string().find_last_of(".");
+        string stripped_name = entry.path().filename().u8string().substr(0, last_index);
         button_array.push_back(stripped_name);
     }
 }
@@ -183,8 +183,8 @@ void saturn_load_sideburn_array() {
 #endif
 
     for (const auto & entry : fs::directory_iterator(sideburnDir)) {
-        size_t last_index = entry.path().filename().u8string().find_last_of("."); 
-        string stripped_name = entry.path().filename().u8string().substr(0, last_index); 
+        size_t last_index = entry.path().filename().u8string().find_last_of(".");
+        string stripped_name = entry.path().filename().u8string().substr(0, last_index);
         sideburn_array.push_back(stripped_name);
     }
 }

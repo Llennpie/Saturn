@@ -23,7 +23,7 @@
 #include <string.h>
 #include "moon/utils/moon-gfx.h"
 #include "gfx_dimensions.h"
-#include "moon/mod-engine/models/mod-model.h"
+#include "moon/addons/models/mod-model.h"
 
 /**
  * @file file_select.c

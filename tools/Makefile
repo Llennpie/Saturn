@@ -27,13 +27,17 @@ tabledesign_LDFLAGS := -Laudiofile -laudiofile -lstdc++ -lm
 vadpcm_enc_SOURCES := sdk-tools/adpcm/vadpcm_enc.c sdk-tools/adpcm/vpredictor.c sdk-tools/adpcm/quant.c sdk-tools/adpcm/util.c sdk-tools/adpcm/vencode.c
 vadpcm_enc_CFLAGS := -Wno-unused-result -Wno-uninitialized -Wno-sign-compare -Wno-absolute-value
 
-
 LIBAUDIOFILE := audiofile/libaudiofile.a
 
 $(LIBAUDIOFILE):
 	@CC=$(CC) CXX=$(CXX) $(MAKE) -C audiofile
 
-all: $(LIBAUDIOFILE) $(PROGRAMS) $(CXX_PROGRAMS)
+MEXT := rom/mext
+
+$(MEXT):
+	@CC=$(CC) CXX=$(CXX) $(MAKE) -C rom
+
+all: $(MEXT) $(LIBAUDIOFILE) $(PROGRAMS) $(CXX_PROGRAMS)
 
 clean:
 	$(RM) $(PROGRAMS) $(CXX_PROGRAMS)

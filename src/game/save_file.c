@@ -12,7 +12,7 @@
 #include "thread6.h"
 #include "macros.h"
 #include "pc/ini.h"
-#include "moon/config/saves/saves.h"
+#include "moon/saves/saves.h"
 
 #define MENU_DATA_MAGIC 0x4849
 #define SAVE_FILE_MAGIC 0x4441

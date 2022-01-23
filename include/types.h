@@ -86,11 +86,11 @@ struct VblankHandler
 
 struct Animation {
     /*0x00*/ s16 flags;
-    /*0x02*/ s16 unk02;
-    /*0x04*/ s16 unk04;
-    /*0x06*/ s16 unk06;
-    /*0x08*/ s16 unk08;
-    /*0x0A*/ s16 unk0A;
+    /*0x02*/ s16 animYTransDivisor;
+    /*0x04*/ s16 startFrame;
+    /*0x06*/ s16 loopStart;
+    /*0x08*/ s16 loopEnd;
+    /*0x0A*/ s16 unusedBoneCount;
     /*0x0C*/ const s16 *values;
     /*0x10*/ const u16 *index;
     /*0x14*/ u32 length; // only used with Mario animations to determine how much to load. 0 otherwise.
@@ -261,22 +261,7 @@ struct MarioBodyState
     u8 padding[4];
 };
 
-struct OffsetSizePair
-{
-    u32 offset;
-    u32 size;
-};
-
-struct MarioAnimDmaRelatedThing
-{
-    u32 count;
-    u8 *srcAddr;
-    struct OffsetSizePair anim[1]; // dynamic size
-};
-
-struct MarioAnimation
-{
-    struct MarioAnimDmaRelatedThing *animDmaTable;
+struct MarioAnimation {
     u8 *currentAnimAddr;
     struct Animation *targetAnim;
     u8 padding[4];

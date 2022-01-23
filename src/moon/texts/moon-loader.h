@@ -7,9 +7,9 @@
 #include <string>
 #include <codecvt>
 #include <locale>
-#include "moon/libs/rapidjson/filereadstream.h"
-#include "moon/libs/rapidjson/encodings.h"
-#include "moon/libs/rapidjson/document.h"
+#include "libs/rapidjson/filereadstream.h"
+#include "libs/rapidjson/encodings.h"
+#include "libs/rapidjson/document.h"
 
 extern "C" {
     #include "types.h"

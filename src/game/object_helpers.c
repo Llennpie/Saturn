@@ -26,7 +26,7 @@
 #include "rendering_graph_node.h"
 #include "spawn_object.h"
 #include "spawn_sound.h"
-#include "moon/mod-engine/models/mod-model.h"
+#include "moon/addons/models/mod-model.h"
 
 s8 D_8032F0A0[] = { 0xF8, 0x08, 0xFC, 0x04 };
 s16 D_8032F0A4[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
@@ -970,7 +970,7 @@ BAD_RETURN(s16) cur_obj_reverse_animation(void) {
 
 BAD_RETURN(s32) cur_obj_extend_animation_if_at_end(void) {
     s32 sp4 = o->header.gfx.unk38.animFrame;
-    s32 sp0 = o->header.gfx.unk38.curAnim->unk08 - 2;
+    s32 sp0 = o->header.gfx.unk38.curAnim->loopEnd - 2;
 
     if (sp4 == sp0) o->header.gfx.unk38.animFrame--;
 }
@@ -978,7 +978,7 @@ BAD_RETURN(s32) cur_obj_extend_animation_if_at_end(void) {
 s32 cur_obj_check_if_near_animation_end(void) {
     u32 spC = (s32) o->header.gfx.unk38.curAnim->flags;
     s32 sp8 = o->header.gfx.unk38.animFrame;
-    s32 sp4 = o->header.gfx.unk38.curAnim->unk08 - 2;
+    s32 sp4 = o->header.gfx.unk38.curAnim->loopEnd - 2;
     s32 sp0 = FALSE;
 
     if (spC & 0x01) {
@@ -996,7 +996,7 @@ s32 cur_obj_check_if_near_animation_end(void) {
 
 s32 cur_obj_check_if_at_animation_end(void) {
     s32 sp4 = o->header.gfx.unk38.animFrame;
-    s32 sp0 = o->header.gfx.unk38.curAnim->unk08 - 1;
+    s32 sp0 = o->header.gfx.unk38.curAnim->loopEnd - 1;
 
     if (sp4 == sp0) {
         return TRUE;
@@ -1658,7 +1658,7 @@ f32 cur_obj_abs_y_dist_to_home(void) {
 
 s32 cur_obj_advance_looping_anim(void) {
     s32 spC = o->header.gfx.unk38.animFrame;
-    s32 sp8 = o->header.gfx.unk38.curAnim->unk08;
+    s32 sp8 = o->header.gfx.unk38.curAnim->loopEnd;
     s32 sp4;
 
     if (spC < 0) {

@@ -23,7 +23,7 @@
 #include "../configfile.h"
 #include "../fs/fs.h"
 #include "moon/moon64.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 #include "moon/saturn/saturn_types.h"
 
 #define SUPPORT_CHECK(x) assert(x)

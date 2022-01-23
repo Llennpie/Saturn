@@ -1,6 +1,6 @@
 #ifdef UNUSED_FEAT
 #include "skybox.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 
 #ifdef __MINGW32__
 # define FOR_WINDOWS 1

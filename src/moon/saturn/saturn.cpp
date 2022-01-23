@@ -1,10 +1,10 @@
 #include "saturn.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 
 #include "moon/utils/moon-env.h"
-#include "moon/fs/moonfs.h"
+#include "moon/api/fs/moonfs.h"
 #include "moon/ui/screens/addons/addons-view.h"
-#include "moon/mod-engine/engine.h"
+#include "moon/addons/engine.h"
 #include "moon/imgui/imgui_impl.h"
 #include "pc/configfile.h"
 #include "pc/controller/controller_keyboard.h"
@@ -96,7 +96,7 @@ namespace MoonInternal {
                 MoonInternal::load_cc_directory();
                 MoonInternal::load_cc_file(cc_array[configColorCode]);
                 apply_editor_from_cc();
-                
+
                 // custom textures
                 current_eye_state = 0;
                 saturn_load_eye_array();
@@ -157,7 +157,7 @@ namespace MoonInternal {
                 camVelSpeed = camera_speed;
 
                 /* OLD CAMERA...
-                
+
                 if (camera_frozen == true) {
                     if (set_cam_angle(0) != CAM_ANGLE_MARIO) {
                         gLakituState.focVSpeed = camera_speed;

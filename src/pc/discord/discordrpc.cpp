@@ -282,7 +282,7 @@ void discord_shutdown(void) {
 void discord_init(void) {
     if (configDiscordRPC) {
         string cwd = MoonInternal::getEnvironmentVar("MOON_CWD");
-        string libPath = cwd.substr(0, cwd.find_last_of("/\\")) + "/lib/discord/" + DISCORDLIB;
+        string libPath = cwd.substr(0, cwd.find_last_of("/\\")) + "/libs/discord/" + DISCORDLIB;
 
         cout << "Loading discord lib from " << libPath << endl;
 

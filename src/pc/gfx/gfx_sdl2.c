@@ -33,7 +33,7 @@
 #include "../configfile.h"
 #include "../cliopts.h"
 #include "moon/moon64.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 
 #include "src/pc/controller/controller_keyboard.h"
 

@@ -14,7 +14,7 @@ private:
 };
 
 #include <vector>
-#include "moon/mod-engine/interfaces/bit-module.h"
+#include "moon/addons/interfaces/bit-module.h"
 
 extern BitModule* currentPack;
 extern std::vector<BitModule*> texturePackList;

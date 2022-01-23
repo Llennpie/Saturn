@@ -53,7 +53,7 @@ s8 filler80339F1C[20];
 s32 is_anim_at_end(struct MarioState *m) {
     struct Object *o = m->marioObj;
 
-    return (o->header.gfx.unk38.animFrame + 1) == o->header.gfx.unk38.curAnim->unk08;
+    return (o->header.gfx.unk38.animFrame + 1) == o->header.gfx.unk38.curAnim->loopEnd;
 }
 
 /**
@@ -62,7 +62,7 @@ s32 is_anim_at_end(struct MarioState *m) {
 s32 is_anim_past_end(struct MarioState *m) {
     struct Object *o = m->marioObj;
 
-    return o->header.gfx.unk38.animFrame >= (o->header.gfx.unk38.curAnim->unk08 - 2);
+    return o->header.gfx.unk38.animFrame >= (o->header.gfx.unk38.curAnim->loopEnd - 2);
 }
 
 /**
@@ -72,12 +72,8 @@ s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
     if (is_anim_playing) return;
 
     struct Object *o = m->marioObj;
+    load_mario_animation(m->animation, targetAnimID);
     struct Animation *targetAnim = m->animation->targetAnim;
-
-    if (load_patchable_table(m->animation, targetAnimID)) {
-        targetAnim->values = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
-        targetAnim->index = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
-    }
 
     if (o->header.gfx.unk38.animID != targetAnimID) {
         o->header.gfx.unk38.animID = targetAnimID;
@@ -86,12 +82,12 @@ s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
         o->header.gfx.unk38.animYTrans = m->unkB0;
 
         if (targetAnim->flags & ANIM_FLAG_2) {
-            o->header.gfx.unk38.animFrame = targetAnim->unk04;
+            o->header.gfx.unk38.animFrame = targetAnim->startFrame;
         } else {
             if (targetAnim->flags & ANIM_FLAG_FORWARD) {
-                o->header.gfx.unk38.animFrame = targetAnim->unk04 + 1;
+                o->header.gfx.unk38.animFrame = targetAnim->startFrame + 1;
             } else {
-                o->header.gfx.unk38.animFrame = targetAnim->unk04 - 1;
+                o->header.gfx.unk38.animFrame = targetAnim->startFrame - 1;
             }
         }
     }
@@ -105,12 +101,8 @@ s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
  */
 s16 set_mario_anim_with_accel(struct MarioState *m, s32 targetAnimID, s32 accel) {
     struct Object *o = m->marioObj;
+    load_mario_animation(m->animation, targetAnimID);
     struct Animation *targetAnim = m->animation->targetAnim;
-
-    if (load_patchable_table(m->animation, targetAnimID)) {
-        targetAnim->values = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
-        targetAnim->index = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
-    }
 
     if (o->header.gfx.unk38.animID != targetAnimID) {
         o->header.gfx.unk38.animID = targetAnimID;
@@ -118,12 +110,12 @@ s16 set_mario_anim_with_accel(struct MarioState *m, s32 targetAnimID, s32 accel)
         o->header.gfx.unk38.animYTrans = m->unkB0;
 
         if (targetAnim->flags & ANIM_FLAG_2) {
-            o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->unk04 << 0x10);
+            o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->startFrame << 0x10);
         } else {
             if (targetAnim->flags & ANIM_FLAG_FORWARD) {
-                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->unk04 << 0x10) + accel;
+                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->startFrame << 0x10) + accel;
             } else {
-                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->unk04 << 0x10) - accel;
+                o->header.gfx.unk38.animFrameAccelAssist = (targetAnim->startFrame << 0x10) - accel;
             }
         }
 
@@ -1942,7 +1934,7 @@ void init_mario_from_save_file(void) {
     gMarioState->statusForCamera = &gPlayerCameraState[0];
     gMarioState->marioBodyState = &gBodyStates[0];
     gMarioState->controller = &gControllers[0];
-    gMarioState->animation = &D_80339D10;
+    gMarioState->animation = &mario_anims_table;
 
     gMarioState->numCoins = 0;
     gMarioState->numStars =

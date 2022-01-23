@@ -4,14 +4,14 @@
 #include <string>
 #include <iostream>
 
-#include "moon/libs/imgui/imgui.h"
-#include "moon/libs/imgui/imgui_internal.h"
-#include "moon/libs/imgui/imgui_impl_sdl.h"
-#include "moon/libs/imgui/imgui_impl_opengl3.h"
-#include "moon/libs/imgui/imgui_switch_impl.h"
-#include "moon/mod-engine/hooks/hook.h"
-#include "moon/mod-engine/textures/mod-texture.h"
-#include "moon/mod-engine/engine.h"
+#include "libs/imgui/imgui.h"
+#include "libs/imgui/imgui_internal.h"
+#include "libs/imgui/imgui_impl_sdl.h"
+#include "libs/imgui/imgui_impl_opengl3.h"
+#include "libs/imgui/imgui_switch_impl.h"
+#include "moon/api/hooks/hook.h"
+#include "moon/addons/textures/mod-texture.h"
+#include "moon/addons/engine.h"
 #include "moon/texts/moon-loader.h"
 #include "moon/saturn/saturn.h"
 #include "moon/saturn/saturn_colors.h"
@@ -496,19 +496,19 @@ namespace MoonInternal {
                     ImGui::Combo("Hands", &current_hand_state, handStates, IM_ARRAYSIZE(handStates));
 
                     ImGui::Dummy(ImVec2(0, 5));
-                    
+
                     ImGui::Checkbox("Dust Particles", &enable_dust_particles);
                     ImGui::Checkbox("Shadows", &enable_shadows);
 
                     ImGui::Dummy(ImVec2(0, 5));
 
-                    const char* levelList[] = { 
-                        "Castle Grounds", "Castle Inside", "Chroma Key Stage", "Bob-omb Battlefield", 
-                        "Whomp's Fortress", "Princess's Secret Slide", "Tower of the Wing Cap", 
+                    const char* levelList[] = {
+                        "Castle Grounds", "Castle Inside", "Chroma Key Stage", "Bob-omb Battlefield",
+                        "Whomp's Fortress", "Princess's Secret Slide", "Tower of the Wing Cap",
                         "Jolly Roger Bay", "Cool, Cool Mountain",
-                        "Bowser in the Dark World", "Big Boo's Haunt", "Hazy Maze Cave", 
-                        "Cavern of the Metal Cap", "Lethal Lava Land", "Shifting Sand Land", 
-                        "Vanish Cap under the Moat", "Dire, Dire Docks", "Bowser in the Fire Sea", 
+                        "Bowser in the Dark World", "Big Boo's Haunt", "Hazy Maze Cave",
+                        "Cavern of the Metal Cap", "Lethal Lava Land", "Shifting Sand Land",
+                        "Vanish Cap under the Moat", "Dire, Dire Docks", "Bowser in the Fire Sea",
                         "Snowman's Land", "Wet-Dry World", "Tall, Tall Mountain", "Tiny, Huge Island",
                         "Tick Tock Clock", "Wing Mario Over the Rainbow", "Rainbow Ride", "Bowser in the Sky"
                     };
@@ -735,7 +735,7 @@ namespace MoonInternal {
                             current_emblem_item = 1;
                             custom_emblem_name = "saturn/blank";
                             saturn_emblem_swap();
-                        } 
+                        }
                         else if (selected_emblem_item == 2 && emblem_array.size() > 0) {
                             static int current_emblem_id = 0;
 
@@ -780,7 +780,7 @@ namespace MoonInternal {
                             current_stache_item = 1;
                             custom_stache_name = "saturn/blank";
                             saturn_stache_swap();
-                        } 
+                        }
                         else if (selected_stache_item == 2 && stache_array.size() > 0) {
                             static int current_stache_id = 0;
 
@@ -825,7 +825,7 @@ namespace MoonInternal {
                             current_button_item = 1;
                             custom_button_name = "saturn/blank";
                             saturn_button_swap();
-                        } 
+                        }
                         else if (selected_button_item == 2 && button_array.size() > 0) {
                             static int current_button_id = 0;
 
@@ -870,7 +870,7 @@ namespace MoonInternal {
                             current_sideburn_item = 1;
                             custom_sideburn_name = "saturn/blank";
                             saturn_sideburn_swap();
-                        } 
+                        }
                         else if (selected_sideburn_item == 2 && sideburn_array.size() > 0) {
                             static int current_sideburn_id = 0;
 
@@ -955,42 +955,42 @@ namespace MoonInternal {
                             if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::ColorEdit4("Hat Shade", (float*)&uiHatShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;                            
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::Text("Overalls");
                             ImGui::ColorEdit4("Overalls Main", (float*)&uiOverallsColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;                                
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::ColorEdit4("Overalls Shade", (float*)&uiOverallsShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::Text("Gloves");
                             ImGui::ColorEdit4("Gloves Main", (float*)&uiGlovesColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::ColorEdit4("Gloves Shade", (float*)&uiGlovesShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::Text("Shoes");
                             ImGui::ColorEdit4("Shoes Main", (float*)&uiShoesColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::ColorEdit4("Shoes Shade", (float*)&uiShoesShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::Text("Skin");
                             ImGui::ColorEdit4("Skin Main", (float*)&uiSkinColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::ColorEdit4("Skin Shade", (float*)&uiSkinShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::Text("Hair");
                             ImGui::ColorEdit4("Hair Main", (float*)&uiHairColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::ColorEdit4("Hair Shade", (float*)&uiHairShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::EndTabItem();
 
                             ImGui::Dummy(ImVec2(0, 5));
@@ -1003,7 +1003,7 @@ namespace MoonInternal {
                         if (ImGui::BeginTabItem("GameShark")) {
                             ImGui::InputTextMultiline("###gameshark_box", cc_gameshark, IM_ARRAYSIZE(cc_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase);
                             if (ImGui::IsItemActivated()) accept_input = false;
-                            if (ImGui::IsItemDeactivated()) accept_input = true;    
+                            if (ImGui::IsItemDeactivated()) accept_input = true;
                             ImGui::Dummy(ImVec2(0, 5));
 
                             if (ImGui::Button("Paste GS Code")) {

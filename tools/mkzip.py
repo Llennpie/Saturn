@@ -31,7 +31,7 @@ baseAddon = path.join(sys.argv[2], moonFolder)
 with open(sys.argv[1], 'r') as f:
     for line in f:
         data = line.strip().split()
-        out = path.join(baseAddon, "assets", data[1]).replace("gfx", "graphics").replace("texts", "langs")
+        out = path.join(baseAddon, "assets", data[1].replace("assets/", "")).replace("gfx", "graphics").replace("texts", "langs")
         os.makedirs(path.dirname(out), exist_ok=True)
         if((path.exists(out) and path.exists(data[0]) and md5(out) != md5(data[0])) or not path.exists(out)):
             copyfile(data[0], out)

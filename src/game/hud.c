@@ -15,7 +15,7 @@
 #include "save_file.h"
 #include "print.h"
 #include "pc/configfile.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 
 #ifdef TARGET_SWITCH
 #define AVOID_UTYPES

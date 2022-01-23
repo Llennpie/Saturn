@@ -56,7 +56,7 @@ void bhv_bowser_flame_spawn_loop(void) {
     s16 *sp1C = segmented_to_virtual(bowser_seg6_unkmoveshorts_060576FC);
     if (bowser->oSoundStateID == 6) {
         sp30 = bowser->header.gfx.unk38.animFrame + 1.0f;
-        if (bowser->header.gfx.unk38.curAnim->unk08 == sp30)
+        if (bowser->header.gfx.unk38.curAnim->loopEnd == sp30)
             sp30 = 0;
         if (sp30 > 45 && sp30 < 85) {
             cur_obj_play_sound_1(SOUND_AIR_BOWSER_SPIT_FIRE);

@@ -38,7 +38,7 @@ NODRAWINGDISTANCE ?= 1
 # Disable texture fixes by default (helps with them purists)
 TEXTURE_FIX ?= 0
 # Enable Discord Rich Presence
-DISCORDRPC ?= 1
+DISCORDRPC ?= 0
 # Various workarounds for weird toolchains
 NO_BZERO_BCOPY ?= 0
 NO_LDIV ?= 0
@@ -191,7 +191,7 @@ ifneq ($(MAKECMDGOALS),distclean)
 # Make sure assets exist
 NOEXTRACT ?= 0
 ifeq ($(NOEXTRACT),0)
-DUMMY != ./extract_assets.py $(VERSION) >&2 || echo FAIL
+DUMMY != ./tools/extract_assets.py $(VERSION) >&2 || echo FAIL
 ifeq ($(DUMMY),FAIL)
   $(error Failed to extract assets)
 endif
@@ -239,16 +239,16 @@ endif
 
 ELF := $(BUILD_DIR)/$(TARGET).elf
 LD_SCRIPT := sm64.ld
-MIO0_DIR := $(BUILD_DIR)/bin
-SOUND_BIN_DIR := $(BUILD_DIR)/sound
-TEXTURE_DIR := textures
+MIO0_DIR := $(BUILD_DIR)/effects
+SOUND_BIN_DIR := $(BUILD_DIR)/assets/sound
+TEXTURE_DIR := assets/textures
 ACTOR_DIR := actors
 LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 
 # Directories containing source files
 
 # Hi, I'm a PC
-SRC_DIRS := src src/engine src/game src/audio src/menu src/buffers actors levels bin data assets src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
+SRC_DIRS := src src/ultra64 src/engine src/effects src/game src/audio src/menu src/buffers actors levels bin data assets assets/anims src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
 
 ifeq ($(WINDOWS_BUILD),1)
   VERSION_CFLAGS += -DDISABLE_CURL_SUPPORT
@@ -258,7 +258,7 @@ endif
 #      Moon64 Source Code      #
 ################################
 
-MOON_SRC := $(shell find src/moon/ -type d)
+MOON_SRC := $(shell find src/moon/ -type d) $(shell find libs/ -type d)
 SRC_DIRS += $(MOON_SRC)
 
 ################################
@@ -268,13 +268,13 @@ ifeq ($(DISCORDRPC),1)
     $(echo Discord RPC does not work on this target)
     DISCORDRPC := 0
   else
-    SRC_DIRS += src/pc/discord
+    # SRC_DIRS += src/pc/discord
   endif
 endif
 
-BIN_DIRS := bin bin/$(VERSION)
+BIN_DIRS := src/effects src/effects/$(VERSION)
 
-ULTRA_SRC_DIRS := lib/src lib/src/math
+ULTRA_SRC_DIRS := lib/src
 ULTRA_ASM_DIRS := lib/asm lib/data
 ULTRA_BIN_DIRS := lib/bin
 
@@ -336,60 +336,29 @@ GODDARD_C_FILES := $(foreach dir,$(GODDARD_SRC_DIRS),$(wildcard $(dir)/*.c))
 
 GENERATED_C_FILES := $(BUILD_DIR)/assets/mario_anim_data.c $(BUILD_DIR)/assets/demo_data.c
 
-ULTRA_C_FILES := \
-  alBnkfNew.c \
-  guLookAtRef.c \
-  guMtxF2L.c \
-  guNormalize.c \
-  guOrthoF.c \
-  guPerspectiveF.c \
-  guRotateF.c \
-  guScaleF.c \
-  guTranslateF.c \
-  ldiv.c
-
 C_FILES := $(filter-out src/game/main.c,$(C_FILES))
-ULTRA_C_FILES := $(addprefix lib/src/,$(ULTRA_C_FILES))
-
-# "If we're not N64, use the above"
-
-SOUND_BANK_FILES := $(wildcard sound/sound_banks/*.json)
-SOUND_SEQUENCE_FILES := $(wildcard sound/sequences/$(VERSION)/*.m64) \
-    $(wildcard sound/sequences/*.m64) \
-    $(foreach file,$(wildcard sound/sequences/$(VERSION)/*.s),$(BUILD_DIR)/$(file:.s=.m64)) \
-    $(foreach file,$(wildcard sound/sequences/*.s),$(BUILD_DIR)/$(file:.s=.m64))
-
-SOUND_SAMPLE_DIRS := $(wildcard sound/samples/*)
-SOUND_SAMPLE_AIFFS := $(foreach dir,$(SOUND_SAMPLE_DIRS),$(wildcard $(dir)/*.aiff))
-SOUND_SAMPLE_TABLES := $(foreach file,$(SOUND_SAMPLE_AIFFS),$(BUILD_DIR)/$(file:.aiff=.table))
-SOUND_SAMPLE_AIFCS := $(foreach file,$(SOUND_SAMPLE_AIFFS),$(BUILD_DIR)/$(file:.aiff=.aifc))
-SOUND_OBJ_FILES := $(SOUND_BIN_DIR)/sound_data.o
 
 # Object files
 O_FILES :=  $(foreach file,$(C_FILES),$(BUILD_DIR)/$(file:.c=.o)) \
             $(foreach file,$(CXX_FILES),$(BUILD_DIR)/$(file:.cpp=.o)) \
-            $(foreach file,$(S_FILES),$(BUILD_DIR)/$(file:.s=.o)) \
-            $(foreach file,$(GENERATED_C_FILES),$(file:.c=.o))
-
-ULTRA_O_FILES :=  $(foreach file,$(ULTRA_S_FILES),$(BUILD_DIR)/$(file:.s=.o)) \
-                  $(foreach file,$(ULTRA_C_FILES),$(BUILD_DIR)/$(file:.c=.o))
+            $(foreach file,$(S_FILES),$(BUILD_DIR)/$(file:.s=.o))
 
 GODDARD_O_FILES := $(foreach file,$(GODDARD_C_FILES),$(BUILD_DIR)/$(file:.c=.o))
 
 RPC_LIBS :=
 ifeq ($(DISCORDRPC),1)
   ifeq ($(WINDOWS_BUILD),1)
-    RPC_LIBS := lib/discord/libdiscord-rpc.dll
+    RPC_LIBS := libs/discord/libdiscord-rpc.dll
   else ifeq ($(OSX_BUILD),1)
     # needs testing
-    RPC_LIBS := lib/discord/libdiscord-rpc.dylib
+    RPC_LIBS := libs/discord/libdiscord-rpc.dylib
   else
-    RPC_LIBS := lib/discord/libdiscord-rpc.so
+    RPC_LIBS := libs/discord/libdiscord-rpc.so
   endif
 endif
 
 # Automatic dependency files
-DEP_FILES := $(O_FILES:.o=.d) $(ULTRA_O_FILES:.o=.d) $(GODDARD_O_FILES:.o=.d) $(BUILD_DIR)/$(LD_SCRIPT).d
+DEP_FILES := $(O_FILES:.o=.d) $(GODDARD_O_FILES:.o=.d) $(BUILD_DIR)/$(LD_SCRIPT).d
 
 # Segment elf files
 SEG_FILES := $(SEGMENT_ELF_FILES) $(ACTOR_ELF_FILES) $(LEVEL_ELF_FILES)
@@ -500,6 +469,8 @@ else ifeq ($(WINDOW_API),SDL2)
     BACKEND_LDFLAGS += -lGL
   endif
   SDL_USED := 2
+else ifeq ($(WINDOW_API),GLFW)
+  BACKEND_LDFLAGS += -lGL `pkg-config --static --libs glfw3` $(shell pkg-config --libs glew)
 endif
 
 ifeq ($(AUDIO_API),SDL2)
@@ -615,7 +586,7 @@ ifeq ($(LEGACY_GL),1)
 endif
 
 # tell skyconv to write names instead of actual texture data and save the split tiles so we can use them later
-SKYTILE_DIR := $(BUILD_DIR)/textures/skybox_tiles
+SKYTILE_DIR := $(BUILD_DIR)/assets/textures/skybox_tiles
 
 ASFLAGS := -I include -I $(BUILD_DIR) $(VERSION_ASFLAGS)
 
@@ -661,10 +632,6 @@ VADPCM_ENC = $(TOOLS_DIR)/vadpcm_enc
 EXTRACT_DATA_FOR_MIO = $(TOOLS_DIR)/extract_data_for_mio
 ZEROTERM = $(PYTHON) $(TOOLS_DIR)/zeroterm.py
 
-############################### Dependency Check ###############################
-
-# Stubbed
-
 #################################### Targets ###################################
 
 all: $(EXE)
@@ -672,32 +639,8 @@ ifeq ($(TARGET_SWITCH),1)
 all: $(EXE).nro
 endif
 
-ADDONS          := addons
-ADDONS_PATH     := $(BUILD_DIR)/$(ADDONS)/
-BASEPACK_LST := $(BUILD_DIR)/basepack.lst
-
-# depend on resources as well
-all: $(BASEPACK_LST)
-
-# phony target for building resources
-res: $(BASEPACK_LST)
-
-ifneq ($(NO_COPY),1)
-# prepares the basepack.lst
-$(BASEPACK_LST): $(EXE)
-	@touch $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/bank_sets sound/bank_sets" >> $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/sequences.bin sound/sequences.bin" >> $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/sound_data.ctl sound/sound_data.ctl" >> $(BASEPACK_LST)
-	@echo "$(BUILD_DIR)/sound/sound_data.tbl sound/sound_data.tbl" >> $(BASEPACK_LST)
-	@$(foreach f, $(wildcard $(SKYTILE_DIR)/*), echo $(f) gfx/$(f:$(BUILD_DIR)/%=%) >> $(BASEPACK_LST);)
-	@find actors -name \*.png -exec echo "{} gfx/{}" >> $(BASEPACK_LST) \;
-	@find levels -name \*.png -exec echo "{} gfx/{}" >> $(BASEPACK_LST) \;
-	@find textures -name \*.png -exec echo "{} gfx/{}" >> $(BASEPACK_LST) \;
-	@find texts -name \*.json -exec echo "{} {}" >> $(BASEPACK_LST) \;
-	@find fonts -name \*.ttf -exec echo "{} {}" >> $(BASEPACK_LST) \;
-	@$(PYTHON) $(TOOLS_DIR)/mkzip.py $(BASEPACK_LST) $(BUILD_DIR)
-endif
+ADDONS      := addons
+ADDONS_PATH := $(BUILD_DIR)/$(ADDONS)/
 
 clean:
 	$(RM) -r $(BUILD_DIR_BASE)
@@ -708,6 +651,12 @@ cleantools:
 distclean:
 	$(RM) -r $(BUILD_DIR_BASE)
 	./extract_assets.py --clean
+
+ADDON_FLAG := $(BUILD_DIR)/.addon
+MEXT_PARAMETERS := ./baserom.us.z64 ./build/us_pc/addons/moon64 ./assets/fonts ./assets/textures/icons ./assets/textures/logo ./assets/textures/moon ./assets/textures/special ./assets/langs
+
+addon:
+	./tools/rom/mext $(MEXT_PARAMETERS)
 
 $(BUILD_DIR)/$(RPC_LIBS):
 	mkdir -p $(@D)
@@ -721,7 +670,7 @@ $(BUILD_DIR)/src/game/crash_screen.o: $(CRASH_TEXTURE_C_FILES)
 $(BUILD_DIR)/lib/rsp.o: $(BUILD_DIR)/rsp/rspboot.bin $(BUILD_DIR)/rsp/fast3d.bin $(BUILD_DIR)/rsp/audio.bin
 
 RSP_DIRS := $(BUILD_DIR)/rsp
-ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(ASM_DIRS) $(GODDARD_SRC_DIRS) $(ULTRA_SRC_DIRS) $(ULTRA_ASM_DIRS) $(ULTRA_BIN_DIRS) $(BIN_DIRS) $(TEXTURE_DIRS) $(SOUND_SAMPLE_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) include) $(MIO0_DIR) $(addprefix $(MIO0_DIR)/,$(VERSION)) $(SOUND_BIN_DIR) $(SOUND_BIN_DIR)/sequences/$(VERSION) $(RSP_DIRS) $(ADDONS_PATH)
+ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(ASM_DIRS) $(GODDARD_SRC_DIRS) $(BIN_DIRS) $(TEXTURE_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) include) $(MIO0_DIR) $(addprefix $(MIO0_DIR)/,$(VERSION)) $(SOUND_BIN_DIR) $(SOUND_BIN_DIR)/sequences/$(VERSION) $(RSP_DIRS) $(ADDONS_PATH)
 
 # Make sure build directory exists before compiling anything
 DUMMY != mkdir -p $(ALL_DIRS)
@@ -730,79 +679,24 @@ DUMMY != mkdir -p $(ALL_DIRS)
 all:
 	if [ ! -d "$(ADDONS_PATH)saturn" ]; then cp -R $(ADDONS)/saturn $(ADDONS_PATH); fi
 
-# PC Area
-$(BUILD_DIR)/%.table: %.aiff
-	$(AIFF_EXTRACT_CODEBOOK) $< >$@
-
-$(BUILD_DIR)/%.aifc: $(BUILD_DIR)/%.table %.aiff
-	$(VADPCM_ENC) -c $^ $@
-
-$(BUILD_DIR)/rsp/%.bin $(BUILD_DIR)/rsp/%_data.bin: rsp/%.s
-	$(RSPASM) -sym $@.sym -definelabel $(VERSION_DEF) 1 -definelabel $(GRUCODE_DEF) 1 -strequ CODE_FILE $(BUILD_DIR)/rsp/$*.bin -strequ DATA_FILE $(BUILD_DIR)/rsp/$*_data.bin $<
-
-$(ENDIAN_BITWIDTH): tools/determine-endian-bitwidth.c
-	$(CC) -c $(CFLAGS) -o $@.dummy2 $< 2>$@.dummy1; true
-	grep -o 'msgbegin --endian .* --bitwidth .* msgend' $@.dummy1 > $@.dummy2
-	head -n1 <$@.dummy2 | cut -d' ' -f2-5 > $@
-	@rm $@.dummy1
-	@rm $@.dummy2
-
-$(SOUND_BIN_DIR)/sound_data.ctl: sound/sound_banks/ $(SOUND_BANK_FILES) $(SOUND_SAMPLE_AIFCS) $(ENDIAN_BITWIDTH)
-	$(PYTHON) tools/assemble_sound.py $(BUILD_DIR)/sound/samples/ sound/sound_banks/ $(SOUND_BIN_DIR)/sound_data.ctl $(SOUND_BIN_DIR)/sound_data.tbl $(VERSION_CFLAGS) $$(cat $(ENDIAN_BITWIDTH))
-
-$(SOUND_BIN_DIR)/sound_data.tbl: $(SOUND_BIN_DIR)/sound_data.ctl
-	@true
-
-$(SOUND_BIN_DIR)/sequences.bin: $(SOUND_BANK_FILES) sound/sequences.json sound/sequences/ sound/sequences/$(VERSION)/ $(SOUND_SEQUENCE_FILES) $(ENDIAN_BITWIDTH)
-	$(PYTHON) tools/assemble_sound.py --sequences $@ $(SOUND_BIN_DIR)/bank_sets sound/sound_banks/ sound/sequences.json $(SOUND_SEQUENCE_FILES) $(VERSION_CFLAGS) $$(cat $(ENDIAN_BITWIDTH))
-
-$(SOUND_BIN_DIR)/bank_sets: $(SOUND_BIN_DIR)/sequences.bin
-	@true
-
-$(SOUND_BIN_DIR)/%.m64: $(SOUND_BIN_DIR)/%.o
-	$(OBJCOPY) -j .rodata $< -O binary $@
-
-$(SOUND_BIN_DIR)/%.o: $(SOUND_BIN_DIR)/%.s
-	$(AS) $(ASFLAGS) -o $@ $<
-
-$(SOUND_BIN_DIR)/%.inc.c: $(SOUND_BIN_DIR)/%
-	$(ZEROTERM) "$(patsubst $(BUILD_DIR)/%,%,$^)" | hexdump -v -e '1/1 "0x%X,"' > $@
-
-$(SOUND_BIN_DIR)/sound_data.o: $(SOUND_BIN_DIR)/sound_data.ctl.inc.c $(SOUND_BIN_DIR)/sound_data.tbl.inc.c $(SOUND_BIN_DIR)/sequences.bin.inc.c $(SOUND_BIN_DIR)/bank_sets.inc.c
-
 $(BUILD_DIR)/levels/scripts.o: $(BUILD_DIR)/include/level_headers.h
 
 $(BUILD_DIR)/include/level_headers.h: levels/level_headers.h.in
 	$(CPP) -I . levels/level_headers.h.in | $(PYTHON) tools/output_level_headers.py > $(BUILD_DIR)/include/level_headers.h
 
-$(BUILD_DIR)/assets/mario_anim_data.c: $(wildcard assets/anims/*.inc.c)
-	$(PYTHON) tools/mario_anims_converter.py > $@
-
-$(BUILD_DIR)/assets/demo_data.c: assets/demo_data.json $(wildcard assets/demos/*.bin)
-	$(PYTHON) tools/demo_data_converter.py assets/demo_data.json $(VERSION_CFLAGS) > $@
-
 # Source code
 $(BUILD_DIR)/levels/%/leveldata.o: OPT_FLAGS := -g
 $(BUILD_DIR)/actors/%.o: OPT_FLAGS := -g
-$(BUILD_DIR)/bin/%.o: OPT_FLAGS := -g
+$(BUILD_DIR)/src/effects/%.o: OPT_FLAGS := -g
 $(BUILD_DIR)/src/goddard/%.o: OPT_FLAGS := -g
 $(BUILD_DIR)/src/goddard/%.o: MIPSISET := -mips1
 $(BUILD_DIR)/src/audio/%.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0
 $(BUILD_DIR)/src/audio/load.o: OPT_FLAGS := -O2 -framepointer -Wo,-loopunroll,0
-$(BUILD_DIR)/lib/src/%.o: OPT_FLAGS :=
-$(BUILD_DIR)/lib/src/math/ll%.o: MIPSISET := -mips3 -32
-$(BUILD_DIR)/lib/src/math/%.o: OPT_FLAGS := -O2
-$(BUILD_DIR)/lib/src/math/ll%.o: OPT_FLAGS :=
-$(BUILD_DIR)/lib/src/ldiv.o: OPT_FLAGS := -O2
-$(BUILD_DIR)/lib/src/string.o: OPT_FLAGS := -O2
-$(BUILD_DIR)/lib/src/gu%.o: OPT_FLAGS := -O3
-$(BUILD_DIR)/lib/src/al%.o: OPT_FLAGS := -O3
 
 # The source-to-source optimizer copt is enabled for audio. This makes it use
 # acpp, which needs -Wp,-+ to handle C++-style comments.
 $(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0 -sopt,-inline=sequence_channel_process_sound,-scalaroptimize=1 -Wp,-+
 $(BUILD_DIR)/src/audio/synthesis.o: OPT_FLAGS := -O2 -sopt,-scalaroptimize=1 -Wp,-+
-#$(BUILD_DIR)/src/audio/seqplayer.o: OPT_FLAGS := -O2 -sopt,-inline_manual,-scalaroptimize=1 -Wp,-+ #-Wo,-v,-bb,-l,seqplayer_list.txt
 
 # Rebuild files with 'GLOBAL_ASM' if the NON_MATCHING flag changes.
 $(GLOBAL_ASM_O_FILES): $(GLOBAL_ASM_DEP).$(NON_MATCHING)
@@ -825,8 +719,12 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.c
 $(BUILD_DIR)/%.o: %.s
 	$(AS) $(ASFLAGS) -MD $(BUILD_DIR)/$*.d -o $@ $<
 
-$(EXE): $(O_FILES) $(MIO0_FILES:.mio0=.o) $(SOUND_OBJ_FILES) $(ULTRA_O_FILES) $(GODDARD_O_FILES) $(BUILD_DIR)/$(RPC_LIBS)
-	$(LD) -L $(BUILD_DIR) -o $@ $(O_FILES) $(SOUND_OBJ_FILES) $(ULTRA_O_FILES) $(GODDARD_O_FILES) $(LDFLAGS)
+$(ADDON_FLAG):
+	./tools/rom/mext $(MEXT_PARAMETERS)
+	$(shell touch $(ADDON_FLAG))
+
+$(EXE): $(ADDON_FLAG) $(O_FILES) $(MIO0_FILES:.mio0=.o) $(GODDARD_O_FILES) $(BUILD_DIR)/$(RPC_LIBS)
+	$(LD) -L $(BUILD_DIR) -o $@ $(O_FILES) $(GODDARD_O_FILES) $(LDFLAGS)
 
 ifeq ($(TARGET_SWITCH), 1)
 
@@ -849,7 +747,8 @@ endif
 testclean:
 	@rm -rf $(BUILD_DIR)/$(SRC_DIRS)
 
-.PHONY: all clean distclean default diff libultra res
+.PHONY: addon all clean distclean default diff libultra res
+.SECONDARY: addon
 .PRECIOUS: $(BUILD_DIR)/bin/%.elf $(SOUND_BIN_DIR)/%.ctl $(SOUND_BIN_DIR)/%.tbl $(SOUND_SAMPLE_TABLES) $(SOUND_BIN_DIR)/%.s $(BUILD_DIR)/%
 .DELETE_ON_ERROR:
 
