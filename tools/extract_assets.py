@@ -87,7 +87,7 @@ def main():
     for asset, data in asset_map.items():
         if asset.startswith("@"):
             continue
-        if os.path.isfile( f"assets/{asset}" if( not "actors" in asset and not "levels" in asset) else asset):
+        if os.path.isfile( f"assets/{asset}" if( not "actors" in asset and not "levels" in asset and not "demos" in asset) else asset):
             all_assets.append((asset, data, True))
         else:
             all_assets.append((asset, data, False))
