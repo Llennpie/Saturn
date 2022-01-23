@@ -3,7 +3,7 @@
 
 #include "moon/addons/interfaces/file-entry.h"
 #include "moon/addons/interfaces/bit-module.h"
-#include "moon/libs/nlohmann/json.hpp"
+#include "libs/nlohmann/json.hpp"
 #include <string>
 #include <vector>
 #include <map>

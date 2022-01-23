@@ -4,7 +4,7 @@
 
 #include "moon/utils/moon-env.h"
 #include "pc/configfile.h"
-#include "moon/libs/audeo/audeo/audeo.hpp"
+#include "libs/audeo/audeo/audeo.hpp"
 
 #include <SDL2/SDL.h>
 

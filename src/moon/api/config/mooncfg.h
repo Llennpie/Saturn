@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
-#include "moon/libs/nlohmann/json.hpp"
+#include "libs/nlohmann/json.hpp"
 
 class MoonCFG {
 protected:

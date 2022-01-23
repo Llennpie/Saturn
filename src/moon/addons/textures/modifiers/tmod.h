@@ -1,7 +1,7 @@
 #ifndef ModEngineTextureModifier
 #define ModEngineTextureModifier
 
-#include "moon/libs/nlohmann/json.hpp"
+#include "libs/nlohmann/json.hpp"
 #include <string>
 
 class TextureModifier {

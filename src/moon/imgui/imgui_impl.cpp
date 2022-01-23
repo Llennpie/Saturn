@@ -4,11 +4,11 @@
 #include <string>
 #include <iostream>
 
-#include "moon/libs/imgui/imgui.h"
-#include "moon/libs/imgui/imgui_internal.h"
-#include "moon/libs/imgui/imgui_impl_sdl.h"
-#include "moon/libs/imgui/imgui_impl_opengl3.h"
-#include "moon/libs/imgui/imgui_switch_impl.h"
+#include "libs/imgui/imgui.h"
+#include "libs/imgui/imgui_internal.h"
+#include "libs/imgui/imgui_impl_sdl.h"
+#include "libs/imgui/imgui_impl_opengl3.h"
+#include "libs/imgui/imgui_switch_impl.h"
 #include "moon/api/hooks/hook.h"
 #include "moon/addons/textures/mod-texture.h"
 #include "moon/addons/engine.h"

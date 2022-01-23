@@ -1,6 +1,6 @@
 #include "moonfs.h"
 
-#include "moon/libs/miniz/zip_file.hpp"
+#include "libs/miniz/zip_file.hpp"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <algorithm>

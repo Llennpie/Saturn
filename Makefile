@@ -258,7 +258,7 @@ endif
 #      Moon64 Source Code      #
 ################################
 
-MOON_SRC := $(shell find src/moon/ -type d)
+MOON_SRC := $(shell find src/moon/ -type d) $(shell find libs/ -type d)
 SRC_DIRS += $(MOON_SRC)
 
 ################################

@@ -5,9 +5,9 @@
 #include <vector>
 
 extern "C" {
-#include "moon/libs/lua/lualib.h"
-#include "moon/libs/lua/lauxlib.h"
-#include "moon/libs/lua/lua.h"
+#include "libs/lua/lualib.h"
+#include "libs/lua/lauxlib.h"
+#include "libs/lua/lua.h"
 }
 
 class ModModule {

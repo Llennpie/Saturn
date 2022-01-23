@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from pathlib import Path
 import sys
 import os
 import json
@@ -206,6 +207,7 @@ def main():
                             imagetype = "sky"
                         else:
                             imagetype =  "cake" + ("-eu" if "eu" in asset else "")
+                        output = os.path.join(os.path.dirname(output), Path(output).stem) + ".rgba16.png"
                         subprocess.run(
                             [
                                 os.path.join(dir, "skyconv"),
@@ -242,5 +244,5 @@ def main():
             else:
                 with open(output, "wb") as f:
                     f.write(input)
-    print(json.dumps({ "status": True }))
 main()
+print(json.dumps({ "status": True }))

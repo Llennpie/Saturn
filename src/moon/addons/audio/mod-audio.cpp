@@ -1,7 +1,7 @@
 #include "mod-audio.h"
 
 #include "moon/api/fs/moonfs.h"
-#include "moon/libs/nlohmann/json.hpp"
+#include "libs/nlohmann/json.hpp"
 #include "moon/addons/engine.h"
 #include "moon/api/hooks/hook.h"
 #include "moon/addons/interfaces/sound-entry.h"

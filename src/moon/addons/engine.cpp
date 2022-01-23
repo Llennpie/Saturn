@@ -9,7 +9,7 @@
 #include "models/mod-model.h"
 #include <iomanip>
 #include "moon/api/fs/moonfs.h"
-#include "moon/libs/nlohmann/json.hpp"
+#include "libs/nlohmann/json.hpp"
 #include <filesystem>
 #include "moon/api/config/mooncfg.h"
 #include "moon/saves/saves.h"
