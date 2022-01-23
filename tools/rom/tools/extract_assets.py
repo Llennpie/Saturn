@@ -3,12 +3,13 @@ import sys
 import os
 import json
 
+dir = "./tools"
+cwd = os.path.dirname(os.path.realpath(__file__))
 
 def read_asset_map():
-    with open("assets/rom.json") as f:
+    with open(os.path.join(cwd, "assets.json")) as f:
         ret = json.load(f)
     return ret
-
 
 def read_local_asset_list(f):
     if f is None:
@@ -69,17 +70,14 @@ def main():
         local_asset_file = None
         local_version = -1
 
-    langs = sys.argv[1:]
-    if langs == ["--clean"]:
-        clean_assets(local_asset_file)
-        sys.exit(0)
+    langs = ['us']
 
-    all_langs = ["jp", "us", "eu", "sh"]
-    if not langs or not all(a in all_langs for a in langs):
-        langs_str = " ".join("[" + lang + "]" for lang in all_langs)
-        print("Usage: " + sys.argv[0] + " " + langs_str)
-        print("For each version, baserom.<version>.z64 must exist")
+    if len(sys.argv) < 3:
+        print(json.dumps({ "status": False, "code": f"Usage: {sys.argv[0]} <path> <baserom_b64>"}))
         sys.exit(1)
+
+    outdir  = sys.argv[1]
+    romfile = sys.argv[2]
 
     asset_map = read_asset_map()
     all_assets = []
@@ -87,7 +85,7 @@ def main():
     for asset, data in asset_map.items():
         if asset.startswith("@"):
             continue
-        if os.path.isfile( f"assets/{asset}" if( not "actors" in asset and not "levels" in asset) else asset):
+        if os.path.isfile(os.path.join(outdir, asset)):
             all_assets.append((asset, data, True))
         else:
             all_assets.append((asset, data, False))
@@ -103,6 +101,7 @@ def main():
     import subprocess
     import hashlib
     import tempfile
+    import zipfile
     from collections import defaultdict
 
     new_assets = {a[0] for a in all_assets}
@@ -131,35 +130,16 @@ def main():
 
     # Load ROMs
     roms = {}
-    for lang in langs:
-        fname = "baserom." + lang + ".z64"
-        try:
-            with open(fname, "rb") as f:
-                roms[lang] = f.read()
-        except Exception as e:
-            print("Failed to open " + fname + "! " + str(e))
-            sys.exit(1)
-        sha1 = hashlib.sha1(roms[lang]).hexdigest()
-        expected_sha1 = "9bef1128717f958171a4afac3ed78ee2bb4e86ce"
-        if sha1 != expected_sha1:
-            print(
-                fname
-                + " has the wrong hash! Found "
-                + sha1
-                + ", expected "
-                + expected_sha1
-            )
-            sys.exit(1)
-
-    # Make sure tools exist
-    subprocess.check_call(
-        ["make", "-s", "-C", "tools/", "n64graphics", "skyconv", "mio0", "aifc_decode"]
-    )
+    try:
+        with open(romfile, "rb") as f:
+            roms['us'] = f.read()
+    except Exception as e:
+        print(json.dumps({ "status": False, "code": f"Failed to open {romfile}! {str(e)}"}))
+        sys.exit(1)
 
     # Go through the assets in roughly alphabetical order (but assets in the same
     # mio0 file still go together).
     keys = sorted(list(todo.keys()), key=lambda k: todo[k][0][0])
-
     # Import new assets
     for key in keys:
         assets = todo[key]
@@ -178,15 +158,14 @@ def main():
                     tbl_file.close()
                     args = [
                         "python3",
-                        "tools/disassemble_sound.py",
+                        os.path.join(dir, "disassemble_sound.py"),
                         ctl_file.name,
                         tbl_file.name,
                         "--only-samples",
                     ]
                     for (asset, pos, size, meta) in assets:
-                        asset = "assets/" + asset
-                        # print("extracting", asset)
-                        args.append(asset + ":" + str(pos))
+                        output = os.path.join(outdir, asset)
+                        args.append(output + ":" + str(pos))
                     try:
                         subprocess.run(args, check=True)
                     finally:
@@ -197,11 +176,11 @@ def main():
         if mio0 is not None:
             image = subprocess.run(
                 [
-                    "./tools/mio0",
+                    os.path.join(dir, "mio0"),
                     "-d",
                     "-o",
                     str(mio0),
-                    "baserom." + lang + ".z64",
+                    romfile,
                     "-",
                 ],
                 check=True,
@@ -211,29 +190,30 @@ def main():
             image = roms[lang]
 
         for (asset, pos, size, meta) in assets:
-            asset = "assets/" + asset
-            # print("extracting", asset)
+            output = os.path.join(outdir, asset)
+            # print("extracting", output)
             input = image[pos : pos + size]
-            os.makedirs(os.path.dirname(asset), exist_ok=True)
+            os.makedirs(os.path.dirname(output), exist_ok=True)
+
             if asset.endswith(".png"):
                 png_file = tempfile.NamedTemporaryFile(prefix="asset", delete=False)
                 try:
                     png_file.write(input)
                     png_file.flush()
                     png_file.close()
-                    if asset.startswith("assets/textures/skyboxes/") or asset.startswith("levels/ending/cake"):
-                        if asset.startswith("assets/textures/skyboxes/"):
+                    if asset.startswith("textures/skyboxes/") or asset.startswith("levels/ending/cake"):
+                        if asset.startswith("textures/skyboxes/"):
                             imagetype = "sky"
                         else:
                             imagetype =  "cake" + ("-eu" if "eu" in asset else "")
                         subprocess.run(
                             [
-                                "./tools/skyconv",
+                                os.path.join(dir, "skyconv"),
                                 "--type",
                                 imagetype,
                                 "--combine",
                                 png_file.name,
-                                asset,
+                                output,
                             ],
                             check=True,
                         )
@@ -242,11 +222,11 @@ def main():
                         fmt = asset.split(".")[-2]
                         subprocess.run(
                             [
-                                "./tools/n64graphics",
+                                os.path.join(dir, "n64graphics"),
                                 "-e",
                                 png_file.name,
                                 "-g",
-                                asset,
+                                output,
                                 "-f",
                                 fmt,
                                 "-w",
@@ -260,28 +240,7 @@ def main():
                     png_file.close()
                     os.remove(png_file.name)
             else:
-                with open(asset, "wb") as f:
+                with open(output, "wb") as f:
                     f.write(input)
-
-    # Remove old assets
-    for asset in previous_assets:
-        if asset not in new_assets:
-            try:
-                remove_file(asset)
-            except FileNotFoundError:
-                pass
-
-    # Replace the asset list
-    output = "\n".join(
-        [
-            "# This file tracks the assets currently extracted by extract_assets.py.",
-            str(new_version),
-            *sorted(list(new_assets)),
-            "",
-        ]
-    )
-    with open("tools/.assets-local.txt", "w") as f:
-        f.write(output)
-
-
+    print(json.dumps({ "status": True }))
 main()
