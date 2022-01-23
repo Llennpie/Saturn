@@ -38,68 +38,68 @@ class MathUtil{
         /// *listonly*
         inline static float Min(float a, float b) { return a < b ? a : b; }
         // Returns the smallest of two or more values.
-        inline static float Min(float values[]){
-            int len = sizeof(values);
-            if (len == 0)
-                return 0;
-            float m = values[0];
-            for (int i = 1; i < len; i++)
-            {
-                if (values[i] < m)
-                    m = values[i];
-            }
-            return m;
-        }
+        // inline static float Min(float values[]){
+        //     int len = sizeof(values);
+        //     if (len == 0)
+        //         return 0;
+        //     float m = values[0];
+        //     for (int i = 1; i < len; i++)
+        //     {
+        //         if (values[i] < m)
+        //             m = values[i];
+        //     }
+        //     return m;
+        // }
 
         /// *listonly*
         inline static int Min(int a, int b) { return a < b ? a : b; }
         // Returns the smallest of two or more values.
-        inline static int Min(int values[])
-        {
-            int len = sizeof(values);
-            if (len == 0)
-                return 0;
-            int m = values[0];
-            for (int i = 1; i < len; i++)
-            {
-                if (values[i] < m)
-                    m = values[i];
-            }
-            return m;
-        }
+        // inline static int Min(int values[])
+        // {
+        //     int len = sizeof(values);
+        //     if (len == 0)
+        //         return 0;
+        //     int m = values[0];
+        //     for (int i = 1; i < len; i++)
+        //     {
+        //         if (values[i] < m)
+        //             m = values[i];
+        //     }
+        //     return m;
+        // }
 
         /// *listonly*
         inline static float Max(float a, float b) { return a > b ? a : b; }
         // Returns largest of two or more values.
-        inline static float Max(float values[]){
-            int len = sizeof(values);
-            if (len == 0)
-                return 0;
-            float m = values[0];
-            for (int i = 1; i < len; i++)
-            {
-                if (values[i] > m)
-                    m = values[i];
-            }
-            return m;
-        }
+        // inline static float Max(float values[]){
+        //     int len = sizeof(values);
+        //     if (len == 0)
+        //         return 0;
+        //     float m = values[0];
+        //     for (int i = 1; i < len; i++)
+        //     {
+        //         if (values[i] > m)
+        //             m = values[i];
+        //     }
+        //     return m;
+        // }
 
         /// *listonly*
         inline static int Max(int a, int b) { return a > b ? a : b; }
         // Returns the largest of two or more values.
-        inline static int Max(int values[])
-        {
-            int len = sizeof(values);
-            if (len == 0)
-                return 0;
-            int m = values[0];
-            for (int i = 1; i < len; i++)
-            {
-                if (values[i] > m)
-                    m = values[i];
-            }
-            return m;
-        }
+        // inline static int Max(int values[])
+        // {
+        //     int len = sizeof(values);
+        //     if (len == 0)
+        //         return 0;
+        //     int m = values[0];
+        //     for (int i = 1; i < len; i++)
+        //     {
+        //         if (values[i] > m)
+        //             m = values[i];
+        //     }
+        //     return m;
+        // }
 
         // Returns /f/ raised to power /p/.
         inline static float Pow(float f, float p) { return (float)pow(f, p); }

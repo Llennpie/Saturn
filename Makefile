@@ -16,13 +16,6 @@ DEBUG ?= 0
 VERSION ?= us
 # Graphics microcode used
 GRUCODE ?= f3dex2e
-# If NON_MATCHING is 1, define the NON_MATCHING and AVOID_UB macros when building (recommended)
-NON_MATCHING ?= 1
-# Build and optimize for Raspberry Pi(s)
-TARGET_RPI ?= 0
-# Build for Emscripten/WebGL
-TARGET_WEB ?= 0
-
 # Build for Nintendo Switch
 TARGET_SWITCH ?= 0
 
@@ -43,6 +36,9 @@ DISCORDRPC ?= 0
 NO_BZERO_BCOPY ?= 0
 NO_LDIV ?= 0
 
+# BUILD_DIR is location where all build artifacts are placed
+BUILD_DIR_BASE := build
+
 ## Backend selection
 
 # Renderers: GL, GL_LEGACY, D3D11, D3D12
@@ -53,9 +49,6 @@ WINDOW_API ?= SDL2
 AUDIO_API ?= SDL2
 # Controller backends (can have multiple, space separated): SDL2
 CONTROLLER_API ?= SDL2
-
-## External assets
-NO_COPY ?= 0
 
 ################################# OS Detection #################################
 
@@ -71,7 +64,7 @@ else
   endif
 endif
 
-ifeq ($(TARGET_WEB)$(TARGET_RPI)$(TARGET_SWITCH),000)
+ifeq ($(TARGET_SWITCH),0)
   ifeq ($(HOST_OS),Windows)
     WINDOWS_BUILD := 1
   endif
@@ -125,7 +118,6 @@ VERSION_DEF := VERSION_US
 
 TARGET := saturn.$(VERSION)
 VERSION_CFLAGS := -D$(VERSION_DEF) -D_LANGUAGE_C
-VERSION_ASFLAGS := --defsym $(VERSION_DEF)=1
 
 # Stuff for showing the git hash in the title bar
 GIT_HASH := $(shell git rev-parse --short HEAD)
@@ -140,26 +132,15 @@ GRUCODE_DEF := F3DEX_GBI_2E
 TARGET := $(TARGET).f3dex2e
 
 GRUCODE_CFLAGS := -D$(GRUCODE_DEF)
-GRUCODE_ASFLAGS := $(GRUCODE_ASFLAGS) --defsym $(GRUCODE_DEF)=1
 
 # Default build is for PC now
 VERSION_CFLAGS := $(VERSION_CFLAGS) -DNON_MATCHING -DAVOID_UB
 
-ifeq ($(TARGET_RPI),1) # Define RPi to change SDL2 title & GLES2 hints
-      VERSION_CFLAGS += -DUSE_GLES
-endif
-
 ifeq ($(TARGET_SWITCH),1)
-      VERSION_CFLAGS += -DTARGET_SWITCH -DLUA_USE_LINUX
+  VERSION_CFLAGS += -DTARGET_SWITCH -DLUA_USE_LINUX
 endif
 ifeq ($(OSX_BUILD),1) # Modify GFX & SDL2 for OSX GL
   VERSION_CFLAGS += -DOSX_BUILD
-endif
-
-VERSION_ASFLAGS := --defsym AVOID_UB=1
-
-ifeq ($(TARGET_WEB),1)
-  VERSION_CFLAGS := $(VERSION_CFLAGS) -DTARGET_WEB -DUSE_GLES
 endif
 
 # Check backends
@@ -209,46 +190,17 @@ endif
 
 ######################### Target Executable and Sources ########################
 
-# BUILD_DIR is location where all build artifacts are placed
-BUILD_DIR_BASE := build
-
-ifeq ($(TARGET_WEB),1)
-  BUILD_DIR := $(BUILD_DIR_BASE)/$(VERSION)_web
-else ifeq ($(TARGET_SWITCH),1)
+ifeq ($(TARGET_SWITCH),1)
   BUILD_DIR := $(BUILD_DIR_BASE)/$(VERSION)_nx
 else
   BUILD_DIR := $(BUILD_DIR_BASE)/$(VERSION)_pc
 endif
 
-LIBULTRA := $(BUILD_DIR)/libultra.a
-
-ifeq ($(TARGET_WEB),1)
-EXE := $(BUILD_DIR)/$(TARGET).html
-  else
-  ifeq ($(WINDOWS_BUILD),1)
-    EXE := $(BUILD_DIR)/$(TARGET).exe
-
-    else # Linux builds/binary namer
-    ifeq ($(TARGET_RPI),1)
-      EXE := $(BUILD_DIR)/$(TARGET).arm
-    else
-      EXE := $(BUILD_DIR)/$(TARGET)
-    endif
-  endif
+ifeq ($(WINDOWS_BUILD),1)
+  EXE := $(BUILD_DIR)/$(TARGET).exe
+else # Linux builds/binary namer
+  EXE := $(BUILD_DIR)/$(TARGET)
 endif
-
-ELF := $(BUILD_DIR)/$(TARGET).elf
-LD_SCRIPT := sm64.ld
-MIO0_DIR := $(BUILD_DIR)/effects
-SOUND_BIN_DIR := $(BUILD_DIR)/assets/sound
-TEXTURE_DIR := assets/textures
-ACTOR_DIR := actors
-LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
-
-# Directories containing source files
-
-# Hi, I'm a PC
-SRC_DIRS := src src/ultra64 src/engine src/effects src/game src/audio src/menu src/buffers actors levels bin data assets assets/anims src/text src/text/libs src/pc src/pc/gfx src/pc/audio src/pc/controller src/pc/fs src/pc/fs/packtypes src/nx
 
 ifeq ($(WINDOWS_BUILD),1)
   VERSION_CFLAGS += -DDISABLE_CURL_SUPPORT
@@ -258,30 +210,17 @@ endif
 #      Moon64 Source Code      #
 ################################
 
-MOON_SRC := $(shell find src/moon/ -type d) $(shell find libs/ -type d)
-SRC_DIRS += $(MOON_SRC)
+MOON_SRC := $(shell find src/ -type d -not -path "src/game/behaviors") $(shell find libs/ -type d)
+SRC_DIRS :=  actors levels assets assets/anims $(MOON_SRC)
 
 ################################
 
 ifeq ($(DISCORDRPC),1)
-  ifneq ($(TARGET_SWITCH)$(TARGET_WEB)$(TARGET_RPI),000)
+  ifneq ($(TARGET_SWITCH),0)
     $(echo Discord RPC does not work on this target)
     DISCORDRPC := 0
-  else
-    # SRC_DIRS += src/pc/discord
   endif
 endif
-
-BIN_DIRS := src/effects src/effects/$(VERSION)
-
-ULTRA_SRC_DIRS := lib/src
-ULTRA_ASM_DIRS := lib/asm lib/data
-ULTRA_BIN_DIRS := lib/bin
-
-GODDARD_SRC_DIRS := src/goddard src/goddard/dynlists
-
-MIPSISET := -mips2
-MIPSBIT := -32
 
 ifeq ($(DEBUG),1)
   OPT_FLAGS := -g
@@ -292,50 +231,11 @@ endif
 # Set BITS (32/64) to compile for
 OPT_FLAGS += $(BITS)
 
-ifeq ($(TARGET_WEB),1)
-  OPT_FLAGS := -O2 -g4 --source-map-base http://localhost:8080/
-endif
-
-ifeq ($(TARGET_RPI),1)
-	machine = $(shell sh -c 'uname -m 2>/dev/null || echo unknown')
-# Raspberry Pi B+, Zero, etc
-	ifneq (,$(findstring armv6l,$(machine)))
-                OPT_FLAGS := -march=armv6zk+fp -mfpu=vfp -Ofast
-        endif
-
-# Raspberry Pi 2 and 3 in ARM 32bit mode
-        ifneq (,$(findstring armv7l,$(machine)))
-                model = $(shell sh -c 'cat /sys/firmware/devicetree/base/model 2>/dev/null || echo unknown')
-
-                ifneq (,$(findstring 3,$(model)))
-                        OPT_FLAGS := -march=armv8-a+crc -mtune=cortex-a53 -mfpu=neon-fp-armv8 -O3
-                else
-                        OPT_FLAGS := -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4 -O3
-                endif
-        endif
-
-# RPi3 or RPi4, in ARM64 (aarch64) mode. NEEDS TESTING 32BIT.
-# DO NOT pass -mfpu stuff here, thats for 32bit ARM only and will fail for 64bit ARM.
-        ifneq (,$(findstring aarch64,$(machine)))
-                model = $(shell sh -c 'cat /sys/firmware/devicetree/base/model 2>/dev/null || echo unknown')
-                ifneq (,$(findstring 3,$(model)))
-                        OPT_FLAGS := -march=armv8-a+crc -mtune=cortex-a53 -O3
-                else ifneq (,$(findstring 4,$(model)))
-                        OPT_FLAGS := -march=armv8-a+crc+simd -mtune=cortex-a72 -O3
-                endif
-
-        endif
-endif
-
 # Source code files
 LEVEL_C_FILES := $(wildcard levels/*/leveldata.c) $(wildcard levels/*/script.c) $(wildcard levels/*/geo.c)
+LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 C_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c)) $(LEVEL_C_FILES)
 CXX_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.cpp))
-S_FILES := $(foreach dir,$(ASM_DIRS),$(wildcard $(dir)/*.s))
-GODDARD_C_FILES := $(foreach dir,$(GODDARD_SRC_DIRS),$(wildcard $(dir)/*.c))
-
-GENERATED_C_FILES := $(BUILD_DIR)/assets/mario_anim_data.c $(BUILD_DIR)/assets/demo_data.c
-
 C_FILES := $(filter-out src/game/main.c,$(C_FILES))
 
 # Object files
@@ -358,10 +258,7 @@ ifeq ($(DISCORDRPC),1)
 endif
 
 # Automatic dependency files
-DEP_FILES := $(O_FILES:.o=.d) $(GODDARD_O_FILES:.o=.d) $(BUILD_DIR)/$(LD_SCRIPT).d
-
-# Segment elf files
-SEG_FILES := $(SEGMENT_ELF_FILES) $(ACTOR_ELF_FILES) $(LEVEL_ELF_FILES)
+DEP_FILES := $(O_FILES:.o=.d)
 
 ############################ Compiler Options ##################################
 
@@ -397,21 +294,8 @@ endif
 
 # for some reason sdl-config in dka64 is not prefixed, while pkg-config is
 SDLCROSS ?=
-
-AS := $(CROSS)as
-
-ifeq ($(OSX_BUILD),1)
-AS := i686-w64-mingw32-as
-endif
-
-ifneq ($(TARGET_WEB),1) # As in, not-web PC port
-  CC ?= $(CROSS)gcc
-  CXX ?= $(CROSS)g++
-else
-  CC := emcc
-  CXX := emcc
-endif
-
+CC ?= $(CROSS)gcc
+CXX ?= $(CROSS)g++
 LD := $(CC)
 
 ifeq ($(DISCORDRPC),1)
@@ -445,7 +329,6 @@ SDLCONFIG := $(SDLCROSS)sdl2-config
 # configure backend flags
 
 BACKEND_CFLAGS := -DRAPI_$(RENDER_API)=1 -DWAPI_$(WINDOW_API)=1 -DAAPI_$(AUDIO_API)=1
-# can have multiple controller APIs
 BACKEND_CFLAGS += $(foreach capi,$(CONTROLLER_API),-DCAPI_$(capi)=1)
 BACKEND_LDFLAGS :=
 SDL2_USED := 0
@@ -461,7 +344,7 @@ ifeq ($(WINDOW_API),DXGI)
 else ifeq ($(WINDOW_API),SDL2)
   ifeq ($(WINDOWS_BUILD),1)
     BACKEND_LDFLAGS += -lglew32 -lglu32 -lopengl32
-  else ifneq ($(TARGET_RPI)$(TARGET_SWITCH),00)
+  else ifneq ($(TARGET_SWITCH),0)
     BACKEND_LDFLAGS += -lglad -lglapi -ldrm_nouveau -lm
   else ifeq ($(OSX_BUILD),1)
     BACKEND_LDFLAGS += -framework OpenGL $(shell pkg-config --libs glew)
@@ -495,10 +378,6 @@ ifeq ($(WINDOWS_BUILD),1)
   CC_CHECK := $(CC) -fsyntax-only -fsigned-char $(BACKEND_CFLAGS) $(INCLUDE_CFLAGS) -Wall -Wextra -Wno-format-security $(VERSION_CFLAGS) $(GRUCODE_CFLAGS)
   CFLAGS := $(OPT_FLAGS) $(INCLUDE_CFLAGS) $(BACKEND_CFLAGS) $(VERSION_CFLAGS) $(GRUCODE_CFLAGS) -fno-strict-aliasing -fwrapv
 
-else ifeq ($(TARGET_WEB),1)
-  CC_CHECK := $(CC) -fsyntax-only -fsigned-char $(BACKEND_CFLAGS) $(INCLUDE_CFLAGS) -Wall -Wextra -Wno-format-security $(VERSION_CFLAGS) $(GRUCODE_CFLAGS) -s USE_SDL=2
-  CFLAGS := $(OPT_FLAGS) $(INCLUDE_CFLAGS) $(BACKEND_CFLAGS) $(VERSION_CFLAGS) $(GRUCODE_CFLAGS) -fno-strict-aliasing -fwrapv -s USE_SDL=2
-
 else ifeq ($(TARGET_SWITCH),1)
   CC_CHECK := $(CC) $(NXARCH) -fsyntax-only -fsigned-char $(BACKEND_CFLAGS) $(INCLUDE_CFLAGS) -Wall -Wextra -Wno-format-security $(VERSION_CFLAGS) $(GRUCODE_CFLAGS) -D__SWITCH__=1
   CFLAGS := $(NXARCH) $(OPT_FLAGS) $(INCLUDE_CFLAGS) $(BACKEND_CFLAGS) $(VERSION_CFLAGS) $(GRUCODE_CFLAGS) -fno-strict-aliasing -ftls-model=local-exec -fPIC -fwrapv -D__SWITCH__=1
@@ -518,11 +397,8 @@ endif
 CXXFLAGS := -std=c++17
 LDFLAGS += -lstdc++fs
 
-CC_CHECK += -DGIT_HASH=\"$(GIT_HASH)\"
-CFLAGS   += -DGIT_HASH=\"$(GIT_HASH)\"
-
-CC_CHECK += -DGIT_BRANCH=\"$(GIT_BRANCH)\"
-CFLAGS   += -DGIT_BRANCH=\"$(GIT_BRANCH)\"
+CC_CHECK += -DGIT_HASH=\"$(GIT_HASH)\" -DGIT_BRANCH=\"$(GIT_BRANCH)\"
+CFLAGS   += -DGIT_HASH=\"$(GIT_HASH)\" -DGIT_BRANCH=\"$(GIT_BRANCH)\"
 
 ifeq ($(WINDOWS_BUILD),1)
   CC_CHECK += -DDISABLE_CURL_SUPPORT
@@ -579,21 +455,7 @@ ifeq ($(NO_LDIV),1)
   CFLAGS += -DNO_LDIV
 endif
 
-# Use OpenGL 1.3
-ifeq ($(LEGACY_GL),1)
-  CC_CHECK += -DLEGACY_GL
-  CFLAGS += -DLEGACY_GL
-endif
-
-# tell skyconv to write names instead of actual texture data and save the split tiles so we can use them later
-SKYTILE_DIR := $(BUILD_DIR)/assets/textures/skybox_tiles
-
-ASFLAGS := -I include -I $(BUILD_DIR) $(VERSION_ASFLAGS)
-
-ifeq ($(TARGET_WEB),1)
-LDFLAGS := -lm -lGL -lSDL2 -no-pie -s TOTAL_MEMORY=20MB -g4 --source-map-base http://localhost:8080/ -s "EXTRA_EXPORTED_RUNTIME_METHODS=['callMain']"
-
-else ifeq ($(WINDOWS_BUILD),1)
+ifeq ($(WINDOWS_BUILD),1)
   LDFLAGS := $(BITS) -march=$(TARGET_ARCH) -Llib -lpthread $(BACKEND_LDFLAGS) -static
   ifeq ($(CROSS),)
     LDFLAGS += -no-pie
@@ -601,9 +463,6 @@ else ifeq ($(WINDOWS_BUILD),1)
   ifeq ($(WINDOWS_CONSOLE),1)
     LDFLAGS += -mconsole
   endif
-
-else ifeq ($(TARGET_RPI),1)
-  LDFLAGS := $(OPT_FLAGS) -lm $(BACKEND_LDFLAGS) -no-pie -lcurl
 
 else ifeq ($(OSX_BUILD),1)
   LDFLAGS := -lm $(PLATFORM_LDFLAGS) $(BACKEND_LDFLAGS) -lpthread -lcurl
@@ -624,23 +483,18 @@ LDFLAGS += -lstdc++
 # Prevent a crash with -sopt
 export LANG := C
 
-################################# Other Tools ##################################
-# N64 conversion tools
-TOOLS_DIR = tools
-AIFF_EXTRACT_CODEBOOK = $(TOOLS_DIR)/aiff_extract_codebook
-VADPCM_ENC = $(TOOLS_DIR)/vadpcm_enc
-EXTRACT_DATA_FOR_MIO = $(TOOLS_DIR)/extract_data_for_mio
-ZEROTERM = $(PYTHON) $(TOOLS_DIR)/zeroterm.py
-
 #################################### Targets ###################################
+
+ADDONS      := addons
+ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) include) $(ADDONS_PATH)
+ADDON_FLAG := $(BUILD_DIR)/.addon
+ADDONS_PATH := $(BUILD_DIR)/$(ADDONS)/
+MEXT_PARAMETERS := ./baserom.us.z64 ./build/us_pc/addons/moon64 ./assets/fonts ./assets/textures/icons ./assets/textures/logo ./assets/textures/moon ./assets/textures/special ./assets/langs
 
 all: $(EXE)
 ifeq ($(TARGET_SWITCH),1)
 all: $(EXE).nro
 endif
-
-ADDONS      := addons
-ADDONS_PATH := $(BUILD_DIR)/$(ADDONS)/
 
 clean:
 	$(RM) -r $(BUILD_DIR_BASE)
@@ -652,9 +506,6 @@ distclean:
 	$(RM) -r $(BUILD_DIR_BASE)
 	./extract_assets.py --clean
 
-ADDON_FLAG := $(BUILD_DIR)/.addon
-MEXT_PARAMETERS := ./baserom.us.z64 ./build/us_pc/addons/moon64 ./assets/fonts ./assets/textures/icons ./assets/textures/logo ./assets/textures/moon ./assets/textures/special ./assets/langs
-
 addon:
 	./tools/rom/mext $(MEXT_PARAMETERS)
 
@@ -662,19 +513,8 @@ $(BUILD_DIR)/$(RPC_LIBS):
 	mkdir -p $(@D)
 	cp $(RPC_LIBS) $(@D)
 
-libultra: $(BUILD_DIR)/libultra.a
-
-$(BUILD_DIR)/asm/boot.o: $(IPL3_RAW_FILES)
-$(BUILD_DIR)/src/game/crash_screen.o: $(CRASH_TEXTURE_C_FILES)
-
-$(BUILD_DIR)/lib/rsp.o: $(BUILD_DIR)/rsp/rspboot.bin $(BUILD_DIR)/rsp/fast3d.bin $(BUILD_DIR)/rsp/audio.bin
-
-RSP_DIRS := $(BUILD_DIR)/rsp
-ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(ASM_DIRS) $(GODDARD_SRC_DIRS) $(BIN_DIRS) $(TEXTURE_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) include) $(MIO0_DIR) $(addprefix $(MIO0_DIR)/,$(VERSION)) $(SOUND_BIN_DIR) $(SOUND_BIN_DIR)/sequences/$(VERSION) $(RSP_DIRS) $(ADDONS_PATH)
-
 # Make sure build directory exists before compiling anything
 DUMMY != mkdir -p $(ALL_DIRS)
-# compressed segment generation
 
 all:
 	if [ ! -d "$(ADDONS_PATH)saturn" ]; then cp -R $(ADDONS)/saturn $(ADDONS_PATH); fi
@@ -683,26 +523,6 @@ $(BUILD_DIR)/levels/scripts.o: $(BUILD_DIR)/include/level_headers.h
 
 $(BUILD_DIR)/include/level_headers.h: levels/level_headers.h.in
 	$(CPP) -I . levels/level_headers.h.in | $(PYTHON) tools/output_level_headers.py > $(BUILD_DIR)/include/level_headers.h
-
-# Source code
-$(BUILD_DIR)/levels/%/leveldata.o: OPT_FLAGS := -g
-$(BUILD_DIR)/actors/%.o: OPT_FLAGS := -g
-$(BUILD_DIR)/src/effects/%.o: OPT_FLAGS := -g
-$(BUILD_DIR)/src/goddard/%.o: OPT_FLAGS := -g
-$(BUILD_DIR)/src/goddard/%.o: MIPSISET := -mips1
-$(BUILD_DIR)/src/audio/%.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0
-$(BUILD_DIR)/src/audio/load.o: OPT_FLAGS := -O2 -framepointer -Wo,-loopunroll,0
-
-# The source-to-source optimizer copt is enabled for audio. This makes it use
-# acpp, which needs -Wp,-+ to handle C++-style comments.
-$(BUILD_DIR)/src/audio/effects.o: OPT_FLAGS := -O2 -Wo,-loopunroll,0 -sopt,-inline=sequence_channel_process_sound,-scalaroptimize=1 -Wp,-+
-$(BUILD_DIR)/src/audio/synthesis.o: OPT_FLAGS := -O2 -sopt,-scalaroptimize=1 -Wp,-+
-
-# Rebuild files with 'GLOBAL_ASM' if the NON_MATCHING flag changes.
-$(GLOBAL_ASM_O_FILES): $(GLOBAL_ASM_DEP).$(NON_MATCHING)
-$(GLOBAL_ASM_DEP).$(NON_MATCHING):
-	@rm -f $(GLOBAL_ASM_DEP).*
-	touch $@
 
 $(BUILD_DIR)/%.o: %.cpp
 	@$(CXX) -fsyntax-only $(CFLAGS) $(CXXFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<
@@ -716,15 +536,12 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.c
 	@$(CC_CHECK) $(CC_CHECK_CFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-$(BUILD_DIR)/%.o: %.s
-	$(AS) $(ASFLAGS) -MD $(BUILD_DIR)/$*.d -o $@ $<
-
 $(ADDON_FLAG):
 	./tools/rom/mext $(MEXT_PARAMETERS)
 	$(shell touch $(ADDON_FLAG))
 
-$(EXE): $(ADDON_FLAG) $(O_FILES) $(MIO0_FILES:.mio0=.o) $(GODDARD_O_FILES) $(BUILD_DIR)/$(RPC_LIBS)
-	$(LD) -L $(BUILD_DIR) -o $@ $(O_FILES) $(GODDARD_O_FILES) $(LDFLAGS)
+$(EXE): $(ADDON_FLAG) $(O_FILES) $(BUILD_DIR)/$(RPC_LIBS)
+	$(LD) -L $(BUILD_DIR) -o $@ $(O_FILES) $(LDFLAGS)
 
 ifeq ($(TARGET_SWITCH), 1)
 
@@ -744,12 +561,8 @@ ifeq ($(TARGET_SWITCH), 1)
 
 endif
 
-testclean:
-	@rm -rf $(BUILD_DIR)/$(SRC_DIRS)
-
-.PHONY: addon all clean distclean default diff libultra res
+.PHONY: addon all clean default
 .SECONDARY: addon
-.PRECIOUS: $(BUILD_DIR)/bin/%.elf $(SOUND_BIN_DIR)/%.ctl $(SOUND_BIN_DIR)/%.tbl $(SOUND_SAMPLE_TABLES) $(SOUND_BIN_DIR)/%.s $(BUILD_DIR)/%
 .DELETE_ON_ERROR:
 
 # Remove built-in rules, to improve performance

@@ -985,7 +985,6 @@ void sequence_channel_set_volume(struct SequenceChannel *seqChannel, u8 volume) 
     seqChannel->volume = FLOAT_CAST(volume) / US_FLOAT(127.0);
 }
 
-#ifdef NON_MATCHING
 //rodata: 0xf3e30
 void sequence_channel_process_script(struct SequenceChannel *seqChannel) {
     struct M64ScriptState *state;
@@ -1532,13 +1531,6 @@ void sequence_channel_process_script(struct SequenceChannel *seqChannel) {
 #undef loBits
 }
 
-#elif defined(VERSION_EU)
-GLOBAL_ASM("asm/non_matchings/eu/audio/sequence_channel_process_script.s")
-#elif defined(VERSION_JP)
-GLOBAL_ASM("asm/non_matchings/sequence_channel_process_script_jp.s")
-#else
-GLOBAL_ASM("asm/non_matchings/sequence_channel_process_script_us.s")
-#endif
 
 void sequence_player_process_sequence(struct SequencePlayer *seqPlayer) {
     u8 cmd;

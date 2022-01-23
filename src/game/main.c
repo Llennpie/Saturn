@@ -375,20 +375,6 @@ void thread3_main(UNUSED void *arg) {
     }
 }
 
-void set_vblank_handler(s32 index, struct VblankHandler *handler, OSMesgQueue *queue, OSMesg *msg) {
-    handler->queue = queue;
-    handler->msg = msg;
-
-    switch (index) {
-        case 1:
-            gVblankHandler1 = handler;
-            break;
-        case 2:
-            gVblankHandler2 = handler;
-            break;
-    }
-}
-
 void send_sp_task_message(OSMesg *msg) {
     osWritebackDCacheAll();
     osSendMesg(&gSPTaskMesgQueue, msg, OS_MESG_NOBLOCK);

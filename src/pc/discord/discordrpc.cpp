@@ -1,3 +1,4 @@
+#ifdef DISCORDRPC
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -314,3 +315,5 @@ void discord_reset(void) {
     set_logo();
     discordUpdatePresence(&discordRichPresence);
 }
+
+#endif

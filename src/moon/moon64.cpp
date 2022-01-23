@@ -29,7 +29,7 @@ void moon_setup(char *state){
 ########################
 */
 
-void moon_environment_save(char* key, char* value){
+void moon_environment_save(char* key, const char* value){
     MoonInternal::saveEnvironmentVar(string(key), string(value));
 }
 
@@ -81,11 +81,11 @@ void moon_update_window(void* window){
 ######################
 */
 
-void moon_save_texture(struct TextureData* data, char* tex){
+void moon_save_texture(struct TextureData* data, const char* tex){
     MoonInternal::saveTexture(data, string(tex));
 }
 
-struct TextureData* moon_get_texture(char* tex){
+struct TextureData* moon_get_texture(const char* tex){
     return Moon::getCachedTexture(string(tex));
 }
 
