@@ -15,7 +15,6 @@
 #include "segment_symbols.h"
 #include "segments.h"
 #include "animation_table.h"
-#include "moon/anims/animations.h"
 
 // round up to the next multiple
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
@@ -313,6 +312,6 @@ void *alloc_display_list(u32 size) {
 
 s32 load_mario_animation(struct MarioAnimation *anim_ptr, u32 anim_id) {
     anim_ptr->targetAnim = malloc(sizeof(struct Animation));
-    memcpy(anim_ptr->targetAnim, json_anim_table[2], sizeof(struct Animation));
+    memcpy(anim_ptr->targetAnim, anim_table[anim_id], sizeof(struct Animation));
     return TRUE;
 }

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "lib/src/libultra_internal.h"
+#include "src/ultra64/libultra_internal.h"
 #include "macros.h"
 #include "platform.h"
 #include "fs/fs.h"

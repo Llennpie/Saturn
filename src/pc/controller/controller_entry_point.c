@@ -1,5 +1,5 @@
-#include "lib/src/libultra_internal.h"
-#include "lib/src/osContInternal.h"
+#include "src/ultra64/libultra_internal.h"
+#include "src/ultra64/osContInternal.h"
 #include "macros.h"
 
 #include "../configfile.h"

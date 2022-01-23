@@ -84,6 +84,7 @@ namespace MoonInternal {
 
         for(int i = 0; i < order.size(); i++){
             BitModule* addon = Moon::addons[order[i]];
+            cout << "Is null: " << (addon->sounds == nullptr) << endl;
             if(addon->sounds != nullptr)
                 soundCache.push_back(addon);
         }
