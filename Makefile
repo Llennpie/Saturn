@@ -205,6 +205,11 @@ endif
 
 LIBULTRA := $(BUILD_DIR)/libultra.a
 
+ifeq ($(WINDOWS_BUILD),1)
+  EXE := $(BUILD_DIR)/$(TARGET).exe
+else # Linux builds/binary namer
+  EXE := $(BUILD_DIR)/$(TARGET)
+endif
 LEVEL_DIRS := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 
 # Directories containing source files
@@ -268,7 +273,7 @@ ifeq ($(DISCORDRPC),1)
 endif
 
 # Automatic dependency files
-DEP_FILES := $(O_FILES:.o=.d) $(GODDARD_O_FILES:.o=.d) $(BUILD_DIR)/$(LD_SCRIPT).d
+DEP_FILES := $(O_FILES:.o=.d)
 
 ############################ Compiler Options ##################################
 
@@ -484,7 +489,7 @@ SKYTILE_DIR := $(BUILD_DIR)/assets/textures/skybox_tiles
 
 ASFLAGS := -I include -I $(BUILD_DIR) $(VERSION_ASFLAGS)
 
-else ifeq ($(WINDOWS_BUILD),1)
+ifeq ($(WINDOWS_BUILD),1)
   LDFLAGS := $(BITS) -march=$(TARGET_ARCH) -Llib -lpthread $(BACKEND_LDFLAGS) -static
   ifeq ($(CROSS),)
     LDFLAGS += -no-pie
