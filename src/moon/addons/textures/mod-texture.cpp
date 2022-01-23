@@ -1,9 +1,9 @@
 #include "mod-texture.h"
 
-#include "moon/fs/moonfs.h"
+#include "moon/api/fs/moonfs.h"
 #include "moon/libs/nlohmann/json.hpp"
-#include "moon/mod-engine/engine.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/addons/engine.h"
+#include "moon/api/hooks/hook.h"
 #include "modifiers/tmod.h"
 #include "modifiers/animated.h"
 #include "assets/missing.h"

@@ -1,5 +1,5 @@
 #include "achievements.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 #include "moon/ui/utils/moon-draw-utils.h"
 #include "moon/ui/interfaces/moon-screen.h"
 #include "moon/utils/umath.h"
@@ -8,7 +8,7 @@
 #include <algorithm>
 #include "moon/ui/interfaces/moon-screen.h"
 #include "moon/ui/animation/algorithms.h"
-#include "moon/mod-engine/models/mod-model.h"
+#include "moon/addons/models/mod-model.h"
 
 extern "C" {
 #include "pc/cheats.h"

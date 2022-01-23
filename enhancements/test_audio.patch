@@ -5,7 +5,7 @@ index 7644204f..0fc3256d 100644
 @@ -60,6 +60,9 @@ struct SequenceQueueItem {
  s32 gAudioErrorFlags = 0;
  s32 sGameLoopTicked = 0;
- 
+
 +u16 lastPlayedArgs = -1;
 +u16 lastPlayedFade = -1;
 +
@@ -25,12 +25,12 @@ index 769f5739..d4237d2f 100644
 --- a/src/audio/external.h
 +++ b/src/audio/external.h
 @@ -23,9 +23,10 @@ extern f32 gGlobalSoundSource[3];
- 
+
  // defined in data.c, used by the game
  extern u32 gAudioRandom;
 -
  extern u8 gAudioSPTaskYieldBuffer[]; // ucode yield data ptr; only used in JP
- 
+
 +extern u8 sBackgroundMusicQueueSize;
 +
  struct SPTask *create_next_audio_frame_task(void);
@@ -41,17 +41,17 @@ index 5475c11c..21026f04 100644
 --- a/src/audio/load.c
 +++ b/src/audio/load.c
 @@ -8,7 +8,6 @@
- 
+
  #include "pc/platform.h"
  #include "pc/fs/fs.h"
--#include "moon/mod-engine/audio/mod-audio.h"
- 
+-#include "moon/addons/audio/mod-audio.h"
+
  #define ALIGN16(val) (((val) + 0xF) & ~0xF)
- 
+
 @@ -674,17 +673,6 @@ void load_sequence_internal(u32 player, u32 seqId, s32 loadAsync) {
      seqPlayer->scriptState.pc = sequenceData;
  }
- 
+
 -# define LOAD_DATA(x) load_sound_res((const char *)x)
 -# include <stdio.h>
 -# include <stdlib.h>
@@ -73,11 +73,11 @@ index 5475c11c..21026f04 100644
 -    void *data;
      UNUSED s32 pad2;
      gAudioLoadLock = AUDIO_LOCK_UNINITIALIZED;
- 
+
 @@ -736,49 +723,6 @@ void audio_init() {
      }
      audio_reset_session(&gAudioSessionPresets[0]);
- 
+
 -    // Load header for sequence data (assets/music_data.sbk.s)
 -    gSeqFileHeader = (ALSeqFile *) buf;
 -    data = LOAD_DATA(gMusicData); //audio_dma_copy_immediate((uintptr_t) data, , 0x10);
@@ -134,7 +134,7 @@ index 5549f862..06b97725 100644
  extern ALSeqFile *gSeqFileHeader;
  extern u8 *gAlBankSets;
 +extern u16 gSequenceCount;
- 
+
  extern struct CtlEntry *gCtlEntries;
  extern s32 gAiFrequency;
 diff --git a/src/game/sound_init.c b/src/game/sound_init.c
@@ -142,7 +142,7 @@ index e24bfda8..c58542d7 100644
 --- a/src/game/sound_init.c
 +++ b/src/game/sound_init.c
 @@ -25,7 +25,8 @@ static struct VblankHandler sSoundVblankHandler;
- 
+
  static u8 D_8032C6C0 = 0;
  static u8 D_8032C6C4 = 0;
 -static u16 sCurrentMusic = MUSIC_NONE;
@@ -152,7 +152,7 @@ index e24bfda8..c58542d7 100644
  static u16 sCurrentCapMusic = MUSIC_NONE;
  static u8 sPlayingInfiniteStairs = FALSE;
 @@ -207,6 +208,7 @@ void set_background_music(u16 a, u16 seqArgs, s16 fadeTimer) {
- 
+
          if (!(gShouldNotPlayCastleMusic && seqArgs == SEQ_LEVEL_INSIDE_CASTLE)) {
              play_music(SEQ_PLAYER_LEVEL, seqArgs, fadeTimer);
 +            sCurrentFade = fadeTimer;
@@ -166,7 +166,7 @@ index a03c5d84..d8027bad 100644
 @@ -18,6 +18,9 @@
  #define SOUND_MENU_MODE_MONO         1
  #define SOUND_MENU_MODE_HEADSET      2
- 
+
 +extern u16 sCurrentMusic;
 +extern s16 sCurrentFade;
 +
@@ -179,10 +179,10 @@ index 472341ba..6bbaea56 100644
 +++ b/src/moon/mod-engine/audio/mod-audio.cpp
 @@ -4,11 +4,15 @@
  #include "moon/libs/nlohmann/json.hpp"
- #include "moon/mod-engine/engine.h"
- #include "moon/mod-engine/hooks/hook.h"
-+#include "moon/mod-engine/interfaces/sound-entry.h"
- 
+ #include "moon/addons/engine.h"
+ #include "moon/api/hooks/hook.h"
++#include "moon/addons/interfaces/sound-entry.h"
+
  extern "C" {
  #include "text/libs/io_utils.h"
  #include "pc/platform.h"
@@ -191,35 +191,35 @@ index 472341ba..6bbaea56 100644
 +#include "audio/load.h"
 +#include "audio/external.h"
  }
- 
+
  #include <iostream>
 @@ -18,71 +22,78 @@ extern "C" {
  using namespace std;
  using json = nlohmann::json;
- 
+
 -map<string, BitModule*> soundCache;
 +u8 backgroundQueueSize = 0;
- 
+
 -namespace Moon {
 -    void saveAddonSound(BitModule *addon, std::string soundPath, EntryFileData* data){
 -        addon->sounds.insert(pair<string, EntryFileData*>(soundPath, data));
 -    }
 -}
- 
+
 -namespace MoonInternal {
 +vector<BitModule*> soundCache;
- 
+
 -    EntryFileData *getSoundData(const char *fullpath){
 -        char *actualname = sys_strdup(fullpath);
 +namespace Moon {
 +    void saveAddonSound(BitModule *addon, std::string soundPath, EntryFileData* data){
 +        if(addon->sounds == nullptr)
 +            addon->sounds = new SoundEntry();
- 
+
 -        auto cacheEntry = soundCache.find(actualname);
 +        SoundEntry* soundEntry = addon->sounds;
 +        ALSeqFile* header = (ALSeqFile*) data->data;
- 
+
 -        if(cacheEntry == soundCache.end()) {
 -            cout << "Failed to read sound file" << fullpath << endl;
 +        if(soundPath == "sound/sequences.bin"){
@@ -245,7 +245,7 @@ index 472341ba..6bbaea56 100644
 +        }
 +    }
 +}
- 
+
 -        BitModule *addon = cacheEntry->second;
 -
 -        EntryFileData * data = NULL;
@@ -253,12 +253,12 @@ index 472341ba..6bbaea56 100644
 +    void setSoundEntry(SoundEntry *entry) {
 +        gSeqFileHeader = entry->seqHeader;
 +        gSequenceCount = entry->seqCount;
- 
+
 -        if(addon != NULL){
 -            EntryFileData *fileEntry = addon->sounds.find(actualname)->second;
 +        gAlCtlHeader   = entry->ctlHeader;
 +        gCtlEntries    = entry->ctlEntries;
- 
+
 -            if(fileEntry != NULL){
 -                if(fileEntry->data != NULL) data = fileEntry;
 -                else if(!fileEntry->path.empty()){
@@ -277,10 +277,10 @@ index 472341ba..6bbaea56 100644
 +}
 +
 +namespace MoonInternal {
- 
+
      void buildAudioCache(vector<int> order){
          soundCache.clear();
- 
+
          for(int i=0; i < order.size(); i++){
 -            BitModule *addon = Moon::addons[order[i]];
 -
@@ -296,7 +296,7 @@ index 472341ba..6bbaea56 100644
 +        backgroundQueueSize = sBackgroundMusicQueueSize;
 +
      }
- 
+
      void setupSoundEngine( string state ){
          if(state == "Exit"){
              for(auto &addon : Moon::addons){
@@ -324,13 +324,13 @@ index 78394524..b93d493b 100644
  #ifndef ModEngineSoundModule
  #define ModEngineSoundModule
 -#ifdef __cplusplus
- 
- #include "moon/mod-engine/interfaces/file-entry.h"
- #include "moon/mod-engine/interfaces/bit-module.h"
+
+ #include "moon/addons/interfaces/file-entry.h"
+ #include "moon/addons/interfaces/bit-module.h"
 @@ -20,7 +19,4 @@ namespace MoonInternal {
      void buildAudioCache(std::vector<int> order);
  }
- 
+
 -#else
 -void* loadSoundData(const char* fullpath);
 -#endif
@@ -393,11 +393,11 @@ index bfe08ec7..a4952daf 100644
 +++ b/src/moon/ui/screens/addons/addons-view.cpp
 @@ -4,6 +4,7 @@
  #include "moon/ui/moon-ui-manager.h"
- #include "moon/mod-engine/engine.h"
- #include "moon/mod-engine/textures/mod-texture.h"
-+#include "moon/mod-engine/audio/mod-audio.h"
+ #include "moon/addons/engine.h"
+ #include "moon/addons/textures/mod-texture.h"
++#include "moon/addons/audio/mod-audio.h"
  #include <cstring>
- 
+
  using namespace std;
 @@ -12,6 +13,10 @@ extern "C" {
  #include "sm64.h"
@@ -408,7 +408,7 @@ index bfe08ec7..a4952daf 100644
 +#include "game/level_update.h"
 +#include "game/area.h"
  }
- 
+
  BitModule* currentPack;
 @@ -55,6 +60,11 @@ void rebuildTextureCache(){
      }
@@ -420,5 +420,5 @@ index bfe08ec7..a4952daf 100644
 +    play_music(SEQ_PLAYER_LEVEL, gCurrentArea->musicParam2, 0);
 +    lower_background_noise(1);
  }
- 
+
  void MoonAddonsScreen::changeScroll(int idx){

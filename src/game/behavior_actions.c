@@ -43,7 +43,7 @@
 #include "spawn_object.h"
 #include "spawn_sound.h"
 #include "thread6.h"
-#include "moon/mod-engine/models/mod-model.h"
+#include "moon/addons/models/mod-model.h"
 
 #define o gCurrentObject
 

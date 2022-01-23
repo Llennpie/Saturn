@@ -2,9 +2,9 @@
 #include <iostream>
 #include "moon/ui/utils/moon-draw-utils.h"
 #include "moon/ui/moon-ui-manager.h"
-#include "moon/mod-engine/engine.h"
-#include "moon/mod-engine/textures/mod-texture.h"
-#include "moon/mod-engine/audio/mod-audio.h"
+#include "moon/addons/engine.h"
+#include "moon/addons/textures/mod-texture.h"
+#include "moon/addons/audio/mod-audio.h"
 #include <cstring>
 
 using namespace std;

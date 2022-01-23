@@ -1,5 +1,5 @@
 #include "imgui_switch_impl.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/api/hooks/hook.h"
 
 #include <SDL2/SDL.h>
 #include <string>

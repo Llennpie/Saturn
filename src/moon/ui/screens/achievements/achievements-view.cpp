@@ -2,7 +2,7 @@
 #include <iostream>
 #include "moon/ui/utils/moon-draw-utils.h"
 #include "moon/ui/moon-ui-manager.h"
-#include "moon/mod-engine/engine.h"
+#include "moon/addons/engine.h"
 #include "moon/achievements/achievements.h"
 #include <cstring>
 #include <algorithm>

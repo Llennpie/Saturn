@@ -1,8 +1,8 @@
 #ifndef ModEngineSoundModule
 #define ModEngineSoundModule
 
-#include "moon/mod-engine/interfaces/file-entry.h"
-#include "moon/mod-engine/interfaces/bit-module.h"
+#include "moon/addons/interfaces/file-entry.h"
+#include "moon/addons/interfaces/bit-module.h"
 #include "moon/libs/nlohmann/json.hpp"
 #include <string>
 #include <vector>

@@ -17,7 +17,7 @@
 #include "../configfile.h"
 #include "../platform.h"
 #include "../fs/fs.h"
-#include "moon/config/gamectrldb.h"
+#include "moon/api/config/gamectrldb.h"
 
 #define AVOID_UTYPES
 #include "nx/m_controller.h"

@@ -2,8 +2,8 @@
 #define ModEngineShadersModule
 #ifdef __cplusplus
 
-#include "moon/mod-engine/interfaces/bit-module.h"
-#include "moon/mod-engine/interfaces/shader-entry.h"
+#include "moon/addons/interfaces/bit-module.h"
+#include "moon/addons/interfaces/shader-entry.h"
 #include <string>
 #include <vector>
 #include <map>

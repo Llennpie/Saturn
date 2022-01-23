@@ -17,8 +17,6 @@
 #endif
 
 #include "moon/utils/umath.h"
-#include "moon/io/moon-io.h"
-#include "moon/io/modules/mouse-io.h"
 
 using namespace std;
 

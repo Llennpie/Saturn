@@ -1,15 +1,9 @@
-#include "moon/mod-engine/textures/mod-texture.h"
-#include "moon/io/modules/mouse-io.h"
+#include "moon/addons/textures/mod-texture.h"
 #include "moon/ui/moon-ui-manager.h"
 #include "moon/texts/moon-loader.h"
-#include "moon/io/moon-io.h"
-
 #include "moon/texts/text-converter.h"
 #include "moon/utils/moon-env.h"
-#include "moon/mod-engine/engine.h"
-#include "moon/mod-engine/test.h"
-#include "moon/io/moon-io.h"
-
+#include "moon/addons/engine.h"
 #include "moon/imgui/imgui_impl.h"
 
 #include <iostream>
@@ -24,10 +18,7 @@ extern "C" {
 void moon_setup(char *state){
     MoonInternal::setupModEngine(string(state));
     MoonInternal::setupLanguageEngine(string(state));
-    MoonInternal::setupIOModuleEngine(string(state));
     MoonInternal::setupImGuiModule(string(state));
-    // MoonRenderer::setupSkyboxRenderer(string(state));
-    // MoonInternal::setupSoundModule(string(state));
 }
 
 /*
@@ -79,8 +70,7 @@ u8 moon_ui_open(){
 */
 
 void moon_update_window(void* window){
-    MouseIO* tmp = Moon::GetIOModule<MouseIO>();
-    if(tmp != NULL) tmp->window = window;
+
 }
 
 /*

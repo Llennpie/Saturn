@@ -23,7 +23,7 @@
 #include "surface_collision.h"
 #include "surface_load.h"
 #include "level_table.h"
-#include "moon/mod-engine/models/mod-model.h"
+#include "moon/addons/models/mod-model.h"
 
 #define CMD_GET(type, offset) (*(type *) (CMD_PROCESS_OFFSET(offset) + (u8 *) sCurrentCmd))
 

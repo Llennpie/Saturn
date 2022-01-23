@@ -1,7 +1,7 @@
 #ifndef Moon64ModEngine
 #define Moon64ModEngine
 
-#include "moon/mod-engine/interfaces/bit-module.h"
+#include "moon/addons/interfaces/bit-module.h"
 #include <vector>
 #include <string>
 

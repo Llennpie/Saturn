@@ -8,12 +8,12 @@
 #include "moon/texts/moon-loader.h"
 #include "models/mod-model.h"
 #include <iomanip>
-#include "moon/fs/moonfs.h"
+#include "moon/api/fs/moonfs.h"
 #include "moon/libs/nlohmann/json.hpp"
 #include <filesystem>
-#include "moon/config/mooncfg.h"
-#include "moon/config/saves/saves.h"
-#include "moon/mod-engine/audio/mod-audio.h"
+#include "moon/api/config/mooncfg.h"
+#include "moon/saves/saves.h"
+#include "moon/addons/audio/mod-audio.h"
 
 #include <iostream>
 #include <string>

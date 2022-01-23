@@ -1,6 +1,6 @@
 #include "mod-shaders.h"
-#include "moon/mod-engine/interfaces/bit-module.h"
-#include "moon/mod-engine/engine.h"
+#include "moon/addons/interfaces/bit-module.h"
+#include "moon/addons/engine.h"
 #include <iostream>
 #include <string>
 #include <map>

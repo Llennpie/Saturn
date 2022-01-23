@@ -1,7 +1,7 @@
 #ifndef AnimatedTextureModifier
 #define AnimatedTextureModifier
 
-#include "moon/mod-engine/interfaces/bit-module.h"
+#include "moon/addons/interfaces/bit-module.h"
 #include "tmod.h"
 #include <vector>
 #include <string>

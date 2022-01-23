@@ -1,8 +1,8 @@
 #include "mod-model.h"
 
-#include "moon/mod-engine/interfaces/file-entry.h"
-#include "moon/mod-engine/interfaces/bit-module.h"
-#include "moon/mod-engine/hooks/hook.h"
+#include "moon/addons/interfaces/file-entry.h"
+#include "moon/addons/interfaces/bit-module.h"
+#include "moon/api/hooks/hook.h"
 #include "types.h"
 #include <string>
 #include <vector>

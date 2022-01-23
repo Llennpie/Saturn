@@ -1,7 +1,7 @@
 #ifndef MoonFSAPI
 #define MoonFSAPI
 
-#include "moon/mod-engine/interfaces/file-entry.h"
+#include "moon/addons/interfaces/file-entry.h"
 #include <vector>
 #include <string>
 

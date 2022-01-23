@@ -1,11 +1,11 @@
 #include "mod-audio.h"
 
-#include "moon/fs/moonfs.h"
+#include "moon/api/fs/moonfs.h"
 #include "moon/libs/nlohmann/json.hpp"
-#include "moon/mod-engine/engine.h"
-#include "moon/mod-engine/hooks/hook.h"
-#include "moon/mod-engine/interfaces/sound-entry.h"
-#include "moon/mod-engine/interfaces/file-entry.h"
+#include "moon/addons/engine.h"
+#include "moon/api/hooks/hook.h"
+#include "moon/addons/interfaces/sound-entry.h"
+#include "moon/addons/interfaces/file-entry.h"
 
 extern "C" {
 #include "text/libs/io_utils.h"
