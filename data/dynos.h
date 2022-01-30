@@ -17,11 +17,9 @@
 #include <string>
 extern "C" {
 #endif
-#include "types.h"
 #include "config.h"
 #include "pc/fs/fs.h"
 #include "audio_defines.h"
-#include "engine/math_util.h"
 #undef STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 #ifdef __cplusplus

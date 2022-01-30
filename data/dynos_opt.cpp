@@ -176,86 +176,6 @@ static void DynOS_Opt_CreateBind(const String &aName, const String &aConfigName,
     _Opt->mBind.mIndex    = 0;
 }
 
-static void DynOS_Opt_ReadFile(const SysPath &aFolder, const SysPath &aFilename) {
-
-    // Open file
-    SysPath _FullFilename = fstring("%s/%s", aFolder.c_str(), aFilename.c_str());
-    FILE *_File = fopen(_FullFilename.c_str(), "rt");
-    if (_File == NULL) {
-        return;
-    }
-
-    // Read file and create options
-    char _Buffer[4096];
-    while (fgets(_Buffer, 4096, _File) != NULL) {
-        Array<String> _Tokens = Split(_Buffer, " #\t\r\n\b", "#", true);
-
-        // Empty line
-        if (_Tokens.Empty()) {
-            continue;
-        }
-
-        // SUBMENU [Name] [Label] [Title]
-        if (_Tokens[0] == "SUBMENU" && _Tokens.Count() >= 4) {
-            DynOS_Opt_CreateSubMenu(_Tokens[1], _Tokens[2], _Tokens[3]);
-            continue;
-        }
-
-        // TOGGLE  [Name] [Label] [ConfigName] [InitialValue]
-        if (_Tokens[0] == "TOGGLE" && _Tokens.Count() >= 5) {
-            DynOS_Opt_CreateToggle(_Tokens[1], _Tokens[3], _Tokens[2], _Tokens[4].ParseInt());
-            continue;
-        }
-
-        // SCROLL  [Name] [Label] [ConfigName] [InitialValue] [Min] [Max] [Step]
-        if (_Tokens[0] == "SCROLL" && _Tokens.Count() >= 8) {
-            DynOS_Opt_CreateScroll(_Tokens[1], _Tokens[3], _Tokens[2], _Tokens[5].ParseInt(), _Tokens[6].ParseInt(), _Tokens[7].ParseInt(), _Tokens[4].ParseInt());
-            continue;
-        }
-
-        // CHOICE  [Name] [Label] [ConfigName] [InitialValue] [ChoiceStrings...]
-        if (_Tokens[0] == "CHOICE" && _Tokens.Count() >= 6) {
-            DynOS_Opt_CreateChoice(_Tokens[1], _Tokens[3], _Tokens[2], Array<String>(_Tokens.begin() + 5, _Tokens.end()), _Tokens[4].ParseInt());
-            continue;
-        }
-
-        // BUTTON  [Name] [Label] [FuncName]
-        if (_Tokens[0] == "BUTTON" && _Tokens.Count() >= 4) {
-            DynOS_Opt_CreateButton(_Tokens[1], _Tokens[2], _Tokens[3]);
-            continue;
-        }
-
-        // BIND    [Name] [Label] [ConfigName] [Mask] [DefaultValues]
-        if (_Tokens[0] == "BIND" && _Tokens.Count() >= 8) {
-            DynOS_Opt_CreateBind(_Tokens[1], _Tokens[3], _Tokens[2], _Tokens[4].ParseInt(), _Tokens[5].ParseInt(), _Tokens[6].ParseInt(), _Tokens[7].ParseInt());
-            continue;
-        }
-
-        // ENDMENU
-        if (_Tokens[0] == "ENDMENU") {
-            DynOS_Opt_EndSubMenu();
-            continue;
-        }
-    }
-    fclose(_File);
-}
-
-static void DynOS_Opt_LoadOptions() {
-    SysPath _DynosFolder = fstring("%s/%s", DYNOS_EXE_FOLDER, DYNOS_RES_FOLDER);
-    DIR *_DynosDir = opendir(_DynosFolder.c_str());
-    sPrevOpt = NULL;
-    if (_DynosDir) {
-        struct dirent *_DynosEnt = NULL;
-        while ((_DynosEnt = readdir(_DynosDir)) != NULL) {
-            SysPath _Filename = SysPath(_DynosEnt->d_name);
-            if (_Filename.find(".txt") == _Filename.length() - 4) {
-                DynOS_Opt_ReadFile(_DynosFolder, _Filename);
-            }
-        }
-        closedir(_DynosDir);
-    }
-}
-
 //
 // Loop through DynosOptions
 //
@@ -292,9 +212,7 @@ s32 DynOS_Opt_GetValue(const String &aName) {
             case DOPT_CHOICELEVEL: return *_Opt->mChoice.mIndex;
             case DOPT_CHOICEAREA:  return *_Opt->mChoice.mIndex;
             case DOPT_CHOICESTAR:  return *_Opt->mChoice.mIndex;
-#ifndef DYNOS_COOP
             case DOPT_CHOICEPARAM: return *_Opt->mChoice.mIndex;
-#endif
             case DOPT_SCROLL:      return *_Opt->mScroll.mValue;
             default:               break;
         }
@@ -311,14 +229,11 @@ void DynOS_Opt_SetValue(const String &aName, s32 aValue) {
             case DOPT_CHOICELEVEL: *_Opt->mChoice.mIndex = aValue; break;
             case DOPT_CHOICEAREA:  *_Opt->mChoice.mIndex = aValue; break;
             case DOPT_CHOICESTAR:  *_Opt->mChoice.mIndex = aValue; break;
-#ifndef DYNOS_COOP
             case DOPT_CHOICEPARAM: *_Opt->mChoice.mIndex = aValue; break;
-#endif
             case DOPT_SCROLL:      *_Opt->mScroll.mValue = aValue; break;
             default:               break;
         }
     }
-    DynOS_Opt_SaveConfig(sDynosMenu);
 }
 
 //
@@ -404,7 +319,6 @@ static s32 DynOS_Opt_ProcessInput(DynosOption *aOpt, s32 input) {
             }
             break;
 
-#ifndef DYNOS_COOP
         case DOPT_CHOICEPARAM:
             if (input == INPUT_LEFT) {
                 *aOpt->mChoice.mIndex = (*aOpt->mChoice.mIndex + 4) % (5);
@@ -415,7 +329,6 @@ static s32 DynOS_Opt_ProcessInput(DynosOption *aOpt, s32 input) {
                 return RESULT_OK;
             }
             break;
-#endif
 
         case DOPT_SCROLL:
             if (input == INPUT_LEFT) {
@@ -658,7 +571,6 @@ static void DynOS_Opt_CreateWarpToLevelSubMenu() {
     *aOpt->mChoice.mIndex = 0;
     }
 
-#ifndef DYNOS_COOP
     // Param select
     {
     DynosOption *aOpt = DynOS_Opt_NewOption("dynos_warp_param", "", "Param Select", "");
@@ -666,7 +578,6 @@ static void DynOS_Opt_CreateWarpToLevelSubMenu() {
     aOpt->mChoice.mIndex  = New<s32>();
     *aOpt->mChoice.mIndex = 0;
     }
-#endif
 
     DynOS_Opt_CreateButton("dynos_warp_to_level", "Warp", "DynOS_Opt_WarpToLevel");
     DynOS_Opt_EndSubMenu();
@@ -712,9 +623,6 @@ void DynOS_Opt_Init() {
     // Convert options menu
     DynOS_Opt_InitVanilla(sOptionsMenu);
 
-    // Create DynOS menu
-    DynOS_Opt_LoadOptions();
-
     // Warp to level
     DynOS_Opt_CreateWarpToLevelSubMenu();
 
@@ -727,10 +635,8 @@ void DynOS_Opt_Init() {
     // Exit level
     DynOS_Opt_CreateButton("dynos_exit_level", "Exit Level", "DynOS_Opt_ExitLevel");
 
-#ifndef DYNOS_COOP
     // Return to main menu
     DynOS_Opt_CreateButton("dynos_return_to_main_menu", "Return to Main Menu", "DynOS_Opt_ReturnToMainMenu");
-#endif
 
     // Model loader
     DynOS_Opt_CreateModelPacksSubMenu();
@@ -792,46 +698,32 @@ DYNOS_AT_STARTUP static void DynOS_Opt_AddAction_##func() { \
     DynOS_Opt_AddAction(#func, func, false); \
 }
 
-#ifndef DYNOS_COOP
 static bool DynOS_Opt_ReturnToMainMenu(UNUSED const char *optName) {
     DynOS_ReturnToMainMenu();
     return true;
 }
 DYNOS_DEFINE_ACTION(DynOS_Opt_ReturnToMainMenu);
-#endif
 
 static bool DynOS_Opt_WarpToLevel(UNUSED const char *optName) {
     s32 _Level = DynOS_Level_GetList()[DynOS_Opt_GetValue("dynos_warp_level")];
     s32 _Area = DynOS_Opt_GetValue("dynos_warp_area") + 1;
     s32 _Act = DynOS_Opt_GetValue("dynos_warp_act") + 1;
-#ifdef DYNOS_COOP
-    DynOS_Coop_SendCommand(DYNOS_COOP_COMMAND_WARP_TO_LEVEL, _Level, _Area, _Act);
-#endif
     return DynOS_Warp_ToLevel(_Level, _Area, _Act);
 }
 DYNOS_DEFINE_ACTION(DynOS_Opt_WarpToLevel);
 
 static bool DynOS_Opt_WarpToCastle(UNUSED const char *optName) {
     s32 _Level = DynOS_Level_GetList()[DynOS_Opt_GetValue("dynos_warp_castle")];
-#ifdef DYNOS_COOP
-    DynOS_Coop_SendCommand(DYNOS_COOP_COMMAND_WARP_TO_CASTLE, _Level, 0, 0);
-#endif
     return DynOS_Warp_ToCastle(_Level);
 }
 DYNOS_DEFINE_ACTION(DynOS_Opt_WarpToCastle);
 
 static bool DynOS_Opt_RestartLevel(UNUSED const char *optName) {
-#ifdef DYNOS_COOP
-    DynOS_Coop_SendCommand(DYNOS_COOP_COMMAND_RESTART_LEVEL, 0, 0, 0);
-#endif
     return DynOS_Warp_RestartLevel();
 }
 DYNOS_DEFINE_ACTION(DynOS_Opt_RestartLevel);
 
 static bool DynOS_Opt_ExitLevel(UNUSED const char *optName) {
-#ifdef DYNOS_COOP
-    DynOS_Coop_SendCommand(DYNOS_COOP_COMMAND_EXIT_LEVEL, 0, 0, 0);
-#endif
     return DynOS_Warp_ExitLevel(30);
 }
 DYNOS_DEFINE_ACTION(DynOS_Opt_ExitLevel);

@@ -252,27 +252,62 @@ static void LoadAnimationTable(FILE *aFile, GfxData *aGfxData) {
     aGfxData->mAnimationTable.Add({ "", _AnimationPtr });
 }
 
-GfxData *DynOS_Gfx_LoadFromBinary(const SysPath &aFilename) {
-    FILE *_File = fopen(aFilename.c_str(), "rb");
-    if (!_File) {
-        return NULL;
-    }
+//
+// Load from binary
+//
 
-    // Data
-    GfxData *_GfxData = New<GfxData>();
-    for (bool _Done = false; !_Done;) {
-        switch (ReadBytes<u8>(_File)) {
-            case DATA_TYPE_LIGHT:           LoadLightData      (_File, _GfxData); break;
-            case DATA_TYPE_TEXTURE:         LoadTextureData    (_File, _GfxData); break;
-            case DATA_TYPE_VERTEX:          LoadVertexData     (_File, _GfxData); break;
-            case DATA_TYPE_DISPLAY_LIST:    LoadDisplayListData(_File, _GfxData); break;
-            case DATA_TYPE_GEO_LAYOUT:      LoadGeoLayoutData  (_File, _GfxData); break;
-            case DATA_TYPE_ANIMATION:       LoadAnimationData  (_File, _GfxData); break;
-            case DATA_TYPE_ANIMATION_TABLE: LoadAnimationTable (_File, _GfxData); break;
-            case DATA_TYPE_GFXDYNCMD:       LoadGfxDynCmd      (_File, _GfxData); break;
-            default:                        _Done = true;                         break;
+GfxData *DynOS_Gfx_LoadFromBinary(const SysPath &aPackFolder, const char *aActorName) {
+    struct DynosGfxDataCache { SysPath mPackFolder; Array<Pair<const char *, GfxData *>> mGfxData; };
+    static Array<DynosGfxDataCache *> sDynosGfxDataCache;
+
+    // Look for pack in cache
+    DynosGfxDataCache *_Pack = NULL;
+    for (s32 i = 0; i != sDynosGfxDataCache.Count(); ++i) {
+        if (sDynosGfxDataCache[i]->mPackFolder == aPackFolder) {
+            _Pack = sDynosGfxDataCache[i];
+            break;
         }
     }
-    fclose(_File);
+
+    // Look for actor in pack
+    if (_Pack) {
+        for (s32 i = 0; i != _Pack->mGfxData.Count(); ++i) {
+            if (_Pack->mGfxData[i].first == aActorName) { // Perfectly valid, aActorName comes from static RO data, so its address never changes during execution
+                return _Pack->mGfxData[i].second;
+            }
+        }
+    }
+
+    // Load data from binary file
+    GfxData *_GfxData = NULL;
+    SysPath _Filename = fstring("%s/%s.bin", aPackFolder.begin(), aActorName);
+    FILE *_File = fopen(_Filename.c_str(), "rb");
+    if (_File) {
+        _GfxData = New<GfxData>();
+        for (bool _Done = false; !_Done;) {
+            switch (ReadBytes<u8>(_File)) {
+                case DATA_TYPE_LIGHT:           LoadLightData      (_File, _GfxData); break;
+                case DATA_TYPE_TEXTURE:         LoadTextureData    (_File, _GfxData); break;
+                case DATA_TYPE_VERTEX:          LoadVertexData     (_File, _GfxData); break;
+                case DATA_TYPE_DISPLAY_LIST:    LoadDisplayListData(_File, _GfxData); break;
+                case DATA_TYPE_GEO_LAYOUT:      LoadGeoLayoutData  (_File, _GfxData); break;
+                case DATA_TYPE_ANIMATION:       LoadAnimationData  (_File, _GfxData); break;
+                case DATA_TYPE_ANIMATION_TABLE: LoadAnimationTable (_File, _GfxData); break;
+                case DATA_TYPE_GFXDYNCMD:       LoadGfxDynCmd      (_File, _GfxData); break;
+                default:                        _Done = true;                         break;
+            }
+        }
+        fclose(_File);
+    }
+
+    // Add data to cache, even if not loaded
+    if (_Pack) {
+        _Pack->mGfxData.Add({ aActorName, _GfxData });
+    } else {
+        _Pack = New<DynosGfxDataCache>();
+        _Pack->mPackFolder = aPackFolder;
+        _Pack->mGfxData.Add({ aActorName, _GfxData });
+        sDynosGfxDataCache.Add(_Pack);
+    }
     return _GfxData;
 }

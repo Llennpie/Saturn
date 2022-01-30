@@ -2,7 +2,6 @@
 #include <string.h>
 
 #include "sm64.h"
-#include "data/dynos.c.h"
 #include "audio/external.h"
 #include "buffers/framebuffers.h"
 #include "buffers/zbuffer.h"
@@ -874,7 +873,6 @@ struct LevelCommand *level_script_execute(struct LevelCommand *cmd) {
 
     profiler_log_thread5_time(LEVEL_SCRIPT_EXECUTE);
     init_render_image();
-    dynos_update_gfx();
     render_game();
     end_master_display_list();
     alloc_display_list(0);

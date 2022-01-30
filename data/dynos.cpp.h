@@ -3,6 +3,9 @@
 #ifdef __cplusplus
 
 #include "dynos.h"
+extern "C" {
+#include "engine/math_util.h"
+}
 
 #define FUNCTION_CODE   (u32) 0x434E5546
 #define POINTER_CODE    (u32) 0x52544E50
@@ -40,20 +43,8 @@ enum {
     DOPT_CHOICELEVEL,
     DOPT_CHOICEAREA,
     DOPT_CHOICESTAR,
-#ifndef DYNOS_COOP
     DOPT_CHOICEPARAM,
-#endif
 };
-
-#ifdef DYNOS_COOP
-enum {
-    DYNOS_COOP_COMMAND_NONE,
-    DYNOS_COOP_COMMAND_WARP_TO_LEVEL,
-    DYNOS_COOP_COMMAND_WARP_TO_CASTLE,
-    DYNOS_COOP_COMMAND_RESTART_LEVEL,
-    DYNOS_COOP_COMMAND_EXIT_LEVEL,
-};
-#endif
 
 //
 // DynOS Array
@@ -183,7 +174,7 @@ private:
 // A fixed-size string that doesn't require heap memory allocation
 //
 
-#define STRING_SIZE 95
+#define STRING_SIZE 127
 class String {
 public:
     inline String() : mCount(0) {
@@ -522,8 +513,10 @@ T* New(u64 aCount = 1llu) {
 
 template <typename T>
 void Delete(T *& aPtr) {
-    if (aPtr) aPtr->~T();
-    free(aPtr);
+    if (aPtr) {
+        aPtr->~T();
+        free(aPtr);
+    }
     aPtr = NULL;
 }
 
@@ -613,17 +606,11 @@ static type &__##name() {           \
 // Main
 //
 
-void DynOS_Init();
 void DynOS_UpdateOpt(void *aPad);
 void *DynOS_UpdateCmd(void *aCmd);
 void DynOS_UpdateGfx();
 bool DynOS_IsTransitionActive();
-#ifndef DYNOS_COOP
 void DynOS_ReturnToMainMenu();
-#endif
-#ifdef DYNOS_COOP
-void DynOS_Coop_SendCommand(s32 aType, s32 aLevel, s32 aArea, s32 aAct);
-#endif
 
 //
 // Opt
@@ -654,7 +641,7 @@ Array<String> DynOS_Gfx_Init();
 void DynOS_Gfx_Update();
 void DynOS_Gfx_SwapAnimations(void *aPtr);
 bool DynOS_Gfx_WriteBinary(const SysPath &aOutputFilename, GfxData *aGfxData);
-GfxData *DynOS_Gfx_LoadFromBinary(const SysPath &aFilename);
+GfxData *DynOS_Gfx_LoadFromBinary(const SysPath &aPackFolder, const char *aActorName);
 void DynOS_Gfx_Free(GfxData *aGfxData);
 void DynOS_Gfx_GeneratePack(const SysPath &aPackFolder);
 
@@ -674,7 +661,7 @@ s32 DynOS_String_Width(const u8 *aStr64);
 
 s32 DynOS_Geo_GetActorCount();
 const char *DynOS_Geo_GetActorName(s32 aIndex);
-void *DynOS_Geo_GetActorLayout(s32 aIndex);
+const void *DynOS_Geo_GetActorLayout(s32 aIndex);
 s32 DynOS_Geo_GetActorIndex(const void *aGeoLayout);
 void *DynOS_Geo_GetFunctionPointerFromName(const String &aName);
 void *DynOS_Geo_GetFunctionPointerFromIndex(s32 aIndex);
@@ -705,10 +692,8 @@ bool DynOS_Warp_ToLevel(s32 aLevel, s32 aArea, s32 aAct);
 bool DynOS_Warp_RestartLevel();
 bool DynOS_Warp_ExitLevel(s32 aDelay);
 bool DynOS_Warp_ToCastle(s32 aLevel);
-#ifndef DYNOS_COOP
 void DynOS_Warp_SetParam(s32 aLevel, s32 aIndex);
 const char *DynOS_Warp_GetParamName(s32 aLevel, s32 aIndex);
-#endif
 
 #endif
 #endif

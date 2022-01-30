@@ -6,6 +6,7 @@
 
 #include <ultra64.h>
 #include "macros.h"
+#include "data/dynos.c.h"
 
 
 // Certain functions are marked as having return values, but do not

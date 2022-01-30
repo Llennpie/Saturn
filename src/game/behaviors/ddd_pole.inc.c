@@ -1,6 +1,5 @@
 
 void bhv_ddd_pole_init(void) {
-#ifndef DYNOS_COOP
     extern s32 gDDDPoles;
 
     // Always spawn
@@ -15,7 +14,6 @@ void bhv_ddd_pole_init(void) {
         obj_mark_for_deletion(o);
         return;
     }
-#endif
 
     if (!(save_file_get_flags() & (SAVE_FLAG_HAVE_KEY_2 | SAVE_FLAG_UNLOCKED_UPSTAIRS_DOOR))) {
         obj_mark_for_deletion(o);

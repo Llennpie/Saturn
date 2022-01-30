@@ -14,7 +14,7 @@ extern "C" {
 extern s8 gDialogBoxState;
 extern s16 gMenuMode;
 extern s32 gWdwWaterLevelSet;
-extern const u8 sSpawnTypeFromWarpBhv[];
+extern u8 sSpawnTypeFromWarpBhv[];
 extern void set_mario_initial_action(struct MarioState *, u32, u32);
 extern void set_play_mode(s16);
 }
@@ -23,10 +23,8 @@ extern void set_play_mode(s16);
 // Data
 //
 
-#ifndef DYNOS_COOP
        s32 gDDDBowsersSub     = -1;
        s32 gDDDPoles          = -1;
-#endif
 static s32 sDynosWarpLevelNum = -1;
 static s32 sDynosWarpAreaNum  = -1;
 static s32 sDynosWarpActNum   = -1;
@@ -121,7 +119,6 @@ bool DynOS_Warp_ToCastle(s32 aLevel) {
 // Params
 //
 
-#ifndef DYNOS_COOP
 const char *DynOS_Warp_GetParamName(s32 aLevel, s32 aIndex) {
     static const char *sLevelParams[][5] = {
         { "", "", "", "", "" },
@@ -190,7 +187,6 @@ void DynOS_Warp_SetParam(s32 aLevel, s32 aIndex) {
         break;
     }
 }
-#endif
 
 //
 // Update
@@ -240,9 +236,7 @@ static void *DynOS_Warp_UpdateWarp(void *aCmd, bool aIsLevelInitDone) {
         gCurrActNum = MAX(1, sDynosWarpActNum * (gCurrCourseNum <= COURSE_STAGES_MAX));
         gDialogCourseActNum = gCurrActNum;
         gCurrAreaIndex = sDynosWarpAreaNum;
-#ifndef DYNOS_COOP
         DynOS_Warp_SetParam(gCurrLevelNum, DynOS_Opt_GetValue("dynos_warp_param"));
-#endif
         sDynosWarpTargetArea = gCurrAreaIndex;
 
         // Set up new level script
@@ -276,9 +270,7 @@ static void *DynOS_Warp_UpdateWarp(void *aCmd, bool aIsLevelInitDone) {
             gMarioSpawnInfo->areaIndex = gCurrAreaIndex;
             init_mario();
             set_mario_initial_action(gMarioState, sDynosWarpSpawnType, 0);
-#ifndef DYNOS_COOP
             DynOS_Warp_SetParam(gCurrLevelNum, DynOS_Opt_GetValue("dynos_warp_param"));
-#endif
 
             // Init transition
             reset_camera(gCurrentArea->camera);
@@ -463,13 +455,11 @@ void *DynOS_Warp_Update(void *aCmd, bool aIsLevelInitDone) {
         return DynOS_Warp_UpdateWarp(aCmd, aIsLevelInitDone);
     }
 
-#ifndef DYNOS_COOP
     // Reset DDD settings to default
     if (gCurrCourseNum == COURSE_NONE) {
         gDDDBowsersSub = -1;
         gDDDPoles = -1;
     }
-#endif
 
     return NULL;
 }

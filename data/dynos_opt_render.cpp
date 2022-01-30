@@ -214,11 +214,9 @@ static void DynOS_Opt_DrawOption(DynosOption *aOpt, DynosOption *aCurrentOpt, s3
             }
         } break;
 
-#ifndef DYNOS_COOP
         case DOPT_CHOICEPARAM: {
             PrintString(get_param(aOpt), OFFSET_FROM_RIGHT_EDGE, aY, aOpt == aCurrentOpt ? COLOR_SELECT : COLOR_WHITE, COLOR_BLACK, 0);
         } break;
-#endif
 
         case DOPT_SCROLL: {
             s32 _Width = (s32) (SCROLL_BAR_SIZE * (f32) (*aOpt->mScroll.mValue - aOpt->mScroll.mMin) / (f32) (aOpt->mScroll.mMax - aOpt->mScroll.mMin));
