@@ -50,7 +50,7 @@ void smachinima_imgui_update() {
     selected_animation = (MarioAnimID)anim_index;
     if (ImGui::Button("Play")) {
         saturn_play_animation(selected_animation);
-    }
+    } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
 
     imgui_bundled_space(20, "Quick Toggles", NULL);
 

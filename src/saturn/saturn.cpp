@@ -16,6 +16,7 @@ bool enable_dust_particles = false;
 
 bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
+bool is_anim_looped = false;
 
 // private
 bool is_chroma_keying = false;
@@ -58,10 +59,14 @@ void saturn_update() {
         gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
     }
     */
-   machinimaMode = (camera_frozen) ? 1 : 0;
+    machinimaMode = (camera_frozen) ? 1 : 0;
 
-    if (is_anim_playing && is_anim_past_end(gMarioState)) {
-        is_anim_playing = false;
+    if (is_anim_playing && is_anim_at_end(gMarioState)) {
+        if (is_anim_looped) {
+            gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
+        } else {
+            is_anim_playing = false;
+        }
     }
     if (is_anim_playing && selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
         is_anim_playing = false;

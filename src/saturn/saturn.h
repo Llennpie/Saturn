@@ -16,6 +16,7 @@ extern bool enable_dust_particles;
 
 extern bool is_anim_playing;
 extern enum MarioAnimID selected_animation;
+extern bool is_anim_looped;
 
 #ifdef __cplusplus
 extern "C" {
