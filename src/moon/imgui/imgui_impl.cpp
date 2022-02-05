@@ -413,6 +413,7 @@ namespace MoonInternal {
                             ImGui::MenuItem("Machinima", NULL, &configImGui.s_machinima);
                             ImGui::MenuItem("Quick Options", NULL, &configImGui.s_toggles);
                             ImGui::MenuItem("Appearance", NULL, &configImGui.s_appearance);
+                            ImGui::MenuItem("Animation", NULL, &configImGui.s_animation);
                             //ImGui::MenuItem("Debug Textures", NULL, &configImGui.texture_debug);
                             ImGui::EndMenu();
                         }
@@ -499,6 +500,10 @@ namespace MoonInternal {
                     
                     ImGui::Checkbox("Dust Particles", &enable_dust_particles);
                     ImGui::Checkbox("Shadows", &enable_shadows);
+
+                    ImGui::Dummy(ImVec2(0, 5));
+
+                    ImGui::Checkbox("Can Fall Asleep", &enable_fall_asleep);
 
                     ImGui::Dummy(ImVec2(0, 5));
 
@@ -904,8 +909,12 @@ namespace MoonInternal {
                             }
                         }
                     }
-
-                    ImGui::Dummy(ImVec2(0, 10));
+                    ImGui::End();
+                    ImGui::PopStyleColor();
+                }
+                if (configImGui.s_animation && show_menu_bar) {
+                    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+                    ImGui::Begin("Animation", NULL, ImGuiWindowFlags_None);
 
                     ImGui::Text("Play Animation");
                     ImGui::Combo("###animation_combo", &anim_index, saturn_animations, IM_ARRAYSIZE(saturn_animations));
@@ -916,6 +925,26 @@ namespace MoonInternal {
                     ImGui::SameLine();
                     ImGui::Checkbox("Loop###animation_loop", &loop_animation);
                     ImGui::SliderFloat("Speed###animation_speed", &anim_speed, 0.1f, 8.0f);
+
+                    ImGui::Dummy(ImVec2(0, 10));
+
+                    if (mario_exists) {
+                        if (ImGui::CollapsingHeader("Mixtape")) {
+                            if (gMarioState->marioObj->header.gfx.unk38.curAnim != NULL) {
+                                if (is_spazzing) {
+                                    ImGui::Text("SPAZ");
+                                } else {
+                                    ImGui::Text("%s", saturn_animations[cur_anim_index]);
+                                }
+                                ImGui::SliderInt("Frame###animation_frames", &cur_anim_frame, 0, cur_anim_length);
+                                ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
+                            }
+                        }
+
+                        ImGui::Dummy(ImVec2(0, 10));
+
+                        ImGui::Checkbox("Spaz###animation_spaz", &is_spazzing);
+                    }
 
                     ImGui::End();
                     ImGui::PopStyleColor();

@@ -4,13 +4,22 @@
 #include <stdbool.h>
 
 extern bool is_anim_playing;
+extern bool is_anim_paused;
 extern bool loop_animation;
 extern float anim_speed;
+extern bool is_spazzing;
+
+extern int cur_anim_index;
+extern int cur_anim_frame;
+extern int cur_anim_length;
 
 extern bool enable_head_rotations;
 extern bool enable_shadows;
 extern bool enable_god;
 extern bool enable_dust_particles;
+extern bool enable_fall_asleep;
+
+extern bool has_changed_spaz;
 
 // Color Codes
 

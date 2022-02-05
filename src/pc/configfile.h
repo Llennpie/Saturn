@@ -26,6 +26,7 @@ typedef struct {
     bool s_toggles;
     bool s_machinima;
     bool s_appearance;
+    bool s_animation;
     bool s_options;
     bool texture_debug;
     bool jaboMode;

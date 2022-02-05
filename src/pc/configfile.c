@@ -61,6 +61,7 @@ ImGuiConfig configImGui = {
     .s_toggles = true,
     .s_machinima = true,
     .s_appearance = true,
+    .s_animation = false,
     .s_options = false,
     .jaboMode = false,
     .wireframeMode = false
@@ -192,6 +193,7 @@ static const struct ConfigOption options[] = {
     {.name = "s_toggles_win",        .type = CONFIG_TYPE_BOOL, .boolValue = &configImGui.s_toggles},
     {.name = "s_machinima",          .type = CONFIG_TYPE_BOOL, .boolValue = &configImGui.s_machinima},
     {.name = "s_appearance_win",     .type = CONFIG_TYPE_BOOL, .boolValue = &configImGui.s_appearance},
+    {.name = "s_animation_win",     .type = CONFIG_TYPE_BOOL, .boolValue = &configImGui.s_animation},
     {.name = "s_options_win",        .type = CONFIG_TYPE_BOOL, .boolValue = &configImGui.s_options}
 };
 

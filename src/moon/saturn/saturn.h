@@ -14,12 +14,14 @@ namespace MoonInternal {
     void saturn_play_animation(MarioAnimID);
 }
 
-extern bool camera_frozen;
-#include "saturn_types.h"
-
 extern bool show_menu_bar;
 
+extern bool camera_frozen;
 extern float camera_speed;
+#include "saturn_types.h"
+
+extern bool mario_exists;
+
 extern bool enable_night_skybox;
 extern bool enable_yoshi;
 

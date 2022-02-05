@@ -40,6 +40,7 @@ bool enable_head_rotations;
 bool enable_shadows;
 bool enable_god;
 bool enable_dust_particles;
+bool enable_fall_asleep;
 
 bool show_menu_bar;
 
@@ -51,11 +52,22 @@ enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
 bool loop_animation;
 float anim_speed = 1.0f;
 bool is_anim_playing;
+bool is_anim_paused;
+int anim_paused_index = 0;
+bool is_spazzing;
+
+int cur_anim_index = 0;
+int cur_anim_frame = 0;
+int cur_anim_length = 0;
 
 // Second Check
 
+bool mario_exists;
+
 bool has_changed_chroma_sky;
 bool has_changed_yoshi;
+bool has_changed_anim_pause_index;
+bool has_changed_spaz;
 int every_other;
 
 namespace MoonInternal {
@@ -73,6 +85,7 @@ namespace MoonInternal {
     // Play Animation
 
     void saturn_play_animation(MarioAnimID anim) {
+        if (is_anim_paused || !mario_exists) return;
         set_mario_animation(gMarioState, anim);
         is_anim_playing = true;
     }
@@ -133,6 +146,10 @@ namespace MoonInternal {
                             if (accept_input)
                                 saturn_play_animation(selected_animation);
                         }
+                        if(ev->key.keysym.sym == SDLK_h){
+                            if (accept_input)
+                                is_anim_paused = !is_anim_paused;
+                        }
                         if(ev->key.keysym.sym == SDLK_F1){
                             show_menu_bar = !show_menu_bar;
                         }
@@ -142,6 +159,9 @@ namespace MoonInternal {
                         }
                         if(ev->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT){
                             saturn_play_animation(selected_animation);
+                        }
+                        if(ev->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT){
+                            is_anim_paused = !is_anim_paused;
                         }
                         if(ev->cbutton.button == SDL_CONTROLLER_BUTTON_BACK){
                             show_menu_bar = !show_menu_bar;
@@ -174,20 +194,47 @@ namespace MoonInternal {
 
                 // Animations
 
-                if (anim_speed != 1.0f && is_anim_playing) {
-                    gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
-                }
-
-                if (is_anim_playing && is_anim_at_end(gMarioState)) {
-                    if (loop_animation) {
-                        gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
-                        gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
-                    } else {
+                if (is_anim_paused) {
+                    anim_speed = 1.0f;
+                    gMarioState->marioObj->header.gfx.unk38.animFrame = cur_anim_frame;
+                    gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = cur_anim_frame;
+                } else {
+                    if (anim_speed != 1.0f && is_anim_playing) {
+                        gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
+                    }
+                    if (is_anim_playing && is_anim_at_end(gMarioState)) {
+                        if (loop_animation) {
+                            gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
+                            gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
+                        } else {
+                            is_anim_playing = false;
+                        }
+                    }
+                    if (is_anim_playing && selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
                         is_anim_playing = false;
                     }
+
+                    if (mario_exists) {
+                        cur_anim_index = (int)gMarioState->marioObj->header.gfx.unk38.animID;
+                        cur_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
+                        cur_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
+                    }
                 }
-                if (is_anim_playing && selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
-                    is_anim_playing = false;
+
+                if (is_spazzing && mario_exists) {
+                    anim_speed = -1.0f;
+                    loop_animation = true;
+                    is_anim_paused = false;
+                    saturn_play_animation(MARIO_ANIM_A_POSE);
+                    has_changed_spaz = true;
+                    if (gMarioState->marioObj->header.gfx.unk38.animFrame < -32) {
+                        gMarioState->marioObj->header.gfx.unk38.animFrame = 1;
+                        gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 1;
+                    }
+                }
+                if (has_changed_spaz && !is_spazzing) {
+                    has_changed_spaz = false;
+                    anim_speed = 1.0f;
                 }
 
                 // Chroma Key
@@ -210,6 +257,38 @@ namespace MoonInternal {
                 // Yoshi
 
                 enableYoshi = (enable_yoshi) ? 1 : 0;
+
+                // Check
+
+                switch(gCurrLevelNum) {
+                    case 0:
+                        mario_exists = false;
+                        break;
+                    case 1:
+                        mario_exists = false;
+                        break;
+                    case 2:
+                        mario_exists = false;
+                        break;
+                    case 24:
+                        mario_exists = false;
+                        break;
+                    case 31:
+                        mario_exists = false;
+                        break;
+                    case 34:
+                        mario_exists = false;
+                        break;
+                    case 36:
+                        mario_exists = false;
+                        break;
+                    case 37:
+                        mario_exists = false;
+                        break;
+                    default:
+                        mario_exists = true;
+                        break;
+                }
             }});
         }
     }
