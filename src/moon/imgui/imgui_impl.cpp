@@ -914,7 +914,8 @@ namespace MoonInternal {
                         MoonInternal::saturn_play_animation(selected_animation);
                     }
                     ImGui::SameLine();
-                    ImGui::Checkbox("Loop###loop_animation", &loop_animation);
+                    ImGui::Checkbox("Loop###animation_loop", &loop_animation);
+                    ImGui::SliderFloat("Speed###animation_speed", &anim_speed, 0.1f, 8.0f);
 
                     ImGui::End();
                     ImGui::PopStyleColor();

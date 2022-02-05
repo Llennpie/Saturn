@@ -48,8 +48,9 @@ bool enable_night_skybox;
 bool enable_yoshi;
 
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
-bool is_anim_playing;
 bool loop_animation;
+float anim_speed = 1.0f;
+bool is_anim_playing;
 
 // Second Check
 
@@ -173,9 +174,14 @@ namespace MoonInternal {
 
                 // Animations
 
+                if (anim_speed != 1.0f && is_anim_playing) {
+                    gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
+                }
+
                 if (is_anim_playing && is_anim_at_end(gMarioState)) {
                     if (loop_animation) {
                         gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
+                        gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
                     } else {
                         is_anim_playing = false;
                     }

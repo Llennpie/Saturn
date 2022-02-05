@@ -5,6 +5,7 @@
 
 extern bool is_anim_playing;
 extern bool loop_animation;
+extern float anim_speed;
 
 extern bool enable_head_rotations;
 extern bool enable_shadows;
