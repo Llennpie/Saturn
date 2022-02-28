@@ -929,6 +929,10 @@ namespace MoonInternal {
                     ImGui::Dummy(ImVec2(0, 10));
 
                     if (mario_exists) {
+                        ImGui::Checkbox("Spaz###animation_spaz", &is_spazzing);
+                        ImGui::Dummy(ImVec2(0, 10));
+
+                        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
                         if (ImGui::CollapsingHeader("Mixtape")) {
                             if (gMarioState->marioObj->header.gfx.unk38.curAnim != NULL) {
                                 if (is_spazzing) {
@@ -936,14 +940,12 @@ namespace MoonInternal {
                                 } else {
                                     ImGui::Text("%s", saturn_animations[cur_anim_index]);
                                 }
-                                ImGui::SliderInt("Frame###animation_frames", &cur_anim_frame, 0, cur_anim_length);
-                                ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
+                                if (is_anim_playing) {
+                                    ImGui::SliderInt("Frame###animation_frames", &cur_anim_frame, 0, cur_anim_length);
+                                    ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
+                                }
                             }
                         }
-
-                        ImGui::Dummy(ImVec2(0, 10));
-
-                        ImGui::Checkbox("Spaz###animation_spaz", &is_spazzing);
                     }
 
                     ImGui::End();

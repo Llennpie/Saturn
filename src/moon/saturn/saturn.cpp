@@ -147,7 +147,7 @@ namespace MoonInternal {
                                 saturn_play_animation(selected_animation);
                         }
                         if(ev->key.keysym.sym == SDLK_h){
-                            if (accept_input)
+                            if (accept_input && is_anim_playing)
                                 is_anim_paused = !is_anim_paused;
                         }
                         if(ev->key.keysym.sym == SDLK_F1){
@@ -161,7 +161,8 @@ namespace MoonInternal {
                             saturn_play_animation(selected_animation);
                         }
                         if(ev->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT){
-                            is_anim_paused = !is_anim_paused;
+                            if (is_anim_playing)
+                                is_anim_paused = !is_anim_paused;
                         }
                         if(ev->cbutton.button == SDL_CONTROLLER_BUTTON_BACK){
                             show_menu_bar = !show_menu_bar;
