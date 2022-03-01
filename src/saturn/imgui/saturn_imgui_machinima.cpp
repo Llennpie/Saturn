@@ -57,7 +57,7 @@ void smachinima_imgui_update() {
     ImGui::Checkbox("HUD", &configHUD);
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
     if (ImGui::CollapsingHeader("Mario")) {
-        ImGui::SetWindowSize(ImVec2(275, 350));
+        ImGui::SetWindowSize(ImVec2(275, 375));
         ImGui::Checkbox("Head Rotations", &enable_head_rotations);
         imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
         const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
