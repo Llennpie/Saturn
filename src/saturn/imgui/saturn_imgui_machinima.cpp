@@ -57,12 +57,15 @@ void smachinima_imgui_update() {
     ImGui::Checkbox("HUD", &configHUD);
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
     if (ImGui::CollapsingHeader("Mario")) {
+        ImGui::SetWindowSize(ImVec2(275, 350));
         ImGui::Checkbox("Head Rotations", &enable_head_rotations);
         imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
         const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
         ImGui::Combo("Hand State", &scrollHandState, hands, IM_ARRAYSIZE(hands));
         const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
         ImGui::Combo("Cap State", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+    } else {
+        ImGui::SetWindowSize(ImVec2(275, 325));
     }
     ImGui::Checkbox("Shadows", &enable_shadows);
     imgui_bundled_tooltip("Displays Mario's shadow.");

@@ -8,6 +8,11 @@
 #include "saturn/saturn.h"
 #include "saturn/imgui/saturn_imgui.h"
 
+#include "saturn/libs/imgui/imgui.h"
+#include "saturn/libs/imgui/imgui_internal.h"
+#include "saturn/libs/imgui/imgui_impl_sdl.h"
+#include "saturn/libs/imgui/imgui_impl_opengl3.h"
+
 extern "C" {
 #include "game/camera.h"
 #include "game/level_update.h"
@@ -67,6 +72,8 @@ unsigned int defaultColorHairBDark = 0;
 
 // Color Codes
 
+bool cc_model_support = true;
+
 std::vector<string> cc_array;
 string colorCodeDir;
 
@@ -82,7 +89,8 @@ void load_cc_directory() {
 #endif
 
     for (const auto & entry : fs::directory_iterator(colorCodeDir))
-        cc_array.push_back(entry.path().filename().u8string());
+        if (entry.path().filename().u8string() != "Mario")
+            cc_array.push_back(entry.path().filename().u8string());
 }
 
 void reset_cc_colors() {
@@ -127,6 +135,190 @@ void reset_cc_colors() {
     defaultColorHairGDark = 3;
     defaultColorHairBLight = 0;
     defaultColorHairBDark = 0;
+}
+
+std::string global_gs_code() {
+    std::string gameshark;
+
+    char col1char[64];
+    ImFormatString(col1char, IM_ARRAYSIZE(col1char), "%02X%02X%02X", ImClamp((int)defaultColorHatRLight, 0, 255), ImClamp((int)defaultColorHatGLight, 0, 255), ImClamp((int)defaultColorHatBLight, 0, 255));
+    std::string col1 = col1char;
+    char col2char[64];
+    ImFormatString(col2char, IM_ARRAYSIZE(col2char), "%02X%02X%02X", ImClamp((int)defaultColorHatRDark, 0, 255), ImClamp((int)defaultColorHatGDark, 0, 255), ImClamp((int)defaultColorHatBDark, 0, 255));
+    std::string col2 = col2char;
+    char col3char[64];
+    ImFormatString(col3char, IM_ARRAYSIZE(col3char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRLight, 0, 255), ImClamp((int)defaultColorOverallsGLight, 0, 255), ImClamp((int)defaultColorOverallsBLight, 0, 255));
+    std::string col3 = col3char;
+    char col4char[64];
+    ImFormatString(col4char, IM_ARRAYSIZE(col4char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRDark, 0, 255), ImClamp((int)defaultColorOverallsGDark, 0, 255), ImClamp((int)defaultColorOverallsBDark, 0, 255));
+    std::string col4 = col4char;
+    char col5char[64];
+    ImFormatString(col5char, IM_ARRAYSIZE(col5char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRLight, 0, 255), ImClamp((int)defaultColorGlovesGLight, 0, 255), ImClamp((int)defaultColorGlovesBLight, 0, 255));
+    std::string col5 = col5char;
+    char col6char[64];
+    ImFormatString(col6char, IM_ARRAYSIZE(col6char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRDark, 0, 255), ImClamp((int)defaultColorGlovesGDark, 0, 255), ImClamp((int)defaultColorGlovesBDark, 0, 255));
+    std::string col6 = col6char;
+    char col7char[64];
+    ImFormatString(col7char, IM_ARRAYSIZE(col7char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRLight, 0, 255), ImClamp((int)defaultColorShoesGLight, 0, 255), ImClamp((int)defaultColorShoesBLight, 0, 255));
+    std::string col7 = col7char;
+    char col8char[64];
+    ImFormatString(col8char, IM_ARRAYSIZE(col8char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRDark, 0, 255), ImClamp((int)defaultColorShoesGDark, 0, 255), ImClamp((int)defaultColorShoesBDark, 0, 255));
+    std::string col8 = col8char;
+    char col9char[64];
+    ImFormatString(col9char, IM_ARRAYSIZE(col9char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRLight, 0, 255), ImClamp((int)defaultColorSkinGLight, 0, 255), ImClamp((int)defaultColorSkinBLight, 0, 255));
+    std::string col9 = col9char;
+    char col10char[64];
+    ImFormatString(col10char, IM_ARRAYSIZE(col10char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRDark, 0, 255), ImClamp((int)defaultColorSkinGDark, 0, 255), ImClamp((int)defaultColorSkinBDark, 0, 255));
+    std::string col10 = col10char;
+    char col11char[64];
+    ImFormatString(col11char, IM_ARRAYSIZE(col11char), "%02X%02X%02X", ImClamp((int)defaultColorHairRLight, 0, 255), ImClamp((int)defaultColorHairGLight, 0, 255), ImClamp((int)defaultColorHairBLight, 0, 255));
+    std::string col11 = col11char;
+    char col12char[64];
+    ImFormatString(col12char, IM_ARRAYSIZE(col12char), "%02X%02X%02X", ImClamp((int)defaultColorHairRDark, 0, 255), ImClamp((int)defaultColorHairGDark, 0, 255), ImClamp((int)defaultColorHairBDark, 0, 255));
+    std::string col12 = col12char;
+
+    gameshark += "8107EC40 " + col1.substr(0, 2) + col1.substr(2, 2) + "\n";
+    gameshark += "8107EC42 " + col1.substr(4, 2) + "00\n";
+    gameshark += "8107EC38 " + col2.substr(0, 2) + col2.substr(2, 2) + "\n";
+    gameshark += "8107EC3A " + col2.substr(4, 2) + "00\n";
+    gameshark += "8107EC28 " + col3.substr(0, 2) + col3.substr(2, 2) + "\n";
+    gameshark += "8107EC2A " + col3.substr(4, 2) + "00\n";
+    gameshark += "8107EC20 " + col4.substr(0, 2) + col4.substr(2, 2) + "\n";
+    gameshark += "8107EC22 " + col4.substr(4, 2) + "00\n";
+    gameshark += "8107EC58 " + col5.substr(0, 2) + col5.substr(2, 2) + "\n";
+    gameshark += "8107EC5A " + col5.substr(4, 2) + "00\n";
+    gameshark += "8107EC50 " + col6.substr(0, 2) + col6.substr(2, 2) + "\n";
+    gameshark += "8107EC52 " + col6.substr(4, 2) + "00\n";
+    gameshark += "8107EC70 " + col7.substr(0, 2) + col7.substr(2, 2) + "\n";
+    gameshark += "8107EC72 " + col7.substr(4, 2) + "00\n";
+    gameshark += "8107EC68 " + col8.substr(0, 2) + col8.substr(2, 2) + "\n";
+    gameshark += "8107EC6A " + col8.substr(4, 2) + "00\n";
+    gameshark += "8107EC88 " + col9.substr(0, 2) + col9.substr(2, 2) + "\n";
+    gameshark += "8107EC8A " + col9.substr(4, 2) + "00\n";
+    gameshark += "8107EC80 " + col10.substr(0, 2) + col10.substr(2, 2) + "\n";
+    gameshark += "8107EC82 " + col10.substr(4, 2) + "00\n";
+    gameshark += "8107ECA0 " + col11.substr(0, 2) + col11.substr(2, 2) + "\n";
+    gameshark += "8107ECA2 " + col11.substr(4, 2) + "00\n";
+    gameshark += "8107EC98 " + col12.substr(0, 2) + col12.substr(2, 2) + "\n";
+    gameshark += "8107EC9A " + col12.substr(4, 2) + "00";
+
+    return gameshark;
+}
+
+void paste_gs_code(string content) {
+    std::istringstream f(content);
+    std::string line;
+        
+    while (std::getline(f, line)) {
+        std::string address = line.substr(2, 6);
+        int value1 = std::stoi(line.substr(9, 2), 0, 16);
+        int value2 = std::stoi(line.substr(11, 2), 0, 16);
+
+        // Hat
+        if (address == "07EC40") {
+            defaultColorHatRLight = value1;
+            defaultColorHatGLight = value2;
+        }
+        if (address == "07EC42") {
+            defaultColorHatBLight = value1;
+        }
+        if (address == "07EC38") {
+            defaultColorHatRDark = value1;
+            defaultColorHatGDark = value2;
+        }
+        if (address == "07EC3A") {
+            defaultColorHatBDark = value1;
+        }
+
+        // Overalls
+        if (address == "07EC28") {
+            defaultColorOverallsRLight = value1;
+            defaultColorOverallsGLight = value2;
+        }
+        if (address == "07EC2A") {
+            defaultColorOverallsBLight = value1;
+        }
+        if (address == "07EC20") {
+            defaultColorOverallsRDark = value1;
+            defaultColorOverallsGDark = value2;
+        }
+        if (address == "07EC22") {
+            defaultColorOverallsBDark = value1;
+        }
+
+        // Gloves
+        if (address == "07EC58") {
+            defaultColorGlovesRLight = value1;
+            defaultColorGlovesGLight = value2;
+        }
+        if (address == "07EC5A") {
+            defaultColorGlovesBLight = value1;
+        }
+        if (address == "07EC50") {
+            defaultColorGlovesRDark = value1;
+            defaultColorGlovesGDark = value2;
+        }
+        if (address == "07EC52") {
+            defaultColorGlovesBDark = value1;
+        }
+
+        // Shoes
+        if (address == "07EC70") {
+            defaultColorShoesRLight = value1;
+            defaultColorShoesGLight = value2;
+        }
+        if (address == "07EC72") {
+            defaultColorShoesBLight = value1;
+        }
+        if (address == "07EC68") {
+            defaultColorShoesRDark = value1;
+            defaultColorShoesGDark = value2;
+        }
+        if (address == "07EC6A") {
+            defaultColorShoesBDark = value1;
+        }
+
+        // Skin
+        if (address == "07EC88") {
+            defaultColorSkinRLight = value1;
+            defaultColorSkinGLight = value2;
+        }
+        if (address == "07EC8A") {
+            defaultColorSkinBLight = value1;
+        }
+        if (address == "07EC80") {
+            defaultColorSkinRDark = value1;
+            defaultColorSkinGDark = value2;
+        }
+        if (address == "07EC82") {
+            defaultColorSkinBDark = value1;
+        }
+
+        // Hair
+        if (address == "07ECA0") {
+            defaultColorHairRLight = value1;
+            defaultColorHairGLight = value2;
+        }
+        if (address == "07ECA2") {
+            defaultColorHairBLight = value1;
+        }
+        if (address == "07EC98") {
+            defaultColorHairRDark = value1;
+            defaultColorHairGDark = value2;
+        }
+        if (address == "07EC9A") {
+            defaultColorHairBDark = value1;
+        }
+    }
+}
+
+void save_cc_file(std::string name) {
+#ifdef __MINGW32__
+    std::ofstream file("dynos\\colorcodes\\" + name + ".gs");
+#else
+    std::ofstream file("dynos/colorcodes/" + name + ".gs");
+#endif
+    file << global_gs_code();
 }
 
 void load_cc_file(char* cc_char_filename) {
@@ -254,4 +446,18 @@ void load_cc_file(char* cc_char_filename) {
             defaultColorHairBDark = value1;
         }
     }
+}
+
+void delete_cc_file(std::string name) {
+    if (name == "Mario")
+        name = "Sample";
+
+#ifdef __MINGW32__
+    string cc_path = "dynos\\colorcodes\\" + name + ".gs";
+#else
+    string cc_path = "dynos/colorcodes/" + name + ".gs";
+#endif
+
+    remove(cc_path.c_str());
+    load_cc_directory();
 }

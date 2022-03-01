@@ -191,7 +191,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Machinima", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(250, 325));
+            ImGui::SetWindowSize(ImVec2(275, 325));
             
             smachinima_imgui_update();
 
@@ -203,7 +203,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("DynOS", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(250, 300));
+            ImGui::SetWindowSize(ImVec2(275, 475));
 
             sdynos_imgui_update();
 

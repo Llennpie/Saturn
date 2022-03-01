@@ -46,10 +46,18 @@ extern unsigned int defaultColorHairGDark;
 extern unsigned int defaultColorHairBLight;
 extern unsigned int defaultColorHairBDark;
 
+extern bool cc_model_support;
+
 #ifdef __cplusplus
 #include <string>
 #include <vector>
+
 extern std::vector<std::string> cc_array;
+extern std::string global_gs_code();
+
+void paste_gs_code(std::string content);
+void save_cc_file(std::string name);
+void delete_cc_file(std::string name);
 
 extern "C" {
 #endif
