@@ -14,6 +14,8 @@
 #include "dialog_ids.h"
 #include "level_table.h"
 
+#include "pc/configfile.h"
+
 #ifdef VERSION_EU
 #define EU_FLOAT(x) x ## f
 #else
@@ -782,6 +784,11 @@ void create_next_audio_buffer(s16 *samples, u32 num_samples) {
 #endif
 
 void play_sound(s32 soundBits, f32 *pos) {
+    u8 bank;
+    bank = (soundBits & SOUNDARGS_MASK_BANK) >> SOUNDARGS_SHIFT_BANK;
+    if (bank == 2 && !configVoicesEnabled)
+        return;
+
     sSoundRequests[sSoundRequestCount].soundBits = soundBits;
     sSoundRequests[sSoundRequestCount].position = pos;
     sSoundRequestCount++;

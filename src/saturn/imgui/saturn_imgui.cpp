@@ -5,6 +5,7 @@
 
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
+#include "saturn/imgui/saturn_imgui_settings.h"
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
@@ -59,6 +60,7 @@ bool showMenu = true;
 bool showWindowStats = false;
 bool showWindowMachinima = false;
 bool showWindowDynOS = false;
+bool showWindowSettings = false;
 
 // Bundled Components
 
@@ -120,13 +122,14 @@ void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
 
     sdynos_imgui_init();
     smachinima_imgui_init();
+    ssettings_imgui_init();
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
     ImGui_ImplSDL2_ProcessEvent(event);
     switch (event->type){
         case SDL_KEYDOWN:
-            if(event->key.keysym.sym == SDLK_F12)
+            if(event->key.keysym.sym == SDLK_F1)
                 showMenu = !showMenu;
 
         case SDL_CONTROLLERBUTTONDOWN:
@@ -135,6 +138,7 @@ void saturn_imgui_handle_events(SDL_Event * event) {
         
         break;
     }
+    smachinima_imgui_controls(event);
 }
 
 void saturn_imgui_update() {
@@ -148,16 +152,25 @@ void saturn_imgui_update() {
             showWindowStats = !showWindowStats;
             showWindowMachinima = false;
             showWindowDynOS = false;
+            showWindowSettings = false;
         }
         if (ImGui::MenuItem("Machinima")) {
             showWindowMachinima = !showWindowMachinima;
             showWindowStats = false;
             showWindowDynOS = false;
+            showWindowSettings = false;
         }
         if (ImGui::MenuItem("Appearance")) {
             showWindowDynOS = !showWindowDynOS;
             showWindowStats = false;
             showWindowMachinima = false;
+            showWindowSettings = false;
+        }
+        if (ImGui::MenuItem("Settings")) {
+            showWindowSettings = !showWindowSettings;
+            showWindowStats = false;
+            showWindowMachinima = false;
+            showWindowDynOS = false;
         }
         ImGui::EndMainMenuBar();
 
@@ -166,7 +179,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(300, 100));
+            ImGui::SetWindowSize(ImVec2(300, 125));
             ImGui::Text("Platform: " PLATFORM " (" RAPI_NAME ")");
             ImGui::Text("Status: %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 #ifdef GIT_BRANCH
@@ -175,13 +188,7 @@ void saturn_imgui_update() {
 #endif
 #endif
             imgui_bundled_space(20);
-#ifdef DISCORDRPC
-            ImGui::SetWindowSize(ImVec2(300, 175));
-            ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
-            imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
-            imgui_bundled_space(20);
-#endif
-            ImGui::Text("Press F12 to hide/show menu");
+            ImGui::Text("Press F1 to hide/show menu");
 
             ImGui::End();
             ImGui::PopStyleColor();
@@ -191,7 +198,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Machinima", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(275, 325));
+            ImGui::SetWindowSize(ImVec2(275, 375));
             
             smachinima_imgui_update();
 
@@ -206,6 +213,18 @@ void saturn_imgui_update() {
             ImGui::SetWindowSize(ImVec2(275, 475));
 
             sdynos_imgui_update();
+
+            ImGui::End();
+            ImGui::PopStyleColor();
+        }
+        // Settings
+        if (showWindowSettings) {
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+            ImGui::Begin("Settings", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+            ImGui::SetWindowPos(ImVec2(10, 30));
+            ImGui::SetWindowSize(ImVec2(275, 400));
+
+            ssettings_imgui_update();
 
             ImGui::End();
             ImGui::PopStyleColor();

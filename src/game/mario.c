@@ -1224,6 +1224,9 @@ void squish_mario_model(struct MarioState *m) {
                 else if (Cheats.TinyMario) {
                     vec3f_set(m->marioObj->header.gfx.scale, 0.2f, 0.2f, 0.2f);
                 }
+                else if (Cheats.CustomMarioScale) {
+                    vec3f_set(m->marioObj->header.gfx.scale, marioScaleSize, marioScaleSize, marioScaleSize);
+                }
                 else {
                     vec3f_set(m->marioObj->header.gfx.scale, 1.0f, 1.0f, 1.0f);
                 }

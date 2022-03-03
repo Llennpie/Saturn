@@ -15,6 +15,7 @@
 extern "C" {
 #include "pc/gfx/gfx_pc.h"
 #include "pc/configfile.h"
+#include "pc/cheats.h"
 #include "game/mario.h"
 #include "game/camera.h"
 #include "game/level_update.h"
@@ -24,10 +25,32 @@ using namespace std;
 
 int anim_index = 113;
 
+void smachinima_imgui_controls(SDL_Event * event) {
+    switch (event->type){
+        case SDL_KEYDOWN:
+            if(event->key.keysym.sym == SDLK_f)
+                camera_frozen = !camera_frozen;
+            if(event->key.keysym.sym == SDLK_g)
+                saturn_play_animation(selected_animation);
+            if(event->key.keysym.sym == SDLK_h)
+                configHUD = !configHUD;
 
+        case SDL_CONTROLLERBUTTONDOWN:
+            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
+                camera_frozen = !camera_frozen;
+            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+                saturn_play_animation(selected_animation);
+            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+                configHUD = !configHUD;
+        
+        break;
+    }
+}
 
 void smachinima_imgui_init() {
-
+    Cheats.EnableCheats = true;
+    Cheats.GodMode = true;
+    Cheats.ExitAnywhere = true;
 }
 
 void smachinima_imgui_update() {
@@ -56,19 +79,25 @@ void smachinima_imgui_update() {
 
     ImGui::Checkbox("HUD", &configHUD);
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
+    ImGui::Checkbox("Shadows", &enable_shadows);
+    imgui_bundled_tooltip("Displays the shadows of various objects.");
     if (ImGui::CollapsingHeader("Mario")) {
-        ImGui::SetWindowSize(ImVec2(275, 375));
         ImGui::Checkbox("Head Rotations", &enable_head_rotations);
         imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
         const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
         ImGui::Combo("Hand State", &scrollHandState, hands, IM_ARRAYSIZE(hands));
         const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
         ImGui::Combo("Cap State", &scrollCapState, caps, IM_ARRAYSIZE(caps));
-    } else {
-        ImGui::SetWindowSize(ImVec2(275, 325));
+        ImGui::Checkbox("Custom Mario Scale", &Cheats.CustomMarioScale);
+        if (Cheats.CustomMarioScale)
+            ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
+        ImGui::Checkbox("Dust Particles", &enable_dust_particles);
+        imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+        ImGui::Dummy(ImVec2(0, 5));
     }
-    ImGui::Checkbox("Shadows", &enable_shadows);
-    imgui_bundled_tooltip("Displays Mario's shadow.");
-    ImGui::Checkbox("Dust Particles", &enable_dust_particles);
-    imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+    ImGui::Checkbox("Infinite Health", &Cheats.GodMode);
+    ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
+    imgui_bundled_tooltip("Just like '07! Hold L to in the air to moon jump.");
+    ImGui::Checkbox("Exit Anywhere", &Cheats.ExitAnywhere);
+    imgui_bundled_tooltip("Allows the level to be exited from any state.");
 }

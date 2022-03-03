@@ -11,6 +11,8 @@ extern void imgui_bundled_space(float, const char*, const char*);
 
 extern bool showMenu;
 
+extern SDL_Window* window;
+
 extern "C" {
 #endif
     void saturn_imgui_init(SDL_Window *, SDL_GLContext);

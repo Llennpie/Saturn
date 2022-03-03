@@ -13,8 +13,11 @@ struct CheatList {
     bool         ExitAnywhere;
     bool         HugeMario;
     bool         TinyMario;
+    bool         CustomMarioScale;
 };
 
 extern struct CheatList Cheats;
+
+extern float marioScaleSize;
 
 #endif // _CHEATS_H

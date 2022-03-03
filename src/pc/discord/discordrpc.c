@@ -221,8 +221,13 @@ static void set_state(void) {
 }
 
 void set_logo(void) {
-    discordRichPresence.largeImageKey = "icon-bg2-saturn";
-    discordRichPresence.largeImageText = "Saturn";
+    discordRichPresence.largeImageKey = "saturn-legacy-icon1";
+#ifdef GIT_HASH
+    discordRichPresence.smallImageText = (GIT_BRANCH " " GIT_HASH);
+#else
+    discordRichPresence.smallImageText = "Legacy";
+#endif
+    discordRichPresence.largeImageText = "https://github.com/Llennpie/Saturn";
     if (gCurrLevelNum == LEVEL_SA) {
         if (gCurrAreaIndex == 1) {
             discordRichPresence.smallImageKey = "green";
@@ -232,9 +237,14 @@ void set_logo(void) {
             discordRichPresence.smallImageKey = "pink";
         }
     } else {
-        discordRichPresence.smallImageKey = "circle2-512";
+        discordRichPresence.smallImageKey = "circle-512";
     }
-    discordRichPresence.smallImageText = "v64.dev";
+}
+
+void set_time(void) {
+    if (lastCourseNum != gCurrCourseNum) {
+        discordRichPresence.startTimestamp = time(0);
+    }
 }
 
 void discord_update_rich_presence(void) {
@@ -243,6 +253,7 @@ void discord_update_rich_presence(void) {
 
     lastUpdatedTime = time(NULL);
 
+    set_time();
     set_state();
     set_details();
     set_logo();

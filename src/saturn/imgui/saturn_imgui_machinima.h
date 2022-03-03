@@ -8,6 +8,7 @@ extern "C" {
 #endif
     void smachinima_imgui_init(void);
     void smachinima_imgui_update(void);
+    void smachinima_imgui_controls(SDL_Event * event);
 #ifdef __cplusplus
 }
 #endif
