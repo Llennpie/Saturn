@@ -7,6 +7,8 @@
 #include "data/dynos.cpp.h"
 #include "saturn/imgui/saturn_imgui.h"
 
+bool mario_exists;
+
 bool camera_frozen;
 float camera_speed = 0.0f;
 
@@ -17,10 +19,16 @@ bool enable_dust_particles = false;
 bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
 bool is_anim_looped = false;
+int current_anim_frame;
+int current_anim_id;
+int current_anim_length;
+bool is_anim_paused = false;
+int paused_anim_frame;
 
 // private
 bool is_chroma_keying = false;
 bool prev_quicks[3];
+int lastCourseNum = -1;
 
 extern "C" {
 #include "game/camera.h"
@@ -31,6 +39,7 @@ extern "C" {
 #include "pc/configfile.h"
 #include "game/mario.h"
 #include <mario_animation_ids.h>
+#include <sm64.h>
 }
 
 using namespace std;
@@ -46,31 +55,9 @@ using namespace std;
 
 void saturn_update() {
 
-    /*
-    if (camera_frozen == true) {
-        if (set_cam_angle(0) != CAM_ANGLE_MARIO) {
-            gLakituState.focVSpeed = camera_speed;
-            gLakituState.focHSpeed = camera_speed;
-        }
-        gLakituState.posVSpeed = camera_speed;
-        gLakituState.posHSpeed = camera_speed;
-        gCamera->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
-        gCamera->yaw = gCamera->nextYaw;
-        gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
-    }
-    */
-    machinimaMode = (camera_frozen) ? 1 : 0;
+    // Machinima
 
-    if (is_anim_playing && is_anim_at_end(gMarioState)) {
-        if (is_anim_looped) {
-            gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
-        } else {
-            is_anim_playing = false;
-        }
-    }
-    if (is_anim_playing && selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
-        is_anim_playing = false;
-    }
+    machinimaMode = (camera_frozen) ? 1 : 0;
 
     if (gCurrLevelNum == LEVEL_SA && !is_chroma_keying) {
         is_chroma_keying = true;
@@ -90,22 +77,36 @@ void saturn_update() {
         configHUD = prev_quicks[2];
     }
 
-    // Keybinds
+    // Animations
 
-    if (gPlayer1Controller->buttonPressed & FREEZE_CAMERA) {
-        camera_frozen = !camera_frozen;
-    }
-
-    if (gPlayer1Controller->buttonPressed & CYCLE_EYE_STATE) {
-        if (scrollEyeState != 8) {
-            scrollEyeState += 1;
+    if (mario_exists) {
+        if (is_anim_paused) {
+            gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
+            gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
         } else {
-            scrollEyeState = 0;
+            if (is_anim_playing && is_anim_at_end(gMarioState)) {
+                if (is_anim_looped) {
+                    gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
+                    gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
+                } else {
+                    is_anim_playing = false;
+                }
+            }
+            if (is_anim_playing && selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
+                is_anim_playing = false;
+            }
+
+            current_anim_id = (int)gMarioState->marioObj->header.gfx.unk38.animID;
+            if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON) {
+                current_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
+                current_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
+            }
         }
     }
-    if (gPlayer1Controller->buttonPressed & LOAD_ANIMATION) {
-        saturn_play_animation(selected_animation);
-    }
+
+    // Misc
+
+    mario_exists = (gMarioState->action != ACT_UNINITIALIZED);
 }
 
 // Play Animation

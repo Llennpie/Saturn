@@ -34,6 +34,8 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 saturn_play_animation(selected_animation);
             if(event->key.keysym.sym == SDLK_h)
                 configHUD = !configHUD;
+            if(event->key.keysym.sym == SDLK_p)
+                is_anim_paused = !is_anim_paused;
 
         case SDL_CONTROLLERBUTTONDOWN:
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
@@ -42,6 +44,8 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 saturn_play_animation(selected_animation);
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
                 configHUD = !configHUD;
+            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+                is_anim_paused = !is_anim_paused;
         
         break;
     }
@@ -74,6 +78,14 @@ void smachinima_imgui_update() {
     if (ImGui::Button("Play")) {
         saturn_play_animation(selected_animation);
     } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+
+    if (mario_exists) {
+        ImGui::Text("Now Playing: %s", saturn_animations[current_anim_id]);
+        if (is_anim_playing) {
+            ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length);
+            ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
+        }
+    }
 
     imgui_bundled_space(20, "Quick Toggles", NULL);
 
