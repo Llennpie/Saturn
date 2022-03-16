@@ -359,6 +359,11 @@
 #define GEO_BACKGROUND_COLOR(background) \
     GEO_BACKGROUND(background, NULL)
 
+// 0x21: Dynamic background color
+#define GEO_BACKGROUND_DYN() \
+    CMD_BBH(0x21, 0x00, 0x0000), \
+    CMD_PTR(NULL)
+
 /**
  * 0x1A: No operation
  */

@@ -6,6 +6,7 @@
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "saturn/imgui/saturn_imgui_settings.h"
+#include "saturn/imgui/saturn_imgui_chroma.h"
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
@@ -47,6 +48,7 @@ extern "C" {
 #include "game/mario.h"
 #include "game/game_init.h"
 #include "game/camera.h"
+#include "engine/level_script.h"
 }
 
 using namespace std;
@@ -61,6 +63,7 @@ bool showWindowStats = false;
 bool showWindowMachinima = false;
 bool showWindowDynOS = false;
 bool showWindowSettings = false;
+bool showWindowChromaKey = false;
 
 // Bundled Components
 
@@ -153,24 +156,37 @@ void saturn_imgui_update() {
             showWindowMachinima = false;
             showWindowDynOS = false;
             showWindowSettings = false;
+            showWindowChromaKey = false;
         }
         if (ImGui::MenuItem("Machinima")) {
-            showWindowMachinima = !showWindowMachinima;
             showWindowStats = false;
+            showWindowMachinima = !showWindowMachinima;
             showWindowDynOS = false;
             showWindowSettings = false;
+            showWindowChromaKey = false;
         }
         if (ImGui::MenuItem("Appearance")) {
-            showWindowDynOS = !showWindowDynOS;
             showWindowStats = false;
             showWindowMachinima = false;
+            showWindowDynOS = !showWindowDynOS;
             showWindowSettings = false;
+            showWindowChromaKey = false;
         }
         if (ImGui::MenuItem("Settings")) {
-            showWindowSettings = !showWindowSettings;
             showWindowStats = false;
             showWindowMachinima = false;
             showWindowDynOS = false;
+            showWindowSettings = !showWindowSettings;
+            showWindowChromaKey = false;
+        }
+        if (gCurrLevelNum == LEVEL_SA) {
+            if (ImGui::MenuItem("CHROMA KEY")) {
+                showWindowStats = false;
+                showWindowMachinima = false;
+                showWindowDynOS = false;
+                showWindowSettings = false;
+                showWindowChromaKey = !showWindowChromaKey;
+            }
         }
         ImGui::EndMainMenuBar();
 
@@ -225,6 +241,19 @@ void saturn_imgui_update() {
             ImGui::SetWindowSize(ImVec2(275, 400));
 
             ssettings_imgui_update();
+
+            ImGui::End();
+            ImGui::PopStyleColor();
+        }
+
+        // Chroma Key
+        if (showWindowChromaKey && gCurrLevelNum == LEVEL_SA && mario_exists) {
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+            ImGui::Begin("Chroma Key", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+            ImGui::SetWindowPos(ImVec2(10, 30));
+            ImGui::SetWindowSize(ImVec2(300, 125));
+
+            schroma_imgui_update();
 
             ImGui::End();
             ImGui::PopStyleColor();

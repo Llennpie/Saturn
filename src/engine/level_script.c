@@ -54,6 +54,8 @@ static s16 sScriptStatus;
 static s32 sRegister;
 static struct LevelCommand *sCurrentCmd;
 
+bool mario_loaded = false;
+
 static s32 eval_script_op(s8 op, s32 arg) {
     s32 result = 0;
 
@@ -434,6 +436,8 @@ static void level_cmd_init_mario(void) {
     gMarioSpawnInfo->behaviorScript = CMD_GET(void *, 8);
     gMarioSpawnInfo->unk18 = gLoadedGraphNodes[CMD_GET(u8, 3)];
     gMarioSpawnInfo->next = NULL;
+
+    mario_loaded = true;
 
     sCurrentCmd = CMD_NEXT;
 }

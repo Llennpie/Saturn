@@ -5,6 +5,7 @@
 #include "math_util.h"
 #include "game/memory.h"
 #include "graph_node.h"
+#include "saturn/saturn.h"
 
 typedef void (*GeoLayoutCommandProc)(void);
 
@@ -42,6 +43,7 @@ GeoLayoutCommandProc GeoLayoutJumpTable[] = {
     geo_layout_cmd_nop2,
     geo_layout_cmd_nop3,
     geo_layout_cmd_node_culling_radius,
+    geo_layout_cmd_dynamic_background,
 };
 
 struct GraphNode gObjParentGraphNode;
@@ -694,6 +696,25 @@ void geo_layout_cmd_node_background(void) {
         gGraphNodePool, NULL,
         cur_geo_cmd_s16(0x02), // background ID, or RGBA5551 color if asm function is null
         (GraphNodeFunc) cur_geo_cmd_ptr(0x04), // asm function
+        0);
+
+    register_scene_graph_node(&graphNode->fnNode.node);
+
+    gGeoLayoutCommand += 0x08 << CMD_SIZE_SHIFT;
+}
+
+/*
+  0x21: Create background scene graph node
+   cmd+0x02: s16 background // background ID, or RGBA5551 color if backgroundFunc is null
+   cmd+0x04: GraphNodeFunc backgroundFunc
+*/
+void geo_layout_cmd_dynamic_background(void) {
+    struct GraphNodeBackground *graphNode;
+
+    graphNode = init_graph_node_background(
+        gGraphNodePool, NULL,
+        gChromaKeyColor, // background ID, or RGBA5551 color if asm function is null
+        NULL,
         0);
 
     register_scene_graph_node(&graphNode->fnNode.node);

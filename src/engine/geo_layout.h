@@ -77,6 +77,7 @@ void geo_layout_cmd_node_shadow(void);
 void geo_layout_cmd_node_object_parent(void);
 void geo_layout_cmd_node_generated(void);
 void geo_layout_cmd_node_background(void);
+void geo_layout_cmd_dynamic_background(void);
 void geo_layout_cmd_nop(void);
 void geo_layout_cmd_copy_view(void);
 void geo_layout_cmd_node_held_obj(void);

@@ -34,6 +34,7 @@ extern "C" {
 #include "game/camera.h"
 #include "game/area.h"
 #include "game/level_update.h"
+#include "engine/level_script.h"
 #include "game/game_init.h"
 #include "data/dynos.h"
 #include "pc/configfile.h"
@@ -49,7 +50,11 @@ using namespace std;
 #define LOAD_ANIMATION      0x0200
 #define TOGGLE_MENU         0x0400
 
+unsigned int chromaKeyColorR = 0;
+unsigned int chromaKeyColorG = 255;
+unsigned int chromaKeyColorB = 0;
 
+u16 gChromaKeyColor = 0x07C1;
 
 // SATURN Machinima Functions
 
@@ -83,8 +88,8 @@ void saturn_update() {
         if (is_anim_paused) {
             gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
             gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
-        } else {
-            if (is_anim_playing && is_anim_at_end(gMarioState)) {
+        } else if (is_anim_playing) {
+            if (is_anim_at_end(gMarioState)) {
                 if (is_anim_looped) {
                     gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
                     gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
@@ -92,7 +97,7 @@ void saturn_update() {
                     is_anim_playing = false;
                 }
             }
-            if (is_anim_playing && selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
+            if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
                 is_anim_playing = false;
             }
 
@@ -106,7 +111,7 @@ void saturn_update() {
 
     // Misc
 
-    mario_exists = (gMarioState->action != ACT_UNINITIALIZED);
+    mario_exists = (gMarioState->action != ACT_UNINITIALIZED & sCurrPlayMode != 2 & mario_loaded);
 }
 
 // Play Animation
@@ -114,4 +119,13 @@ void saturn_update() {
 void saturn_play_animation(MarioAnimID anim) {
     set_mario_animation(gMarioState, anim);
     is_anim_playing = true;
+}
+
+void saturn_warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
+    if (!mario_exists)
+        return;
+
+    mario_loaded = false;
+    initiate_warp(destLevel, destArea, destWarpNode, 0);
+    fade_into_special_warp(0,0);
 }

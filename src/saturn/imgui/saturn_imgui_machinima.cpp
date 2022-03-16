@@ -19,6 +19,7 @@ extern "C" {
 #include "game/mario.h"
 #include "game/camera.h"
 #include "game/level_update.h"
+#include "engine/level_script.h"
 }
 
 using namespace std;
@@ -80,11 +81,27 @@ void smachinima_imgui_update() {
     } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
 
     if (mario_exists) {
-        ImGui::Text("Now Playing: %s", saturn_animations[current_anim_id]);
         if (is_anim_playing) {
+            ImGui::Text("Now Playing: %s", saturn_animations[current_anim_id]);
             ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length);
             ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
         }
+
+        /*
+        ImGui::Dummy(ImVec2(0, 5));
+
+        if (gCurrLevelNum != LEVEL_SA) {
+            if (ImGui::Button("Warp to Chroma Key Stage")) {
+                initiate_warp(LEVEL_SA, 0x01, 0xF8, 0);
+                fade_into_special_warp(0,0);
+            }
+        } else {
+            if (ImGui::Button("Warp Home")) {
+                initiate_warp(LEVEL_CASTLE_GROUNDS, 0x01, 0x04, 0);
+                fade_into_special_warp(0,0);
+            }
+        }
+        */
     }
 
     imgui_bundled_space(20, "Quick Toggles", NULL);
