@@ -928,7 +928,7 @@ namespace MoonInternal {
 
                     ImGui::Dummy(ImVec2(0, 10));
 
-                    if (mario_exists) {
+                    if (mario_exists && is_anim_playing) {
                         ImGui::Checkbox("Spaz###animation_spaz", &is_spazzing);
                         ImGui::Dummy(ImVec2(0, 10));
 
@@ -940,10 +940,8 @@ namespace MoonInternal {
                                 } else {
                                     ImGui::Text("%s", saturn_animations[cur_anim_index]);
                                 }
-                                if (is_anim_playing) {
-                                    ImGui::SliderInt("Frame###animation_frames", &cur_anim_frame, 0, cur_anim_length);
-                                    ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
-                                }
+                                ImGui::SliderInt("Frame###animation_frames", &cur_anim_frame, 0, cur_anim_length);
+                                ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
                             }
                         }
                     }

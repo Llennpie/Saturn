@@ -26,6 +26,7 @@ namespace fs = std::filesystem;
 extern "C" {
 #include "game/camera.h"
 #include "game/level_update.h"
+#include "engine/level_script.h"
 #include "game/mario.h"
 #include "game/area.h"
 #include "sm64.h"
@@ -195,30 +196,33 @@ namespace MoonInternal {
 
                 // Animations
 
-                if (is_anim_paused) {
-                    anim_speed = 1.0f;
-                    gMarioState->marioObj->header.gfx.unk38.animFrame = cur_anim_frame;
-                    gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = cur_anim_frame;
-                } else {
-                    if (anim_speed != 1.0f && is_anim_playing) {
-                        gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
-                    }
-                    if (is_anim_playing && is_anim_at_end(gMarioState)) {
-                        if (loop_animation) {
-                            gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
-                            gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
-                        } else {
+                if (mario_exists) {
+                    if (is_anim_paused) {
+                        anim_speed = 1.0f;
+                        gMarioState->marioObj->header.gfx.unk38.animFrame = cur_anim_frame;
+                        gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = cur_anim_frame;
+                    } else if (is_anim_playing) {
+                        if (anim_speed != 1.0f) {
+                            gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
+                        }
+
+                        if (is_anim_at_end(gMarioState)) {
+                            if (loop_animation) {
+                                gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
+                                gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
+                            } else {
+                                is_anim_playing = false;
+                            }
+                        }
+                        if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
                             is_anim_playing = false;
                         }
-                    }
-                    if (is_anim_playing && selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
-                        is_anim_playing = false;
-                    }
 
-                    if (mario_exists) {
                         cur_anim_index = (int)gMarioState->marioObj->header.gfx.unk38.animID;
-                        cur_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
-                        cur_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
+                        if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON) {
+                            cur_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
+                            cur_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
+                        }
                     }
                 }
 
@@ -261,35 +265,7 @@ namespace MoonInternal {
 
                 // Check
 
-                switch(gCurrLevelNum) {
-                    case 0:
-                        mario_exists = false;
-                        break;
-                    case 1:
-                        mario_exists = false;
-                        break;
-                    case 2:
-                        mario_exists = false;
-                        break;
-                    case 24:
-                        mario_exists = false;
-                        break;
-                    case 31:
-                        mario_exists = false;
-                        break;
-                    case 34:
-                        mario_exists = false;
-                        break;
-                    case 36:
-                        mario_exists = false;
-                        break;
-                    case 37:
-                        mario_exists = false;
-                        break;
-                    default:
-                        mario_exists = true;
-                        break;
-                }
+                mario_exists = (gMarioState->action != ACT_UNINITIALIZED & sCurrPlayMode != 2 & mario_loaded);
             }});
         }
     }
