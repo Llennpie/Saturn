@@ -46,7 +46,51 @@ extern unsigned int defaultColorHairGDark;
 extern unsigned int defaultColorHairBLight;
 extern unsigned int defaultColorHairBDark;
 
+// CometSPARK
+extern unsigned int sparkColorShirtRLight;
+extern unsigned int sparkColorShirtRDark;
+extern unsigned int sparkColorShirtGLight;
+extern unsigned int sparkColorShirtGDark;
+extern unsigned int sparkColorShirtBLight;
+extern unsigned int sparkColorShirtBDark;
+
+extern unsigned int sparkColorShouldersRLight;
+extern unsigned int sparkColorShouldersRDark;
+extern unsigned int sparkColorShouldersGLight;
+extern unsigned int sparkColorShouldersGDark;
+extern unsigned int sparkColorShouldersBLight;
+extern unsigned int sparkColorShouldersBDark;
+
+extern unsigned int sparkColorArmsRLight;
+extern unsigned int sparkColorArmsRDark;
+extern unsigned int sparkColorArmsGLight;
+extern unsigned int sparkColorArmsGDark;
+extern unsigned int sparkColorArmsBLight;
+extern unsigned int sparkColorArmsBDark;
+
+extern unsigned int sparkColorOverallsBottomRLight;
+extern unsigned int sparkColorOverallsBottomRDark;
+extern unsigned int sparkColorOverallsBottomGLight;
+extern unsigned int sparkColorOverallsBottomGDark;
+extern unsigned int sparkColorOverallsBottomBLight;
+extern unsigned int sparkColorOverallsBottomBDark;
+
+extern unsigned int sparkColorLegTopRLight;
+extern unsigned int sparkColorLegTopRDark;
+extern unsigned int sparkColorLegTopGLight;
+extern unsigned int sparkColorLegTopGDark;
+extern unsigned int sparkColorLegTopBLight;
+extern unsigned int sparkColorLegTopBDark;
+
+extern unsigned int sparkColorLegBottomRLight;
+extern unsigned int sparkColorLegBottomRDark;
+extern unsigned int sparkColorLegBottomGLight;
+extern unsigned int sparkColorLegBottomGDark;
+extern unsigned int sparkColorLegBottomBLight;
+extern unsigned int sparkColorLegBottomBDark;
+
 extern bool cc_model_support;
+extern bool cc_spark_support;
 
 #ifdef __cplusplus
 #include <string>

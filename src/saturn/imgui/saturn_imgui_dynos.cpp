@@ -38,6 +38,19 @@ static ImVec4 uiSkinColor =             ImVec4(254.0f / 255.0f, 193.0f / 255.0f,
 static ImVec4 uiSkinShadeColor =        ImVec4(127.0f / 255.0f, 96.0f / 255.0f, 60.0f / 255.0f, 255.0f / 255.0f);
 static ImVec4 uiHairColor =             ImVec4(115.0f / 255.0f, 6.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
 static ImVec4 uiHairShadeColor =        ImVec4(57.0f / 255.0f, 3.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+// SPARK
+static ImVec4 uiShirtColor =                    ImVec4(255.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiShirtShadeColor =               ImVec4(127.0f / 255.0f, 127.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiShouldersColor =                ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiShouldersShadeColor =           ImVec4(0.0f / 255.0f, 127.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiArmsColor =                     ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiArmsShadeColor =                ImVec4(0.0f / 255.0f, 127.0f / 255.0f, 64.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiOverallsBottomColor =           ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiOverallsBottomShadeColor =      ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiLegTopColor =                   ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiLegTopShadeColor =              ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 64.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiLegBottomColor =                ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+static ImVec4 uiLegBottomShadeColor =           ImVec4(64.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
 
 static char uiGsCcName[128] = "Sample";
 static int current_cc_id = 0;
@@ -81,6 +94,44 @@ void apply_cc_editor() {
     defaultColorHairRDark = (int)(uiHairShadeColor.x * 255);
     defaultColorHairGDark = (int)(uiHairShadeColor.y * 255);
     defaultColorHairBDark = (int)(uiHairShadeColor.z * 255);
+    if (cc_spark_support) {
+        sparkColorShirtRLight = (int)(uiShirtColor.x * 255);
+        sparkColorShirtGLight = (int)(uiShirtColor.y * 255);
+        sparkColorShirtBLight = (int)(uiShirtColor.z * 255);
+        sparkColorShirtRDark = (int)(uiShirtShadeColor.x * 255);
+        sparkColorShirtGDark = (int)(uiShirtShadeColor.y * 255);
+        sparkColorShirtBDark = (int)(uiShirtShadeColor.z * 255);
+        sparkColorShouldersRLight = (int)(uiShouldersColor.x * 255);
+        sparkColorShouldersGLight = (int)(uiShouldersColor.y * 255);
+        sparkColorShouldersBLight = (int)(uiShouldersColor.z * 255);
+        sparkColorShouldersRDark = (int)(uiShouldersShadeColor.x * 255);
+        sparkColorShouldersGDark = (int)(uiShouldersShadeColor.y * 255);
+        sparkColorShouldersBDark = (int)(uiShouldersShadeColor.z * 255);
+        sparkColorArmsRLight = (int)(uiArmsColor.x * 255);
+        sparkColorArmsGLight = (int)(uiArmsColor.y * 255);
+        sparkColorArmsBLight = (int)(uiArmsColor.z * 255);
+        sparkColorArmsRDark = (int)(uiArmsShadeColor.x * 255);
+        sparkColorArmsGDark = (int)(uiArmsShadeColor.y * 255);
+        sparkColorArmsBDark = (int)(uiArmsShadeColor.z * 255);
+        sparkColorOverallsBottomRLight = (int)(uiOverallsBottomColor.x * 255);
+        sparkColorOverallsBottomGLight = (int)(uiOverallsBottomColor.y * 255);
+        sparkColorOverallsBottomBLight = (int)(uiOverallsBottomColor.z * 255);
+        sparkColorOverallsBottomRDark = (int)(uiOverallsBottomShadeColor.x * 255);
+        sparkColorOverallsBottomGDark = (int)(uiOverallsBottomShadeColor.y * 255);
+        sparkColorOverallsBottomBDark = (int)(uiOverallsBottomShadeColor.z * 255);
+        sparkColorLegTopRLight = (int)(uiLegTopColor.x * 255);
+        sparkColorLegTopGLight = (int)(uiLegTopColor.y * 255);
+        sparkColorLegTopBLight = (int)(uiLegTopColor.z * 255);
+        sparkColorLegTopRDark = (int)(uiLegTopShadeColor.x * 255);
+        sparkColorLegTopGDark = (int)(uiLegTopShadeColor.y * 255);
+        sparkColorLegTopBDark = (int)(uiLegTopShadeColor.z * 255);
+        sparkColorLegBottomRLight = (int)(uiLegBottomColor.x * 255);
+        sparkColorLegBottomGLight = (int)(uiLegBottomColor.y * 255);
+        sparkColorLegBottomBLight = (int)(uiLegBottomColor.z * 255);
+        sparkColorLegBottomRDark = (int)(uiLegBottomShadeColor.x * 255);
+        sparkColorLegBottomGDark = (int)(uiLegBottomShadeColor.y * 255);
+        sparkColorLegBottomBDark = (int)(uiLegBottomShadeColor.z * 255);
+    }
 }
 
 void apply_editor_global_cc() {
@@ -96,6 +147,21 @@ void apply_editor_global_cc() {
     uiSkinShadeColor = ImVec4(float(defaultColorSkinRDark) / 255.0f, float(defaultColorSkinGDark) / 255.0f, float(defaultColorSkinBDark) / 255.0f, 255.0f / 255.0f);
     uiHairColor = ImVec4(float(defaultColorHairRLight) / 255.0f, float(defaultColorHairGLight) / 255.0f, float(defaultColorHairBLight) / 255.0f, 255.0f / 255.0f);
     uiHairShadeColor = ImVec4(float(defaultColorHairRDark) / 255.0f, float(defaultColorHairGDark) / 255.0f, float(defaultColorHairBDark) / 255.0f, 255.0f / 255.0f);
+
+    if (cc_spark_support) {
+        uiShirtColor = ImVec4(float(sparkColorShirtRLight) / 255.0f, float(sparkColorShirtGLight) / 255.0f, float(sparkColorShirtBLight) / 255.0f, 255.0f / 255.0f);
+        uiShirtShadeColor = ImVec4(float(sparkColorShirtRDark) / 255.0f, float(sparkColorShirtGDark) / 255.0f, float(sparkColorShirtBDark) / 255.0f, 255.0f / 255.0f);
+        uiShouldersColor = ImVec4(float(sparkColorShouldersRLight) / 255.0f, float(sparkColorShouldersGLight) / 255.0f, float(sparkColorShouldersBLight) / 255.0f, 255.0f / 255.0f);
+        uiShouldersShadeColor = ImVec4(float(sparkColorShouldersRDark) / 255.0f, float(sparkColorShouldersGDark) / 255.0f, float(sparkColorShouldersBDark) / 255.0f, 255.0f / 255.0f);
+        uiArmsColor = ImVec4(float(sparkColorArmsRLight) / 255.0f, float(sparkColorArmsGLight) / 255.0f, float(sparkColorArmsBLight) / 255.0f, 255.0f / 255.0f);
+        uiArmsShadeColor = ImVec4(float(sparkColorArmsRDark) / 255.0f, float(sparkColorArmsGDark) / 255.0f, float(sparkColorArmsBDark) / 255.0f, 255.0f / 255.0f);
+        uiOverallsBottomColor = ImVec4(float(sparkColorOverallsBottomRLight) / 255.0f, float(sparkColorOverallsBottomGLight) / 255.0f, float(sparkColorOverallsBottomBLight) / 255.0f, 255.0f / 255.0f);
+        uiOverallsBottomShadeColor = ImVec4(float(sparkColorOverallsBottomRDark) / 255.0f, float(sparkColorOverallsBottomGDark) / 255.0f, float(sparkColorOverallsBottomBDark) / 255.0f, 255.0f / 255.0f);
+        uiLegTopColor = ImVec4(float(sparkColorLegTopRLight) / 255.0f, float(sparkColorLegTopGLight) / 255.0f, float(sparkColorLegTopBLight) / 255.0f, 255.0f / 255.0f);
+        uiLegTopShadeColor = ImVec4(float(sparkColorLegTopRDark) / 255.0f, float(sparkColorLegTopGDark) / 255.0f, float(sparkColorLegTopBDark) / 255.0f, 255.0f / 255.0f);
+        uiLegBottomColor = ImVec4(float(sparkColorLegBottomRLight) / 255.0f, float(sparkColorLegBottomGLight) / 255.0f, float(sparkColorLegBottomBLight) / 255.0f, 255.0f / 255.0f);
+        uiLegBottomShadeColor = ImVec4(float(sparkColorLegBottomRDark) / 255.0f, float(sparkColorLegBottomGDark) / 255.0f, float(sparkColorLegBottomBDark) / 255.0f, 255.0f / 255.0f);
+    }
 
     cc_name = cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3);
     strcpy(cc_gameshark, global_gs_code().c_str());
@@ -197,6 +263,53 @@ void sdynos_imgui_update() {
             if (ImGui::IsItemActivated()) accept_text_input = false;
             if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
+            if (cc_spark_support) {
+                if (ImGui::CollapsingHeader("SPARK###spark_color_edit")) {
+                    ImGui::ColorEdit4("Shirt, Main",      (float*)&uiShirtColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::SameLine(); ImGui::Text("Shirt");
+                    ImGui::ColorEdit4("Shirt, Shade",     (float*)&uiShirtShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::ColorEdit4("Shoulders, Main",     (float*)&uiShouldersColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::SameLine(); ImGui::Text("Shoulders");
+                    ImGui::ColorEdit4("Shoulders, Shade",     (float*)&uiShouldersShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::ColorEdit4("Arms, Main",     (float*)&uiArmsColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::SameLine(); ImGui::Text("Arms");
+                    ImGui::ColorEdit4("Arms, Shade",     (float*)&uiArmsShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::ColorEdit4("Overalls (Bottom), Main",     (float*)&uiOverallsBottomColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::SameLine(); ImGui::Text("Pelvis");
+                    ImGui::ColorEdit4("Overalls (Bottom), Shade",     (float*)&uiOverallsBottomShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::ColorEdit4("Leg (Top), Main",     (float*)&uiLegTopColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::SameLine(); ImGui::Text("Thigh");
+                    ImGui::ColorEdit4("Leg (Top), Shade",     (float*)&uiLegTopShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::ColorEdit4("Leg (Bottom), Main",     (float*)&uiLegBottomColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    ImGui::SameLine(); ImGui::Text("Calf");
+                    ImGui::ColorEdit4("Leg (Bottom), Shade",     (float*)&uiLegBottomShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+                    if (ImGui::IsItemActivated()) accept_text_input = false;
+                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                }
+            }
+
             if (ImGui::Button("Apply CC###apply_cc_from_editor")) {
                 apply_cc_editor();
             }
@@ -248,7 +361,7 @@ void sdynos_imgui_update() {
         }
 
         if (ImGui::BeginTabItem("Model Packs")) {
-            ImGui::SetWindowSize(ImVec2(275, 300));
+            ImGui::SetWindowSize(ImVec2(275, 325));
             ImGui::SameLine(); imgui_bundled_help_marker(
                 "These are DynOS model packs, used for live model loading.\nPlace packs in dynos/packs.");
 
@@ -264,12 +377,24 @@ void sdynos_imgui_update() {
 
                     if (ImGui::Selectable(label.c_str(), &selected)) {
                         DynOS_Opt_SetValue(String("dynos_pack_%d", i), selected);
+                        if (label.find("CmtSPARK") != string::npos && selected) {
+                            // Turns on CometSPARK support with models containing the name "CmtSPARK"...
+                            cc_spark_support = true;
+                        } else {
+                            cc_spark_support = false;
+                        }
                     }
                 }
                 ImGui::EndListBox();
                 ImGui::Checkbox("CC Compatibility", &cc_model_support);
                 ImGui::SameLine(); imgui_bundled_help_marker(
                     "Toggles color code compatibility for model packs that support it.");
+                
+                if (cc_spark_support) {
+                    ImGui::Text("CometSPARK Support: ON");
+                    ImGui::SameLine(); imgui_bundled_help_marker(
+                        "DynOS packs with \"CmtSPARK\" in their name will be recognized as CometSPARK models and granted extra color values.");
+                }
             }
             ImGui::EndTabItem();
         }

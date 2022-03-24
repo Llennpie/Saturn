@@ -789,6 +789,13 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             bool mario_shoes = (r == 0x39 && g == 0x0e && b == 0x07);
             bool mario_skin = (r == 0x7f && g == 0x60 && b == 0x3c);
             bool mario_hair = (r == 0x39 && g == 0x03 && b == 0x00);
+            // Spark
+            bool mario_shirt = (r == 0x7f && g == 0x7f && b == 0x00);
+            bool mario_shoulders = (r == 0x00 && g == 0x7f && b == 0x7f);
+            bool mario_arms = (r == 0x00 && g == 0x7f && b == 0x40);
+            bool mario_overalls_bottom = (r == 0x7f && g == 0x00 && b == 0x7f);
+            bool mario_legtop = (r == 0x7f && g == 0x00 && b == 0x40);
+            bool mario_legbottom = (r == 0x40 && g == 0x00 && b == 0x7f);
 
             // Override them lazily
             if (cc_model_support) {
@@ -821,6 +828,38 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                     r = defaultColorHairRDark;
                     g = defaultColorHairGDark;
                     b = defaultColorHairBDark;
+                }
+                if (cc_spark_support) {
+                    if (mario_shirt) {
+                        r = sparkColorShirtRDark;
+                        g = sparkColorShirtGDark;
+                        b = sparkColorShirtBDark;
+                    }
+                    if (mario_shoulders) {
+                        r = sparkColorShouldersRDark;
+                        g = sparkColorShouldersGDark;
+                        b = sparkColorShouldersBDark;
+                    }
+                    if (mario_arms) {
+                        r = sparkColorArmsRDark;
+                        g = sparkColorArmsGDark;
+                        b = sparkColorArmsBDark;
+                    }
+                    if (mario_overalls_bottom) {
+                        r = sparkColorOverallsBottomRDark;
+                        g = sparkColorOverallsBottomGDark;
+                        b = sparkColorOverallsBottomBDark;
+                    }
+                    if (mario_legtop) {
+                        r = sparkColorLegTopRDark;
+                        g = sparkColorLegTopGDark;
+                        b = sparkColorLegTopBDark;
+                    }
+                    if (mario_legbottom) {
+                        r = sparkColorLegBottomRDark;
+                        g = sparkColorLegBottomGDark;
+                        b = sparkColorLegBottomBDark;
+                    }
                 }
             }
             
@@ -867,6 +906,36 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                             r += intensity * defaultColorHairRLight;
                             g += intensity * defaultColorHairGLight;
                             b += intensity * defaultColorHairBLight;
+                        }
+                        else if (mario_shirt) {
+                            r += intensity * sparkColorShirtRLight;
+                            g += intensity * sparkColorShirtGLight;
+                            b += intensity * sparkColorShirtBLight;
+                        }
+                        else if (mario_shoulders) {
+                            r += intensity * sparkColorShouldersRLight;
+                            g += intensity * sparkColorShouldersGLight;
+                            b += intensity * sparkColorShouldersBLight;
+                        }
+                        else if (mario_arms) {
+                            r += intensity * sparkColorArmsRLight;
+                            g += intensity * sparkColorArmsGLight;
+                            b += intensity * sparkColorArmsBLight;
+                        }
+                        else if (mario_overalls_bottom) {
+                            r += intensity * sparkColorOverallsBottomRLight;
+                            g += intensity * sparkColorOverallsBottomGLight;
+                            b += intensity * sparkColorOverallsBottomBLight;
+                        }
+                        else if (mario_legtop) {
+                            r += intensity * sparkColorLegTopRLight;
+                            g += intensity * sparkColorLegTopGLight;
+                            b += intensity * sparkColorLegTopBLight;
+                        }
+                        else if (mario_legbottom) {
+                            r += intensity * sparkColorLegBottomRLight;
+                            g += intensity * sparkColorLegBottomGLight;
+                            b += intensity * sparkColorLegBottomBLight;
                         }
                         else {
                             r += intensity * lightr;
