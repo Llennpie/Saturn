@@ -65,6 +65,7 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "cheats.h": "c"
+        "cheats.h": "c",
+        "numbers": "cpp"
     }
 }

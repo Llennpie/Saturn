@@ -47,6 +47,11 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 configHUD = !configHUD;
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
                 is_anim_paused = !is_anim_paused;
+
+        case SDL_MOUSEMOTION:
+            SDL_Delay(2);
+            camera_view_move_x = event->motion.xrel;
+            camera_view_move_y = event->motion.yrel;
         
         break;
     }
@@ -56,6 +61,8 @@ void smachinima_imgui_init() {
     Cheats.EnableCheats = true;
     Cheats.GodMode = true;
     Cheats.ExitAnywhere = true;
+
+    //SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 void smachinima_imgui_update() {
@@ -63,8 +70,15 @@ void smachinima_imgui_update() {
     imgui_bundled_tooltip("Toggles the machinima camera.");
             
     if (camera_frozen == true) {
-        ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
-        imgui_bundled_tooltip("Controls the speed of the machinima camera. Default is 1.");
+        const char* mCameraSettings[] = { "Mouse", "Keyboard/Gamepad" };
+        ImGui::Combo("Mode###machinima_camera_mode", (int*)&configMCameraMode, mCameraSettings, IM_ARRAYSIZE(mCameraSettings));
+        if (configMCameraMode == 0) {
+            ImGui::SameLine(); imgui_bundled_help_marker("LShift + Mouse Buttons = Move Camera");
+        } else if (configMCameraMode == 1) {
+            ImGui::SameLine(); imgui_bundled_help_marker("R + C-Buttons = Pan Camera, L + C-Buttons = Raise/Lower Camera");
+            ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
+            imgui_bundled_tooltip("Controls the speed of the machinima camera. Default is 1.");
+        }
     }
     ImGui::Dummy(ImVec2(0, 5));
 

@@ -11,6 +11,13 @@ extern bool mario_exists;
 extern bool camera_frozen;
 extern float camera_speed;
 
+extern bool camera_view_enabled;
+extern bool camera_view_moving;
+extern bool camera_view_zooming;
+extern bool camera_view_rotating;
+extern int camera_view_move_x;
+extern int camera_view_move_y;
+
 extern int current_eye_state;
 
 extern bool enable_head_rotations;

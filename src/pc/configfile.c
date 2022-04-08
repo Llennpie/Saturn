@@ -76,6 +76,7 @@ unsigned int configRumbleStrength = 50;
 #ifdef EXTERNAL_DATA
 bool configPrecacheRes = true;
 #endif
+unsigned int configMCameraMode   = 0;
 #ifdef BETTERCAMERA
 // BetterCamera settings
 unsigned int configCameraXSens   = 50;
@@ -126,6 +127,7 @@ static const struct ConfigOption options[] = {
     #ifdef EXTERNAL_DATA
     {.name = "precache",             .type = CONFIG_TYPE_BOOL, .boolValue = &configPrecacheRes},
     #endif
+    {.name = "mcamera_mode",      .type = CONFIG_TYPE_UINT, .uintValue = &configMCameraMode},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
     {.name = "bettercam_analog",     .type = CONFIG_TYPE_BOOL, .boolValue = &configCameraAnalog},
