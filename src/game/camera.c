@@ -3158,13 +3158,35 @@ void update_camera(struct Camera *c) {
             if (machinimaMode) {
                 if (configMCameraMode == 1) {
                     if (gPlayer1Controller->buttonDown & L_TRIG) {
-                        if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
-                            camVelY += 5.f * camVelSpeed;
-                        }
-                        if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
-                            camVelY -= 5.f * camVelSpeed;
+                        if (gPlayer1Controller->buttonDown & Z_TRIG) {
+                            // Rotation
+                            f32 dist;
+                            s16 pitch, yaw;
+                            vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
+                            if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+                                pitch -= sins(c->yaw + atan2s(0, 127)) * -camVelSpeed * 512;
+                            }
+                            if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+                                pitch -= sins(c->yaw + atan2s(0, 127)) * camVelSpeed * 512;
+                            }
+                            if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
+                                yaw -= sins(c->yaw + atan2s(0, 127)) * camVelSpeed * 512;
+                            }
+                            if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
+                                yaw -= sins(c->yaw + atan2s(0, 127)) * -camVelSpeed * 512;
+                            }
+                            vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
+                        } else {
+                            // Vertical
+                            if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+                                camVelY += 5.f * camVelSpeed;
+                            }
+                            if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+                                camVelY -= 5.f * camVelSpeed;
+                            }
                         }
                     } else if (gPlayer1Controller->buttonDown & R_TRIG) {
+                        // Horizontal & Forward
                         if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
                             c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                             c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
@@ -3189,25 +3211,8 @@ void update_camera(struct Camera *c) {
                             c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                             c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         }
-                    } else if (gPlayer1Controller->buttonDown & Z_TRIG) {
-                        f32 dist;
-                        s16 pitch, yaw;
-                        vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
-                        if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
-                            pitch -= sins(c->yaw + atan2s(0, 127)) * -camVelSpeed * 512;
-                        }
-                        if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
-                            pitch -= sins(c->yaw + atan2s(0, 127)) * camVelSpeed * 512;
-                        }
-                        if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
-                            yaw -= sins(c->yaw + atan2s(0, 127)) * camVelSpeed * 512;
-                        }
-                        if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
-                            yaw -= sins(c->yaw + atan2s(0, 127)) * -camVelSpeed * 512;
-                        }
-                        vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
                     } else {
-                        // Zoom in / enter C-Up
+                        // Zoom In / Enter C-Up
                         if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
                             if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
                                 gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
@@ -3215,7 +3220,7 @@ void update_camera(struct Camera *c) {
                                 set_mode_c_up(c);
                             }
                         }
-                        // Zoom out
+                        // Zoom Out
                         if (gPlayer1Controller->buttonPressed & D_CBUTTONS) {
                             if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
                                 exit_c_up(c);
@@ -3226,7 +3231,7 @@ void update_camera(struct Camera *c) {
                         }
                     }
                 } else if (configMCameraMode == 0) {
-                    // Mouse control
+                    // Mouse Control
                     if (camera_view_enabled) {
                         if (camera_view_moving) {
                             c->pos[0] += sins(c->yaw + atan2s(0, 127)) * camera_view_move_x;
@@ -3248,7 +3253,7 @@ void update_camera(struct Camera *c) {
                             vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
                         }
                     } else {
-                        // Zoom in / enter C-Up
+                        // Zoom In / Enter C-Up
                         if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
                             if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
                                 gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
@@ -3256,7 +3261,7 @@ void update_camera(struct Camera *c) {
                                 set_mode_c_up(c);
                             }
                         }
-                        // Zoom out
+                        // Zoom Out
                         if (gPlayer1Controller->buttonPressed & D_CBUTTONS) {
                             if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
                                 exit_c_up(c);

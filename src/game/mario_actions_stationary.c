@@ -18,6 +18,7 @@
 #include "surface_terrains.h"
 #include "thread6.h"
 #include "saturn/saturn.h"
+#include "game_init.h"
 
 s32 check_common_idle_cancels(struct MarioState *m) {
     mario_drop_held_object(m);
@@ -54,7 +55,7 @@ s32 check_common_idle_cancels(struct MarioState *m) {
         return set_mario_action(m, ACT_PUNCHING, 0);
     }
 
-    if (m->input & INPUT_Z_DOWN) {
+    if (m->input & INPUT_Z_DOWN && (gPlayer1Controller->buttonDown & L_TRIG) == 0) {
         return set_mario_action(m, ACT_START_CROUCHING, 0);
     }
 

@@ -36,7 +36,8 @@ void smachinima_imgui_controls(SDL_Event * event) {
             if(event->key.keysym.sym == SDLK_h)
                 configHUD = !configHUD;
             if(event->key.keysym.sym == SDLK_p)
-                is_anim_paused = !is_anim_paused;
+                if (is_anim_playing)
+                    is_anim_paused = !is_anim_paused;
 
         case SDL_CONTROLLERBUTTONDOWN:
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
@@ -46,7 +47,8 @@ void smachinima_imgui_controls(SDL_Event * event) {
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
                 configHUD = !configHUD;
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
-                is_anim_paused = !is_anim_paused;
+                if (is_anim_playing)
+                    is_anim_paused = !is_anim_paused;
 
         case SDL_MOUSEMOTION:
             SDL_Delay(2);
