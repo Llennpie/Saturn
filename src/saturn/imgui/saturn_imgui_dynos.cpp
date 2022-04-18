@@ -132,6 +132,8 @@ void apply_cc_editor() {
         sparkColorLegBottomGDark = (int)(uiLegBottomShadeColor.y * 255);
         sparkColorLegBottomBDark = (int)(uiLegBottomShadeColor.z * 255);
     }
+
+    strcpy(cc_gameshark, global_gs_code().c_str());
 }
 
 void apply_editor_global_cc() {

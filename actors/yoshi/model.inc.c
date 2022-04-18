@@ -14,7 +14,7 @@ static const Lights1 yoshi_seg5_lights_0501C470 = gdSPDefLights1(
 
 // 0x0501C488
 static const Lights1 yoshi_seg5_lights_0501C488 = gdSPDefLights1(
-    0x7f, 0x00, 0x00,
+    0x7d, 0x00, 0x00,
     0xff, 0x00, 0x00, 0x28, 0x28, 0x28
 );
 
@@ -399,7 +399,7 @@ static const Lights1 yoshi_seg5_lights_0501D9D8 = gdSPDefLights1(
 
 // 0x0501D9F0
 static const Lights1 yoshi_seg5_lights_0501D9F0 = gdSPDefLights1(
-    0x7f, 0x00, 0x00,
+    0x7d, 0x00, 0x00,
     0xff, 0x00, 0x00, 0x28, 0x28, 0x28
 );
 

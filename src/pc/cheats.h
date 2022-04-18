@@ -2,6 +2,7 @@
 #define _CHEATS_H
 
 #include <stdbool.h>
+typedef unsigned int uint;
 
 struct CheatList {
     bool         EnableCheats;
@@ -14,6 +15,7 @@ struct CheatList {
     bool         HugeMario;
     bool         TinyMario;
     bool         CustomMarioScale;
+    int          PlayAs;
 };
 
 extern struct CheatList Cheats;

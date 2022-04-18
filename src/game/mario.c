@@ -39,6 +39,27 @@
 #include "bettercamera.h"
 #endif
 
+#include "actors/common0.h"
+#include "actors/common1.h"
+#include "actors/group0.h"
+#include "actors/group1.h"
+#include "actors/group2.h"
+#include "actors/group3.h"
+#include "actors/group4.h"
+#include "actors/group5.h"
+#include "actors/group6.h"
+#include "actors/group7.h"
+#include "actors/group8.h"
+#include "actors/group9.h"
+#include "actors/group10.h"
+#include "actors/group11.h"
+#include "actors/group12.h"
+#include "actors/group13.h"
+#include "actors/group14.h"
+#include "actors/group15.h"
+#include "actors/group16.h"
+#include "actors/group17.h"
+
 u32 unused80339F10;
 s8 filler80339F1C[20];
 
@@ -1209,6 +1230,21 @@ s32 set_water_plunge_action(struct MarioState *m) {
 u8 sSquishScaleOverTime[16] = { 0x46, 0x32, 0x32, 0x3C, 0x46, 0x50, 0x50, 0x3C,
                                 0x28, 0x14, 0x14, 0x1E, 0x32, 0x3C, 0x3C, 0x28 };
 
+float finalMarioScale = 1.0f;
+
+/**
+ * Thank you Render96
+ */
+static void cheats_play_as_set_model_and_anims(struct MarioState *m, s32 modelId, const void *anim) {
+    m->marioObj->header.gfx.sharedChild = gLoadedGraphNodes[modelId];
+    if (modelId == MODEL_MARIO) {
+        gMarioState->animation = &D_80339D10;
+    } else {
+        m->marioObj->header.gfx.unk38.curAnim = (struct Animation *) anim;
+        finalMarioScale *= 1.5f;
+    }
+}
+
 /**
  * Applies the squish to Mario's model via scaling.
  */
@@ -1218,18 +1254,25 @@ void squish_mario_model(struct MarioState *m) {
         // Also handles the Tiny Mario and Huge Mario cheats.
         if (m->squishTimer == 0) {
             if (Cheats.EnableCheats) {
-                if (Cheats.HugeMario) {
-                    vec3f_set(m->marioObj->header.gfx.scale, 2.5f, 2.5f, 2.5f);
+                if (Cheats.CustomMarioScale) {
+                    finalMarioScale = marioScaleSize;
+                } else {
+                    finalMarioScale = 1.0f;
                 }
-                else if (Cheats.TinyMario) {
-                    vec3f_set(m->marioObj->header.gfx.scale, 0.2f, 0.2f, 0.2f);
+
+                s32 playAsIndex = Cheats.PlayAs;
+                switch(playAsIndex) {
+                    case 0:     cheats_play_as_set_model_and_anims(m, MODEL_MARIO, NULL); break;
+                    case 1:     cheats_play_as_set_model_and_anims(m, MODEL_BLACK_BOBOMB, bobomb_seg8_anims_0802396C[0]); break;
+                    case 2:     cheats_play_as_set_model_and_anims(m, MODEL_BOBOMB_BUDDY, bobomb_seg8_anims_0802396C[0]); break;
+                    case 3:     cheats_play_as_set_model_and_anims(m, MODEL_GOOMBA, goomba_seg8_anims_0801DA4C[0]); break;
+                    case 4:     cheats_play_as_set_model_and_anims(m, MODEL_KOOPA_SHELL, amp_seg8_anims_08004034[0]); break;
+                    case 5:     cheats_play_as_set_model_and_anims(m, MODEL_CHUCKYA, chuckya_seg8_anims_0800C070[0]); break;
+                    case 6:     cheats_play_as_set_model_and_anims(m, MODEL_FLYGUY, flyguy_seg8_anims_08011A64[0]); break;
+                    default:    cheats_play_as_set_model_and_anims(m, MODEL_MARIO, NULL); break;
                 }
-                else if (Cheats.CustomMarioScale) {
-                    vec3f_set(m->marioObj->header.gfx.scale, marioScaleSize, marioScaleSize, marioScaleSize);
-                }
-                else {
-                    vec3f_set(m->marioObj->header.gfx.scale, 1.0f, 1.0f, 1.0f);
-                }
+
+                vec3f_set(m->marioObj->header.gfx.scale, finalMarioScale, finalMarioScale, finalMarioScale);
             }
             else {
                 vec3f_set(m->marioObj->header.gfx.scale, 1.0f, 1.0f, 1.0f);
@@ -1419,7 +1462,7 @@ void update_mario_inputs(struct MarioState *m) {
     
     /* Moonjump cheat */
     while (Cheats.MoonJump == true && Cheats.EnableCheats == true && m->controller->buttonDown & L_TRIG ){
-        m->vel[1] = 25;
+        m->vel[1] = 40;
         break;   // TODO: Unneeded break?
     }
     /*End of moonjump cheat */

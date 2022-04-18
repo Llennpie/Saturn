@@ -61,6 +61,10 @@ void ssettings_imgui_update() {
         ImGui::Text("Texture Filtering");
         const char* texture_filters[] = { "Nearest", "Linear", "Three-point" };
         ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
+
+        if (ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias))
+            configWindow.settings_changed = true;
+        imgui_bundled_tooltip("EXPERIMENTAL. Enables/disables anti-aliasing with OpenGL.");
     }
     if (ImGui::CollapsingHeader("Audio")) {
         ImGui::Text("Volume");

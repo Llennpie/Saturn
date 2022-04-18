@@ -11,6 +11,8 @@
 typedef struct {
     unsigned int x, y, w, h;
     bool vsync;
+    bool enable_antialias;
+    unsigned int antialias_level;
     bool reset;
     bool fullscreen;
     bool exiting_fullscreen;

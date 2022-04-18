@@ -66,6 +66,8 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "cheats.h": "c",
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "configfile.h": "c",
+        "random": "c"
     }
 }

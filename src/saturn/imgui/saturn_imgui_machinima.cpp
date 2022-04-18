@@ -10,6 +10,7 @@
 #include "saturn/saturn.h"
 #include "saturn/saturn_animations.h"
 #include "saturn_imgui.h"
+#include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
 extern "C" {
@@ -29,13 +30,13 @@ int anim_index = 113;
 void smachinima_imgui_controls(SDL_Event * event) {
     switch (event->type){
         case SDL_KEYDOWN:
-            if(event->key.keysym.sym == SDLK_f)
+            if(event->key.keysym.sym == SDLK_f && accept_text_input)
                 camera_frozen = !camera_frozen;
-            if(event->key.keysym.sym == SDLK_g)
+            if(event->key.keysym.sym == SDLK_g && accept_text_input)
                 saturn_play_animation(selected_animation);
-            if(event->key.keysym.sym == SDLK_h)
+            if(event->key.keysym.sym == SDLK_h && accept_text_input)
                 configHUD = !configHUD;
-            if(event->key.keysym.sym == SDLK_p)
+            if(event->key.keysym.sym == SDLK_p && accept_text_input)
                 if (is_anim_playing)
                     is_anim_paused = !is_anim_paused;
 
@@ -129,15 +130,19 @@ void smachinima_imgui_update() {
     if (ImGui::CollapsingHeader("Mario")) {
         ImGui::Checkbox("Head Rotations", &enable_head_rotations);
         imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+        ImGui::Checkbox("Dust Particles", &enable_dust_particles);
+        imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+        ImGui::Dummy(ImVec2(0, 5));
         const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
         ImGui::Combo("Hand State", &scrollHandState, hands, IM_ARRAYSIZE(hands));
         const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
         ImGui::Combo("Cap State", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+        ImGui::Dummy(ImVec2(0, 5));
         ImGui::Checkbox("Custom Mario Scale", &Cheats.CustomMarioScale);
         if (Cheats.CustomMarioScale)
             ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
-        ImGui::Checkbox("Dust Particles", &enable_dust_particles);
-        imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+        const char* playAsModels[] = { "Mario", "Bob-omb", "Bob-omb Buddy", "Goomba", "Koopa Shell", "Chuckya", "Fly Guy" };
+        ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
         ImGui::Dummy(ImVec2(0, 5));
     }
     ImGui::Checkbox("Infinite Health", &Cheats.GodMode);
