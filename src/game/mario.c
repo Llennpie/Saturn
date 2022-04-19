@@ -1609,6 +1609,7 @@ void update_mario_info_for_cam(struct MarioState *m) {
 int scrollCapState = MARIO_HAS_DEFAULT_CAP_ON;
 int scrollEyeState = MARIO_EYES_BLINK;
 int scrollHandState = MARIO_HAND_FISTS;
+int scrollModelState = 0;
 
 /**
  * Resets Mario's model, done every time an action is executed.
@@ -1619,7 +1620,7 @@ void mario_reset_bodystate(struct MarioState *m) {
     bodyState->capState = scrollCapState;
     bodyState->eyeState = scrollEyeState;
     bodyState->handState = scrollHandState;
-    bodyState->modelState = 0;
+    bodyState->modelState = scrollModelState;
     bodyState->wingFlutter = FALSE;
 
     m->flags &= ~MARIO_METAL_SHOCK;

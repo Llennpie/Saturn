@@ -53,5 +53,6 @@ void init_mario_from_save_file(void);
 extern int scrollCapState;
 extern int scrollEyeState;
 extern int scrollHandState;
+extern int scrollModelState;
 
 #endif // MARIO_H

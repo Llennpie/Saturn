@@ -133,10 +133,13 @@ void smachinima_imgui_update() {
         ImGui::Checkbox("Dust Particles", &enable_dust_particles);
         imgui_bundled_tooltip("Displays dust particles when Mario moves.");
         ImGui::Dummy(ImVec2(0, 5));
+        ImGui::Text("States");
         const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
-        ImGui::Combo("Hand State", &scrollHandState, hands, IM_ARRAYSIZE(hands));
+        ImGui::Combo("Hand###hand_state", &scrollHandState, hands, IM_ARRAYSIZE(hands));
         const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
-        ImGui::Combo("Cap State", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+        ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+        const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
+        ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
         ImGui::Dummy(ImVec2(0, 5));
         ImGui::Checkbox("Custom Mario Scale", &Cheats.CustomMarioScale);
         if (Cheats.CustomMarioScale)

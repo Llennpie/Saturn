@@ -22,6 +22,7 @@ int camera_view_move_y;
 bool enable_head_rotations = false;
 bool enable_shadows = true;
 bool enable_dust_particles = false;
+int saturnModelState = 0;
 
 bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
@@ -131,6 +132,14 @@ void saturn_update() {
     // Misc
 
     mario_exists = (gMarioState->action != ACT_UNINITIALIZED & sCurrPlayMode != 2 & mario_loaded);
+
+    switch(saturnModelState) {
+        case 0:     scrollModelState = 0;       break;
+        case 1:     scrollModelState = 0x200;   break;  // Metal Cap
+        case 2:     scrollModelState = 0x180;   break;  // Vanish Cap
+        case 3:     scrollModelState = 0x380;   break;  // Both
+        default:    scrollModelState = 0;       break;
+    }
 }
 
 // Play Animation
