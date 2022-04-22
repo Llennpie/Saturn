@@ -87,4 +87,8 @@ void ssettings_imgui_update() {
 #endif
         ImGui::Checkbox("Skip Intro", &configSkipIntro);
     }
+    if (ImGui::CollapsingHeader("Editor")) {
+        ImGui::Checkbox("Auto-apply CC", &configEditorFastApply);
+        imgui_bundled_tooltip("Enables/disables automatic applying in the CC editor. May cause lag on low-end machines.");
+    }
 }

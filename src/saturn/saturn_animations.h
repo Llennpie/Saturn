@@ -210,7 +210,8 @@ extern const char* saturn_animations[] = {
     "STAR_DANCE",
     "RETURN_FROM_STAR_DANCE",
     "FORWARD_SPINNING_FLIP",
-    "TRIPLE_JUMP_FLY"
+    "TRIPLE_JUMP_FLY",
+    "TILT_SPAZ" // custom saturn anim for spazzing
 };
 
 #endif

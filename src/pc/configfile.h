@@ -46,6 +46,7 @@ extern unsigned int configRumbleStrength;
 extern bool         configPrecacheRes;
 #endif
 extern unsigned int configMCameraMode;
+extern bool         configEditorFastApply;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
 extern unsigned int configCameraYSens;

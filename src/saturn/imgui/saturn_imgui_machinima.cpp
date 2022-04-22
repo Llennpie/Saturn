@@ -93,6 +93,8 @@ void smachinima_imgui_update() {
     ImGui::Dummy(ImVec2(0, 5));
     ImGui::Combo("", &anim_index, saturn_animations, IM_ARRAYSIZE(saturn_animations));
     selected_animation = (MarioAnimID)anim_index;
+    if (selected_animation == MARIO_ANIM_TILT_SPAZ)
+        imgui_bundled_tooltip("by Weegeepie");
     if (ImGui::Button("Play")) {
         saturn_play_animation(selected_animation);
     } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);

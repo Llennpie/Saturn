@@ -178,6 +178,24 @@ void apply_editor_global_cc() {
 
 // UI
 
+void handle_cc_box(const char* name, const char* mainName, const char* shadeName, ImVec4* colorValue, ImVec4* shadeColorValue, ImVec4 shadeColor) {
+    ImGui::ColorEdit4(mainName, (float*)colorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+    if (ImGui::IsItemActivated()) accept_text_input = false;
+    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+    ImGui::SameLine(); ImGui::Text(name);
+
+    ImGui::ColorEdit4(shadeName, (float*)shadeColorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+    if (ImGui::IsItemActivated()) accept_text_input = false;
+    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+
+    ImGui::SameLine();
+    if (ImGui::Button("½")) {
+        shadeColorValue->x = colorValue->x / 2.0f;
+        shadeColorValue->y = colorValue->y / 2.0f;
+        shadeColorValue->z = colorValue->z / 2.0f;
+    }
+}
+
 void sdynos_imgui_init() {
     load_cc_directory();
     strcpy(cc_gameshark, global_gs_code().c_str());
@@ -222,97 +240,28 @@ void sdynos_imgui_update() {
         ImGui::SetWindowSize(ImVec2(275, 475));
 
         if (ImGui::BeginTabItem("CC Editor")) {
-            ImGui::ColorEdit4("Hat, Main",      (float*)&uiHatColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::SameLine(); ImGui::Text("Hat");
-            ImGui::ColorEdit4("Hat, Shade",     (float*)&uiHatShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::ColorEdit4("Overalls, Main",     (float*)&uiOverallsColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::SameLine(); ImGui::Text("Overalls");
-            ImGui::ColorEdit4("Overalls, Shade",     (float*)&uiOverallsShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::ColorEdit4("Gloves, Main",     (float*)&uiGlovesColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::SameLine(); ImGui::Text("Gloves");
-            ImGui::ColorEdit4("Gloves, Shade",     (float*)&uiGlovesShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::ColorEdit4("Shoes, Main",     (float*)&uiShoesColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::SameLine(); ImGui::Text("Shoes");
-            ImGui::ColorEdit4("Shoes, Shade",     (float*)&uiShoesShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::ColorEdit4("Skin, Main",     (float*)&uiSkinColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::SameLine(); ImGui::Text("Skin");
-            ImGui::ColorEdit4("Skin, Shade",     (float*)&uiSkinShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::ColorEdit4("Hair, Main",     (float*)&uiHairColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-            ImGui::SameLine(); ImGui::Text("Hair");
-            ImGui::ColorEdit4("Hair, Shade",     (float*)&uiHairShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-
+            handle_cc_box("Hat", "Hat, Main", "Hat, Shade", &uiHatColor, &uiHatShadeColor, uiHatShadeColor);
+            handle_cc_box("Overalls", "Overalls, Main", "Overalls, Shade", &uiOverallsColor, &uiOverallsShadeColor, uiOverallsShadeColor);
+            handle_cc_box("Gloves", "Gloves, Main", "Gloves, Shade", &uiGlovesColor, &uiGlovesShadeColor, uiGlovesShadeColor);
+            handle_cc_box("Shoes", "Shoes, Main", "Shoes, Shade", &uiShoesColor, &uiShoesShadeColor, uiShoesShadeColor);
+            handle_cc_box("Skin", "Skin, Main", "Skin, Shade", &uiSkinColor, &uiSkinShadeColor, uiSkinShadeColor);
+            handle_cc_box("Hair", "Hair, Main", "Hair, Shade", &uiHairColor, &uiHairShadeColor, uiHairShadeColor);
             if (cc_spark_support) {
                 if (ImGui::CollapsingHeader("SPARK###spark_color_edit")) {
-                    ImGui::ColorEdit4("Shirt, Main",      (float*)&uiShirtColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::SameLine(); ImGui::Text("Shirt");
-                    ImGui::ColorEdit4("Shirt, Shade",     (float*)&uiShirtShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::ColorEdit4("Shoulders, Main",     (float*)&uiShouldersColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::SameLine(); ImGui::Text("Shoulders");
-                    ImGui::ColorEdit4("Shoulders, Shade",     (float*)&uiShouldersShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::ColorEdit4("Arms, Main",     (float*)&uiArmsColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::SameLine(); ImGui::Text("Arms");
-                    ImGui::ColorEdit4("Arms, Shade",     (float*)&uiArmsShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::ColorEdit4("Overalls (Bottom), Main",     (float*)&uiOverallsBottomColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::SameLine(); ImGui::Text("Pelvis");
-                    ImGui::ColorEdit4("Overalls (Bottom), Shade",     (float*)&uiOverallsBottomShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::ColorEdit4("Leg (Top), Main",     (float*)&uiLegTopColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::SameLine(); ImGui::Text("Thigh");
-                    ImGui::ColorEdit4("Leg (Top), Shade",     (float*)&uiLegTopShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::ColorEdit4("Leg (Bottom), Main",     (float*)&uiLegBottomColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-                    ImGui::SameLine(); ImGui::Text("Calf");
-                    ImGui::ColorEdit4("Leg (Bottom), Shade",     (float*)&uiLegBottomShadeColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-                    if (ImGui::IsItemActivated()) accept_text_input = false;
-                    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                    handle_cc_box("Shirt", "Shirt, Main", "Shirt, Shade", &uiShirtColor, &uiShirtShadeColor, uiShirtShadeColor);
+                    handle_cc_box("Shoulders", "Shoulders, Main", "Shoulders, Shade", &uiShouldersColor, &uiShouldersShadeColor, uiShouldersShadeColor);
+                    handle_cc_box("Arms", "Arms, Main", "Arms, Shade", &uiArmsColor, &uiArmsShadeColor, uiArmsShadeColor);
+                    handle_cc_box("Overalls (Bottom)", "Overalls (Bottom), Main", "Overalls (Bottom), Shade", &uiOverallsBottomColor, &uiOverallsBottomShadeColor, uiOverallsBottomShadeColor);
+                    handle_cc_box("Leg (Top)", "Leg (Top), Main", "Leg (Top), Shade", &uiLegTopColor, &uiLegTopShadeColor, uiLegTopShadeColor);
+                    handle_cc_box("Leg (Bottom)", "Leg (Bottom), Main", "Leg (Bottom), Shade", &uiLegBottomColor, &uiLegBottomShadeColor, uiLegBottomShadeColor);
                 }
             }
 
-            if (ImGui::Button("Apply CC###apply_cc_from_editor")) {
+            if (!configEditorFastApply) {
+                if (ImGui::Button("Apply CC###apply_cc_from_editor")) {
+                    apply_cc_editor();
+                }
+            } else {
                 apply_cc_editor();
             }
 
