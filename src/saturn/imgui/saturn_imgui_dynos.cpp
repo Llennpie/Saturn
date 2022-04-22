@@ -178,7 +178,7 @@ void apply_editor_global_cc() {
 
 // UI
 
-void handle_cc_box(const char* name, const char* mainName, const char* shadeName, ImVec4* colorValue, ImVec4* shadeColorValue, ImVec4 shadeColor) {
+void handle_cc_box(const char* name, const char* mainName, const char* shadeName, ImVec4* colorValue, ImVec4* shadeColorValue, string id) {
     ImGui::ColorEdit4(mainName, (float*)colorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
     if (ImGui::IsItemActivated()) accept_text_input = false;
     if (ImGui::IsItemDeactivated()) accept_text_input = true;
@@ -189,7 +189,7 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
     if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
     ImGui::SameLine();
-    if (ImGui::Button("½")) {
+    if (ImGui::Button(id.c_str())) {
         shadeColorValue->x = colorValue->x / 2.0f;
         shadeColorValue->y = colorValue->y / 2.0f;
         shadeColorValue->z = colorValue->z / 2.0f;
@@ -240,20 +240,20 @@ void sdynos_imgui_update() {
         ImGui::SetWindowSize(ImVec2(275, 475));
 
         if (ImGui::BeginTabItem("CC Editor")) {
-            handle_cc_box("Hat", "Hat, Main", "Hat, Shade", &uiHatColor, &uiHatShadeColor, uiHatShadeColor);
-            handle_cc_box("Overalls", "Overalls, Main", "Overalls, Shade", &uiOverallsColor, &uiOverallsShadeColor, uiOverallsShadeColor);
-            handle_cc_box("Gloves", "Gloves, Main", "Gloves, Shade", &uiGlovesColor, &uiGlovesShadeColor, uiGlovesShadeColor);
-            handle_cc_box("Shoes", "Shoes, Main", "Shoes, Shade", &uiShoesColor, &uiShoesShadeColor, uiShoesShadeColor);
-            handle_cc_box("Skin", "Skin, Main", "Skin, Shade", &uiSkinColor, &uiSkinShadeColor, uiSkinShadeColor);
-            handle_cc_box("Hair", "Hair, Main", "Hair, Shade", &uiHairColor, &uiHairShadeColor, uiHairShadeColor);
+            handle_cc_box("Hat", "Hat, Main", "Hat, Shade", &uiHatColor, &uiHatShadeColor, "1/2###hat_half");
+            handle_cc_box("Overalls", "Overalls, Main", "Overalls, Shade", &uiOverallsColor, &uiOverallsShadeColor, "1/2###overalls_half");
+            handle_cc_box("Gloves", "Gloves, Main", "Gloves, Shade", &uiGlovesColor, &uiGlovesShadeColor, "1/2###gloves_half");
+            handle_cc_box("Shoes", "Shoes, Main", "Shoes, Shade", &uiShoesColor, &uiShoesShadeColor, "1/2###shoes_half");
+            handle_cc_box("Skin", "Skin, Main", "Skin, Shade", &uiSkinColor, &uiSkinShadeColor, "1/2###skin_half");
+            handle_cc_box("Hair", "Hair, Main", "Hair, Shade", &uiHairColor, &uiHairShadeColor, "1/2###hair_half");
             if (cc_spark_support) {
                 if (ImGui::CollapsingHeader("SPARK###spark_color_edit")) {
-                    handle_cc_box("Shirt", "Shirt, Main", "Shirt, Shade", &uiShirtColor, &uiShirtShadeColor, uiShirtShadeColor);
-                    handle_cc_box("Shoulders", "Shoulders, Main", "Shoulders, Shade", &uiShouldersColor, &uiShouldersShadeColor, uiShouldersShadeColor);
-                    handle_cc_box("Arms", "Arms, Main", "Arms, Shade", &uiArmsColor, &uiArmsShadeColor, uiArmsShadeColor);
-                    handle_cc_box("Overalls (Bottom)", "Overalls (Bottom), Main", "Overalls (Bottom), Shade", &uiOverallsBottomColor, &uiOverallsBottomShadeColor, uiOverallsBottomShadeColor);
-                    handle_cc_box("Leg (Top)", "Leg (Top), Main", "Leg (Top), Shade", &uiLegTopColor, &uiLegTopShadeColor, uiLegTopShadeColor);
-                    handle_cc_box("Leg (Bottom)", "Leg (Bottom), Main", "Leg (Bottom), Shade", &uiLegBottomColor, &uiLegBottomShadeColor, uiLegBottomShadeColor);
+                    handle_cc_box("Shirt", "Shirt, Main", "Shirt, Shade", &uiShirtColor, &uiShirtShadeColor, "1/2###shirt_half");
+                    handle_cc_box("Shoulders", "Shoulders, Main", "Shoulders, Shade", &uiShouldersColor, &uiShouldersShadeColor, "1/2###shoulders_half");
+                    handle_cc_box("Arms", "Arms, Main", "Arms, Shade", &uiArmsColor, &uiArmsShadeColor, "1/2###arms_half");
+                    handle_cc_box("Overalls (Bottom)", "Overalls (Bottom), Main", "Overalls (Bottom), Shade", &uiOverallsBottomColor, &uiOverallsBottomShadeColor, "1/2###overalls_bottom_half");
+                    handle_cc_box("Leg (Top)", "Leg (Top), Main", "Leg (Top), Shade", &uiLegTopColor, &uiLegTopShadeColor, "1/2###leg_top_half");
+                    handle_cc_box("Leg (Bottom)", "Leg (Bottom), Main", "Leg (Bottom), Shade", &uiLegBottomColor, &uiLegBottomShadeColor, "1/2###leg_bottom_half");
                 }
             }
 
