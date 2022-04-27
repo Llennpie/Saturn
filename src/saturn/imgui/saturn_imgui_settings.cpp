@@ -88,6 +88,15 @@ void ssettings_imgui_update() {
         ImGui::Checkbox("Skip Intro", &configSkipIntro);
     }
     if (ImGui::CollapsingHeader("Editor")) {
+        const char* mCameraSettings[] = { "Mouse", "Keyboard/Gamepad" };
+        ImGui::Text("Machinima Camera Mode");
+        ImGui::Combo("###machinima_camera_mode", (int*)&configMCameraMode, mCameraSettings, IM_ARRAYSIZE(mCameraSettings));
+        if (configMCameraMode == 0) {
+            ImGui::SameLine(); imgui_bundled_help_marker("LShift + Mouse Buttons = Move Camera");
+        } else if (configMCameraMode == 1) {
+            ImGui::SameLine(); imgui_bundled_help_marker("R + C-Buttons = Pan Camera, L + C-Buttons = Raise/Lower Camera");
+        }
+        ImGui::Dummy(ImVec2(0, 5));
         ImGui::Checkbox("Auto-apply CC", &configEditorFastApply);
         imgui_bundled_tooltip("Enables/disables automatic applying in the CC editor. May cause lag on low-end machines.");
     }

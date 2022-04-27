@@ -71,17 +71,12 @@ void smachinima_imgui_init() {
 void smachinima_imgui_update() {
     ImGui::Checkbox("Machinima Camera", &camera_frozen);
     imgui_bundled_tooltip("Toggles the machinima camera.");
-            
-    if (camera_frozen == true) {
-        const char* mCameraSettings[] = { "Mouse", "Keyboard/Gamepad" };
-        ImGui::Combo("Mode###machinima_camera_mode", (int*)&configMCameraMode, mCameraSettings, IM_ARRAYSIZE(mCameraSettings));
-        if (configMCameraMode == 0) {
-            ImGui::SameLine(); imgui_bundled_help_marker("LShift + Mouse Buttons = Move Camera");
-        } else if (configMCameraMode == 1) {
-            ImGui::SameLine(); imgui_bundled_help_marker("R + C-Buttons = Pan Camera, L + C-Buttons = Raise/Lower Camera");
-            ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
-            imgui_bundled_tooltip("Controls the speed of the machinima camera. Default is 1.");
-        }
+    if (configMCameraMode == 0) {
+        ImGui::SameLine(); imgui_bundled_help_marker("LShift + Mouse Buttons = Move Camera");
+    } else if (configMCameraMode == 1) {
+        ImGui::SameLine(); imgui_bundled_help_marker("R + C-Buttons = Pan Camera, L + C-Buttons = Raise/Lower Camera");
+        ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
+        imgui_bundled_tooltip("Controls the speed of the machinima camera. Default is 1.");
     }
     ImGui::Dummy(ImVec2(0, 5));
 
