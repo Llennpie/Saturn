@@ -149,12 +149,3 @@ void saturn_play_animation(MarioAnimID anim) {
     set_mario_animation(gMarioState, anim);
     is_anim_playing = true;
 }
-
-void saturn_warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
-    if (!mario_exists)
-        return;
-
-    mario_loaded = false;
-    initiate_warp(destLevel, destArea, destWarpNode, 0);
-    fade_into_special_warp(0,0);
-}

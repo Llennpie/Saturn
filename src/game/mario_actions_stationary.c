@@ -165,7 +165,7 @@ s32 act_idle(struct MarioState *m) {
                 break;
         }
 
-        if (is_anim_at_end(m) && !is_anim_playing && can_fall_asleep) {
+        if (is_anim_at_end(m) && !is_anim_playing) {
             // Fall asleep after 10 head turning cycles.
             // act_start_sleeping is triggered earlier in the function
             // when actionState == 3. This happens when Mario's done
@@ -185,6 +185,9 @@ s32 act_idle(struct MarioState *m) {
                     }
                 }
             }
+
+            if (!can_fall_asleep && m->actionState >= 3)
+                m->actionState = 0;
         }
     }
 

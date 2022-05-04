@@ -14,6 +14,7 @@
 #include <SDL2/SDL.h>
 
 extern "C" {
+#include "sm64.h"
 #include "pc/gfx/gfx_pc.h"
 #include "pc/configfile.h"
 #include "pc/cheats.h"
@@ -124,27 +125,35 @@ void smachinima_imgui_update() {
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
     ImGui::Checkbox("Shadows", &enable_shadows);
     imgui_bundled_tooltip("Displays the shadows of various objects.");
-    if (ImGui::CollapsingHeader("Mario")) {
-        ImGui::Checkbox("Head Rotations", &enable_head_rotations);
-        imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
-        ImGui::Checkbox("Dust Particles", &enable_dust_particles);
-        imgui_bundled_tooltip("Displays dust particles when Mario moves.");
-        ImGui::Checkbox("Can Fall Asleep", &can_fall_asleep);
-        ImGui::Dummy(ImVec2(0, 5));
-        ImGui::Text("States");
-        const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
-        ImGui::Combo("Hand###hand_state", &scrollHandState, hands, IM_ARRAYSIZE(hands));
-        const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
-        ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
-        const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
-        ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
-        ImGui::Dummy(ImVec2(0, 5));
-        ImGui::Checkbox("Custom Mario Scale", &Cheats.CustomMarioScale);
-        if (Cheats.CustomMarioScale)
-            ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
-        const char* playAsModels[] = { "Mario", "Bob-omb", "Bob-omb Buddy", "Goomba", "Koopa Shell", "Chuckya", "Fly Guy" };
-        ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
-        ImGui::Dummy(ImVec2(0, 5));
+    if (mario_exists) {
+        if (ImGui::CollapsingHeader("Mario")) {
+            ImGui::Checkbox("Head Rotations", &enable_head_rotations);
+            imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+            ImGui::Checkbox("Dust Particles", &enable_dust_particles);
+            imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+            if (gMarioState->action != ACT_FIRST_PERSON) {
+                if (ImGui::Button("Sleep")) {
+                    set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
+                }
+                ImGui::SameLine();
+            }
+            ImGui::Checkbox("Can Fall Asleep", &can_fall_asleep);
+            ImGui::Dummy(ImVec2(0, 5));
+            ImGui::Text("States");
+            const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
+            ImGui::Combo("Hand###hand_state", &scrollHandState, hands, IM_ARRAYSIZE(hands));
+            const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
+            ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+            const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
+            ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
+            ImGui::Dummy(ImVec2(0, 5));
+            ImGui::Checkbox("Custom Mario Scale", &Cheats.CustomMarioScale);
+            if (Cheats.CustomMarioScale)
+                ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
+            const char* playAsModels[] = { "Mario", "Bob-omb", "Bob-omb Buddy", "Goomba", "Koopa Shell", "Chuckya", "Fly Guy" };
+            ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
+            ImGui::Dummy(ImVec2(0, 5));
+        }
     }
     ImGui::Checkbox("Infinite Health", &Cheats.GodMode);
     ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
