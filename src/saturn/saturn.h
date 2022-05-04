@@ -23,6 +23,7 @@ extern int current_eye_state;
 extern bool enable_head_rotations;
 extern bool enable_shadows;
 extern bool enable_dust_particles;
+extern bool can_fall_asleep;
 extern int saturnModelState;
 
 extern bool is_anim_playing;

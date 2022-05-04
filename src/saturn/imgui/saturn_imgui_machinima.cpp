@@ -129,6 +129,7 @@ void smachinima_imgui_update() {
         imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
         ImGui::Checkbox("Dust Particles", &enable_dust_particles);
         imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+        ImGui::Checkbox("Can Fall Asleep", &can_fall_asleep);
         ImGui::Dummy(ImVec2(0, 5));
         ImGui::Text("States");
         const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
@@ -148,6 +149,4 @@ void smachinima_imgui_update() {
     ImGui::Checkbox("Infinite Health", &Cheats.GodMode);
     ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
     imgui_bundled_tooltip("Just like '07! Hold L to in the air to moon jump.");
-    ImGui::Checkbox("Exit Anywhere", &Cheats.ExitAnywhere);
-    imgui_bundled_tooltip("Allows the level to be exited from any state.");
 }

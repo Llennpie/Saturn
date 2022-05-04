@@ -197,7 +197,7 @@ void saturn_imgui_update() {
             ImGui::SetWindowPos(ImVec2(10, 30));
             ImGui::SetWindowSize(ImVec2(300, 125));
             ImGui::Text("Platform: " PLATFORM " (" RAPI_NAME ")");
-            ImGui::Text("Status: %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("Status: %.1f FPS (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 #ifdef GIT_BRANCH
 #ifdef GIT_HASH
             ImGui::Text("Version: " GIT_BRANCH " " GIT_HASH);

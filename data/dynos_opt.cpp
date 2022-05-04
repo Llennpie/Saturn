@@ -401,7 +401,7 @@ static void DynOS_Opt_Close(bool aPlaySavedSfx) {
 #endif
         controller_reconfigure();
         configfile_save(configfile_name());
-        DynOS_Opt_SaveConfig(sDynosMenu);
+        //DynOS_Opt_SaveConfig(sDynosMenu);
         sCurrentMenu = NULL;
     }
 }

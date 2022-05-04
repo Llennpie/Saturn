@@ -17,6 +17,7 @@ extern "C" {
 #include "game/mario.h"
 #include "game/camera.h"
 #include "game/level_update.h"
+#include "pc/cheats.h"
 }
 
 using namespace std;
@@ -57,6 +58,7 @@ void ssettings_imgui_update() {
 
         if (ImGui::Checkbox("VSync", &configWindow.vsync))
             configWindow.settings_changed = true;
+        imgui_bundled_tooltip("Enable/disable this if your game speed is too fast or slow.");
 
         ImGui::Text("Texture Filtering");
         const char* texture_filters[] = { "Nearest", "Linear", "Three-point" };
@@ -86,6 +88,8 @@ void ssettings_imgui_update() {
         ImGui::Checkbox("Precache Textures", &configPrecacheRes);
 #endif
         ImGui::Checkbox("Skip Intro", &configSkipIntro);
+        ImGui::Checkbox("Exit Anywhere", &Cheats.ExitAnywhere);
+        imgui_bundled_tooltip("Allows the level to be exited from any state.");
     }
     if (ImGui::CollapsingHeader("Editor")) {
         const char* mCameraSettings[] = { "Mouse", "Keyboard/Gamepad" };

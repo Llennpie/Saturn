@@ -22,6 +22,7 @@ int camera_view_move_y;
 bool enable_head_rotations = false;
 bool enable_shadows = true;
 bool enable_dust_particles = false;
+bool can_fall_asleep = false;
 int saturnModelState = 0;
 
 bool is_anim_playing = false;
