@@ -57,6 +57,7 @@ static int current_cc_id = 0;
 string cc_name;
 static char cc_gameshark[1024 * 16] = "";
 
+bool one_pack_selectable;
 bool any_packs_selected;
 
 void apply_cc_editor() {
@@ -332,13 +333,21 @@ void sdynos_imgui_update() {
                     bool selected = DynOS_Opt_GetValue(String("dynos_pack_%d", i));
 
                     if (ImGui::Selectable(label.c_str(), &selected)) {
-                        // Deselect other packs
+                        // Deselect other packs, but LSHIFT allows additive
                         for (int j = 0; j < sDynosPacks.Count(); j++) {
-                            DynOS_Opt_SetValue(String("dynos_pack_%d", j), false);
+                            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] == false)
+                                DynOS_Opt_SetValue(String("dynos_pack_%d", j), false);
+                        }
+                        
+                        DynOS_Opt_SetValue(String("dynos_pack_%d", i), selected);
+
+                        one_pack_selectable = false;
+                        for (int k = 0; k < sDynosPacks.Count(); k++) {
+                            if (DynOS_Opt_GetValue(String("dynos_pack_%d", k)))
+                                one_pack_selectable = true;
                         }
 
-                        DynOS_Opt_SetValue(String("dynos_pack_%d", i), selected);
-                        any_packs_selected = selected;
+                        any_packs_selected = one_pack_selectable;
 
                         if (label.find("CmtSPARK") != string::npos && selected)
                             // Turns on CometSPARK support with models containing the name "CmtSPARK"...
