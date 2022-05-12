@@ -57,6 +57,8 @@ static int current_cc_id = 0;
 string cc_name;
 static char cc_gameshark[1024 * 16] = "";
 
+bool any_packs_selected;
+
 void apply_cc_editor() {
     defaultColorHatRLight = (int)(uiHatColor.x * 255);
     defaultColorHatGLight = (int)(uiHatColor.y * 255);
@@ -316,7 +318,10 @@ void sdynos_imgui_update() {
             ImGui::SameLine(); imgui_bundled_help_marker(
                 "These are DynOS model packs, used for live model loading.\nPlace packs in dynos/packs.");
 
-            if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, 150))) {
+            int list_box_size = 200;
+            if (any_packs_selected) list_box_size = 150;
+
+            if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, list_box_size))) {
                 for (int i = 0; i < sDynosPacks.Count(); i++) {
                     u64 _DirSep1 = sDynosPacks[i]->mPath.find_last_of('\\');
                     u64 _DirSep2 = sDynosPacks[i]->mPath.find_last_of('/');
@@ -327,24 +332,33 @@ void sdynos_imgui_update() {
                     bool selected = DynOS_Opt_GetValue(String("dynos_pack_%d", i));
 
                     if (ImGui::Selectable(label.c_str(), &selected)) {
+                        // Deselect other packs
+                        for (int j = 0; j < sDynosPacks.Count(); j++) {
+                            DynOS_Opt_SetValue(String("dynos_pack_%d", j), false);
+                        }
+
                         DynOS_Opt_SetValue(String("dynos_pack_%d", i), selected);
+                        any_packs_selected = selected;
+
                         if (label.find("CmtSPARK") != string::npos && selected) {
                             // Turns on CometSPARK support with models containing the name "CmtSPARK"...
                             cc_spark_support = true;
                         } else {
                             cc_spark_support = false;
                         }
+
                     }
                 }
                 ImGui::EndListBox();
-                ImGui::Checkbox("CC Compatibility", &cc_model_support);
-                ImGui::SameLine(); imgui_bundled_help_marker(
-                    "Toggles color code compatibility for model packs that support it.");
-                
-                if (cc_spark_support) {
-                    ImGui::Text("CometSPARK Support: ON");
+
+                if (any_packs_selected) {
+                    ImGui::Checkbox("CC Compatibility", &cc_model_support);
                     ImGui::SameLine(); imgui_bundled_help_marker(
-                        "DynOS packs with \"CmtSPARK\" in their name will be recognized as CometSPARK models and granted extra color values.");
+                        "Toggles color code compatibility for model packs that support it.");
+
+                    ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
+                    ImGui::SameLine(); imgui_bundled_help_marker(
+                        "Grants a model extra color values. Automatically enabled for DynOS packs with the keyword \"CmtSPARK\".");
                 }
             }
             ImGui::EndTabItem();
