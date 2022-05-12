@@ -340,13 +340,9 @@ void sdynos_imgui_update() {
                         DynOS_Opt_SetValue(String("dynos_pack_%d", i), selected);
                         any_packs_selected = selected;
 
-                        if (label.find("CmtSPARK") != string::npos && selected) {
+                        if (label.find("CmtSPARK") != string::npos && selected)
                             // Turns on CometSPARK support with models containing the name "CmtSPARK"...
                             cc_spark_support = true;
-                        } else {
-                            cc_spark_support = false;
-                        }
-
                     }
                 }
                 ImGui::EndListBox();
