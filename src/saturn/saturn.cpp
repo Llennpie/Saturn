@@ -75,8 +75,8 @@ void saturn_update() {
 
     if (camera_frozen && configMCameraMode == 0) {
         camera_view_enabled = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT];
-        if (camera_view_enabled) { SDL_SetRelativeMouseMode(SDL_TRUE); }
-        else { SDL_SetRelativeMouseMode(SDL_FALSE); }
+        //if (camera_view_enabled) { SDL_SetRelativeMouseMode(SDL_TRUE); }
+        //else { SDL_SetRelativeMouseMode(SDL_FALSE); }
 
         camera_view_moving = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_RMASK;
         camera_view_zooming = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_MMASK;
