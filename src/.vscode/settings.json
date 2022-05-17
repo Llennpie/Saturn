@@ -68,6 +68,7 @@
         "cheats.h": "c",
         "numbers": "cpp",
         "configfile.h": "c",
-        "random": "c"
+        "random": "c",
+        "dynlists.h": "c"
     }
 }

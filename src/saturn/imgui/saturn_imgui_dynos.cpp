@@ -348,10 +348,6 @@ void sdynos_imgui_update() {
                         }
 
                         any_packs_selected = one_pack_selectable;
-
-                        if (label.find("CmtSPARK") != string::npos && selected)
-                            // Turns on CometSPARK support with models containing the name "CmtSPARK"...
-                            cc_spark_support = true;
                     }
                 }
                 ImGui::EndListBox();
