@@ -34,6 +34,8 @@ extern int current_anim_id;
 extern int current_anim_length;
 extern bool is_anim_paused;
 
+extern bool limit_fps;
+
 extern unsigned int chromaKeyColorR;
 extern unsigned int chromaKeyColorG;
 extern unsigned int chromaKeyColorB;

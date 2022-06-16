@@ -35,6 +35,8 @@
 #include "game/main.h"
 #include "game/thread6.h"
 
+#include "saturn/saturn.h"
+
 #ifdef DISCORDRPC
 #include "pc/discord/discordrpc.h"
 #endif
@@ -132,7 +134,8 @@ void produce_one_frame(void) {
 
     gfx_start_frame();
     patch_interpolations();
-    send_display_list(gGfxSPTask);
+    if (limit_fps)
+        send_display_list(gGfxSPTask);
     gfx_end_frame();
 }
 

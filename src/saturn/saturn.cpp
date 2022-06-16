@@ -34,6 +34,8 @@ int current_anim_length;
 bool is_anim_paused = false;
 int paused_anim_frame;
 
+bool limit_fps = true;
+
 // private
 bool is_chroma_keying = false;
 bool prev_quicks[3];

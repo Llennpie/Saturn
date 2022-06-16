@@ -135,6 +135,9 @@ void saturn_imgui_handle_events(SDL_Event * event) {
             if(event->key.keysym.sym == SDLK_F1)
                 showMenu = !showMenu;
 
+            if(event->key.keysym.sym == SDLK_F4)
+                limit_fps = !limit_fps;
+
         case SDL_CONTROLLERBUTTONDOWN:
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
                 showMenu = !showMenu;
@@ -197,7 +200,11 @@ void saturn_imgui_update() {
             ImGui::SetWindowPos(ImVec2(10, 30));
             ImGui::SetWindowSize(ImVec2(300, 125));
             ImGui::Text("Platform: " PLATFORM " (" RAPI_NAME ")");
-            ImGui::Text("Status: %.1f FPS (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+            if (limit_fps) {
+                ImGui::Text("Status: %.1f FPS (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+            } else {
+                ImGui::Text("Status: Limitless FPS (Press F4)");
+            }
 #ifdef GIT_BRANCH
 #ifdef GIT_HASH
             ImGui::Text("Version: " GIT_BRANCH " " GIT_HASH);

@@ -43,6 +43,7 @@ const LevelScript level_sa_entry[] = {
 		TERRAIN_TYPE(TERRAIN_GRASS),
 	END_AREA(),
 
+	/*
 	AREA(2, sa_area_2),
 		WARP_NODE(0x0A, LEVEL_BOB, 0x01, 0x0A, WARP_NO_CHECKPOINT),
 		WARP_NODE(0xF0, LEVEL_BOB, 0x01, 0x0A, WARP_NO_CHECKPOINT),
@@ -78,6 +79,7 @@ const LevelScript level_sa_entry[] = {
 		STOP_MUSIC(0),
 		TERRAIN_TYPE(TERRAIN_GRASS),
 	END_AREA(),
+	*/
 
 	FREE_LEVEL_POOL(),
 	MARIO_POS(0x04, 0, 0, 200, 0),

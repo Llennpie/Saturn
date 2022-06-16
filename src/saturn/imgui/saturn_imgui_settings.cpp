@@ -32,6 +32,9 @@ void ssettings_imgui_init() {
 }
 
 void ssettings_imgui_update() {
+    ImGui::Checkbox("Limit FPS", &limit_fps);
+    imgui_bundled_tooltip("(F4) Helpful for speeding up slow in-game events. Works like Project64.");
+
     ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Graphics")) {
         if (ImGui::Checkbox("Fullscreen", &configWindow.fullscreen))
