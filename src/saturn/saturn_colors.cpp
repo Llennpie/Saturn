@@ -121,6 +121,15 @@ bool cc_spark_support = false;
 std::vector<string> cc_array;
 string colorCodeDir;
 
+bool modelCcLoaded;
+
+bool is_cc_default() {
+    if (global_gs_code() == "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000") {
+        return true;
+    }
+    return false;
+}
+
 void run_cc_replacement(string address, int value1, int value2) {
     // Hat
     if (address == "07EC40") {
@@ -608,16 +617,8 @@ void load_cc_file(char* cc_char_filename) {
 
     file.close();
 
-    std::istringstream f(content);
-    std::string line;
-        
-    while (std::getline(f, line)) {
-        std::string address = line.substr(2, 6);
-        int value1 = std::stoi(line.substr(9, 2), 0, 16);
-        int value2 = std::stoi(line.substr(11, 2), 0, 16);
-
-        run_cc_replacement(address, value1, value2);
-    }
+    paste_gs_code(content);
+    modelCcLoaded = false;
 }
 
 void delete_cc_file(std::string name) {
@@ -632,4 +633,38 @@ void delete_cc_file(std::string name) {
 
     remove(cc_path.c_str());
     load_cc_directory();
+}
+
+bool check_if_model_cc(int id, std::string modelPath) {
+    // We're using "default.gs" to set a default palette
+#ifdef __MINGW32__
+    string filePath = modelPath + "\\default.gs";
+#else
+    string filePath = modelPath + "/default.gs";
+#endif
+    std::ifstream file(filePath, std::ios::in | std::ios::binary);
+
+    return file.good();
+}
+
+void set_cc_from_model(std::string modelPath) {
+    // We're using "default.gs" to set a default palette
+#ifdef __MINGW32__
+    string filePath = modelPath + "\\default.gs";
+#else
+    string filePath = modelPath + "/default.gs";
+#endif
+    std::ifstream file(filePath, std::ios::in | std::ios::binary);
+
+    if (!file.good()) {
+        // No file exists, cancel
+        return;
+    }
+
+    const std::size_t& size = std::filesystem::file_size(filePath);
+    std::string content(size, '\0');
+    file.read(content.data(), size);
+    file.close();
+
+    paste_gs_code(content);
 }
