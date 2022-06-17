@@ -59,6 +59,8 @@ static char cc_gameshark[1024 * 16] = "";
 
 bool one_pack_selectable;
 bool any_packs_selected;
+int windowListSize = 325;
+int cc_model_id;
 
 void apply_cc_editor() {
     defaultColorHatRLight = (int)(uiHatColor.x * 255);
@@ -217,6 +219,17 @@ void sdynos_imgui_update() {
                 if (ImGui::Selectable(cc_name.c_str(), is_selected)) {
                     current_cc_id = n;
                 }
+                if (cc_name != "Mario") {
+                    if (ImGui::BeginPopupContextItem())
+                    {
+                        ImGui::Text("%s.gs", cc_name.c_str());
+                        if (ImGui::Button("Delete File")) {
+                            delete_cc_file(cc_name);
+                            ImGui::CloseCurrentPopup();
+                        } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                        ImGui::EndPopup();
+                    }
+                }
 
                 // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
                 if (is_selected)
@@ -286,12 +299,6 @@ void sdynos_imgui_update() {
                 }
                 load_cc_directory();
             }
-            ImGui::SameLine();
-            if (ImGui::Button("Delete CC")) {
-                delete_cc_file(uiGsCcName);
-            } ImGui::SameLine(); imgui_bundled_help_marker(
-                "WARNING: This will delete the CC file as written above. This action is irreversible!");
-            
             ImGui::EndTabItem();
         }
 
@@ -315,14 +322,12 @@ void sdynos_imgui_update() {
         }
 
         if (ImGui::BeginTabItem("Model Packs")) {
-            ImGui::SetWindowSize(ImVec2(275, 325));
             ImGui::SameLine(); imgui_bundled_help_marker(
                 "These are DynOS model packs, used for live model loading.\nPlace packs in dynos/packs.");
 
-            int list_box_size = 200;
-            if (any_packs_selected) list_box_size = 150;
+            ImGui::SetWindowSize(ImVec2(275, windowListSize));
 
-            if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, list_box_size))) {
+            if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, 200))) {
                 for (int i = 0; i < sDynosPacks.Count(); i++) {
                     u64 _DirSep1 = sDynosPacks[i]->mPath.find_last_of('\\');
                     u64 _DirSep2 = sDynosPacks[i]->mPath.find_last_of('/');
@@ -349,10 +354,20 @@ void sdynos_imgui_update() {
 
                         any_packs_selected = one_pack_selectable;
                     }
+                    if (ImGui::BeginPopupContextItem())
+                    {
+                        ImGui::Text("%s", label.c_str());
+                        if (ImGui::Button("Set Model CC")) {
+                            set_cc_from_model(sDynosPacks[i]->mPath);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
+                    }
                 }
                 ImGui::EndListBox();
 
                 if (any_packs_selected) {
+                    windowListSize = 375;
                     ImGui::Checkbox("CC Compatibility", &cc_model_support);
                     ImGui::SameLine(); imgui_bundled_help_marker(
                         "Toggles color code compatibility for model packs that support it.");
@@ -360,6 +375,8 @@ void sdynos_imgui_update() {
                     ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
                     ImGui::SameLine(); imgui_bundled_help_marker(
                         "Grants a model extra color values. Automatically enabled for DynOS packs with the keyword \"CmtSPARK\".");
+                } else {
+                    windowListSize = 325;
                 }
             }
             ImGui::EndTabItem();
