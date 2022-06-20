@@ -13,6 +13,8 @@
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 
+#include "pc/configfile.h"
+
 extern "C" {
 #include "game/camera.h"
 #include "game/level_update.h"
@@ -123,13 +125,187 @@ string colorCodeDir;
 
 bool modelCcLoaded;
 
-bool is_cc_default() {
-    if (global_gs_code() == "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000") {
-        return true;
+/*
+    The currently active GameShark code in string format.
+*/
+std::string global_gs_code() {
+    std::string gameshark;
+
+    char col1char[64];
+    ImFormatString(col1char, IM_ARRAYSIZE(col1char), "%02X%02X%02X", ImClamp((int)defaultColorHatRLight, 0, 255), ImClamp((int)defaultColorHatGLight, 0, 255), ImClamp((int)defaultColorHatBLight, 0, 255));
+    std::string col1 = col1char;
+    char col2char[64];
+    ImFormatString(col2char, IM_ARRAYSIZE(col2char), "%02X%02X%02X", ImClamp((int)defaultColorHatRDark, 0, 255), ImClamp((int)defaultColorHatGDark, 0, 255), ImClamp((int)defaultColorHatBDark, 0, 255));
+    std::string col2 = col2char;
+    char col3char[64];
+    ImFormatString(col3char, IM_ARRAYSIZE(col3char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRLight, 0, 255), ImClamp((int)defaultColorOverallsGLight, 0, 255), ImClamp((int)defaultColorOverallsBLight, 0, 255));
+    std::string col3 = col3char;
+    char col4char[64];
+    ImFormatString(col4char, IM_ARRAYSIZE(col4char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRDark, 0, 255), ImClamp((int)defaultColorOverallsGDark, 0, 255), ImClamp((int)defaultColorOverallsBDark, 0, 255));
+    std::string col4 = col4char;
+    char col5char[64];
+    ImFormatString(col5char, IM_ARRAYSIZE(col5char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRLight, 0, 255), ImClamp((int)defaultColorGlovesGLight, 0, 255), ImClamp((int)defaultColorGlovesBLight, 0, 255));
+    std::string col5 = col5char;
+    char col6char[64];
+    ImFormatString(col6char, IM_ARRAYSIZE(col6char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRDark, 0, 255), ImClamp((int)defaultColorGlovesGDark, 0, 255), ImClamp((int)defaultColorGlovesBDark, 0, 255));
+    std::string col6 = col6char;
+    char col7char[64];
+    ImFormatString(col7char, IM_ARRAYSIZE(col7char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRLight, 0, 255), ImClamp((int)defaultColorShoesGLight, 0, 255), ImClamp((int)defaultColorShoesBLight, 0, 255));
+    std::string col7 = col7char;
+    char col8char[64];
+    ImFormatString(col8char, IM_ARRAYSIZE(col8char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRDark, 0, 255), ImClamp((int)defaultColorShoesGDark, 0, 255), ImClamp((int)defaultColorShoesBDark, 0, 255));
+    std::string col8 = col8char;
+    char col9char[64];
+    ImFormatString(col9char, IM_ARRAYSIZE(col9char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRLight, 0, 255), ImClamp((int)defaultColorSkinGLight, 0, 255), ImClamp((int)defaultColorSkinBLight, 0, 255));
+    std::string col9 = col9char;
+    char col10char[64];
+    ImFormatString(col10char, IM_ARRAYSIZE(col10char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRDark, 0, 255), ImClamp((int)defaultColorSkinGDark, 0, 255), ImClamp((int)defaultColorSkinBDark, 0, 255));
+    std::string col10 = col10char;
+    char col11char[64];
+    ImFormatString(col11char, IM_ARRAYSIZE(col11char), "%02X%02X%02X", ImClamp((int)defaultColorHairRLight, 0, 255), ImClamp((int)defaultColorHairGLight, 0, 255), ImClamp((int)defaultColorHairBLight, 0, 255));
+    std::string col11 = col11char;
+    char col12char[64];
+    ImFormatString(col12char, IM_ARRAYSIZE(col12char), "%02X%02X%02X", ImClamp((int)defaultColorHairRDark, 0, 255), ImClamp((int)defaultColorHairGDark, 0, 255), ImClamp((int)defaultColorHairBDark, 0, 255));
+    std::string col12 = col12char;
+
+    gameshark += "8107EC40 " + col1.substr(0, 2) + col1.substr(2, 2) + "\n";
+    gameshark += "8107EC42 " + col1.substr(4, 2) + "00\n";
+    gameshark += "8107EC38 " + col2.substr(0, 2) + col2.substr(2, 2) + "\n";
+    gameshark += "8107EC3A " + col2.substr(4, 2) + "00\n";
+    gameshark += "8107EC28 " + col3.substr(0, 2) + col3.substr(2, 2) + "\n";
+    gameshark += "8107EC2A " + col3.substr(4, 2) + "00\n";
+    gameshark += "8107EC20 " + col4.substr(0, 2) + col4.substr(2, 2) + "\n";
+    gameshark += "8107EC22 " + col4.substr(4, 2) + "00\n";
+    gameshark += "8107EC58 " + col5.substr(0, 2) + col5.substr(2, 2) + "\n";
+    gameshark += "8107EC5A " + col5.substr(4, 2) + "00\n";
+    gameshark += "8107EC50 " + col6.substr(0, 2) + col6.substr(2, 2) + "\n";
+    gameshark += "8107EC52 " + col6.substr(4, 2) + "00\n";
+    gameshark += "8107EC70 " + col7.substr(0, 2) + col7.substr(2, 2) + "\n";
+    gameshark += "8107EC72 " + col7.substr(4, 2) + "00\n";
+    gameshark += "8107EC68 " + col8.substr(0, 2) + col8.substr(2, 2) + "\n";
+    gameshark += "8107EC6A " + col8.substr(4, 2) + "00\n";
+    gameshark += "8107EC88 " + col9.substr(0, 2) + col9.substr(2, 2) + "\n";
+    gameshark += "8107EC8A " + col9.substr(4, 2) + "00\n";
+    gameshark += "8107EC80 " + col10.substr(0, 2) + col10.substr(2, 2) + "\n";
+    gameshark += "8107EC82 " + col10.substr(4, 2) + "00\n";
+    gameshark += "8107ECA0 " + col11.substr(0, 2) + col11.substr(2, 2) + "\n";
+    gameshark += "8107ECA2 " + col11.substr(4, 2) + "00\n";
+    gameshark += "8107EC98 " + col12.substr(0, 2) + col12.substr(2, 2) + "\n";
+    if (!cc_spark_support) {
+        gameshark += "8107EC9A " + col12.substr(4, 2) + "00";
+    } else {
+        gameshark += "8107EC9A " + col12.substr(4, 2) + "00\n";
+
+        char col13char[64];
+        ImFormatString(col13char, IM_ARRAYSIZE(col13char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRLight, 0, 255), ImClamp((int)sparkColorShirtGLight, 0, 255), ImClamp((int)sparkColorShirtBLight, 0, 255));
+        std::string col13 = col13char;
+        char col14char[64];
+        ImFormatString(col14char, IM_ARRAYSIZE(col14char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRDark, 0, 255), ImClamp((int)sparkColorShirtGDark, 0, 255), ImClamp((int)sparkColorShirtBDark, 0, 255));
+        std::string col14 = col14char;
+        char col15char[64];
+        ImFormatString(col15char, IM_ARRAYSIZE(col15char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRLight, 0, 255), ImClamp((int)sparkColorShouldersGLight, 0, 255), ImClamp((int)sparkColorShouldersBLight, 0, 255));
+        std::string col15 = col15char;
+        char col16char[64];
+        ImFormatString(col16char, IM_ARRAYSIZE(col16char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRDark, 0, 255), ImClamp((int)sparkColorShouldersGDark, 0, 255), ImClamp((int)sparkColorShouldersBDark, 0, 255));
+        std::string col16 = col16char;
+        char col17char[64];
+        ImFormatString(col17char, IM_ARRAYSIZE(col17char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRLight, 0, 255), ImClamp((int)sparkColorArmsGLight, 0, 255), ImClamp((int)sparkColorArmsBLight, 0, 255));
+        std::string col17 = col17char;
+        char col18char[64];
+        ImFormatString(col18char, IM_ARRAYSIZE(col18char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRDark, 0, 255), ImClamp((int)sparkColorArmsGDark, 0, 255), ImClamp((int)sparkColorArmsBDark, 0, 255));
+        std::string col18 = col18char;
+        char col19char[64];
+        ImFormatString(col19char, IM_ARRAYSIZE(col19char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRLight, 0, 255), ImClamp((int)sparkColorOverallsBottomGLight, 0, 255), ImClamp((int)sparkColorOverallsBottomBLight, 0, 255));
+        std::string col19 = col19char;
+        char col20char[64];
+        ImFormatString(col20char, IM_ARRAYSIZE(col20char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRDark, 0, 255), ImClamp((int)sparkColorOverallsBottomGDark, 0, 255), ImClamp((int)sparkColorOverallsBottomBDark, 0, 255));
+        std::string col20 = col20char;
+        char col21char[64];
+        ImFormatString(col21char, IM_ARRAYSIZE(col21char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRLight, 0, 255), ImClamp((int)sparkColorLegTopGLight, 0, 255), ImClamp((int)sparkColorLegTopBLight, 0, 255));
+        std::string col21 = col21char;
+        char col22char[64];
+        ImFormatString(col22char, IM_ARRAYSIZE(col22char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRDark, 0, 255), ImClamp((int)sparkColorLegTopGDark, 0, 255), ImClamp((int)sparkColorLegTopBDark, 0, 255));
+        std::string col22 = col22char;
+        char col23char[64];
+        ImFormatString(col23char, IM_ARRAYSIZE(col23char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRLight, 0, 255), ImClamp((int)sparkColorLegBottomGLight, 0, 255), ImClamp((int)sparkColorLegBottomBLight, 0, 255));
+        std::string col23 = col23char;
+        char col24char[64];
+        ImFormatString(col24char, IM_ARRAYSIZE(col24char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRDark, 0, 255), ImClamp((int)sparkColorLegBottomGDark, 0, 255), ImClamp((int)sparkColorLegBottomBDark, 0, 255));
+        std::string col24 = col24char;
+
+        gameshark += "8107ECB8 " + col13.substr(0, 2) + col13.substr(2, 2) + "\n";
+        gameshark += "8107ECBA " + col13.substr(4, 2) + "00\n";
+        gameshark += "8107ECB0 " + col14.substr(0, 2) + col14.substr(2, 2) + "\n";
+        gameshark += "8107ECB2 " + col14.substr(4, 2) + "00\n";
+        gameshark += "8107ECD0 " + col15.substr(0, 2) + col15.substr(2, 2) + "\n";
+        gameshark += "8107ECD2 " + col15.substr(4, 2) + "00\n";
+        gameshark += "8107ECC8 " + col16.substr(0, 2) + col16.substr(2, 2) + "\n";
+        gameshark += "8107ECCA " + col16.substr(4, 2) + "00\n";
+        gameshark += "8107ECE8 " + col17.substr(0, 2) + col17.substr(2, 2) + "\n";
+        gameshark += "8107ECEA " + col17.substr(4, 2) + "00\n";
+        gameshark += "8107ECE0 " + col18.substr(0, 2) + col18.substr(2, 2) + "\n";
+        gameshark += "8107ECE2 " + col18.substr(4, 2) + "00\n";
+        gameshark += "8107ED00 " + col19.substr(0, 2) + col19.substr(2, 2) + "\n";
+        gameshark += "8107ED02 " + col19.substr(4, 2) + "00\n";
+        gameshark += "8107ECF8 " + col20.substr(0, 2) + col20.substr(2, 2) + "\n";
+        gameshark += "8107ECFA " + col20.substr(4, 2) + "00\n";
+        gameshark += "8107ED18 " + col21.substr(0, 2) + col21.substr(2, 2) + "\n";
+        gameshark += "8107ED1A " + col21.substr(4, 2) + "00\n";
+        gameshark += "8107ED10 " + col22.substr(0, 2) + col22.substr(2, 2) + "\n";
+        gameshark += "8107ED12 " + col22.substr(4, 2) + "00\n";
+        gameshark += "8107ED30 " + col23.substr(0, 2) + col23.substr(2, 2) + "\n";
+        gameshark += "8107ED32 " + col23.substr(4, 2) + "00\n";
+        gameshark += "8107ED28 " + col24.substr(0, 2) + col24.substr(2, 2) + "\n";
+        gameshark += "8107ED2A " + col24.substr(4, 2) + "00";
     }
+
+    return gameshark;
+}
+
+/*
+    Returns true if a defined address is for the CometSPARK format.
+*/
+bool is_spark_address(string address) {
+    // The unholy address table
+    if (address == "07ECB8" || address == "07ECBA" || address == "07ECB0" || address == "07ECB2")
+        return true;
+    if (address == "07ECD0" || address == "07ECD2" || address == "07ECC8" || address == "07ECCA")
+        return true;
+    if (address == "07ECE8" || address == "07ECEA" || address == "07ECE0" || address == "07ECE2")
+        return true;
+    if (address == "07ED00" || address == "07ED02" || address == "07ECF8"|| address == "07ECFA")
+        return true;
+    if (address == "07ED18" || address == "07ED1A" || address == "07ED10" || address == "07ED12")
+        return true;
+    if (address == "07ED30" || address == "07ED32" || address == "07ED28" || address == "07ED2A")
+        return true;
+
+    // Nope
     return false;
 }
 
+/*
+    Loads the dynos/colorcodes/ folder into the CC array.
+*/
+void load_cc_directory() {
+    cc_array.clear();
+    cc_array.push_back("Mario.gs");
+
+#ifdef __MINGW32__
+    // windows moment
+    colorCodeDir = "dynos\\colorcodes\\";
+#else
+    colorCodeDir = "dynos/colorcodes/";
+#endif
+
+    for (const auto & entry : fs::directory_iterator(colorCodeDir))
+        if (entry.path().filename().u8string() != "Mario")
+            cc_array.push_back(entry.path().filename().u8string());
+}
+
+/*
+    Preferably used in a while loop, sets a global color with a defined address and value.
+*/
 void run_cc_replacement(string address, int value1, int value2) {
     // Hat
     if (address == "07EC40") {
@@ -334,22 +510,9 @@ void run_cc_replacement(string address, int value1, int value2) {
     }
 }
 
-void load_cc_directory() {
-    cc_array.clear();
-    cc_array.push_back("Mario.gs");
-
-#ifdef __MINGW32__
-    // windows moment
-    colorCodeDir = "dynos\\colorcodes\\";
-#else
-    colorCodeDir = "dynos/colorcodes/";
-#endif
-
-    for (const auto & entry : fs::directory_iterator(colorCodeDir))
-        if (entry.path().filename().u8string() != "Mario")
-            cc_array.push_back(entry.path().filename().u8string());
-}
-
+/*
+    Resets Mario's colors to default.
+*/
 void reset_cc_colors() {
     defaultColorHatRLight = 255;
     defaultColorHatRDark = 127;
@@ -392,9 +555,6 @@ void reset_cc_colors() {
     defaultColorHairGDark = 3;
     defaultColorHairBLight = 0;
     defaultColorHairBDark = 0;
-
-    if (!cc_spark_support)
-        return;
 
     // CometSPARK
     sparkColorShirtRLight = 255;
@@ -440,140 +600,9 @@ void reset_cc_colors() {
     sparkColorLegBottomBDark = 127;
 }
 
-std::string global_gs_code() {
-    std::string gameshark;
-
-    char col1char[64];
-    ImFormatString(col1char, IM_ARRAYSIZE(col1char), "%02X%02X%02X", ImClamp((int)defaultColorHatRLight, 0, 255), ImClamp((int)defaultColorHatGLight, 0, 255), ImClamp((int)defaultColorHatBLight, 0, 255));
-    std::string col1 = col1char;
-    char col2char[64];
-    ImFormatString(col2char, IM_ARRAYSIZE(col2char), "%02X%02X%02X", ImClamp((int)defaultColorHatRDark, 0, 255), ImClamp((int)defaultColorHatGDark, 0, 255), ImClamp((int)defaultColorHatBDark, 0, 255));
-    std::string col2 = col2char;
-    char col3char[64];
-    ImFormatString(col3char, IM_ARRAYSIZE(col3char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRLight, 0, 255), ImClamp((int)defaultColorOverallsGLight, 0, 255), ImClamp((int)defaultColorOverallsBLight, 0, 255));
-    std::string col3 = col3char;
-    char col4char[64];
-    ImFormatString(col4char, IM_ARRAYSIZE(col4char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRDark, 0, 255), ImClamp((int)defaultColorOverallsGDark, 0, 255), ImClamp((int)defaultColorOverallsBDark, 0, 255));
-    std::string col4 = col4char;
-    char col5char[64];
-    ImFormatString(col5char, IM_ARRAYSIZE(col5char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRLight, 0, 255), ImClamp((int)defaultColorGlovesGLight, 0, 255), ImClamp((int)defaultColorGlovesBLight, 0, 255));
-    std::string col5 = col5char;
-    char col6char[64];
-    ImFormatString(col6char, IM_ARRAYSIZE(col6char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRDark, 0, 255), ImClamp((int)defaultColorGlovesGDark, 0, 255), ImClamp((int)defaultColorGlovesBDark, 0, 255));
-    std::string col6 = col6char;
-    char col7char[64];
-    ImFormatString(col7char, IM_ARRAYSIZE(col7char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRLight, 0, 255), ImClamp((int)defaultColorShoesGLight, 0, 255), ImClamp((int)defaultColorShoesBLight, 0, 255));
-    std::string col7 = col7char;
-    char col8char[64];
-    ImFormatString(col8char, IM_ARRAYSIZE(col8char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRDark, 0, 255), ImClamp((int)defaultColorShoesGDark, 0, 255), ImClamp((int)defaultColorShoesBDark, 0, 255));
-    std::string col8 = col8char;
-    char col9char[64];
-    ImFormatString(col9char, IM_ARRAYSIZE(col9char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRLight, 0, 255), ImClamp((int)defaultColorSkinGLight, 0, 255), ImClamp((int)defaultColorSkinBLight, 0, 255));
-    std::string col9 = col9char;
-    char col10char[64];
-    ImFormatString(col10char, IM_ARRAYSIZE(col10char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRDark, 0, 255), ImClamp((int)defaultColorSkinGDark, 0, 255), ImClamp((int)defaultColorSkinBDark, 0, 255));
-    std::string col10 = col10char;
-    char col11char[64];
-    ImFormatString(col11char, IM_ARRAYSIZE(col11char), "%02X%02X%02X", ImClamp((int)defaultColorHairRLight, 0, 255), ImClamp((int)defaultColorHairGLight, 0, 255), ImClamp((int)defaultColorHairBLight, 0, 255));
-    std::string col11 = col11char;
-    char col12char[64];
-    ImFormatString(col12char, IM_ARRAYSIZE(col12char), "%02X%02X%02X", ImClamp((int)defaultColorHairRDark, 0, 255), ImClamp((int)defaultColorHairGDark, 0, 255), ImClamp((int)defaultColorHairBDark, 0, 255));
-    std::string col12 = col12char;
-
-    gameshark += "8107EC40 " + col1.substr(0, 2) + col1.substr(2, 2) + "\n";
-    gameshark += "8107EC42 " + col1.substr(4, 2) + "00\n";
-    gameshark += "8107EC38 " + col2.substr(0, 2) + col2.substr(2, 2) + "\n";
-    gameshark += "8107EC3A " + col2.substr(4, 2) + "00\n";
-    gameshark += "8107EC28 " + col3.substr(0, 2) + col3.substr(2, 2) + "\n";
-    gameshark += "8107EC2A " + col3.substr(4, 2) + "00\n";
-    gameshark += "8107EC20 " + col4.substr(0, 2) + col4.substr(2, 2) + "\n";
-    gameshark += "8107EC22 " + col4.substr(4, 2) + "00\n";
-    gameshark += "8107EC58 " + col5.substr(0, 2) + col5.substr(2, 2) + "\n";
-    gameshark += "8107EC5A " + col5.substr(4, 2) + "00\n";
-    gameshark += "8107EC50 " + col6.substr(0, 2) + col6.substr(2, 2) + "\n";
-    gameshark += "8107EC52 " + col6.substr(4, 2) + "00\n";
-    gameshark += "8107EC70 " + col7.substr(0, 2) + col7.substr(2, 2) + "\n";
-    gameshark += "8107EC72 " + col7.substr(4, 2) + "00\n";
-    gameshark += "8107EC68 " + col8.substr(0, 2) + col8.substr(2, 2) + "\n";
-    gameshark += "8107EC6A " + col8.substr(4, 2) + "00\n";
-    gameshark += "8107EC88 " + col9.substr(0, 2) + col9.substr(2, 2) + "\n";
-    gameshark += "8107EC8A " + col9.substr(4, 2) + "00\n";
-    gameshark += "8107EC80 " + col10.substr(0, 2) + col10.substr(2, 2) + "\n";
-    gameshark += "8107EC82 " + col10.substr(4, 2) + "00\n";
-    gameshark += "8107ECA0 " + col11.substr(0, 2) + col11.substr(2, 2) + "\n";
-    gameshark += "8107ECA2 " + col11.substr(4, 2) + "00\n";
-    gameshark += "8107EC98 " + col12.substr(0, 2) + col12.substr(2, 2) + "\n";
-    if (!cc_spark_support) {
-        gameshark += "8107EC9A " + col12.substr(4, 2) + "00";
-    } else {
-        gameshark += "8107EC9A " + col12.substr(4, 2) + "00\n";
-
-        char col13char[64];
-        ImFormatString(col13char, IM_ARRAYSIZE(col13char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRLight, 0, 255), ImClamp((int)sparkColorShirtGLight, 0, 255), ImClamp((int)sparkColorShirtBLight, 0, 255));
-        std::string col13 = col13char;
-        char col14char[64];
-        ImFormatString(col14char, IM_ARRAYSIZE(col14char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRDark, 0, 255), ImClamp((int)sparkColorShirtGDark, 0, 255), ImClamp((int)sparkColorShirtBDark, 0, 255));
-        std::string col14 = col14char;
-        char col15char[64];
-        ImFormatString(col15char, IM_ARRAYSIZE(col15char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRLight, 0, 255), ImClamp((int)sparkColorShouldersGLight, 0, 255), ImClamp((int)sparkColorShouldersBLight, 0, 255));
-        std::string col15 = col15char;
-        char col16char[64];
-        ImFormatString(col16char, IM_ARRAYSIZE(col16char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRDark, 0, 255), ImClamp((int)sparkColorShouldersGDark, 0, 255), ImClamp((int)sparkColorShouldersBDark, 0, 255));
-        std::string col16 = col16char;
-        char col17char[64];
-        ImFormatString(col17char, IM_ARRAYSIZE(col17char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRLight, 0, 255), ImClamp((int)sparkColorArmsGLight, 0, 255), ImClamp((int)sparkColorArmsBLight, 0, 255));
-        std::string col17 = col17char;
-        char col18char[64];
-        ImFormatString(col18char, IM_ARRAYSIZE(col18char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRDark, 0, 255), ImClamp((int)sparkColorArmsGDark, 0, 255), ImClamp((int)sparkColorArmsBDark, 0, 255));
-        std::string col18 = col18char;
-        char col19char[64];
-        ImFormatString(col19char, IM_ARRAYSIZE(col19char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRLight, 0, 255), ImClamp((int)sparkColorOverallsBottomGLight, 0, 255), ImClamp((int)sparkColorOverallsBottomBLight, 0, 255));
-        std::string col19 = col19char;
-        char col20char[64];
-        ImFormatString(col20char, IM_ARRAYSIZE(col20char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRDark, 0, 255), ImClamp((int)sparkColorOverallsBottomGDark, 0, 255), ImClamp((int)sparkColorOverallsBottomBDark, 0, 255));
-        std::string col20 = col20char;
-        char col21char[64];
-        ImFormatString(col21char, IM_ARRAYSIZE(col21char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRLight, 0, 255), ImClamp((int)sparkColorLegTopGLight, 0, 255), ImClamp((int)sparkColorLegTopBLight, 0, 255));
-        std::string col21 = col21char;
-        char col22char[64];
-        ImFormatString(col22char, IM_ARRAYSIZE(col22char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRDark, 0, 255), ImClamp((int)sparkColorLegTopGDark, 0, 255), ImClamp((int)sparkColorLegTopBDark, 0, 255));
-        std::string col22 = col22char;
-        char col23char[64];
-        ImFormatString(col23char, IM_ARRAYSIZE(col23char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRLight, 0, 255), ImClamp((int)sparkColorLegBottomGLight, 0, 255), ImClamp((int)sparkColorLegBottomBLight, 0, 255));
-        std::string col23 = col23char;
-        char col24char[64];
-        ImFormatString(col24char, IM_ARRAYSIZE(col24char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRDark, 0, 255), ImClamp((int)sparkColorLegBottomGDark, 0, 255), ImClamp((int)sparkColorLegBottomBDark, 0, 255));
-        std::string col24 = col24char;
-
-        gameshark += "8107ECB8 " + col13.substr(0, 2) + col13.substr(2, 2) + "\n";
-        gameshark += "8107ECBA " + col13.substr(4, 2) + "00\n";
-        gameshark += "8107ECB0 " + col14.substr(0, 2) + col14.substr(2, 2) + "\n";
-        gameshark += "8107ECB2 " + col14.substr(4, 2) + "00\n";
-        gameshark += "8107ECD0 " + col15.substr(0, 2) + col15.substr(2, 2) + "\n";
-        gameshark += "8107ECD2 " + col15.substr(4, 2) + "00\n";
-        gameshark += "8107ECC8 " + col16.substr(0, 2) + col16.substr(2, 2) + "\n";
-        gameshark += "8107ECCA " + col16.substr(4, 2) + "00\n";
-        gameshark += "8107ECE8 " + col17.substr(0, 2) + col17.substr(2, 2) + "\n";
-        gameshark += "8107ECEA " + col17.substr(4, 2) + "00\n";
-        gameshark += "8107ECE0 " + col18.substr(0, 2) + col18.substr(2, 2) + "\n";
-        gameshark += "8107ECE2 " + col18.substr(4, 2) + "00\n";
-        gameshark += "8107ED00 " + col19.substr(0, 2) + col19.substr(2, 2) + "\n";
-        gameshark += "8107ED02 " + col19.substr(4, 2) + "00\n";
-        gameshark += "8107ECF8 " + col20.substr(0, 2) + col20.substr(2, 2) + "\n";
-        gameshark += "8107ECFA " + col20.substr(4, 2) + "00\n";
-        gameshark += "8107ED18 " + col21.substr(0, 2) + col21.substr(2, 2) + "\n";
-        gameshark += "8107ED1A " + col21.substr(4, 2) + "00\n";
-        gameshark += "8107ED10 " + col22.substr(0, 2) + col22.substr(2, 2) + "\n";
-        gameshark += "8107ED12 " + col22.substr(4, 2) + "00\n";
-        gameshark += "8107ED30 " + col23.substr(0, 2) + col23.substr(2, 2) + "\n";
-        gameshark += "8107ED32 " + col23.substr(4, 2) + "00\n";
-        gameshark += "8107ED28 " + col24.substr(0, 2) + col24.substr(2, 2) + "\n";
-        gameshark += "8107ED2A " + col24.substr(4, 2) + "00";
-    }
-
-    return gameshark;
-}
-
+/*
+    Sets Mario's colors using a GameShark code string.
+*/
 void paste_gs_code(string content) {
     std::istringstream f(content);
     std::string line;
@@ -587,6 +616,9 @@ void paste_gs_code(string content) {
     }
 }
 
+/*
+    Saves the global_gs_code() to a GS file.
+*/
 void save_cc_file(std::string name) {
 #ifdef __MINGW32__
     std::ofstream file("dynos\\colorcodes\\" + name + ".gs");
@@ -596,6 +628,9 @@ void save_cc_file(std::string name) {
     file << global_gs_code();
 }
 
+/*
+    Loads a GS file and sets Mario's colors.
+*/
 void load_cc_file(char* cc_char_filename) {
     string cc_filename = cc_char_filename;
     if (cc_filename == "Mario.gs") {
@@ -621,6 +656,9 @@ void load_cc_file(char* cc_char_filename) {
     modelCcLoaded = false;
 }
 
+/*
+    Deletes a GS file.
+*/
 void delete_cc_file(std::string name) {
     if (name == "Mario")
         name = "Sample";
@@ -635,18 +673,9 @@ void delete_cc_file(std::string name) {
     load_cc_directory();
 }
 
-bool check_if_model_cc(int id, std::string modelPath) {
-    // We're using "default.gs" to set a default palette
-#ifdef __MINGW32__
-    string filePath = modelPath + "\\default.gs";
-#else
-    string filePath = modelPath + "/default.gs";
-#endif
-    std::ifstream file(filePath, std::ios::in | std::ios::binary);
-
-    return file.good();
-}
-
+/*
+    Sets Mario's colors using a defined model path.
+*/
 void set_cc_from_model(std::string modelPath) {
     // We're using "default.gs" to set a default palette
 #ifdef __MINGW32__
@@ -666,5 +695,15 @@ void set_cc_from_model(std::string modelPath) {
     file.read(content.data(), size);
     file.close();
 
-    paste_gs_code(content);
+    std::istringstream f(content);
+    std::string line;
+        
+    while (std::getline(f, line)) {
+        std::string address = line.substr(2, 6);
+        int value1 = std::stoi(line.substr(9, 2), 0, 16);
+        int value2 = std::stoi(line.substr(11, 2), 0, 16);
+
+        if (!cc_spark_support) cc_spark_support = is_spark_address(address);
+        run_cc_replacement(address, value1, value2);
+    }
 }

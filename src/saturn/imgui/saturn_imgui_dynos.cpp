@@ -359,6 +359,7 @@ void sdynos_imgui_update() {
                         ImGui::Text("%s", label.c_str());
                         if (ImGui::Button("Set Model CC")) {
                             set_cc_from_model(sDynosPacks[i]->mPath);
+                            apply_editor_global_cc();
                             ImGui::CloseCurrentPopup();
                         }
                         ImGui::EndPopup();

@@ -102,7 +102,6 @@ extern std::string global_gs_code();
 void paste_gs_code(std::string content);
 void save_cc_file(std::string name);
 void delete_cc_file(std::string name);
-extern bool check_if_model_cc(int id, std::string modelPath);
 void set_cc_from_model(std::string modelPath);
 
 extern "C" {
