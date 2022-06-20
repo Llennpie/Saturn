@@ -104,7 +104,9 @@ void ssettings_imgui_update() {
             ImGui::SameLine(); imgui_bundled_help_marker("R + C-Buttons = Pan Camera, L + C-Buttons = Raise/Lower Camera");
         }
         ImGui::Dummy(ImVec2(0, 5));
-        ImGui::Checkbox("Auto-apply CC", &configEditorFastApply);
-        imgui_bundled_tooltip("Enables/disables automatic applying in the CC editor. May cause lag on low-end machines.");
+        ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
+        imgui_bundled_tooltip("If enabled, color codes will automaticly apply in the CC editor. May cause lag on low-end machines.");
+        ImGui::Checkbox("Auto-enable CometSPARK support", &configEditorAutoSpark);
+        imgui_bundled_tooltip("If enabled, CometSPARK support will automatically turn on when a SPARK GS code is loaded.");
     }
 }

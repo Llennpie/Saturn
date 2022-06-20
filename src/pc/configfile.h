@@ -47,6 +47,7 @@ extern bool         configPrecacheRes;
 #endif
 extern unsigned int configMCameraMode;
 extern bool         configEditorFastApply;
+extern bool         configEditorAutoSpark;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
 extern unsigned int configCameraYSens;

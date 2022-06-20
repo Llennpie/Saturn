@@ -80,6 +80,7 @@ bool configPrecacheRes = true;
 #endif
 unsigned int configMCameraMode   = 0;
 bool         configEditorFastApply = false;
+bool         configEditorAutoSpark = true;
 #ifdef BETTERCAMERA
 // BetterCamera settings
 unsigned int configCameraXSens   = 50;
@@ -134,6 +135,7 @@ static const struct ConfigOption options[] = {
     #endif
     {.name = "mcamera_mode",         .type = CONFIG_TYPE_UINT, .uintValue = &configMCameraMode},
     {.name = "editor_fast_apply",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorFastApply},
+    {.name = "editor_auto_spark",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoSpark},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
     {.name = "bettercam_analog",     .type = CONFIG_TYPE_BOOL, .boolValue = &configCameraAnalog},
