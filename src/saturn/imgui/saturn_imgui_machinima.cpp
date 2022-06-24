@@ -151,7 +151,8 @@ void smachinima_imgui_update() {
             if (Cheats.CustomMarioScale)
                 ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
             const char* playAsModels[] = { "Mario", "Bob-omb", "Bob-omb Buddy", "Goomba", "Koopa Shell", "Chuckya", "Fly Guy" };
-            ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
+            if (gCurrLevelNum != LEVEL_SA)
+                ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
             ImGui::Dummy(ImVec2(0, 5));
         }
     }

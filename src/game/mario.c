@@ -1236,12 +1236,13 @@ float finalMarioScale = 1.0f;
  * Thank you Render96
  */
 static void cheats_play_as_set_model_and_anims(struct MarioState *m, s32 modelId, const void *anim) {
+    if (gMarioState->action == ACT_UNINITIALIZED || sCurrPlayMode == 2) return;
+
     m->marioObj->header.gfx.sharedChild = gLoadedGraphNodes[modelId];
     if (modelId == MODEL_MARIO) {
         gMarioState->animation = &D_80339D10;
     } else {
         m->marioObj->header.gfx.unk38.curAnim = (struct Animation *) anim;
-        finalMarioScale *= 1.5f;
     }
 }
 
@@ -1265,10 +1266,10 @@ void squish_mario_model(struct MarioState *m) {
                     case 0:     cheats_play_as_set_model_and_anims(m, MODEL_MARIO, NULL); break;
                     case 1:     cheats_play_as_set_model_and_anims(m, MODEL_BLACK_BOBOMB, bobomb_seg8_anims_0802396C[0]); break;
                     case 2:     cheats_play_as_set_model_and_anims(m, MODEL_BOBOMB_BUDDY, bobomb_seg8_anims_0802396C[0]); break;
-                    case 3:     cheats_play_as_set_model_and_anims(m, MODEL_GOOMBA, goomba_seg8_anims_0801DA4C[0]); break;
+                    case 3:     cheats_play_as_set_model_and_anims(m, MODEL_GOOMBA, goomba_seg8_anims_0801DA4C[0]); finalMarioScale *= 1.5f; break;
                     case 4:     cheats_play_as_set_model_and_anims(m, MODEL_KOOPA_SHELL, amp_seg8_anims_08004034[0]); break;
-                    case 5:     cheats_play_as_set_model_and_anims(m, MODEL_CHUCKYA, chuckya_seg8_anims_0800C070[0]); break;
-                    case 6:     cheats_play_as_set_model_and_anims(m, MODEL_FLYGUY, flyguy_seg8_anims_08011A64[0]); break;
+                    case 5:     cheats_play_as_set_model_and_anims(m, MODEL_CHUCKYA, chuckya_seg8_anims_0800C070[0]); finalMarioScale *= 2.0f; break;
+                    case 6:     cheats_play_as_set_model_and_anims(m, MODEL_FLYGUY, flyguy_seg8_anims_08011A64[0]); finalMarioScale *= 1.5f; break;
                     default:    cheats_play_as_set_model_and_anims(m, MODEL_MARIO, NULL); break;
                 }
 
@@ -1741,6 +1742,9 @@ void mario_update_hitbox_and_cap_model(struct MarioState *m) {
     // Short hitbox for crouching/crawling/etc.
     if (m->action & ACT_FLAG_SHORT_HITBOX) {
         m->marioObj->hitboxHeight = 100.0f;
+    } else if (Cheats.EnableCheats && Cheats.PlayAs > 0) {
+        m->marioObj->hitboxHeight = 120.0f;
+        m->marioObj->hurtboxHeight = 120.0f;
     } else {
         m->marioObj->hitboxHeight = 160.0f;
     }
