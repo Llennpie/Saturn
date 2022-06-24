@@ -10,6 +10,7 @@ extern void imgui_bundled_help_marker(const char*);
 extern void imgui_bundled_space(float, const char*, const char*);
 
 extern bool showMenu;
+extern int currentMenu;
 
 extern SDL_Window* window;
 

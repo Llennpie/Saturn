@@ -58,12 +58,8 @@ ImGuiIO io;
 
 // Variables
 
+int currentMenu = 0;
 bool showMenu = true;
-bool showWindowStats = false;
-bool showWindowMachinima = false;
-bool showWindowDynOS = false;
-bool showWindowSettings = false;
-bool showWindowChromaKey = false;
 
 // Bundled Components
 
@@ -154,47 +150,28 @@ void saturn_imgui_update() {
 
     if(showMenu){
         ImGui::BeginMainMenuBar();
-        if (ImGui::MenuItem("Stats")) {
-            showWindowStats = !showWindowStats;
-            showWindowMachinima = false;
-            showWindowDynOS = false;
-            showWindowSettings = false;
-            showWindowChromaKey = false;
+        if (ImGui::MenuItem("Stats"))
+            if (currentMenu != 0) { currentMenu = 0; }
+            else {currentMenu = -1; }
+        if (ImGui::MenuItem("Machinima"))
+            if (currentMenu != 1) { currentMenu = 1; }
+            else {currentMenu = -1; }
+        if (ImGui::BeginMenu("Appearance")) {
+            currentMenu = -1;
+            sdynos_imgui_menu();
         }
-        if (ImGui::MenuItem("Machinima")) {
-            showWindowStats = false;
-            showWindowMachinima = !showWindowMachinima;
-            showWindowDynOS = false;
-            showWindowSettings = false;
-            showWindowChromaKey = false;
-        }
-        if (ImGui::MenuItem("Appearance")) {
-            showWindowStats = false;
-            showWindowMachinima = false;
-            showWindowDynOS = !showWindowDynOS;
-            showWindowSettings = false;
-            showWindowChromaKey = false;
-        }
-        if (ImGui::MenuItem("Settings")) {
-            showWindowStats = false;
-            showWindowMachinima = false;
-            showWindowDynOS = false;
-            showWindowSettings = !showWindowSettings;
-            showWindowChromaKey = false;
-        }
+        if (ImGui::MenuItem("Settings"))
+            if (currentMenu != 4) { currentMenu = 4; }
+            else {currentMenu = -1; }
         if (gCurrLevelNum == LEVEL_SA) {
-            if (ImGui::MenuItem("CHROMA KEY")) {
-                showWindowStats = false;
-                showWindowMachinima = false;
-                showWindowDynOS = false;
-                showWindowSettings = false;
-                showWindowChromaKey = !showWindowChromaKey;
-            }
+            if (ImGui::MenuItem("CHROMA KEY"))
+                if (currentMenu != 5) { currentMenu = 5; }
+                else {currentMenu = -1; }
         }
         ImGui::EndMainMenuBar();
 
         // Stats
-        if (showWindowStats) {
+        if (currentMenu == 0) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Stats", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
@@ -216,8 +193,9 @@ void saturn_imgui_update() {
             ImGui::End();
             ImGui::PopStyleColor();
         }
+
         // Machinima
-        if (showWindowMachinima) {
+        if (currentMenu == 1) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Machinima", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
@@ -228,20 +206,12 @@ void saturn_imgui_update() {
             ImGui::End();
             ImGui::PopStyleColor();
         }
+
         // DynOS
-        if (showWindowDynOS) {
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            ImGui::Begin("DynOS", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-            ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(275, 475));
-
-            sdynos_imgui_update();
-
-            ImGui::End();
-            ImGui::PopStyleColor();
-        }
+        sdynos_imgui_update();
+    
         // Settings
-        if (showWindowSettings) {
+        if (currentMenu == 4) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Settings", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
@@ -254,7 +224,7 @@ void saturn_imgui_update() {
         }
 
         // Chroma Key
-        if (showWindowChromaKey && gCurrLevelNum == LEVEL_SA && mario_exists) {
+        if (currentMenu == 5 && gCurrLevelNum == LEVEL_SA && mario_exists) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Chroma Key", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));

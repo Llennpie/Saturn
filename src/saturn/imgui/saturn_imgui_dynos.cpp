@@ -52,17 +52,20 @@ static ImVec4 uiLegTopShadeColor =              ImVec4(127.0f / 255.0f, 0.0f / 2
 static ImVec4 uiLegBottomColor =                ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
 static ImVec4 uiLegBottomShadeColor =           ImVec4(64.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
 
-static char uiGsCcName[128] = "Sample";
+static char ui_cc_name[128] = "Sample";
 static int current_cc_id = 0;
 string cc_name;
-static char cc_gameshark[1024 * 16] = "";
+static char ui_gameshark[1024 * 16] = "";
 
 bool one_pack_selectable;
 bool any_packs_selected;
 int windowListSize = 325;
 int cc_model_id;
 
-void apply_cc_editor() {
+/*
+Sets Mario's global colors from the CC editor color values.
+*/
+void apply_cc_from_editor() {
     defaultColorHatRLight = (int)(uiHatColor.x * 255);
     defaultColorHatGLight = (int)(uiHatColor.y * 255);
     defaultColorHatBLight = (int)(uiHatColor.z * 255);
@@ -138,10 +141,14 @@ void apply_cc_editor() {
         sparkColorLegBottomBDark = (int)(uiLegBottomShadeColor.z * 255);
     }
 
-    strcpy(cc_gameshark, global_gs_code().c_str());
+    // Also set the editor GameShark code
+    strcpy(ui_gameshark, global_gs_code().c_str());
 }
 
-void apply_editor_global_cc() {
+/*
+Sets the CC editor color values from Mario's global colors.
+*/
+void set_editor_from_global_cc(std::string cc_name) {
     uiHatColor = ImVec4(float(defaultColorHatRLight) / 255.0f, float(defaultColorHatGLight) / 255.0f, float(defaultColorHatBLight) / 255.0f, 255.0f / 255.0f);
     uiHatShadeColor = ImVec4(float(defaultColorHatRDark) / 255.0f, float(defaultColorHatGDark) / 255.0f, float(defaultColorHatBDark) / 255.0f, 255.0f / 255.0f);
     uiOverallsColor = ImVec4(float(defaultColorOverallsRLight) / 255.0f, float(defaultColorOverallsGLight) / 255.0f, float(defaultColorOverallsBLight) / 255.0f, 255.0f / 255.0f);
@@ -170,14 +177,15 @@ void apply_editor_global_cc() {
         uiLegBottomShadeColor = ImVec4(float(sparkColorLegBottomRDark) / 255.0f, float(sparkColorLegBottomGDark) / 255.0f, float(sparkColorLegBottomBDark) / 255.0f, 255.0f / 255.0f);
     }
 
-    cc_name = cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3);
-    strcpy(cc_gameshark, global_gs_code().c_str());
+    // Also set the editor GameShark code
+    strcpy(ui_gameshark, global_gs_code().c_str());
 
-    // We never want to use the name "Mario" when saving/loading a CC, as it will cause file issues.
+    // We never want to use the name "Mario" when saving/loading a CC, as it will cause file issues
+    // Instead, we'll change the UI name to "Sample"
     if (cc_name == "Mario") {
-        strcpy(uiGsCcName, "Sample");
+        strcpy(ui_cc_name, "Sample");
     } else {
-        strcpy(uiGsCcName, cc_name.c_str());
+        strcpy(ui_cc_name, cc_name.c_str());
     }
 }
 
@@ -201,59 +209,129 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
     }
 }
 
+int numColorCodes;
+
 void sdynos_imgui_init() {
     load_cc_directory();
-    strcpy(cc_gameshark, global_gs_code().c_str());
+    strcpy(ui_gameshark, global_gs_code().c_str());
+}
+
+void sdynos_imgui_menu() {
+    if (ImGui::BeginMenu("Edit Avatar###menu_selector")) {
+
+        ImGui::Text("Color Codes");
+        ImGui::SameLine(); imgui_bundled_help_marker(
+            "These are GameShark color codes, which overwrite Mario's lights. Place in dynos/colorcodes.");
+
+        ImGui::BeginChild("###menu_cc_selector", ImVec2(175, 100), true);
+        for (int n = 0; n < cc_array.size(); n++) {
+            const bool is_selected = (current_cc_id == n);
+            cc_name = cc_array[n].substr(0, cc_array[n].size() - 3);
+
+            if (ImGui::Selectable(cc_name.c_str(), is_selected)) {
+                current_cc_id = n;
+                load_cc_file((char*)cc_array[current_cc_id].c_str());
+                set_editor_from_global_cc(cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3));
+            }
+
+            if (cc_name != "Mario") {
+                if (ImGui::BeginPopupContextItem())
+                {
+                    if (ImGui::Button("Refresh")) {
+                        load_cc_directory();
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::Separator();
+                    ImGui::Text("%s.gs", cc_name.c_str());
+                    if (ImGui::Button("Delete File")) {
+                        delete_cc_file(cc_name);
+                        ImGui::CloseCurrentPopup();
+                    } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                    ImGui::EndPopup();
+                }
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Text("Model Packs");
+        ImGui::SameLine(); imgui_bundled_help_marker(
+            "These are DynOS model packs, used for live model loading.\nPlace packs in dynos/packs.");
+
+        ImGui::BeginChild("###menu_model_selector", ImVec2(175, 100), true);
+        for (int i = 0; i < sDynosPacks.Count(); i++) {
+            u64 _DirSep1 = sDynosPacks[i]->mPath.find_last_of('\\');
+            u64 _DirSep2 = sDynosPacks[i]->mPath.find_last_of('/');
+            if (_DirSep1++ == SysPath::npos) _DirSep1 = 0;
+            if (_DirSep2++ == SysPath::npos) _DirSep2 = 0;
+
+            std::string label = sDynosPacks[i]->mPath.substr(MAX(_DirSep1, _DirSep2));
+            bool is_selected = DynOS_Opt_GetValue(String("dynos_pack_%d", i));
+
+            if (ImGui::Selectable(label.c_str(), &is_selected)) {
+                // Deselect other packs, but LSHIFT allows additive
+                for (int j = 0; j < sDynosPacks.Count(); j++) {
+                    if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] == false)
+                        DynOS_Opt_SetValue(String("dynos_pack_%d", j), false);
+                }
+                        
+                DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
+
+                one_pack_selectable = false;
+                for (int k = 0; k < sDynosPacks.Count(); k++) {
+                    if (DynOS_Opt_GetValue(String("dynos_pack_%d", k)))
+                        one_pack_selectable = true;
+                }
+
+                any_packs_selected = one_pack_selectable;
+            }
+            if (ImGui::BeginPopupContextItem())
+            {
+                ImGui::Text("%s", label.c_str());
+                if (ImGui::Button("Set CC From Model")) {
+                    set_cc_from_model(sDynosPacks[i]->mPath);
+                    //current_cc_id = -1;
+                    set_editor_from_global_cc(label);
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+        }
+        ImGui::EndChild();
+        ImGui::EndMenu();
+    }
+    if (ImGui::MenuItem("Color Code Editor###menu_cc_editor"))
+        currentMenu = 2;
+
+    ImGui::Separator();
+
+    ImGui::Checkbox("CC Compatibility", &cc_model_support);
+    ImGui::SameLine(); imgui_bundled_help_marker(
+        "Toggles color code compatibility for model packs that support it.");
+
+    ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
+    ImGui::SameLine(); imgui_bundled_help_marker(
+        "Grants a model extra color values. See the GitHub wiki for setup instructions.");
+
+    ImGui::EndMenu();
 }
 
 void sdynos_imgui_update() {
-    if (cc_array.size() > 0) {
-        ImGui::Text("Select Color Code");
-        cc_name = cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3);
-        if (ImGui::BeginCombo(".gs", cc_name.c_str()))
-        {
-            for (int n = 0; n < cc_array.size(); n++)
-            {
-                const bool is_selected = (current_cc_id == n);
-                cc_name = cc_array[n].substr(0, cc_array[n].size() - 3);
-                if (ImGui::Selectable(cc_name.c_str(), is_selected)) {
-                    current_cc_id = n;
-                }
-                if (cc_name != "Mario") {
-                    if (ImGui::BeginPopupContextItem())
-                    {
-                        ImGui::Text("%s.gs", cc_name.c_str());
-                        if (ImGui::Button("Delete File")) {
-                            delete_cc_file(cc_name);
-                            ImGui::CloseCurrentPopup();
-                        } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
-                        ImGui::EndPopup();
-                    }
-                }
+    if (currentMenu != 2) return;
 
-                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                if (is_selected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndCombo();
-        }
-        ImGui::SameLine(); imgui_bundled_help_marker("These are GameShark color codes, which overwrite Mario's lights. Place in dynos/colorcodes.");
-        if (ImGui::Button("Load CC")) {
-            load_cc_file((char*)cc_array[current_cc_id].c_str());
-            apply_editor_global_cc();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Refresh"))
-            load_cc_directory();
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+    ImGui::Begin("Color Code Editor", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(10, 30));
+    ImGui::SetWindowSize(ImVec2(275, 425));
 
-    } else {
-        ImGui::Text("Could not load color code directory...");
+    if (ImGui::Button("Reset Colors")) {
+        current_cc_id = 0;
+        load_cc_file((char*)cc_array[current_cc_id].c_str());
+        set_editor_from_global_cc("Sample");
     }
 
-    ImGui::Dummy(ImVec2(0, 5)); ImGui::Separator(); ImGui::Dummy(ImVec2(0, 5));
+    ImGui::Dummy(ImVec2(0, 5));
 
     if (ImGui::BeginTabBar("###dynos_tabbar", ImGuiTabBarFlags_None)) {
-        ImGui::SetWindowSize(ImVec2(275, 475));
 
         if (ImGui::BeginTabItem("CC Editor")) {
             handle_cc_box("Hat", "Hat, Main", "Hat, Shade", &uiHatColor, &uiHatShadeColor, "1/2###hat_half");
@@ -275,26 +353,26 @@ void sdynos_imgui_update() {
 
             if (!configEditorFastApply) {
                 if (ImGui::Button("Apply CC###apply_cc_from_editor")) {
-                    apply_cc_editor();
+                    apply_cc_from_editor();
                 }
             } else {
-                apply_cc_editor();
+                apply_cc_from_editor();
             }
 
             ImGui::Dummy(ImVec2(0, 5));
 
-            ImGui::InputText(".gs", uiGsCcName, IM_ARRAYSIZE(uiGsCcName));
+            ImGui::InputText(".gs", ui_cc_name, IM_ARRAYSIZE(ui_cc_name));
             if (ImGui::IsItemActivated()) accept_text_input = false;
             if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
             if (ImGui::Button("Save to File")) {
-                apply_cc_editor();
-                std::string cc_name = uiGsCcName;
+                apply_cc_from_editor();
+                std::string cc_name = ui_cc_name;
                 // We don't want to save a CC named "Mario", as it may cause file issues.
                 if (cc_name != "Mario") {
                     save_cc_file(cc_name);
                 } else {
-                    strcpy(uiGsCcName, "Sample");
+                    strcpy(ui_cc_name, "Sample");
                     save_cc_file("Sample");
                 }
                 load_cc_directory();
@@ -303,85 +381,23 @@ void sdynos_imgui_update() {
         }
 
         if (ImGui::BeginTabItem("GameShark")) {
-            ImGui::SetWindowSize(ImVec2(275, 475));
-
-            ImGui::InputTextMultiline("###gameshark_box", cc_gameshark, IM_ARRAYSIZE(cc_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase);
+            ImGui::InputTextMultiline("###gameshark_box", ui_gameshark, IM_ARRAYSIZE(ui_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase);
             if (ImGui::IsItemActivated()) accept_text_input = false;
             if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
             if (ImGui::Button("Paste GS Code")) {
-                string cc_gameshark_input = cc_gameshark;
-                paste_gs_code(cc_gameshark_input);
-                apply_editor_global_cc();
-                strcpy(cc_gameshark, global_gs_code().c_str());
-                strcpy(uiGsCcName, "Sample");
+                string ui_gameshark_input = ui_gameshark;
+                paste_gs_code(ui_gameshark_input);
+                set_editor_from_global_cc("Sample");
+                strcpy(ui_gameshark, global_gs_code().c_str());
             } ImGui::SameLine(); imgui_bundled_help_marker(
                 "Copy/paste a GameShark color code from here!");
 
             ImGui::EndTabItem();
         }
-
-        if (ImGui::BeginTabItem("Model Packs")) {
-            ImGui::SameLine(); imgui_bundled_help_marker(
-                "These are DynOS model packs, used for live model loading.\nPlace packs in dynos/packs.");
-
-            ImGui::SetWindowSize(ImVec2(275, windowListSize));
-
-            if (ImGui::BeginListBox("", ImVec2(-FLT_MIN, 200))) {
-                for (int i = 0; i < sDynosPacks.Count(); i++) {
-                    u64 _DirSep1 = sDynosPacks[i]->mPath.find_last_of('\\');
-                    u64 _DirSep2 = sDynosPacks[i]->mPath.find_last_of('/');
-                    if (_DirSep1++ == SysPath::npos) _DirSep1 = 0;
-                    if (_DirSep2++ == SysPath::npos) _DirSep2 = 0;
-
-                    std::string label = sDynosPacks[i]->mPath.substr(MAX(_DirSep1, _DirSep2));
-                    bool selected = DynOS_Opt_GetValue(String("dynos_pack_%d", i));
-
-                    if (ImGui::Selectable(label.c_str(), &selected)) {
-                        // Deselect other packs, but LSHIFT allows additive
-                        for (int j = 0; j < sDynosPacks.Count(); j++) {
-                            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] == false)
-                                DynOS_Opt_SetValue(String("dynos_pack_%d", j), false);
-                        }
-                        
-                        DynOS_Opt_SetValue(String("dynos_pack_%d", i), selected);
-
-                        one_pack_selectable = false;
-                        for (int k = 0; k < sDynosPacks.Count(); k++) {
-                            if (DynOS_Opt_GetValue(String("dynos_pack_%d", k)))
-                                one_pack_selectable = true;
-                        }
-
-                        any_packs_selected = one_pack_selectable;
-                    }
-                    if (ImGui::BeginPopupContextItem())
-                    {
-                        ImGui::Text("%s", label.c_str());
-                        if (ImGui::Button("Set Model CC")) {
-                            set_cc_from_model(sDynosPacks[i]->mPath);
-                            apply_editor_global_cc();
-                            ImGui::CloseCurrentPopup();
-                        }
-                        ImGui::EndPopup();
-                    }
-                }
-                ImGui::EndListBox();
-
-                if (any_packs_selected) {
-                    windowListSize = 375;
-                    ImGui::Checkbox("CC Compatibility", &cc_model_support);
-                    ImGui::SameLine(); imgui_bundled_help_marker(
-                        "Toggles color code compatibility for model packs that support it.");
-
-                    ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
-                    ImGui::SameLine(); imgui_bundled_help_marker(
-                        "Grants a model extra color values. Automatically enabled for DynOS packs with the keyword \"CmtSPARK\".");
-                } else {
-                    windowListSize = 325;
-                }
-            }
-            ImGui::EndTabItem();
-        }
         ImGui::EndTabBar();
     }
+
+    ImGui::End();
+    ImGui::PopStyleColor();
 }
