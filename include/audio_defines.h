@@ -315,7 +315,7 @@
 /* not verified */ #define SOUND_GENERAL_BOING1             SOUND_ARG_LOAD(3, 0, 0x6C, 0x40, 8)
 /* not verified */ #define SOUND_GENERAL_BOING2_LOWPRIO     SOUND_ARG_LOAD(3, 0, 0x6D, 0x20, 8)
 /* not verified */ #define SOUND_GENERAL_BOING2             SOUND_ARG_LOAD(3, 0, 0x6D, 0x40, 8)
-/* not verified */ #define SOUND_GENERAL_YOSHI_WALK         SOUND_ARG_LOAD(3, 0, 0x6E, 0x20, 8)
+/* not verified */ #define SOUND_GENERAL_YOSHI_WALK         SOUND_ARG_LOAD(10, 0, 0x6E, 0x20, 8)
 /* not verified */ #define SOUND_GENERAL_ENEMY_ALERT1       SOUND_ARG_LOAD(3, 0, 0x6F, 0x30, 8)
 /* not verified */ #define SOUND_GENERAL_YOSHI_TALK         SOUND_ARG_LOAD(3, 0, 0x70, 0x30, 8)
 /* not verified */ #define SOUND_GENERAL_SPLATTERING        SOUND_ARG_LOAD(3, 0, 0x71, 0x30, 8)

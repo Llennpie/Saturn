@@ -10,6 +10,7 @@
 #include "audio_defines.h"
 #include "engine/math_util.h"
 #include "thread6.h"
+#include "pc/configfile.h"
 
 /**
  * Used by act_punching() to determine Mario's forward velocity during each
@@ -38,6 +39,7 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
     switch (m->actionArg) {
         case 0:
             play_sound(SOUND_MARIO_PUNCH_YAH, m->marioObj->header.gfx.cameraToObject);
+            if (!configVoicesEnabled) play_sound(SOUND_ACTION_THROW, m->marioObj->header.gfx.cameraToObject);
             // Fall-through:
         case 1:
             set_mario_animation(m, MARIO_ANIM_FIRST_PUNCH);
@@ -78,6 +80,7 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
 
         case 3:
             play_sound(SOUND_MARIO_PUNCH_WAH, m->marioObj->header.gfx.cameraToObject);
+            if (!configVoicesEnabled) play_sound(SOUND_ACTION_THROW, m->marioObj->header.gfx.cameraToObject);
             // Fall-through:
         case 4:
             set_mario_animation(m, MARIO_ANIM_SECOND_PUNCH);
@@ -116,10 +119,15 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
             animFrame = set_mario_animation(m, MARIO_ANIM_GROUND_KICK);
             if (animFrame == 0) {
                 m->marioBodyState->punchState = (2 << 6) | 6;
+                if (!configVoicesEnabled) play_sound(SOUND_ACTION_SPIN, m->marioObj->header.gfx.cameraToObject);
             }
 
             if (animFrame >= 0 && animFrame < 8) {
                 m->flags |= MARIO_KICKING;
+            }
+
+            if (animFrame == 12 && !configVoicesEnabled) {
+                play_sound(SOUND_ACTION_TERRAIN_LANDING, m->marioObj->header.gfx.cameraToObject);
             }
 
             if (is_anim_at_end(m)) {
@@ -131,6 +139,10 @@ s32 mario_update_punch_sequence(struct MarioState *m) {
             play_mario_action_sound(m, SOUND_MARIO_PUNCH_HOO, 1);
             set_mario_animation(m, MARIO_ANIM_BREAKDANCE);
             animFrame = m->marioObj->header.gfx.unk38.animFrame;
+
+            if (animFrame == 0 && !configVoicesEnabled) {
+                play_sound(SOUND_ACTION_SPIN, m->marioObj->header.gfx.cameraToObject);
+            }
 
             if (animFrame >= 2 && animFrame < 8) {
                 m->flags |= MARIO_TRIPPING;
