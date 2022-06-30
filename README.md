@@ -4,28 +4,38 @@
 - In order to compile the editor, a prior copy of the game is required. This is to avoid including any copyrighted material.
 - Looking for **Saturn: Moon Edition**? Check the [moon](https://github.com/Llennpie/Saturn/tree/moon) branch.
 
-#### Features
+### Features
 
-- New machinima camera system
+```
+- New "machinima camera" system
 - Color code system
   - Uses the common *GameShark* format
-- Live model loading (via DynOS)
+  - Visual real-time editor
+  - Full support for ***[CometSPARK](https://github.com/projectcomet64/SPARK)***
+- Live custom model loading (via DynOS)
   - Uses *Fast64* models
   - Works with color codes
-- Full support for ***[CometSPARK](https://github.com/projectcomet64/SPARK)***
-- Changeable eye states/textures
+- Chroma key stage
+  - Supports any RGB/HEX color
+- Completely customizable expressions
+  - Eye/mouth textures can be loaded as PNG files
+- Texture pack support
 - Completely rebindable controls
   - All controls in the game, including those used for machinima, are 100% configurable
   - Supports most modern controllers
+- Dynamic window size/resolution
+- Interpolated 60 fps
+  
+...and more!
+```
 
-## Installation
+### Setup
 
-For building instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).<br>
-Saturn currently supports Windows (via [MSYS2](https://www.msys2.org/)) and Linux.
+For building instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).
 
-*See [here](https://github.com/sm64pc/sm64ex/wiki) for other untested build platforms. These may require source code modifications.*
+---
 
-![Screenshot](https://media.discordapp.net/attachments/833759041096384573/956677722300629043/unknown.png?width=960&height=540)
+![image](https://user-images.githubusercontent.com/44985633/176593427-019dd59b-6b0a-4461-98ed-6707441d8fa6.png)
 
 *In case you feel this project deserves some extra love, I have a Ko-fi below.*
 

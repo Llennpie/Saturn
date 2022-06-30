@@ -47,7 +47,7 @@ extern "C" {
 #endif
     void saturn_update(void);
     void saturn_play_animation(MarioAnimID);
-    void saturn_warp_to(s16, s16, s16);
+    //void saturn_warp_to(s16, s16, s16);
 #ifdef __cplusplus
 }
 #endif

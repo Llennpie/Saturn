@@ -46,8 +46,6 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 camera_frozen = !camera_frozen;
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
                 saturn_play_animation(selected_animation);
-            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
-                configHUD = !configHUD;
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
                 if (is_anim_playing)
                     is_anim_paused = !is_anim_paused;
@@ -81,10 +79,6 @@ void smachinima_imgui_update() {
     }
     ImGui::Dummy(ImVec2(0, 5));
 
-    const char* eyes[] = { "Blinking", "Open", "Half", "Closed", "Left", "Right", "Up", "Down", "Dead" };
-    ImGui::Combo("Eyes", &scrollEyeState, eyes, IM_ARRAYSIZE(eyes));
-
-    ImGui::Dummy(ImVec2(0, 5));
     ImGui::Text("Animations");
     ImGui::Dummy(ImVec2(0, 5));
     ImGui::Combo("", &anim_index, saturn_animations, IM_ARRAYSIZE(saturn_animations));
@@ -151,8 +145,11 @@ void smachinima_imgui_update() {
             if (Cheats.CustomMarioScale)
                 ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
             const char* playAsModels[] = { "Mario", "Bob-omb", "Bob-omb Buddy", "Goomba", "Koopa Shell", "Chuckya", "Fly Guy" };
-            if (gCurrLevelNum != LEVEL_SA)
+            if (gCurrLevelNum != LEVEL_SA) {
                 ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
+                ImGui::SameLine(); imgui_bundled_tooltip(
+                    "EXPERIMENTAL: \"Play as\" cheats, allowing you to use a vanilla model. Prone to crashing and scaling issues.");
+            }
             ImGui::Dummy(ImVec2(0, 5));
         }
     }

@@ -69,6 +69,8 @@
         "numbers": "cpp",
         "configfile.h": "c",
         "random": "c",
-        "dynlists.h": "c"
+        "dynlists.h": "c",
+        "assert.h": "c",
+        "interaction.h": "c"
     }
 }
