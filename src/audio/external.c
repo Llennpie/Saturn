@@ -789,6 +789,8 @@ void play_sound(s32 soundBits, f32 *pos) {
     if (bank == 2 && !configVoicesEnabled)
         return;
 
+    if (bank == 10) return;
+
     sSoundRequests[sSoundRequestCount].soundBits = soundBits;
     sSoundRequests[sSoundRequestCount].position = pos;
     sSoundRequestCount++;
