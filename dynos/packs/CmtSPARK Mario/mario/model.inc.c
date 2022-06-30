@@ -46,18 +46,6 @@ Lights1 mario_face_3___eye_left_v3_lights = gdSPDefLights1(
     0x7f, 0x60, 0x3c,
     0xfe, 0xc1, 0x79, 0x28, 0x28, 0x28);
 
-Lights1 mario_face_4___eye_right_v3_lights = gdSPDefLights1(
-    0x7f, 0x60, 0x3c,
-    0xfe, 0xc1, 0x79, 0x28, 0x28, 0x28);
-
-Lights1 mario_face_5___eye_up_v3_lights = gdSPDefLights1(
-    0x7f, 0x60, 0x3c,
-    0xfe, 0xc1, 0x79, 0x28, 0x28, 0x28);
-
-Lights1 mario_face_6___eye_down_v3_lights = gdSPDefLights1(
-    0x7f, 0x60, 0x3c,
-    0xfe, 0xc1, 0x79, 0x28, 0x28, 0x28);
-
 Lights1 mario_face_7___eye_X_v3_lights = gdSPDefLights1(
     0x7f, 0x60, 0x3c,
     0xfe, 0xc1, 0x79, 0x28, 0x28, 0x28);
@@ -116,9 +104,9 @@ u8 mario_logo_rgba16[] = {
 	#include "actors/mario/logo.rgba16.inc.c"
 };
 
-Gfx mario_mouth_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 mario_mouth_rgba16[] = {
-	#include "actors/mario/mouth.rgba16.inc.c"
+Gfx mario_saturn_mouth_spark_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 mario_saturn_mouth_spark_rgba16[] = {
+	#include "actors/mario/saturn_mouth_spark.rgba16.inc.c"
 };
 
 Gfx mario_half_rgba16_aligner[] = {gsSPEndDisplayList()};
@@ -131,24 +119,9 @@ u8 mario_closed_rgba16[] = {
 	#include "actors/mario/closed.rgba16.inc.c"
 };
 
-Gfx mario_left_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 mario_left_rgba16[] = {
-	#include "actors/mario/left.rgba16.inc.c"
-};
-
-Gfx mario_right_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 mario_right_rgba16[] = {
-	#include "actors/mario/right.rgba16.inc.c"
-};
-
-Gfx mario_up_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 mario_up_rgba16[] = {
-	#include "actors/mario/up.rgba16.inc.c"
-};
-
-Gfx mario_down_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 mario_down_rgba16[] = {
-	#include "actors/mario/down.rgba16.inc.c"
+Gfx mario_saturn_eye_spark_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 mario_saturn_eye_spark_rgba16[] = {
+	#include "actors/mario/saturn_eye_spark.rgba16.inc.c"
 };
 
 Gfx mario_dead_rgba16_aligner[] = {gsSPEndDisplayList()};
@@ -3422,7 +3395,7 @@ Gfx mat_mario_mouth_v3[] = {
 	gsDPSetCombineLERP(TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT, TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT),
 	gsSPTexture(65535, 65535, 0, 0, 1),
 	gsDPTileSync(),
-	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, mario_mouth_rgba16),
+	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, mario_saturn_mouth_spark_rgba16),
 	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 0, 0, 7, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
 	gsDPLoadSync(),
 	gsDPLoadBlock(7, 0, 0, 1023, 256),
@@ -3470,7 +3443,7 @@ Gfx mat_mario_face_3___eye_left_v3[] = {
 	gsDPSetCombineLERP(TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT, TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT),
 	gsSPTexture(65535, 65535, 0, 0, 1),
 	gsDPTileSync(),
-	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, mario_left_rgba16),
+	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, mario_saturn_eye_spark_rgba16),
 	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 0, 0, 7, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
 	gsDPLoadSync(),
 	gsDPLoadBlock(7, 0, 0, 1023, 256),
@@ -3478,54 +3451,6 @@ Gfx mat_mario_face_3___eye_left_v3[] = {
 	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 124),
 	gsSPSetLights1(mario_face_3___eye_left_v3_lights),
-	gsSPEndDisplayList(),
-};
-
-Gfx mat_mario_face_4___eye_right_v3[] = {
-	gsDPPipeSync(),
-	gsDPSetCombineLERP(TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT, TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT),
-	gsSPTexture(65535, 65535, 0, 0, 1),
-	gsDPTileSync(),
-	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, mario_right_rgba16),
-	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 0, 0, 7, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
-	gsDPLoadSync(),
-	gsDPLoadBlock(7, 0, 0, 1023, 256),
-	gsDPPipeSync(),
-	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
-	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(mario_face_4___eye_right_v3_lights),
-	gsSPEndDisplayList(),
-};
-
-Gfx mat_mario_face_5___eye_up_v3[] = {
-	gsDPPipeSync(),
-	gsDPSetCombineLERP(TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT, TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT),
-	gsSPTexture(65535, 65535, 0, 0, 1),
-	gsDPTileSync(),
-	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, mario_up_rgba16),
-	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 0, 0, 7, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
-	gsDPLoadSync(),
-	gsDPLoadBlock(7, 0, 0, 1023, 256),
-	gsDPPipeSync(),
-	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
-	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(mario_face_5___eye_up_v3_lights),
-	gsSPEndDisplayList(),
-};
-
-Gfx mat_mario_face_6___eye_down_v3[] = {
-	gsDPPipeSync(),
-	gsDPSetCombineLERP(TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT, TEXEL0, SHADE, TEXEL0_ALPHA, SHADE, 0, 0, 0, ENVIRONMENT),
-	gsSPTexture(65535, 65535, 0, 0, 1),
-	gsDPTileSync(),
-	gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, mario_down_rgba16),
-	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 0, 0, 7, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
-	gsDPLoadSync(),
-	gsDPLoadBlock(7, 0, 0, 1023, 256),
-	gsDPPipeSync(),
-	gsDPSetTile(G_IM_FMT_RGBA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
-	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(mario_face_6___eye_down_v3_lights),
 	gsSPEndDisplayList(),
 };
 
@@ -3742,55 +3667,7 @@ Gfx mario_000_displaylist_mesh_layer_1_mat_override_face_3___eye_left_v3_3[] = {
 	gsSPEndDisplayList(),
 };
 
-Gfx mario_000_displaylist_mesh_layer_1_mat_override_face_4___eye_right_v3_4[] = {
-	gsSPDisplayList(mat_mario_face_4___eye_right_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_0),
-	gsSPDisplayList(mat_mario_mustache_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_1),
-	gsSPDisplayList(mat_mario_hair),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_2),
-	gsSPDisplayList(mat_mario_sideburns_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_3),
-	gsSPDisplayList(mat_mario_hat),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_4),
-	gsSPDisplayList(mat_mario_mouth_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_5),
-	gsSPEndDisplayList(),
-};
-
-Gfx mario_000_displaylist_mesh_layer_1_mat_override_face_5___eye_up_v3_5[] = {
-	gsSPDisplayList(mat_mario_face_5___eye_up_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_0),
-	gsSPDisplayList(mat_mario_mustache_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_1),
-	gsSPDisplayList(mat_mario_hair),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_2),
-	gsSPDisplayList(mat_mario_sideburns_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_3),
-	gsSPDisplayList(mat_mario_hat),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_4),
-	gsSPDisplayList(mat_mario_mouth_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_5),
-	gsSPEndDisplayList(),
-};
-
-Gfx mario_000_displaylist_mesh_layer_1_mat_override_face_6___eye_down_v3_6[] = {
-	gsSPDisplayList(mat_mario_face_6___eye_down_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_0),
-	gsSPDisplayList(mat_mario_mustache_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_1),
-	gsSPDisplayList(mat_mario_hair),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_2),
-	gsSPDisplayList(mat_mario_sideburns_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_3),
-	gsSPDisplayList(mat_mario_hat),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_4),
-	gsSPDisplayList(mat_mario_mouth_v3),
-	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_5),
-	gsSPEndDisplayList(),
-};
-
-Gfx mario_000_displaylist_mesh_layer_1_mat_override_face_7___eye_X_v3_7[] = {
+Gfx mario_000_displaylist_mesh_layer_1_mat_override_face_7___eye_X_v3_4[] = {
 	gsSPDisplayList(mat_mario_face_7___eye_X_v3),
 	gsSPDisplayList(mario_000_displaylist_mesh_layer_1_tri_0),
 	gsSPDisplayList(mat_mario_mustache_v3),
