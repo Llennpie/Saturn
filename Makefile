@@ -51,6 +51,8 @@ TEXTSAVES ?= 0
 EXTERNAL_DATA ?= 1
 # Enable Discord Rich Presence
 DISCORDRPC ?= 1
+# Enable Game ICON
+ICON ?= 1
 
 # Various workarounds for weird toolchains
 
@@ -675,6 +677,19 @@ else
 endif # End of LDFLAGS
 
 LDFLAGS += -lstdc++
+
+# icon
+ifeq ($(WINDOWS_BUILD),1)
+  ifeq ($(ICON),1)
+    Command := mkdir -p "$(BUILD_DIR)/res"
+    Resp := $(shell $(call Command))
+    Command := windres -o "$(BUILD_DIR)/res/icon.o" -i "res/icon.rc" --preprocessor $(word 1, $(CC)) --preprocessor-arg -E --preprocessor-arg -xc-header --preprocessor-arg -DRC_INVOKED
+    Resp := $(shell $(call Command))
+    ifeq ($(.SHELLSTATUS),0)
+      LDFLAGS += $(BUILD_DIR)/res/icon.o
+    endif
+  endif
+endif
 
 # Prevent a crash with -sopt
 export LANG := C
