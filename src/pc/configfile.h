@@ -25,7 +25,7 @@ extern unsigned int configMasterVolume;
 extern unsigned int configMusicVolume;
 extern unsigned int configSfxVolume;
 extern unsigned int configEnvVolume;
-extern bool         configVoicesEnabled;
+//extern bool         configVoicesEnabled;
 extern unsigned int configKeyA[];
 extern unsigned int configKeyB[];
 extern unsigned int configKeyStart[];
@@ -45,6 +45,7 @@ extern unsigned int configRumbleStrength;
 #ifdef EXTERNAL_DATA
 extern bool         configPrecacheRes;
 #endif
+extern unsigned int configEditorTheme;
 extern unsigned int configMCameraMode;
 extern bool         configEditorFastApply;
 extern bool         configEditorAutoSpark;
@@ -69,5 +70,13 @@ extern bool         configDiscordRPC;
 void configfile_load(const char *filename);
 void configfile_save(const char *filename);
 const char *configfile_name(void);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+    extern bool         configVoicesEnabled;
+#ifdef __cplusplus
+}
+#endif
 
 #endif

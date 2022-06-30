@@ -78,6 +78,7 @@ unsigned int configRumbleStrength = 50;
 #ifdef EXTERNAL_DATA
 bool configPrecacheRes = true;
 #endif
+unsigned int configEditorTheme   = 0;
 unsigned int configMCameraMode   = 0;
 bool         configEditorFastApply = false;
 bool         configEditorAutoSpark = true;
@@ -133,6 +134,7 @@ static const struct ConfigOption options[] = {
     #ifdef EXTERNAL_DATA
     {.name = "precache",             .type = CONFIG_TYPE_BOOL, .boolValue = &configPrecacheRes},
     #endif
+    {.name = "editor_theme",         .type = CONFIG_TYPE_UINT, .uintValue = &configEditorTheme},
     {.name = "mcamera_mode",         .type = CONFIG_TYPE_UINT, .uintValue = &configMCameraMode},
     {.name = "editor_fast_apply",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorFastApply},
     {.name = "editor_auto_spark",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoSpark},

@@ -102,6 +102,16 @@ void imgui_bundled_space(float size, const char* title = NULL, const char* help_
     }
 }
 
+void imgui_update_theme() {
+    if (configEditorTheme == 0) {
+        ImGui::StyleColorsDark();
+    } else if (configEditorTheme == 1) {
+        ImGui::StyleColorsMoon();
+    } else if (configEditorTheme == 2) {
+        ImGui::StyleColorsHalfLife();
+    }
+}
+
 // Set up ImGui
 
 void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
@@ -114,7 +124,7 @@ void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
     io.WantSetMousePos = false;
     io.ConfigWindowsMoveFromTitleBarOnly = true;
 
-    ImGui::StyleColorsDark();
+    imgui_update_theme();
 
     ImGui_ImplSDL2_InitForOpenGL(window, ctx);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -130,13 +140,14 @@ void saturn_imgui_handle_events(SDL_Event * event) {
         case SDL_KEYDOWN:
             if(event->key.keysym.sym == SDLK_F1)
                 showMenu = !showMenu;
-
             if(event->key.keysym.sym == SDLK_F4)
                 limit_fps = !limit_fps;
 
         case SDL_CONTROLLERBUTTONDOWN:
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
                 showMenu = !showMenu;
+            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+                limit_fps = !limit_fps;
         
         break;
     }

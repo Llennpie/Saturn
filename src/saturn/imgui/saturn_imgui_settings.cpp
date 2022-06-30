@@ -76,7 +76,7 @@ void ssettings_imgui_update() {
         ImGui::SliderInt("Master", (int*)&configMasterVolume, 0, MAX_VOLUME);
         ImGui::SliderInt("SFX", (int*)&configSfxVolume, 0, MAX_VOLUME);
         ImGui::SliderInt("Music", (int*)&configMusicVolume, 0, MAX_VOLUME);
-        ImGui::SliderInt("Environment", (int*)&configEnvVolume, 0, MAX_VOLUME);
+        ImGui::SliderInt("Fanfares", (int*)&configEnvVolume, 0, MAX_VOLUME);
         ImGui::Checkbox("Enable Voices", &configVoicesEnabled);
     }
     if (ImGui::CollapsingHeader("Gameplay")) {
@@ -95,6 +95,18 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Allows the level to be exited from any state.");
     }
     if (ImGui::CollapsingHeader("Editor")) {
+        const char* mThemeSettings[] = { "Legacy", "Moon Edition", "Half-Life" };
+        ImGui::Text("Theme");
+        ImGui::Combo("###theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
+        ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
+
+        ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
+        imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor. May cause lag on low-end machines.");
+        ImGui::Checkbox("Auto-enable CometSPARK support", &configEditorAutoSpark);
+        imgui_bundled_tooltip("If enabled, CometSPARK support will automatically turn on when a SPARK GS code is loaded.");
+
+        ImGui::Separator();
+
         const char* mCameraSettings[] = { "Mouse", "Keyboard/Gamepad" };
         ImGui::Text("Machinima Camera Mode");
         ImGui::Combo("###machinima_camera_mode", (int*)&configMCameraMode, mCameraSettings, IM_ARRAYSIZE(mCameraSettings));
@@ -103,10 +115,5 @@ void ssettings_imgui_update() {
         } else if (configMCameraMode == 1) {
             ImGui::SameLine(); imgui_bundled_help_marker("R + C-Buttons = Pan Camera, L + C-Buttons = Raise/Lower Camera");
         }
-        ImGui::Dummy(ImVec2(0, 5));
-        ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
-        imgui_bundled_tooltip("If enabled, color codes will automaticly apply in the CC editor. May cause lag on low-end machines.");
-        ImGui::Checkbox("Auto-enable CometSPARK support", &configEditorAutoSpark);
-        imgui_bundled_tooltip("If enabled, CometSPARK support will automatically turn on when a SPARK GS code is loaded.");
     }
 }

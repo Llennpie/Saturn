@@ -5,6 +5,7 @@
 
 #ifdef __cplusplus
 
+extern void imgui_update_theme();
 extern void imgui_bundled_tooltip(const char*);
 extern void imgui_bundled_help_marker(const char*);
 extern void imgui_bundled_space(float, const char*, const char*);
