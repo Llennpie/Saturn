@@ -27,6 +27,7 @@
 #include "../fs/fs.h"
 
 #include "saturn/saturn_colors.h"
+#include "saturn/saturn_Textures.h"
 
 #define SUPPORT_CHECK(x) assert(x)
 
@@ -502,7 +503,7 @@ static void import_texture_ci8(int tile) {
 
 #else // EXTERNAL_DATA
 
-static inline void load_texture(const char *fullpath) {
+void load_texture(const char *fullpath) {
     int w, h;
     u64 imgsize = 0;
 
@@ -561,7 +562,7 @@ static bool texname_to_texformat(const char *name, u8 *fmt, u8 *siz) {
 // calls import_texture() on every texture in the res folder
 // we can get the format and size from the texture files
 // and then cache them using gfx_texture_cache_lookup
-static bool preload_texture(void *user, const char *path) {
+bool preload_texture(void *user, const char *path) {
     // strip off the extension
     char texname[SYS_MAX_PATH];
     strncpy(texname, path, sizeof(texname));
@@ -1323,7 +1324,11 @@ static void gfx_dp_set_scissor(uint32_t mode, uint32_t ulx, uint32_t uly, uint32
 }
 
 static void gfx_dp_set_texture_image(uint32_t format, uint32_t size, uint32_t width, const void* addr) {
-    rdp.texture_to_load.addr = addr;
+    if (is_replacing_eyes) {
+        rdp.texture_to_load.addr = saturn_bind_texture(addr);
+    } else {
+        rdp.texture_to_load.addr = addr;
+    }
     rdp.texture_to_load.siz = size;
 }
 

@@ -106,7 +106,7 @@ void set_cc_from_model(std::string modelPath);
 
 extern "C" {
 #endif
-    void load_cc_directory();
+    void saturn_load_cc_directory();
     void reset_cc_colors();
     void load_cc_file(char*);
 #ifdef __cplusplus

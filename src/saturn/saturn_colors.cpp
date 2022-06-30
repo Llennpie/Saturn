@@ -287,7 +287,7 @@ bool is_spark_address(string address) {
 /*
     Loads the dynos/colorcodes/ folder into the CC array.
 */
-void load_cc_directory() {
+void saturn_load_cc_directory() {
     cc_array.clear();
     cc_array.push_back("Mario.gs");
 
@@ -642,7 +642,7 @@ void load_cc_file(char* cc_char_filename) {
 
     // If the color code was previously deleted, reload the list and cancel.
     if (!file.good()) {
-        load_cc_directory();
+        saturn_load_cc_directory();
         return;
     }
 
@@ -670,7 +670,7 @@ void delete_cc_file(std::string name) {
 #endif
 
     remove(cc_path.c_str());
-    load_cc_directory();
+    saturn_load_cc_directory();
 }
 
 /*

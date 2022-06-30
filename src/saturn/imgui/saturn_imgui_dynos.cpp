@@ -9,6 +9,7 @@
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
 #include "saturn/saturn_colors.h"
+#include "saturn/saturn_textures.h"
 #include "saturn_imgui.h"
 #include "pc/controller/controller_keyboard.h"
 #include "data/dynos.cpp.h"
@@ -56,6 +57,12 @@ static char ui_cc_name[128] = "Sample";
 static int current_cc_id = 0;
 string cc_name;
 static char ui_gameshark[1024 * 16] = "";
+
+int current_eye_state = 0;
+int current_eye_id = 0;
+string eye_name;
+int current_mouth_id = 0;
+string mouth_name;
 
 bool one_pack_selectable;
 bool any_packs_selected;
@@ -212,12 +219,13 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
 int numColorCodes;
 
 void sdynos_imgui_init() {
-    load_cc_directory();
+    saturn_load_cc_directory();
+    saturn_load_eye_directory();
     strcpy(ui_gameshark, global_gs_code().c_str());
 }
 
 void sdynos_imgui_menu() {
-    if (ImGui::BeginMenu("Edit Avatar###menu_selector")) {
+    if (ImGui::BeginMenu("Edit Avatar###menu_edit_avatar")) {
 
         ImGui::Text("Color Codes");
         ImGui::SameLine(); imgui_bundled_help_marker(
@@ -238,7 +246,7 @@ void sdynos_imgui_menu() {
                 if (ImGui::BeginPopupContextItem())
                 {
                     if (ImGui::Button("Refresh")) {
-                        load_cc_directory();
+                        saturn_load_cc_directory();
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::Separator();
@@ -275,6 +283,12 @@ void sdynos_imgui_menu() {
                 }
                         
                 DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
+                saturn_load_eyes_from_model(label);
+                current_eye_id = 0;
+                saturn_set_eye_texture(0);
+                saturn_load_mouths_from_model(label);
+                current_mouth_id = 0;
+                saturn_set_mouth_texture(0);
 
                 one_pack_selectable = false;
                 for (int k = 0; k < sDynosPacks.Count(); k++) {
@@ -283,6 +297,12 @@ void sdynos_imgui_menu() {
                 }
 
                 any_packs_selected = one_pack_selectable;
+                if (!any_packs_selected) {
+                    model_mouth_enabled = false;
+                    saturn_load_eye_directory();
+                    current_eye_id = 0;
+                    saturn_set_eye_texture(0);
+                }
             }
             if (ImGui::BeginPopupContextItem())
             {
@@ -301,6 +321,65 @@ void sdynos_imgui_menu() {
     }
     if (ImGui::MenuItem("Color Code Editor###menu_cc_editor"))
         currentMenu = 2;
+
+    ImGui::Separator();
+
+    ImGui::Text("Eyes");
+    if (current_eye_state == 4) {
+        ImGui::SameLine(); imgui_bundled_help_marker(
+            "Place custom eye PNG textures in dynos/eyes.");
+    }
+
+    const char* eyes[] = { "Blinking", "Open", "Half", "Closed", "CUSTOM...", "Dead" };
+    ImGui::Combo("###eye_combo", &current_eye_state, eyes, IM_ARRAYSIZE(eyes));
+
+    if (current_eye_state == 5) { scrollEyeState = 8; }
+    else if (current_eye_state == 4) {
+        scrollEyeState = 4;
+
+        if (eye_array.size() > 0) {
+
+            // Custom Eye Textures
+
+            ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 75), true);
+            for (int n = 0; n < eye_array.size(); n++) {
+                const bool is_eye_selected = (current_eye_id == n);
+                eye_name = eye_array[n] + ".png";
+
+                if (ImGui::Selectable(eye_name.c_str(), is_eye_selected)) {
+                    current_eye_id = n;
+                    saturn_set_eye_texture(n);
+                }
+            }
+            ImGui::EndChild();
+
+        }
+    }
+    else { scrollEyeState = current_eye_state; }
+    is_replacing_eyes = (scrollEyeState == 4 || model_mouth_enabled);
+
+    if (model_mouth_enabled) {
+        ImGui::Text("Mouth");
+        ImGui::SameLine(); imgui_bundled_help_marker(
+            "Place custom mouth PNG textures in dynos/packs/<pack_name>/mouths.");
+
+        if (mouth_array.size() > 0) {
+
+            // Custom Mouth Textures
+
+            ImGui::BeginChild("###menu_custom_mouth_selector", ImVec2(-FLT_MIN, 75), true);
+            for (int n = 0; n < mouth_array.size(); n++) {
+                const bool is_mouth_selected = (current_mouth_id == n);
+                mouth_name = mouth_array[n] + ".png";
+
+                if (ImGui::Selectable(mouth_name.c_str(), is_mouth_selected)) {
+                    current_mouth_id = n;
+                    saturn_set_mouth_texture(n);
+                }
+            }
+            ImGui::EndChild();
+        }
+    }
 
     ImGui::Separator();
 
@@ -375,7 +454,7 @@ void sdynos_imgui_update() {
                     strcpy(ui_cc_name, "Sample");
                     save_cc_file("Sample");
                 }
-                load_cc_directory();
+                saturn_load_cc_directory();
             }
             ImGui::EndTabItem();
         }
