@@ -27,7 +27,7 @@
 #include "../fs/fs.h"
 
 #include "saturn/saturn_colors.h"
-#include "saturn/saturn_Textures.h"
+#include "saturn/saturn_textures.h"
 
 #define SUPPORT_CHECK(x) assert(x)
 

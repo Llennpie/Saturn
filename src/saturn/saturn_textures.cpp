@@ -54,6 +54,7 @@ void saturn_load_eye_directory() {
     // windows moment
     eye_dir = "dynos\\eyes\\";
 #else
+    fs::create_directory("res/gfx");
     eye_dir = "dynos/eyes/";
 #endif
     current_eye_pre_path = "../../dynos/eyes/";
