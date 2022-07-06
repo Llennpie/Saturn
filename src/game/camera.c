@@ -3221,10 +3221,10 @@ void update_camera(struct Camera *c) {
                             }
                         }
                         // Zoom Out
-                        if (gPlayer1Controller->buttonPressed & D_CBUTTONS) {
-                            if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
+                        if (gPlayer1Controller->buttonPressed & D_CBUTTONS || gPlayer1Controller->buttonPressed & B_BUTTON) {
+                            //if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
                                 exit_c_up(c);
-                            }
+                            //}
                         }
                         if (c->mode == CAMERA_MODE_C_UP) {
                             move_mario_head_c_up(c);
