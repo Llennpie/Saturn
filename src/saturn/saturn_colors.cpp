@@ -298,9 +298,14 @@ void saturn_load_cc_directory() {
     colorCodeDir = "dynos/colorcodes/";
 #endif
 
-    for (const auto & entry : fs::directory_iterator(colorCodeDir))
-        if (entry.path().filename().u8string() != "Mario")
-            cc_array.push_back(entry.path().filename().u8string());
+    for (const auto & entry : fs::directory_iterator(colorCodeDir)) {
+        fs::path path = entry.path();
+
+        if (path.filename().u8string() != "Mario") {
+            if (path.extension().u8string() == ".gs")
+                cc_array.push_back(path.filename().u8string());
+        }
+    }
 }
 
 /*
