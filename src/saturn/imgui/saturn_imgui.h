@@ -1,7 +1,7 @@
 #ifndef SaturnImGui
 #define SaturnImGui
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
 #ifdef __cplusplus
 
