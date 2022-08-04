@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include <map>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -26,7 +27,12 @@ extern "C" {
 
 using namespace std;
 
-int anim_index = 113;
+int current_sanim_index = 7;
+std::string current_sanim_name = "BREAKDANCE";
+int current_sanim_id = MARIO_ANIM_BREAKDANCE;
+std::map<std::pair<int, std::string>, int> current_anim_map = sanim_actions;
+std::string anim_preview_name = "BREAKDANCE";
+int current_sanim_group_index = 1;
 
 void smachinima_imgui_controls(SDL_Event * event) {
     switch (event->type){
@@ -34,7 +40,11 @@ void smachinima_imgui_controls(SDL_Event * event) {
             if(event->key.keysym.sym == SDLK_f && accept_text_input)
                 camera_frozen = !camera_frozen;
             if(event->key.keysym.sym == SDLK_g && accept_text_input)
-                saturn_play_animation(selected_animation);
+                if (!is_anim_playing) {
+                    saturn_play_animation(selected_animation);
+                } else {
+                    is_anim_playing = false;
+                }
             if(event->key.keysym.sym == SDLK_h && accept_text_input)
                 configHUD = !configHUD;
             if(event->key.keysym.sym == SDLK_p && accept_text_input)
@@ -45,7 +55,11 @@ void smachinima_imgui_controls(SDL_Event * event) {
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
                 camera_frozen = !camera_frozen;
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
-                saturn_play_animation(selected_animation);
+                if (!is_anim_playing) {
+                    saturn_play_animation(selected_animation);
+                } else {
+                    is_anim_playing = false;
+                }
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
                 if (is_anim_playing)
                     is_anim_paused = !is_anim_paused;
@@ -81,36 +95,75 @@ void smachinima_imgui_update() {
 
     ImGui::Text("Animations");
     ImGui::Dummy(ImVec2(0, 5));
-    ImGui::Combo("", &anim_index, saturn_animations, IM_ARRAYSIZE(saturn_animations));
-    selected_animation = (MarioAnimID)anim_index;
-    if (selected_animation == MARIO_ANIM_TILT_SPAZ)
-        imgui_bundled_tooltip("by Weegeepie");
-    if (ImGui::Button("Play")) {
-        saturn_play_animation(selected_animation);
-    } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+
+    const char* anim_groups[] = { "Movement (50)", "Actions (24)", "Automatic (27)", "Damage/Deaths (22)",
+        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", "Misc. (2)" };
+    //ImGui::Combo("###anim_groups", &current_sanim_group_index, anim_groups, IM_ARRAYSIZE(anim_groups));
+
+    if (ImGui::BeginCombo("###anim_groups", anim_groups[current_sanim_group_index], ImGuiComboFlags_None)) {
+        for (int n = 0; n < IM_ARRAYSIZE(anim_groups); n++) {
+            const bool is_selected = (current_sanim_group_index == n);
+            if (ImGui::Selectable(anim_groups[n], is_selected)) {
+                current_sanim_group_index = n;
+                switch(current_sanim_group_index) {
+                    case 0: current_anim_map = sanim_movement; break;
+                    case 1: current_anim_map = sanim_actions; break;
+                    case 2: current_anim_map = sanim_automatic; break;
+                    case 3: current_anim_map = sanim_damagedeaths; break;
+                    case 4: current_anim_map = sanim_cutscenes; break;
+                    case 5: current_anim_map = sanim_water; break;
+                    case 6: current_anim_map = sanim_climbing; break;
+                    case 7: current_anim_map = sanim_object; break;
+                    case 8: current_anim_map = sanim_misc; break;
+                }
+                current_sanim_index = current_anim_map.begin()->first.first;
+                current_sanim_name = current_anim_map.begin()->first.second;
+                current_sanim_id = current_anim_map.begin()->second;
+                anim_preview_name = current_sanim_name;
+            }
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    if (ImGui::BeginCombo("###anim_box", anim_preview_name.c_str(), ImGuiComboFlags_None)) {
+        for (auto &[a,b]:current_anim_map) {
+            current_sanim_index = a.first;
+            current_sanim_name = a.second;
+
+            const bool is_selected = (current_sanim_id == b);
+            if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                current_sanim_index = a.first;
+                current_sanim_name = a.second;
+                current_sanim_id = b;
+                anim_preview_name = current_sanim_name;
+            }
+
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    selected_animation = (MarioAnimID)current_sanim_id;
 
     if (mario_exists) {
         if (is_anim_playing) {
-            ImGui::Text("Now Playing: %s", saturn_animations[current_anim_id]);
+            if (ImGui::Button("Stop")) {
+                is_anim_playing = false;
+            } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+            
+            ImGui::Text("Now Playing: %s", anim_preview_name.c_str());
             ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length);
             ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
-        }
-
-        /*
-        ImGui::Dummy(ImVec2(0, 5));
-
-        if (gCurrLevelNum != LEVEL_SA) {
-            if (ImGui::Button("Warp to Chroma Key Stage")) {
-                initiate_warp(LEVEL_SA, 0x01, 0xF8, 0);
-                fade_into_special_warp(0,0);
-            }
         } else {
-            if (ImGui::Button("Warp Home")) {
-                initiate_warp(LEVEL_CASTLE_GROUNDS, 0x01, 0x04, 0);
-                fade_into_special_warp(0,0);
-            }
+            if (ImGui::Button("Play")) {
+                saturn_play_animation(selected_animation);
+            } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
         }
-        */
     }
 
     imgui_bundled_space(20, "Quick Toggles", NULL);
