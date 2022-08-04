@@ -220,7 +220,8 @@ int numColorCodes;
 
 void sdynos_imgui_init() {
     saturn_load_cc_directory();
-    saturn_load_eye_directory();
+    //saturn_load_eye_directory();
+    saturn_load_eye_folder("");
     strcpy(ui_gameshark, global_gs_code().c_str());
 }
 
@@ -283,11 +284,17 @@ void sdynos_imgui_menu() {
                 }
                         
                 DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
-                saturn_load_eyes_from_model(label);
-                current_eye_id = 0;
+
+                // reset stuff
+                model_mouth_enabled = false;
+                mouth_array.clear();
+                saturn_load_eye_folder("dynos/eyes/");
                 saturn_set_eye_texture(0);
-                saturn_load_mouths_from_model(label);
-                current_mouth_id = 0;
+
+                saturn_load_eyes_from_model("dynos/packs/", label);
+                saturn_set_eye_texture(0);
+
+                saturn_load_mouths_from_model("dynos/packs/", label);
                 saturn_set_mouth_texture(0);
 
                 one_pack_selectable = false;
@@ -299,8 +306,8 @@ void sdynos_imgui_menu() {
                 any_packs_selected = one_pack_selectable;
                 if (!any_packs_selected) {
                     model_mouth_enabled = false;
-                    saturn_load_eye_directory();
-                    current_eye_id = 0;
+                    mouth_array.clear();
+                    saturn_load_eye_folder("dynos/eyes/");
                     saturn_set_eye_texture(0);
                 }
             }
@@ -341,19 +348,19 @@ void sdynos_imgui_menu() {
 
             // Custom Eye Textures
 
-            ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 75), true);
+            ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 150), true);
             for (int n = 0; n < eye_array.size(); n++) {
-                const bool is_eye_selected = (current_eye_id == n);
-                eye_name = eye_array[n] + ".png";
+                const bool is_eye_selected = (current_eye_index == n);
+                string entry_name = eye_array[n];
 
-                if (ImGui::Selectable(eye_name.c_str(), is_eye_selected)) {
-                    current_eye_id = n;
-                    saturn_set_eye_texture(n);
+                if (ImGui::Selectable(entry_name.c_str(), is_eye_selected)) {
+                    current_eye_index = n;
+                    saturn_eye_selectable(entry_name, n);
                 }
             }
             ImGui::EndChild();
-
         }
+        
     }
     else { scrollEyeState = current_eye_state; }
     is_replacing_eyes = (scrollEyeState == 4 || model_mouth_enabled);
@@ -369,12 +376,12 @@ void sdynos_imgui_menu() {
 
             ImGui::BeginChild("###menu_custom_mouth_selector", ImVec2(-FLT_MIN, 75), true);
             for (int n = 0; n < mouth_array.size(); n++) {
-                const bool is_mouth_selected = (current_mouth_id == n);
-                mouth_name = mouth_array[n] + ".png";
+                const bool is_mouth_selected = (current_mouth_index == n);
+                string entry_name = mouth_array[n];
 
-                if (ImGui::Selectable(mouth_name.c_str(), is_mouth_selected)) {
-                    current_mouth_id = n;
-                    saturn_set_mouth_texture(n);
+                if (ImGui::Selectable(entry_name.c_str(), is_mouth_selected)) {
+                    current_mouth_index = n;
+                    saturn_mouth_selectable(entry_name, n);
                 }
             }
             ImGui::EndChild();
