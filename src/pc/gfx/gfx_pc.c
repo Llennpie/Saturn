@@ -57,6 +57,10 @@
 #define HASHMAP_LEN (MAX_CACHED_TEXTURES * 2)
 #define HASH_MASK (HASHMAP_LEN - 1)
 
+float world_light_dir1;
+float world_light_dir2;
+float world_light_dir3;
+
 struct RGBA {
     uint8_t r, g, b, a;
 };
@@ -680,6 +684,11 @@ static void calculate_normal_dir(const Light_t *light, float coeffs[3]) {
         light->dir[1] / 127.0f,
         light->dir[2] / 127.0f
     };
+
+    light_dir[0] += world_light_dir1;
+    light_dir[1] += world_light_dir2;
+    light_dir[2] += world_light_dir3;
+
     gfx_transposed_matrix_mul(coeffs, light_dir, rsp.modelview_matrix_stack[rsp.modelview_matrix_stack_size - 1]);
     gfx_normalize_vector(coeffs);
 }

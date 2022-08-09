@@ -14,6 +14,10 @@ struct GfxDimensions {
 extern struct GfxDimensions gfx_current_dimensions;
 
 #ifdef __cplusplus
+extern float world_light_dir1;
+extern float world_light_dir2;
+extern float world_light_dir3;
+
 extern "C" {
 #endif
 
