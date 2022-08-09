@@ -90,9 +90,13 @@ void ssettings_imgui_update() {
 #ifdef EXTERNAL_DATA
         ImGui::Checkbox("Precache Textures", &configPrecacheRes);
 #endif
-        ImGui::Checkbox("Skip Intro", &configSkipIntro);
+        ImGui::Dummy(ImVec2(0, 5));
+        ImGui::Checkbox("Infinite Health", &Cheats.GodMode);
+        ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
+        imgui_bundled_tooltip("Just like '07! Hold L to in the air to moon jump.");
         ImGui::Checkbox("Exit Anywhere", &Cheats.ExitAnywhere);
         imgui_bundled_tooltip("Allows the level to be exited from any state.");
+        ImGui::Checkbox("Skip Intro", &configSkipIntro);
     }
     if (ImGui::CollapsingHeader("Editor")) {
         const char* mThemeSettings[] = { "Legacy", "Moon Edition", "Half-Life" };
@@ -107,13 +111,15 @@ void ssettings_imgui_update() {
 
         ImGui::Separator();
 
-        const char* mCameraSettings[] = { "Mouse", "Keyboard/Gamepad" };
+        const char* mCameraSettings[] = { "Keyboard", "Keyboard/Gamepad (Old)", "Mouse (Experimental)" };
         ImGui::Text("Machinima Camera Mode");
         ImGui::Combo("###machinima_camera_mode", (int*)&configMCameraMode, mCameraSettings, IM_ARRAYSIZE(mCameraSettings));
         if (configMCameraMode == 0) {
-            ImGui::SameLine(); imgui_bundled_help_marker("LShift + Mouse Buttons = Move Camera");
+            ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> LShift + Mouse Buttons");
         } else if (configMCameraMode == 1) {
-            ImGui::SameLine(); imgui_bundled_help_marker("R + C-Buttons = Pan Camera, L + C-Buttons = Raise/Lower Camera");
+            ImGui::SameLine(); imgui_bundled_help_marker("Pan Camera -> R + C-Buttons\nRaise/Lower Camera -> L + C-Buttons\nRotate Camera -> L + Crouch + C-Buttons");
+        } else if (configMCameraMode == 2) {
+            ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> Y/G/H/J\nRaise/Lower Camera -> T/U\nRotate Camera -> R + Y/G/H/J");
         }
     }
 }
