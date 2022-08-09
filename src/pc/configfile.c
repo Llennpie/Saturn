@@ -82,6 +82,7 @@ unsigned int configEditorTheme   = 0;
 unsigned int configMCameraMode   = 0; // keyboard is better
 bool         configEditorFastApply = false;
 bool         configEditorAutoSpark = true;
+bool         configEditorNearClipping = false;
 #ifdef BETTERCAMERA
 // BetterCamera settings
 unsigned int configCameraXSens   = 50;
@@ -138,6 +139,7 @@ static const struct ConfigOption options[] = {
     {.name = "mcamera_mode",         .type = CONFIG_TYPE_UINT, .uintValue = &configMCameraMode},
     {.name = "editor_fast_apply",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorFastApply},
     {.name = "editor_auto_spark",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoSpark},
+    {.name = "editor_near_clipping", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorNearClipping},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
     {.name = "bettercam_analog",     .type = CONFIG_TYPE_BOOL, .boolValue = &configCameraAnalog},

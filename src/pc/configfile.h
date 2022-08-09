@@ -49,6 +49,7 @@ extern unsigned int configEditorTheme;
 extern unsigned int configMCameraMode;
 extern bool         configEditorFastApply;
 extern bool         configEditorAutoSpark;
+extern bool         configEditorNearClipping;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
 extern unsigned int configCameraYSens;

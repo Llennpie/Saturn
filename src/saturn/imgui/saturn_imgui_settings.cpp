@@ -70,6 +70,11 @@ void ssettings_imgui_update() {
         if (ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias))
             configWindow.settings_changed = true;
         imgui_bundled_tooltip("EXPERIMENTAL. Enables/disables anti-aliasing with OpenGL.");
+
+        ImGui::Dummy(ImVec2(0, 5));
+
+        ImGui::Checkbox("Disable near-clipping", &configEditorNearClipping);
+        imgui_bundled_tooltip("Enable when some close to the camera starts clipping through. Disable if the level fog goes nuts.");
     }
     if (ImGui::CollapsingHeader("Audio")) {
         ImGui::Text("Volume");
