@@ -11,6 +11,7 @@ bool mario_exists;
 
 bool camera_frozen;
 float camera_speed = 0.0f;
+float camera_fov = 50.0f;
 
 bool camera_view_enabled;
 bool camera_view_moving;
@@ -52,6 +53,7 @@ extern "C" {
 #include "game/mario.h"
 #include <mario_animation_ids.h>
 #include <sm64.h>
+#include "pc/controller/controller_keyboard.h"
 }
 
 using namespace std;
@@ -75,15 +77,30 @@ void saturn_update() {
 
     machinimaMode = (camera_frozen) ? 1 : 0;
 
-    if (camera_frozen && configMCameraMode == 0) {
-        camera_view_enabled = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT];
-        //if (camera_view_enabled) { SDL_SetRelativeMouseMode(SDL_TRUE); }
-        //else { SDL_SetRelativeMouseMode(SDL_FALSE); }
-
-        camera_view_moving = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_RMASK;
-        camera_view_zooming = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_MMASK;
-        camera_view_rotating = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_LMASK;
+    if (camera_frozen) {
+        if (configMCameraMode == 2) {
+            camera_view_enabled = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT];
+            camera_view_moving = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_RMASK;
+            camera_view_zooming = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_MMASK;
+            camera_view_rotating = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_LMASK;
+        } else if (configMCameraMode == 0) {
+            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_R]) {
+                cameraRotateUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & accept_text_input;
+                cameraRotateDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
+                cameraRotateLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
+                cameraRotateRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+            } else {
+                cameraMoveForward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & accept_text_input;
+                cameraMoveBackward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
+                cameraMoveLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
+                cameraMoveRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+            }
+            cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & accept_text_input;
+            cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & accept_text_input;
+        }
     }
+
+    camera_default_fov = camera_fov + 5.0f;
 
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
@@ -150,4 +167,11 @@ void saturn_update() {
 void saturn_play_animation(MarioAnimID anim) {
     set_mario_animation(gMarioState, anim);
     is_anim_playing = true;
+}
+
+// Debug
+
+void saturn_print(const char* text) {
+    if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_RSHIFT])
+        printf(text);
 }

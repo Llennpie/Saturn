@@ -3039,6 +3039,17 @@ Vec3f camVelROffset;
 s16 camVelRPitch;
 s16 camVelRYaw;
 
+u8 cameraMoveForward;
+u8 cameraMoveBackward;
+u8 cameraMoveLeft;
+u8 cameraMoveRight;
+u8 cameraMoveUp;
+u8 cameraMoveDown;
+u8 cameraRotateLeft;
+u8 cameraRotateRight;
+u8 cameraRotateUp;
+u8 cameraRotateDown;
+
 /**
  * The main camera update function.
  * Gets controller input, checks for cutscenes, handles mode changes, and moves the camera
@@ -3156,6 +3167,77 @@ void update_camera(struct Camera *c) {
             }
         } else {
             if (machinimaMode) {
+
+                if (configMCameraMode == 0) {
+                    // Better Keyboard Controls
+
+                    if (cameraMoveForward) {
+                        c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                    } else if (cameraMoveBackward) {
+                        c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                    }
+                    if (cameraMoveRight) {
+                        c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                    } else if (cameraMoveLeft) {
+                        c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                    }
+                    if (cameraMoveUp) {
+                        camVelY += 5.f * camVelSpeed;
+                    } else if (cameraMoveDown) {
+                        camVelY -= 5.f * camVelSpeed;
+                    }
+
+                    // Rotation
+                    f32 dist;
+                    s16 pitch, yaw;
+
+                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
+                    if (cameraRotateUp && pitch < 12000) {
+                        pitch += (camVelSpeed / 2) * 512;
+                    }
+                    if (cameraRotateDown && pitch > -12000) {
+                        pitch -= (camVelSpeed / 2) * 512;
+                    }
+                    if (cameraRotateRight) {
+                        yaw -= (camVelSpeed / 2) * 512;
+                    }
+                    if (cameraRotateLeft) {
+                        yaw += (camVelSpeed / 2) * 512;
+                    }
+                    vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
+
+                    // Zoom In / Enter C-Up
+                    if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
+                        if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
+                            gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
+                        } else {
+                            set_mode_c_up(c);
+                        }
+                    }
+                    // Zoom Out
+                    if (gPlayer1Controller->buttonPressed & D_CBUTTONS || gPlayer1Controller->buttonPressed & B_BUTTON) {
+                        //if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
+                            exit_c_up(c);
+                        //}
+                    }
+                    if (c->mode == CAMERA_MODE_C_UP) {
+                        move_mario_head_c_up(c);
+                    }
+
+                }
+
                 if (configMCameraMode == 1) {
                     if (gPlayer1Controller->buttonDown & L_TRIG) {
                         if (gPlayer1Controller->buttonDown & Z_TRIG) {
@@ -3163,17 +3245,17 @@ void update_camera(struct Camera *c) {
                             f32 dist;
                             s16 pitch, yaw;
                             vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
-                            if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
-                                pitch -= sins(c->yaw + atan2s(0, 127)) * -camVelSpeed * 512;
+                            if (gPlayer1Controller->buttonDown & U_CBUTTONS && pitch < 12000) {
+                                pitch += (camVelSpeed / 2) * 512;
                             }
-                            if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
-                                pitch -= sins(c->yaw + atan2s(0, 127)) * camVelSpeed * 512;
+                            if (gPlayer1Controller->buttonDown & D_CBUTTONS && pitch > -12000) {
+                                pitch -= (camVelSpeed / 2) * 512;
                             }
                             if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
-                                yaw -= sins(c->yaw + atan2s(0, 127)) * camVelSpeed * 512;
+                                yaw -= (camVelSpeed / 2) * 512;
                             }
                             if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
-                                yaw -= sins(c->yaw + atan2s(0, 127)) * -camVelSpeed * 512;
+                                yaw += (camVelSpeed / 2) * 512;
                             }
                             vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
                         } else {
@@ -3230,7 +3312,7 @@ void update_camera(struct Camera *c) {
                             move_mario_head_c_up(c);
                         }
                     }
-                } else if (configMCameraMode == 0) {
+                } else if (configMCameraMode == 2) {
                     // Mouse Control
                     if (camera_view_enabled) {
                         if (camera_view_moving) {
@@ -3248,8 +3330,10 @@ void update_camera(struct Camera *c) {
                             f32 dist;
                             s16 pitch, yaw;
                             vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
-                            yaw -= sins(c->yaw + atan2s(0, 127)) * camera_view_move_x * 32;
-                            pitch -= sins(c->yaw + atan2s(0, 127)) * camera_view_move_y * 32;
+                            if (pitch > -12000 && pitch < 12000) {
+                                yaw += camera_view_move_x * 32;
+                                pitch += camera_view_move_y * 32;
+                            }
                             vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
                         }
                     } else {
@@ -11591,6 +11675,8 @@ void zoom_fov_30(UNUSED struct MarioState *m) {
     camera_approach_f32_symmetric_bool(&sFOVState.fov, 30.f, (30.f - sFOVState.fov) / 60.f);
 }
 
+f32 camera_default_fov = 45.f;
+
 /**
  * This is the default fov function. It makes fov approach 45 degrees, and it handles zooming in when
  * Mario falls a sleep.
@@ -11602,11 +11688,11 @@ void fov_default(struct MarioState *m) {
         camera_approach_f32_symmetric_bool(&sFOVState.fov, 30.f, (30.f - sFOVState.fov) / 30.f);
         sStatusFlags |= CAM_FLAG_SLEEPING;
     } else {
-        camera_approach_f32_symmetric_bool(&sFOVState.fov, 45.f, (45.f - sFOVState.fov) / 30.f);
+        camera_approach_f32_symmetric_bool(&sFOVState.fov, camera_default_fov, (camera_default_fov - sFOVState.fov) / 30.f);
         sFOVState.unusedIsSleeping = 0;
     }
     if (m->area->camera->cutscene == CUTSCENE_0F_UNUSED) {
-        sFOVState.fov = 45.f;
+        sFOVState.fov = camera_default_fov;
     }
 }
 

@@ -79,7 +79,7 @@ unsigned int configRumbleStrength = 50;
 bool configPrecacheRes = true;
 #endif
 unsigned int configEditorTheme   = 0;
-unsigned int configMCameraMode   = 1; // keyboard is better
+unsigned int configMCameraMode   = 0; // keyboard is better
 bool         configEditorFastApply = false;
 bool         configEditorAutoSpark = true;
 #ifdef BETTERCAMERA

@@ -425,6 +425,8 @@ struct CameraFOVStatus
     /*0x18*/ s16 decay;
 };
 
+extern f32 camera_default_fov;
+
 /**
  * Information for a control point in a spline segment.
  */
@@ -777,5 +779,16 @@ Gfx *geo_camera_fov(s32 callContext, struct GraphNode *g, UNUSED void *context);
 
 extern u8 machinimaMode;
 extern f32 camVelSpeed;
+
+extern u8 cameraMoveForward;
+extern u8 cameraMoveBackward;
+extern u8 cameraMoveLeft;
+extern u8 cameraMoveRight;
+extern u8 cameraMoveUp;
+extern u8 cameraMoveDown;
+extern u8 cameraRotateLeft;
+extern u8 cameraRotateRight;
+extern u8 cameraRotateUp;
+extern u8 cameraRotateDown;
 
 #endif // CAMERA_H
