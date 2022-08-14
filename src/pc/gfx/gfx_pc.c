@@ -60,6 +60,7 @@
 float world_light_dir1;
 float world_light_dir2;
 float world_light_dir3;
+float world_light_dir4 = 1.f;
 
 struct RGBA {
     uint8_t r, g, b, a;
@@ -793,19 +794,20 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             // here at saturn we love mors and sm64plus 
 
             // Detect if these are one of Mario's colors
-            bool mario_hat = (r == 0x7f && g == 0x00 && b == 0x00);
-            bool mario_overalls = (r == 0x00 && g == 0x00 && b == 0x7f);
-            bool mario_gloves = (r == 0x00 && g == 0x7f && b == 0x00);
-            bool mario_shoes = (r == 0x39 && g == 0x0e && b == 0x07);
-            bool mario_skin = (r == 0x7f && g == 0x60 && b == 0x3c);
-            bool mario_hair = (r == 0x39 && g == 0x03 && b == 0x00);
+            // Also check for rounding inconsistencies
+            bool mario_hat = (r == 0x7f && g == 0x00 && b == 0x00) | (r == 0x7E && g == 0x00 && b == 0x00);
+            bool mario_overalls = (r == 0x00 && g == 0x00 && b == 0x7f) | (r == 0x00 && g == 0x00 && b == 0x7E);
+            bool mario_gloves = (r == 0x00 && g == 0x7f && b == 0x00) | (r == 0x00 && g == 0x7E && b == 0x00);
+            bool mario_shoes = (r == 0x39 && g == 0x0e && b == 0x07) | (r == 0x39 && g == 0xD && b == 0x7);
+            bool mario_skin = (r == 0x7f && g == 0x60 && b == 0x3c) | (r == 0x7E && g == 0x60 && b == 0x3C);
+            bool mario_hair = (r == 0x39 && g == 0x03 && b == 0x00) | (r == 0x39 && g == 0x2 && b == 0x00);
             // Spark
-            bool mario_shirt = (r == 0x7f && g == 0x7f && b == 0x00);
-            bool mario_shoulders = (r == 0x00 && g == 0x7f && b == 0x7f);
-            bool mario_arms = (r == 0x00 && g == 0x7f && b == 0x40);
-            bool mario_overalls_bottom = (r == 0x7f && g == 0x00 && b == 0x7f);
-            bool mario_legtop = (r == 0x7f && g == 0x00 && b == 0x40);
-            bool mario_legbottom = (r == 0x40 && g == 0x00 && b == 0x7f);
+            bool mario_shirt = (r == 0x7f && g == 0x7f && b == 0x00) | (r == 0x7E && g == 0x7E && b == 0x00);
+            bool mario_shoulders = (r == 0x00 && g == 0x7f && b == 0x7f) | (r == 0x00 && g == 0x7E && b == 0x7E);
+            bool mario_arms = (r == 0x00 && g == 0x7f && b == 0x40) | (r == 0x00 && g == 0x7F && b == 0x3F);
+            bool mario_overalls_bottom = (r == 0x7f && g == 0x00 && b == 0x7f) | (r == 0x7E && g == 0x00 && b == 0x7E);
+            bool mario_legtop = (r == 0x7f && g == 0x00 && b == 0x40) | (r == 0x7F && g == 0x00 && b == 0x3F);
+            bool mario_legbottom = (r == 0x40 && g == 0x00 && b == 0x7f) | (r == 0x3F && g == 0x00 && b == 0x7F);
 
             // Override them lazily
             if (cc_model_support) {
@@ -977,9 +979,9 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                 V = (int32_t)((doty / 127.0f + 1.0f) / 4.0f * rsp.texture_scaling_factor.t);
             }
         } else {
-            d->color.r = v->cn[0];
-            d->color.g = v->cn[1];
-            d->color.b = v->cn[2];
+            d->color.r = v->cn[0] / (world_light_dir4);
+            d->color.g = v->cn[1] / (world_light_dir4);
+            d->color.b = v->cn[2] / (world_light_dir4);
         }
         
         d->u = U;

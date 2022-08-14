@@ -17,6 +17,7 @@ extern struct GfxDimensions gfx_current_dimensions;
 extern float world_light_dir1;
 extern float world_light_dir2;
 extern float world_light_dir3;
+extern float world_light_dir4;
 
 extern "C" {
 #endif
