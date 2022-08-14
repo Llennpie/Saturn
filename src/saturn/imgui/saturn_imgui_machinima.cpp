@@ -37,23 +37,28 @@ int current_sanim_group_index = 1;
 void smachinima_imgui_controls(SDL_Event * event) {
     switch (event->type){
         case SDL_KEYDOWN:
+            // Camera
             if(event->key.keysym.sym == SDLK_f && accept_text_input)
                 camera_frozen = !camera_frozen;
-            if(event->key.keysym.sym == SDLK_o && accept_text_input)
-                if (!is_anim_playing) {
-                    saturn_play_animation(selected_animation);
-                } else {
-                    is_anim_playing = false;
-                }
-            if(event->key.keysym.sym == SDLK_p && accept_text_input)
-                if (is_anim_playing)
-                    is_anim_paused = !is_anim_paused;
 
             if (event->key.keysym.sym == SDLK_m && accept_text_input) {
                 if (camera_fov <= 98.0f) camera_fov += 2.f;
             } else if (event->key.keysym.sym == SDLK_n && accept_text_input) {
                 if (camera_fov >= 2.0f) camera_fov -= 2.f;
             }
+            // Animations
+            if(event->key.keysym.sym == SDLK_o && accept_text_input)
+                if (!is_anim_playing) {
+                    saturn_play_animation(selected_animation);
+                } else {
+                    is_anim_playing = false;
+                    is_anim_paused = false;
+                }
+            if(event->key.keysym.sym == SDLK_p && accept_text_input)
+                if (is_anim_playing)
+                    is_anim_paused = !is_anim_paused;
+            if(event->key.keysym.sym == SDLK_i && accept_text_input)
+                is_anim_looped = !is_anim_looped;
 
         case SDL_CONTROLLERBUTTONDOWN:
             if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
@@ -93,13 +98,14 @@ void smachinima_imgui_update() {
     } else if (configMCameraMode == 0) {
         ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> Y/G/H/J\nRaise/Lower Camera -> T/U\nRotate Camera -> R + Y/G/H/J");
     }
-    if (configMCameraMode == 0 || configMCameraMode == 1 && camera_frozen) {
+    if (configMCameraMode == 0 && camera_frozen || configMCameraMode == 1 && camera_frozen) {
         ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
         imgui_bundled_tooltip("Controls the speed of the machinima camera while enabled. Default is 1.");
     }
 
     ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
     imgui_bundled_tooltip("Controls the FOV of the in-game camera. Default is 50.\nKeybind -> N/M");
+    ImGui::Checkbox("Smooth###smooth_fov", &camera_fov_smooth);
 
     ImGui::Dummy(ImVec2(0, 5));
     ImGui::Text("Animations");
@@ -162,6 +168,7 @@ void smachinima_imgui_update() {
         if (is_anim_playing) {
             if (ImGui::Button("Stop")) {
                 is_anim_playing = false;
+                is_anim_paused = false;
             } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
             
             ImGui::Text("Now Playing: %s", anim_preview_name.c_str());
@@ -217,15 +224,17 @@ void smachinima_imgui_update() {
 
     ImGui::Text("World Lighting");
 
-    ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
-    ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
-    ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
-                
-    if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f) {
+    if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 0.f) {
         if (ImGui::Button("Reset###reset_wshading")) {
             world_light_dir1 = 0.f;
             world_light_dir2 = 0.f;
             world_light_dir3 = 0.f;
+            world_light_dir4 = 1.f;
         }
     }
+
+    ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
+    ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
+    ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
+    ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
 }

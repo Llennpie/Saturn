@@ -12,6 +12,7 @@ bool mario_exists;
 bool camera_frozen;
 float camera_speed = 0.0f;
 float camera_fov = 50.0f;
+bool camera_fov_smooth = true;
 
 bool camera_view_enabled;
 bool camera_view_moving;
