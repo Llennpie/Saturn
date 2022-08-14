@@ -100,7 +100,7 @@ extern std::vector<std::string> cc_array;
 extern std::string global_gs_code();
 
 void paste_gs_code(std::string content);
-void save_cc_file(std::string name);
+void save_cc_file(std::string name, std::string gameshark);
 void delete_cc_file(std::string name);
 void set_cc_from_model(std::string modelPath);
 

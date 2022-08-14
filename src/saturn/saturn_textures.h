@@ -21,10 +21,29 @@ extern bool model_mouth_enabled;
 
 void saturn_load_eye_folder(std::string);
 void saturn_eye_selectable(std::string, int);
-void saturn_load_eyes_from_model(std::string, std::string);
 
-void saturn_load_mouths_from_model(std::string, std::string);
-void saturn_mouth_selectable(std::string, int);
+// New System
+
+struct Expression {
+    std::string name;
+    std::string path;
+    std::vector<std::string> textures;
+};
+
+struct ModelData {
+    std::string name;
+    std::string author;
+    std::string version;
+    std::vector<Expression> expressions;
+    bool cc_support;
+    bool spark_support;
+};
+
+extern struct ModelData current_model_data;
+extern bool using_model_eyes;
+void saturn_load_model_json(std::string folder_name);
+void saturn_load_model_data(std::string folder_name);
+void saturn_set_model_texture(int expIndex, std::string path);
 
 extern "C" {
 #endif
@@ -32,7 +51,6 @@ extern "C" {
 
     const void* saturn_bind_texture(const void*);
     void saturn_set_eye_texture(int);
-    void saturn_set_mouth_texture(int);
 #ifdef __cplusplus
 }
 #endif

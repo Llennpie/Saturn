@@ -677,6 +677,7 @@ else
 endif # End of LDFLAGS
 
 LDFLAGS += -lstdc++
+LDFLAGS += -ljsoncpp
 
 # icon
 ifeq ($(WINDOWS_BUILD),1)

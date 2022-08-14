@@ -7,6 +7,7 @@
 #include <string>
 
 extern void set_editor_from_global_cc(std::string);
+extern int numColorCodes;
 
 extern "C" {
 #endif

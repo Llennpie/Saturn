@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "saturn/saturn.h"
+#include "saturn/saturn_colors.h"
 #include "saturn/imgui/saturn_imgui.h"
 
 #include "saturn/libs/imgui/imgui.h"
@@ -16,6 +17,7 @@
 #include "pc/configfile.h"
 
 extern "C" {
+#include "game/mario.h"
 #include "game/camera.h"
 #include "game/level_update.h"
 #include "sm64.h"
@@ -31,6 +33,8 @@ using namespace std;
 #include <stdlib.h>
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
+
+#include <json/json.h>
 
 bool is_replacing_eyes;
 
@@ -48,7 +52,7 @@ string current_mouth_dir_path;
 int current_mouth_index;
 bool model_mouth_enabled;
 
-// Eye Folders
+// Eye Folders, Non-Model
 
 void saturn_load_eye_folder(std::string path) {
     eye_array.clear();
@@ -86,52 +90,6 @@ void saturn_load_eye_folder(std::string path) {
         saturn_set_eye_texture(0);
 }
 
-/*
-    Loads a model's eye directory, if it exists.
-*/
-void saturn_load_eyes_from_model(std::string path, std::string folder_name) {
-    eye_array.clear();
-    fs::create_directory("res/gfx");
-
-    // our model may not have a eye folder
-    if (!fs::is_directory("dynos/packs/" + folder_name + "/eyes/")) {
-        model_eyes_enabled = false;
-        saturn_load_eye_folder("../");
-        return;
-    }
-
-    // return to root if we haven't loaded our model eyes yet
-    if (path == "../") path = "";
-    if (!model_eyes_enabled || path == "") {
-        current_eye_dir_path = "dynos/packs/" + folder_name + "/eyes/";
-        model_eyes_enabled = true;
-    }
-
-    // only update current path if folder exists
-    if (fs::is_directory(current_eye_dir_path + path)) {
-        current_eye_dir_path = current_eye_dir_path + path;
-    }
-
-    current_eye_pre_path = "../../" + current_eye_dir_path;
-
-    if (current_eye_dir_path != "dynos/packs/" + folder_name + "/eyes/") {
-        eye_array.push_back("../");
-    }
-
-    for (const auto & entry : fs::directory_iterator(current_eye_dir_path)) {
-        if (fs::is_directory(entry.path())) {
-            //eye_array.push_back(entry.path().stem().u8string() + "/");
-        } else {
-            string entryPath = entry.path().filename().u8string();
-            if (entryPath.find(".png") != string::npos) // only allow png files
-                eye_array.push_back(entryPath);
-        }
-    }
-    
-    if (eye_array.size() > 0)
-        saturn_set_eye_texture(0);
-}
-
 void saturn_eye_selectable(std::string name, int index) {
     if (name.find(".png") != string::npos) {
         // this is an eye
@@ -146,59 +104,24 @@ std::string current_mouth_folder;
 std::string last_folder_name;
 
 /*
-    Loads a model's mouth directory, if it exists.
+    Sets an eye texture with an eye_array index.
 */
-void saturn_load_mouths_from_model(std::string path, std::string folder_name) {
-    mouth_array.clear();
-    fs::create_directory("res/gfx");
-
-    // allows folder_name to be undefined
-    if (folder_name == "") { folder_name = last_folder_name; }
-    else { last_folder_name = folder_name; }
-
-    // our model may not have a mouth folder
-    model_mouth_enabled = fs::is_directory("dynos/packs/" + folder_name + "/mouths/");
-    if (!model_mouth_enabled) {
+void saturn_set_eye_texture(int index) {
+    if (eye_array[index].find(".png") == string::npos) {
+        // keep trying till we get a non-folder
+        saturn_set_eye_texture(index + 1);
         return;
-    }
-
-    // return to root
-    if (path == "../") path = "";
-    if (path == "dynos/packs/" || path == "") {
-        current_mouth_dir_path = "dynos/packs/" + folder_name + "/mouths/";
-    }
-
-    // only update current path if folder exists
-    if (fs::is_directory(current_mouth_dir_path + path)) {
-        current_mouth_dir_path = current_mouth_dir_path + path;
-    }
-
-    current_mouth_pre_path = "../../dynos/packs/" + folder_name + "/mouths/";
-
-    if (current_mouth_dir_path != "dynos/packs/" + folder_name + "/mouths/") {
-        mouth_array.push_back("../");
-    }
-
-    for (const auto & entry : fs::directory_iterator(current_mouth_dir_path)) {
-        if (fs::is_directory(entry.path())) {
-            //mouth_array.push_back(entry.path().stem().u8string() + "/");
-        } else {
-            string entryPath = entry.path().filename().u8string();
-            if (entryPath.find(".png") != string::npos) // only allow png files
-                mouth_array.push_back(entryPath);
-        }
-    }
-}
-
-void saturn_mouth_selectable(std::string name, int index) {
-    if (name.find(".png") != string::npos) {
-        // this is a mouth
-        saturn_set_mouth_texture(index);
-        std::cout << current_mouth << std::endl;
     } else {
-        saturn_load_mouths_from_model(name, ""); // not defined, we should have already picked a folder_name
+        current_eye_index = index;
+        current_eye = current_eye_pre_path + eye_array[index];
+        current_eye = current_eye.substr(0, current_eye.size() - 4);
     }
 }
+
+// NEW SYSTEM, Model
+
+string current_model_exp_tex[6];
+bool using_model_eyes;
 
 /*
     Handles texture replacement. Called from gfx_pc.c
@@ -209,13 +132,25 @@ const void* saturn_bind_texture(const void* input) {
 
     string texName = string(inputTexture);
 
+    if (current_model_data.name != "") {
+        for (int i = 0; i < current_model_data.expressions.size(); i++) {
+
+            // Could be either "saturn_eye" or "saturn_eyes", check for both
+            string pos_name1 = "saturn_" + current_model_data.expressions[i].name;
+            string pos_name2 = pos_name1.substr(0, pos_name1.size() - 1);
+
+            if (texName.find(pos_name1) != string::npos || texName.find(pos_name2) != string::npos) {
+                outputTexture = current_model_exp_tex[i].c_str();
+                //std::cout << current_model_exp_tex[i] << std::endl;
+                const void* output = static_cast<const void*>(outputTexture);
+                return output;
+            }
+
+        }
+    }
+
     if (texName == "actors/mario/mario_eyes_left_unused.rgba16" || texName.find("saturn_eye") != string::npos) {
         outputTexture = current_eye.c_str();
-        const void* output = static_cast<const void*>(outputTexture);
-        return output;
-    }
-    if (texName.find("saturn_mouth") != string::npos && model_mouth_enabled) {
-        outputTexture = current_mouth.c_str();
         const void* output = static_cast<const void*>(outputTexture);
         return output;
     }
@@ -223,32 +158,148 @@ const void* saturn_bind_texture(const void* input) {
     return input;
 }
 
-/*
-    Sets an eye texture with an eye_array index.
-*/
-void saturn_set_eye_texture(int index) {
-    if (eye_array[index].find(".png") == string::npos) {
-        // keep trying till we get a non-folder
-        saturn_set_eye_texture(index + 1);
-        return;
+struct ModelData current_model_data;
+
+void saturn_set_model_texture(int expIndex, string path) {
+    current_model_exp_tex[expIndex] = "../../" + path;
+    current_model_exp_tex[expIndex] = current_model_exp_tex[expIndex].substr(0, current_model_exp_tex[expIndex].size() - 4);
+    std::cout << current_model_exp_tex[expIndex] << std::endl;
+}
+
+void saturn_load_model_expression_entry(string folder_name, string expression_name) {
+    Expression ex_entry;
+
+    // Folder path, could be either something like "eye" OR "eyes"
+    string path = "";
+    string pos_path1 = "dynos/packs/" + folder_name + "/expressions/" + expression_name + "/";
+    string pos_path2 = "dynos/packs/" + folder_name + "/expressions/" + expression_name + "s/";
+
+    // Prefer "eye" over "eyes"
+    if (fs::is_directory(pos_path2)) { path = pos_path2; ex_entry.name = (expression_name + "s"); }
+    if (fs::is_directory(pos_path1)) { path = pos_path1; ex_entry.name = (expression_name + ""); }
+    // If both don't exist, cancel
+    if (path == "") { return; }
+    if (fs::is_empty(path)) { return; }
+
+    ex_entry.path = path;
+
+    // Load each .png in the path
+    for (const auto & entry : fs::directory_iterator(path)) {
+        if (fs::is_directory(entry.path())) {
+            // Ignore, this is a folder
+        } else {
+            string entryName = entry.path().filename().u8string();
+            if (entryName.find(".png") != string::npos) // Only allow .png files
+                ex_entry.textures.push_back(entryName);
+        }
     }
-    current_eye_index = index;
-    current_eye = current_eye_pre_path + eye_array[index];
-    current_eye = current_eye.substr(0, current_eye.size() - 4);
+
+    if (ex_entry.textures.size() > 0)
+        current_model_data.expressions.push_back(ex_entry);
 }
 
 /*
-    Sets a mouth texture with a mouth_array index, if mouth support is enabled.
+    Loads a model.json from a given model (if it exists).
 */
-void saturn_set_mouth_texture(int index) {
-    if (!model_mouth_enabled) return;
+void saturn_load_model_json(std::string folder_name) {
+    // Reset current model data
+    ModelData blank;
+    current_model_data = blank;
+    using_model_eyes = false;
 
-    if (mouth_array[index].find(".png") == string::npos) {
-        // keep trying till we get a non-folder
-        saturn_set_mouth_texture(index + 1);
-        return;
+    // Load the json file
+    std::ifstream file("dynos/packs/" + folder_name + "/model.json");
+    if (!file.good()) { return; }
+
+    // Begin reading
+    Json::Value root;
+    file >> root;
+
+    current_model_data.name = root["name"].asString();
+    current_model_data.author = root["author"].asString();
+    current_model_data.version = root["version"].asString();
+
+    if (root.isMember("textures")) {
+        // Create res/gfx if it doesn't already exist
+        fs::create_directory("res/gfx");
+
+        // Texture entries : eyes, mouths
+        for(int i = 0; i < root["textures"].size(); i++) {
+            // Capped at 6
+            if (i > 6) break;
+
+            const char* index = std::to_string(i).c_str();
+            string expression_name = root["textures"][index].asString();
+            saturn_load_model_expression_entry(folder_name, expression_name);
+
+            // Choose first texture as default
+            current_model_exp_tex[i] = "../../" + current_model_data.expressions[i].path + current_model_data.expressions[i].textures[0];
+            current_model_exp_tex[i] = current_model_exp_tex[i].substr(0, current_model_exp_tex[i].size() - 4);
+
+            // Toggle model eyes
+            if (expression_name.find("eye") != string::npos) using_model_eyes = true;
+        }
     }
-    current_mouth_index = index;
-    current_mouth = current_mouth_pre_path + mouth_array[index];
-    current_mouth = current_mouth.substr(0, current_mouth.size() - 4);
+}
+
+void saturn_load_model_data(std::string folder_name) {
+    // Reset current model data
+    ModelData blank;
+    current_model_data = blank;
+    using_model_eyes = false;
+
+    // Load the json file
+    std::ifstream file("dynos/packs/" + folder_name + "/model.json");
+    if (file.good()) {
+        // Begin reading
+        Json::Value root;
+        file >> root;
+
+        current_model_data.name = root["name"].asString();
+        current_model_data.author = root["author"].asString();
+        current_model_data.version = root["version"].asString();
+
+        // CC support is enabled by default, SPARK is disabled
+        // This is just in case it wasn't defined in the model.json
+        current_model_data.cc_support = true;
+        current_model_data.spark_support = false;
+
+        if (root.isMember("cc_support")) {
+            current_model_data.cc_support = root["cc_support"].asBool();
+            cc_model_support = current_model_data.cc_support;
+        }
+        
+        if (root.isMember("spark_support")) {
+            current_model_data.spark_support = root["spark_support"].asBool();
+            cc_spark_support = current_model_data.spark_support;
+
+            // If SPARK is enabled, enable CC support too (it needs it to work)
+            if (current_model_data.spark_support == true) {
+                current_model_data.cc_support = true;
+                cc_model_support = true;
+            }
+        }
+    }
+
+    string path = "dynos/packs/" + folder_name + "/expressions/";
+    if (!fs::is_directory(path)) return;
+
+    int i = 0;
+    for (const auto & entry : fs::directory_iterator(path)) {
+        if (fs::is_directory(entry.path())) {
+            string expression_name = entry.path().filename().u8string();
+            saturn_load_model_expression_entry(folder_name, expression_name);
+            
+            // Choose first texture as default
+            current_model_exp_tex[i] = "../../" + current_model_data.expressions[i].path + current_model_data.expressions[i].textures[0];
+            current_model_exp_tex[i] = current_model_exp_tex[i].substr(0, current_model_exp_tex[i].size() - 4);
+
+            // Toggle model eyes
+            if (expression_name.find("eye") != string::npos) using_model_eyes = true;
+
+            i++;
+        } else {
+            // Ignore, these are files
+        }
+    }
 }

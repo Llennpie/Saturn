@@ -69,6 +69,8 @@ bool any_packs_selected;
 int windowListSize = 325;
 int cc_model_id;
 
+int current_exp_index[6];
+
 /*
 Sets Mario's global colors from the CC editor color values.
 */
@@ -285,17 +287,14 @@ void sdynos_imgui_menu() {
                         
                 DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
 
-                // reset stuff
-                model_mouth_enabled = false;
-                mouth_array.clear();
-                saturn_load_eye_folder("dynos/eyes/");
-                saturn_set_eye_texture(0);
-
-                saturn_load_eyes_from_model("dynos/packs/", label);
-                saturn_set_eye_texture(0);
-
-                saturn_load_mouths_from_model("dynos/packs/", label);
-                saturn_set_mouth_texture(0);
+                // Fetch model data
+                saturn_load_model_data(label);
+                for (int i = 0; i < 6; i++) {
+                    current_exp_index[i] = 0;
+                }
+                
+                if (is_selected)
+                    std::cout << "Loaded " << current_model_data.name << " by " << current_model_data.author << std::endl;
 
                 one_pack_selectable = false;
                 for (int k = 0; k < sDynosPacks.Count(); k++) {
@@ -305,10 +304,12 @@ void sdynos_imgui_menu() {
 
                 any_packs_selected = one_pack_selectable;
                 if (!any_packs_selected) {
-                    model_mouth_enabled = false;
-                    mouth_array.clear();
-                    saturn_load_eye_folder("dynos/eyes/");
-                    saturn_set_eye_texture(0);
+                    ModelData blank;
+                    current_model_data = blank;
+                    using_model_eyes = false;
+
+                    cc_model_support = true;
+                    cc_spark_support = false;
                 }
             }
             if (ImGui::BeginPopupContextItem())
@@ -319,6 +320,12 @@ void sdynos_imgui_menu() {
                     //current_cc_id = -1;
                     set_editor_from_global_cc(label);
                     ImGui::CloseCurrentPopup();
+                }
+                if (is_selected && current_model_data.name != "") {
+                    ImGui::Separator();
+                    ImGui::Text(current_model_data.name.c_str());
+                    ImGui::Text(("By " + current_model_data.author).c_str());
+                    ImGui::Text(("v" + current_model_data.version).c_str());
                 }
                 ImGui::EndPopup();
             }
@@ -344,59 +351,96 @@ void sdynos_imgui_menu() {
     else if (current_eye_state == 4) {
         scrollEyeState = 4;
 
-        if (eye_array.size() > 0) {
+        if (!using_model_eyes) {
+            if (eye_array.size() > 0) {
+                ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 150), true);
+                for (int n = 0; n < eye_array.size(); n++) {
+                    const bool is_eye_selected = (current_eye_index == n);
+                    string entry_name = eye_array[n];
 
-            // Custom Eye Textures
-
-            ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 150), true);
-            for (int n = 0; n < eye_array.size(); n++) {
-                const bool is_eye_selected = (current_eye_index == n);
-                string entry_name = eye_array[n];
-
-                if (ImGui::Selectable(entry_name.c_str(), is_eye_selected)) {
-                    current_eye_index = n;
-                    saturn_eye_selectable(entry_name, n);
+                    if (ImGui::Selectable(entry_name.c_str(), is_eye_selected)) {
+                        current_eye_index = n;
+                        saturn_eye_selectable(entry_name, n);
+                    }
                 }
+                ImGui::EndChild();
             }
-            ImGui::EndChild();
         }
-        
     }
     else { scrollEyeState = current_eye_state; }
-    is_replacing_eyes = (scrollEyeState == 4 || model_mouth_enabled);
+    is_replacing_eyes = (scrollEyeState == 4 || current_model_data.expressions.size() > 0);
 
-    if (model_mouth_enabled) {
-        ImGui::Text("Mouth");
-        ImGui::SameLine(); imgui_bundled_help_marker(
-            "Place custom mouth PNG textures in dynos/packs/<pack_name>/mouths.");
+    if (current_model_data.name != "") {
 
-        if (mouth_array.size() > 0) {
+        ImGui::Separator();
 
-            // Custom Mouth Textures
+        // Metadata
 
-            ImGui::BeginChild("###menu_custom_mouth_selector", ImVec2(-FLT_MIN, 75), true);
-            for (int n = 0; n < mouth_array.size(); n++) {
-                const bool is_mouth_selected = (current_mouth_index == n);
-                string entry_name = mouth_array[n];
+        ImGui::Text(current_model_data.name.c_str());
+        ImGui::Text(("By " + current_model_data.author).c_str());
+        ImGui::Text(("v" + current_model_data.version).c_str());
 
-                if (ImGui::Selectable(entry_name.c_str(), is_mouth_selected)) {
-                    current_mouth_index = n;
-                    saturn_mouth_selectable(entry_name, n);
+        // Expressions
+
+        for (int i; i < current_model_data.expressions.size(); i++) {
+            Expression expression = current_model_data.expressions[i];
+
+            if (expression.name == "eye" || expression.name == "eyes") {
+                if (scrollEyeState != 4) {
+                    continue;
+                }
+
+                // Eyes
+                ImGui::BeginChild(("###menu_custom_%s", expression.name.c_str()), ImVec2(-FLT_MIN, 75), true);
+                for (int n = 0; n < expression.textures.size(); n++) {
+                    string entry_name = expression.textures[n];
+                    bool is_selected = (current_exp_index[i] == n);
+
+                    if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
+                        current_exp_index[i] = n;
+                        saturn_set_model_texture(i, expression.path + expression.textures[n]);
+                    }
+                }
+                ImGui::EndChild();
+                
+            } else {
+
+                // Everything but eyes
+                if (expression.textures.size() > 0) {
+                    string label_name = "###menu_" + expression.name;
+                    const char* preview_label_name = (expression.name + " >> " + expression.textures[current_exp_index[i]]).c_str();
+                    if (ImGui::BeginCombo(label_name.c_str(), preview_label_name, ImGuiComboFlags_None)) {
+                        for (int n = 0; n < expression.textures.size(); n++) {
+                            bool is_selected = (current_exp_index[i] == n);
+                            string entry_name = expression.textures[n];
+
+                            if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
+                                current_exp_index[i] = n;
+                                saturn_set_model_texture(i, expression.path + expression.textures[n]);
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
                 }
             }
-            ImGui::EndChild();
         }
     }
 
-    ImGui::Separator();
-
-    ImGui::Checkbox("CC Compatibility", &cc_model_support);
-    ImGui::SameLine(); imgui_bundled_help_marker(
-        "Toggles color code compatibility for model packs that support it.");
-
-    ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
-    ImGui::SameLine(); imgui_bundled_help_marker(
-        "Grants a model extra color values. See the GitHub wiki for setup instructions.");
+    // CC Compatibility - Allows colors to be edited for models that support it
+    if ((current_model_data.name != "" && current_model_data.cc_support == true) || current_model_data.name == "") {
+        ImGui::Separator();
+        ImGui::Checkbox("CC Compatibility", &cc_model_support);
+        ImGui::SameLine(); imgui_bundled_help_marker(
+            "Toggles color code compatibility for model packs that support it.");
+    }
+    // CometSPARK Support - When a model is present, allows SPARK colors to be edited for models that support it
+    if (any_packs_selected) {
+        if ((current_model_data.name != "" && current_model_data.spark_support == true) || current_model_data.name == "") {
+            ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
+            ImGui::SameLine(); imgui_bundled_help_marker(
+                "Grants a model extra color values. See the GitHub wiki for setup instructions.");
+        }
+    }
 
     ImGui::EndMenu();
 }
@@ -456,10 +500,10 @@ void sdynos_imgui_update() {
                 std::string cc_name = ui_cc_name;
                 // We don't want to save a CC named "Mario", as it may cause file issues.
                 if (cc_name != "Mario") {
-                    save_cc_file(cc_name);
+                    save_cc_file(cc_name, global_gs_code());
                 } else {
                     strcpy(ui_cc_name, "Sample");
-                    save_cc_file("Sample");
+                    save_cc_file("Sample", global_gs_code());
                 }
                 saturn_load_cc_directory();
             }

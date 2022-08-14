@@ -624,13 +624,13 @@ void paste_gs_code(string content) {
 /*
     Saves the global_gs_code() to a GS file.
 */
-void save_cc_file(std::string name) {
+void save_cc_file(std::string name, std::string gameshark) {
 #ifdef __MINGW32__
     std::ofstream file("dynos\\colorcodes\\" + name + ".gs");
 #else
     std::ofstream file("dynos/colorcodes/" + name + ".gs");
 #endif
-    file << global_gs_code();
+    file << gameshark;
 }
 
 /*
