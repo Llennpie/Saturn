@@ -336,7 +336,38 @@ void sdynos_imgui_menu() {
     if (ImGui::MenuItem("Color Code Editor###menu_cc_editor"))
         currentMenu = 2;
 
+    if (ImGui::BeginMenu("Shading###menu_shading")) {
+        
+        ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
+        ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
+        ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
+        ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
+
+        if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
+            if (ImGui::Button("Reset###reset_wshading")) {
+                world_light_dir1 = 0.f;
+                world_light_dir2 = 0.f;
+                world_light_dir3 = 0.f;
+                world_light_dir4 = 1.f;
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+
     ImGui::Separator();
+
+    if (current_model_data.name != "") {
+
+        // Metadata
+
+        ImGui::Text(current_model_data.name.c_str());
+        ImGui::SameLine(); imgui_bundled_help_marker(
+            ("v" + current_model_data.version).c_str());
+        ImGui::Text(("By " + current_model_data.author).c_str());
+
+        ImGui::Separator();
+    }
 
     ImGui::Text("Eyes");
     if (current_eye_state == 4) {
@@ -370,15 +401,9 @@ void sdynos_imgui_menu() {
     else { scrollEyeState = current_eye_state; }
     is_replacing_eyes = (scrollEyeState == 4 || current_model_data.expressions.size() > 0);
 
-    if (current_model_data.name != "") {
+    if (current_model_data.expressions.size() > 0) {
 
         ImGui::Separator();
-
-        // Metadata
-
-        ImGui::Text(current_model_data.name.c_str());
-        ImGui::Text(("By " + current_model_data.author).c_str());
-        ImGui::Text(("v" + current_model_data.version).c_str());
 
         // Expressions
 

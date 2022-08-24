@@ -43,6 +43,7 @@ void schroma_imgui_init() {
 }
 
 void schroma_imgui_update() {
+    ImGui::Text("Background Color");
     ImGui::ColorEdit4("Chroma Key Color", (float*)&uiChromaColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
     if (ImGui::IsItemActivated()) accept_text_input = false;
     if (ImGui::IsItemDeactivated()) accept_text_input = true;
@@ -52,7 +53,9 @@ void schroma_imgui_update() {
         set_chroma_color();
         mario_loaded = false;
         bool result = DynOS_Warp_RestartLevel();
-    }
+    } imgui_bundled_tooltip("WARNING: This will reload the level!");
 
     ImGui::Checkbox("Shadows###chroma_shadows", &enable_shadows);
+    ImGui::Checkbox("Dust Particles###chroma_dust", &enable_dust_particles);
+    imgui_bundled_tooltip("Displays dust particles when Mario moves - better to leave off when chroma keying.");
 }

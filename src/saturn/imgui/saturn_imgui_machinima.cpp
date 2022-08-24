@@ -14,6 +14,8 @@
 #include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
+#include "data/dynos.cpp.h"
+
 extern "C" {
 #include "sm64.h"
 #include "pc/gfx/gfx_pc.h"
@@ -23,6 +25,7 @@ extern "C" {
 #include "game/camera.h"
 #include "game/level_update.h"
 #include "engine/level_script.h"
+#include "game/game_init.h"
 }
 
 using namespace std;
@@ -34,44 +37,23 @@ std::map<std::pair<int, std::string>, int> current_anim_map = sanim_actions;
 std::string anim_preview_name = "BREAKDANCE";
 int current_sanim_group_index = 1;
 
+int current_level_sel = 0;
+void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
+    if (gCurrLevelNum == destLevel || !mario_exists)
+        return;
+
+    initiate_warp(destLevel, destArea, destWarpNode, 0);
+    fade_into_special_warp(0,0);
+}
+
 void smachinima_imgui_controls(SDL_Event * event) {
     switch (event->type){
         case SDL_KEYDOWN:
-            // Camera
-            if(event->key.keysym.sym == SDLK_f && accept_text_input)
-                camera_frozen = !camera_frozen;
-
             if (event->key.keysym.sym == SDLK_m && accept_text_input) {
                 if (camera_fov <= 98.0f) camera_fov += 2.f;
             } else if (event->key.keysym.sym == SDLK_n && accept_text_input) {
                 if (camera_fov >= 2.0f) camera_fov -= 2.f;
             }
-            // Animations
-            if(event->key.keysym.sym == SDLK_o && accept_text_input)
-                if (!is_anim_playing) {
-                    saturn_play_animation(selected_animation);
-                } else {
-                    is_anim_playing = false;
-                    is_anim_paused = false;
-                }
-            if(event->key.keysym.sym == SDLK_p && accept_text_input)
-                if (is_anim_playing)
-                    is_anim_paused = !is_anim_paused;
-            if(event->key.keysym.sym == SDLK_i && accept_text_input)
-                is_anim_looped = !is_anim_looped;
-
-        case SDL_CONTROLLERBUTTONDOWN:
-            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
-                camera_frozen = !camera_frozen;
-            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
-                if (!is_anim_playing) {
-                    saturn_play_animation(selected_animation);
-                } else {
-                    is_anim_playing = false;
-                }
-            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
-                if (is_anim_playing)
-                    is_anim_paused = !is_anim_paused;
 
         case SDL_MOUSEMOTION:
             SDL_Delay(2);
@@ -213,28 +195,115 @@ void smachinima_imgui_update() {
             if (Cheats.CustomMarioScale)
                 ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
             const char* playAsModels[] = { "Mario", "Bob-omb", "Bob-omb Buddy", "Goomba", "Koopa Shell", "Chuckya", "Fly Guy" };
-            if (gCurrLevelNum != LEVEL_SA) {
+            /*if (gCurrLevelNum != LEVEL_SA) {
                 ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
                 ImGui::SameLine(); imgui_bundled_tooltip(
                     "EXPERIMENTAL: \"Play as\" cheats, allowing you to use a vanilla model. Prone to crashing and scaling issues.");
             }
-            ImGui::Dummy(ImVec2(0, 5));
+            ImGui::Dummy(ImVec2(0, 5));*/
+        }
+        ImGui::Dummy(ImVec2(0, 5));
+
+        // the unholy table of level switch cases
+        // i blame agent x
+        const char* levelList[] = { 
+            "Castle Grounds", "Castle Inside", "Chroma Key Stage", "Bob-omb Battlefield", 
+            "Whomp's Fortress", "Princess's Secret Slide", "Tower of the Wing Cap", 
+            "Jolly Roger Bay", "Cool, Cool Mountain",
+            "Bowser in the Dark World", "Big Boo's Haunt", "Hazy Maze Cave", 
+            "Cavern of the Metal Cap", "Lethal Lava Land", "Shifting Sand Land", 
+            "Vanish Cap under the Moat", "Dire, Dire Docks", "Bowser in the Fire Sea", 
+            "Snowman's Land", "Wet-Dry World", "Tall, Tall Mountain", "Tiny, Huge Island",
+            "Tick Tock Clock", "Wing Mario Over the Rainbow", "Rainbow Ride", "Bowser in the Sky"
+        };
+        ImGui::Text("Warp to Level");
+        ImGui::Combo("###warp_to_level", &current_level_sel, levelList, IM_ARRAYSIZE(levelList));
+        
+        ImGui::SameLine();
+        if (ImGui::Button("Warp")) {
+            switch (current_level_sel) {
+                case 0:
+                    warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
+                    break;
+                case 1:
+                    warp_to(LEVEL_CASTLE, 0x01, 0x01);
+                    break;
+                case 2:
+                    warp_to(LEVEL_SA);
+                    break;
+                case 3:
+                    warp_to(LEVEL_BOB);
+                    break;
+                case 4:
+                    warp_to(LEVEL_WF);
+                    break;
+                case 5:
+                    warp_to(LEVEL_PSS);
+                    break;
+                case 6:
+                    warp_to(LEVEL_TOTWC);
+                    break;
+                case 7:
+                    warp_to(LEVEL_JRB);
+                    break;
+                case 8:
+                    warp_to(LEVEL_CCM);
+                    break;
+                case 9:
+                    warp_to(LEVEL_BITDW);
+                    break;
+                case 10:
+                    warp_to(LEVEL_BBH);
+                    break;
+                case 11:
+                    warp_to(LEVEL_HMC);
+                    break;
+                case 12:
+                    warp_to(LEVEL_COTMC);
+                    break;
+                case 13:
+                    warp_to(LEVEL_LLL);
+                    break;
+                case 14:
+                    warp_to(LEVEL_SSL);
+                    break;
+                case 15:
+                    warp_to(LEVEL_VCUTM);
+                    break;
+                case 16:
+                    warp_to(LEVEL_DDD);
+                    break;
+                case 17:
+                    warp_to(LEVEL_BITFS);
+                    break;
+                case 18:
+                    warp_to(LEVEL_SL);
+                    break;
+                case 19:
+                    warp_to(LEVEL_WDW);
+                    break;
+                case 20:
+                    warp_to(LEVEL_TTM);
+                    break;
+                case 21:
+                    warp_to(LEVEL_THI);
+                    break;
+                case 22:
+                    warp_to(LEVEL_TTC);
+                    break;
+                case 23:
+                    warp_to(LEVEL_WMOTR);
+                    break;
+                case 24:
+                    warp_to(LEVEL_RR);
+                    break;
+                case 25:
+                    warp_to(LEVEL_BITS);
+                    break;
+                default:
+                    warp_to(LEVEL_CASTLE_GROUNDS);
+                    break;
+            }
         }
     }
-
-    ImGui::Text("World Lighting");
-
-    if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 0.f) {
-        if (ImGui::Button("Reset###reset_wshading")) {
-            world_light_dir1 = 0.f;
-            world_light_dir2 = 0.f;
-            world_light_dir3 = 0.f;
-            world_light_dir4 = 1.f;
-        }
-    }
-
-    ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
-    ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
-    ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
-    ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
 }

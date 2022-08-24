@@ -20,6 +20,8 @@ extern "C" {
     void saturn_imgui_init(SDL_Window *, SDL_GLContext);
     void saturn_imgui_handle_events(SDL_Event *);
     void saturn_imgui_update(void);
+
+    extern SDL_Scancode bind_to_sdl_scancode[512];
 #ifdef __cplusplus
 }
 #endif
