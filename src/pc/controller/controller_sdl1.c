@@ -99,6 +99,11 @@ static void controller_sdl_bind(void) {
     controller_add_binds(L_TRIG,       configKeyL);
     controller_add_binds(R_TRIG,       configKeyR);
     controller_add_binds(START_BUTTON, configKeyStart);
+
+    controller_add_binds(U_JPAD, configKeyFreeze);
+    controller_add_binds(L_JPAD, configKeyPlayAnim);
+    controller_add_binds(R_JPAD, configKeyPauseAnim);
+    controller_add_binds(D_JPAD, configKeyShowMenu);
 }
 
 static void controller_sdl_init(void) {

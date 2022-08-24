@@ -3,6 +3,8 @@
 
 #include "SDL2/SDL.h"
 
+extern const char* translate_bind_to_name(int);
+
 #ifdef __cplusplus
 extern "C" {
 #endif

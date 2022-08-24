@@ -75,6 +75,11 @@ unsigned int configKeyStickLeft[MAX_BINDS]  = { 0x001E,   VK_INVALID, VK_INVALID
 unsigned int configKeyStickRight[MAX_BINDS] = { 0x0020,   VK_INVALID, VK_INVALID };
 unsigned int configStickDeadzone = 16; // 16*DEADZONE_STEP=4960 (the original default deadzone)
 unsigned int configRumbleStrength = 50;
+// Saturn
+unsigned int configKeyFreeze[MAX_BINDS]     = { 0x0021,   0x100B,     VK_INVALID };
+unsigned int configKeyPlayAnim[MAX_BINDS]   = { 0x0018,   0x100D,     VK_INVALID };
+unsigned int configKeyPauseAnim[MAX_BINDS]  = { 0x0019,   0x100E,     VK_INVALID };
+unsigned int configKeyShowMenu[MAX_BINDS]   = { 0x003b,   0x1004,     VK_INVALID };
 #ifdef EXTERNAL_DATA
 bool configPrecacheRes = true;
 #endif
@@ -96,7 +101,7 @@ bool         configEnableCamera  = false;
 bool         configCameraAnalog  = true;
 bool         configCameraMouse   = false;
 #endif
-bool         configSkipIntro     = 0;
+bool         configSkipIntro     = 1;
 bool         configHUD           = false;
 #ifdef DISCORDRPC
 bool         configDiscordRPC    = true;
@@ -135,6 +140,10 @@ static const struct ConfigOption options[] = {
     #ifdef EXTERNAL_DATA
     {.name = "precache",             .type = CONFIG_TYPE_BOOL, .boolValue = &configPrecacheRes},
     #endif
+    {.name = "key_freeze",           .type = CONFIG_TYPE_BIND, .uintValue = configKeyFreeze},
+    {.name = "key_anim_play",        .type = CONFIG_TYPE_BIND, .uintValue = configKeyPlayAnim},
+    {.name = "key_anim_pause",       .type = CONFIG_TYPE_BIND, .uintValue = configKeyPauseAnim},
+    {.name = "key_show_menu",        .type = CONFIG_TYPE_BIND, .uintValue = configKeyShowMenu},
     {.name = "editor_theme",         .type = CONFIG_TYPE_UINT, .uintValue = &configEditorTheme},
     {.name = "mcamera_mode",         .type = CONFIG_TYPE_UINT, .uintValue = &configMCameraMode},
     {.name = "editor_fast_apply",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorFastApply},

@@ -5,6 +5,7 @@
 #include <PR/ultratypes.h>
 #include <stdbool.h>
 #include <mario_animation_ids.h>
+#include <SDL2/SDL.h>
 
 extern bool mario_exists;
 
@@ -43,6 +44,8 @@ extern unsigned int chromaKeyColorG;
 extern unsigned int chromaKeyColorB;
 
 extern u16 gChromaKeyColor;
+
+extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 
 #ifdef __cplusplus
 extern "C" {

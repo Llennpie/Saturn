@@ -48,6 +48,7 @@
 static SDL_Window *wnd;
 static SDL_GLContext ctx = NULL;
 static int inverted_scancode_table[512];
+SDL_Scancode bind_to_sdl_scancode[512] = { 0 };
 
 static kb_callback_t kb_key_down = NULL;
 static kb_callback_t kb_key_up = NULL;
@@ -256,6 +257,11 @@ static void gfx_sdl_init(const char *window_title) {
     for (size_t i = 0; i < sizeof(scancode_rmapping_nonextended) / sizeof(scancode_rmapping_nonextended[0]); i++) {
         inverted_scancode_table[scancode_rmapping_nonextended[i][0]] = inverted_scancode_table[scancode_rmapping_nonextended[i][1]];
         inverted_scancode_table[scancode_rmapping_nonextended[i][1]] += 0x100;
+    }
+
+    for (size_t i = 0; i < 512; i++) {
+        if (inverted_scancode_table[i] >= 512) { continue; }
+        bind_to_sdl_scancode[inverted_scancode_table[i]] = i;
     }
 }
 

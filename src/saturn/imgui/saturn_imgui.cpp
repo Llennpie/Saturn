@@ -138,15 +138,7 @@ void saturn_imgui_handle_events(SDL_Event * event) {
     ImGui_ImplSDL2_ProcessEvent(event);
     switch (event->type){
         case SDL_KEYDOWN:
-            if(event->key.keysym.sym == SDLK_F1)
-                showMenu = !showMenu;
             if(event->key.keysym.sym == SDLK_F4)
-                limit_fps = !limit_fps;
-
-        case SDL_CONTROLLERBUTTONDOWN:
-            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_BACK)
-                showMenu = !showMenu;
-            if(event->cbutton.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
                 limit_fps = !limit_fps;
         
         break;
@@ -199,7 +191,7 @@ void saturn_imgui_update() {
 #endif
 #endif
             imgui_bundled_space(20);
-            ImGui::Text("Press F1 to hide/show menu");
+            ImGui::Text("Press %s to hide/show menu", translate_bind_to_name(configKeyShowMenu[0]));
 
             ImGui::End();
             ImGui::PopStyleColor();
@@ -226,7 +218,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Settings", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(275, 400));
+            ImGui::SetWindowSize(ImVec2(325, 400));
 
             ssettings_imgui_update();
 

@@ -6,6 +6,7 @@
 
 #include "data/dynos.cpp.h"
 #include "saturn/imgui/saturn_imgui.h"
+#include "libs/sdl2_scancode_to_dinput.h"
 
 bool mario_exists;
 
@@ -73,6 +74,25 @@ u16 gChromaKeyColor = 0x07C1;
 // SATURN Machinima Functions
 
 void saturn_update() {
+
+    // Keybinds
+
+    if (accept_text_input) {
+        if (gPlayer1Controller->buttonPressed & U_JPAD) camera_frozen = !camera_frozen;
+        if (gPlayer1Controller->buttonPressed & D_JPAD) showMenu = !showMenu;
+        if (gPlayer1Controller->buttonPressed & L_JPAD) {
+            if (!is_anim_playing) {
+                saturn_play_animation(selected_animation);
+            } else {
+                is_anim_playing = false;
+                is_anim_paused = false;
+            }
+        }
+        if (gPlayer1Controller->buttonPressed & R_JPAD) {
+            if (is_anim_playing)
+                is_anim_paused = !is_anim_paused;
+        }
+    }
 
     // Machinima
 
@@ -175,4 +195,17 @@ void saturn_play_animation(MarioAnimID anim) {
 void saturn_print(const char* text) {
     if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_RSHIFT])
         printf(text);
+}
+
+SDL_Scancode saturn_key_to_scancode(unsigned int configKey[]) {
+    for (int i = 0; i < MAX_BINDS; i++) {
+        unsigned int key = configKey[i];
+
+        if (key >= 0 && key < 0xEF) {
+            for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
+                if(scanCodeToKeyNum[i] == key) return (SDL_Scancode)i;
+            }
+        }
+        return SDL_SCANCODE_UNKNOWN;
+    }
 }
