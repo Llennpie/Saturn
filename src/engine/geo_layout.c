@@ -7,6 +7,7 @@
 #include "graph_node.h"
 #include "saturn/saturn.h"
 #include "pc/configfile.h"
+#include "game/area.h"
 
 typedef void (*GeoLayoutCommandProc)(void);
 
@@ -262,7 +263,10 @@ void geo_layout_cmd_node_perspective(void) {
     s16 fov = cur_geo_cmd_s16(0x02);
     s16 near = cur_geo_cmd_s16(0x04);
 
-    if (configEditorNearClipping)
+    // Near clipping
+    // This is a double edged sword:
+    // It allows Mario to get super close to the camera, but messes with the fog
+    if (configEditorNearClipping || gCurrLevelNum == LEVEL_SA)
         near = 1;
 
     s16 far = cur_geo_cmd_s16(0x06);
