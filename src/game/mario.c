@@ -1618,7 +1618,7 @@ int scrollModelState = 0;
 void mario_reset_bodystate(struct MarioState *m) {
     struct MarioBodyState *bodyState = m->marioBodyState;
 
-    bodyState->capState = scrollCapState;
+    bodyState->capState = MARIO_HAS_DEFAULT_CAP_OFF;
     bodyState->eyeState = scrollEyeState;
     bodyState->handState = scrollHandState;
     bodyState->modelState = scrollModelState;
@@ -1729,15 +1729,13 @@ void mario_update_hitbox_and_cap_model(struct MarioState *m) {
         }
     }
 
-    /*
     if (flags & MARIO_CAP_ON_HEAD) {
         if (flags & MARIO_WING_CAP) {
             bodyState->capState = MARIO_HAS_WING_CAP_ON;
         } else {
-            bodyState->capState = MARIO_HAS_DEFAULT_CAP_ON;
+            bodyState->capState = scrollCapState;
         }
     }
-    */
 
     // Short hitbox for crouching/crawling/etc.
     if (m->action & ACT_FLAG_SHORT_HITBOX) {
