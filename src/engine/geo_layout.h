@@ -85,4 +85,6 @@ void geo_layout_cmd_node_culling_radius(void);
 
 struct GraphNode *process_geo_layout(struct AllocOnlyPool *a0, void *segptr);
 
+extern bool use_color_background;
+
 #endif // GEO_LAYOUT_H

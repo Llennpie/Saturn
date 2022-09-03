@@ -115,6 +115,13 @@ unsigned int sparkColorLegBottomGDark = 0;
 unsigned int sparkColorLegBottomBLight = 255;
 unsigned int sparkColorLegBottomBDark = 127;
 
+unsigned int chromaColorRLight = 0;
+unsigned int chromaColorRDark = 0;
+unsigned int chromaColorGLight = 255;
+unsigned int chromaColorGDark = 127;
+unsigned int chromaColorBLight = 0;
+unsigned int chromaColorBDark = 0;
+
 // Color Codes
 
 bool cc_model_support = true;

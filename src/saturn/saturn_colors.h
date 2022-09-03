@@ -89,6 +89,13 @@ extern unsigned int sparkColorLegBottomGDark;
 extern unsigned int sparkColorLegBottomBLight;
 extern unsigned int sparkColorLegBottomBDark;
 
+extern unsigned int chromaColorRLight;
+extern unsigned int chromaColorRDark;
+extern unsigned int chromaColorGLight;
+extern unsigned int chromaColorGDark;
+extern unsigned int chromaColorBLight;
+extern unsigned int chromaColorBDark;
+
 extern bool cc_model_support;
 extern bool cc_spark_support;
 

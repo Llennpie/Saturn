@@ -29,6 +29,8 @@
 #include "saturn/saturn_colors.h"
 #include "saturn/saturn_textures.h"
 
+#include "saturn/imgui/saturn_imgui.h"
+
 #define SUPPORT_CHECK(x) assert(x)
 
 // SCALE_M_N: upscale/downscale M-bit integer to N-bit
@@ -809,8 +811,10 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             bool mario_legtop = (r == 0x7f && g == 0x00 && b == 0x40) | (r == 0x7F && g == 0x00 && b == 0x3F);
             bool mario_legbottom = (r == 0x40 && g == 0x00 && b == 0x7f) | (r == 0x3F && g == 0x00 && b == 0x7F);
 
+            bool chroma_floor = (r == 0x3f && g == 0x31 && b == 0x19);
+
             // Override them lazily
-            if (cc_model_support) {
+            if (cc_model_support || chroma_floor) {
                 if (mario_hat) {
                     r = defaultColorHatRDark;
                     g = defaultColorHatGDark;
@@ -873,6 +877,11 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                         b = sparkColorLegBottomBDark;
                     }
                 }
+                if (chroma_floor) {
+                    r = chromaColorRDark;
+                    g = chromaColorGDark;
+                    b = chromaColorBDark;
+                }
             }
             
             for (int i = 0; i < rsp.current_num_lights - 1; i++) {
@@ -888,7 +897,7 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                     int lightb = rsp.current_lights[i].col[2];
 
                     // Override these too
-                    if (cc_model_support) {
+                    if (cc_model_support || chroma_floor) {
                         if (mario_hat) {
                             r += intensity * defaultColorHatRLight;
                             g += intensity * defaultColorHatGLight;
@@ -948,6 +957,11 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                             r += intensity * sparkColorLegBottomRLight;
                             g += intensity * sparkColorLegBottomGLight;
                             b += intensity * sparkColorLegBottomBLight;
+                        }
+                        else if (chroma_floor) {
+                            r += intensity * chromaColorRLight;
+                            g += intensity * chromaColorGLight;
+                            b += intensity * chromaColorBLight;
                         }
                         else {
                             r += intensity * lightr;

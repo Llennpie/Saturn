@@ -3,6 +3,9 @@
 
 #include "SDL2/SDL.h"
 
+extern bool renderFloor;
+extern int currentChromaArea;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
