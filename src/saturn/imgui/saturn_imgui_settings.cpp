@@ -13,6 +13,7 @@
 
 extern "C" {
 #include "pc/gfx/gfx_pc.h"
+#include "pc/gfx/gfx_opengl.h"
 #include "pc/configfile.h"
 #include "game/mario.h"
 #include "game/camera.h"
@@ -167,14 +168,17 @@ void ssettings_imgui_update() {
         const char* texture_filters[] = { "Nearest", "Linear", "Three-point" };
         ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
 
-        if (ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias))
-            configWindow.settings_changed = true;
+        ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
+            //configWindow.settings_changed = true;
         imgui_bundled_tooltip("EXPERIMENTAL. Enables/disables anti-aliasing with OpenGL.");
-
-        ImGui::Dummy(ImVec2(0, 5));
 
         ImGui::Checkbox("Disable near-clipping", &configEditorNearClipping);
         imgui_bundled_tooltip("Enable when some close to the camera starts clipping through. Disable if the level fog goes nuts.");
+
+        ImGui::Dummy(ImVec2(0, 5));
+
+        ImGui::Checkbox("Show wireframes", &wireframeMode);
+        imgui_bundled_tooltip("Displays wireframes instead of filled polys; For debugging purposes.");
     }
     if (ImGui::CollapsingHeader("Audio")) {
         ImGui::Text("Volume");
@@ -200,9 +204,9 @@ void ssettings_imgui_update() {
                 SaturnKeyBind("C Down", configKeyCDown, "bCDown", 3*9);
                 SaturnKeyBind("C Left", configKeyCLeft, "bCLeft", 3*10);
                 SaturnKeyBind("C Right", configKeyCRight, "bCRight", 3*11);
-                SaturnKeyBind("L", configKeyL, "bL", 3*12);
                 SaturnKeyBind("R", configKeyR, "bR", 3*13);
                 ImGui::Text("Other");
+                SaturnKeyBind("L", configKeyL, "bL", 3*12);
                 SaturnKeyBind("Start", configKeyStart, "bStart", 0);
                 ImGui::SliderInt("Rumble###rumble_strength", (int*)&configRumbleStrength, 0, 50);
                 ImGui::EndTabItem();
@@ -221,7 +225,7 @@ void ssettings_imgui_update() {
                 }
                 ImGui::Text("Animation");
                 SaturnKeyBind("Play", configKeyPlayAnim, "bPlayA", 3*24);
-                SaturnKeyBind("Pause", configKeyPauseAnim, "bPauseA", 3*25);
+                SaturnKeyBind("Loop", configKeyLoopAnim, "bLoopA", 3*25);
                 ImGui::Text("Other");
                 SaturnKeyBind("Hide Menu", configKeyShowMenu, "bShowMenu", 3*27);
                 ImGui::EndTabItem();
@@ -235,7 +239,7 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
         ImGui::Dummy(ImVec2(0, 5));
 #endif
-        const char* mThemeSettings[] = { "Legacy", "Moon Edition", "Half-Life" };
+        const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life" };
         ImGui::Text("Theme");
         ImGui::Combo("###theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
         ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
