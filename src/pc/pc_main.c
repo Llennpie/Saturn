@@ -36,6 +36,7 @@
 #include "game/thread6.h"
 
 #include "saturn/saturn.h"
+#include "saturn/discord/saturn_discord.h"
 
 #ifdef DISCORDRPC
 #include "pc/discord/discordrpc.h"
@@ -272,7 +273,7 @@ void main_func(void) {
 #endif
 
 #ifdef DISCORDRPC
-    discord_init();
+    sdiscord_init();
 #endif
 
 #ifdef TARGET_WEB
@@ -282,7 +283,7 @@ void main_func(void) {
     while (true) {
         wm_api->main_loop(produce_one_frame);
 #ifdef DISCORDRPC
-        discord_update_rich_presence();
+        sdiscord_update();
 #endif
     }
 #endif

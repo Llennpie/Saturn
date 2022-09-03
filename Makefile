@@ -49,6 +49,8 @@ EXT_OPTIONS_MENU ?= 1
 TEXTSAVES ?= 0
 # Load resources from external files
 EXTERNAL_DATA ?= 1
+# Enable Discord Game SDK
+DISCORDGAMESDK ?= 1
 # Enable Discord Rich Presence
 DISCORDRPC ?= 1
 # Enable Game ICON
@@ -301,6 +303,10 @@ ifeq ($(DISCORDRPC),1)
   SRC_DIRS += src/pc/discord
 endif
 
+ifeq ($(DISCORDGAMESDK),1)
+  SRC_DIRS += src/saturn/discord
+endif
+
 # Saturn
 SRC_DIRS += src/saturn
 SRC_DIRS += src/saturn/imgui
@@ -433,6 +439,16 @@ ifeq ($(DISCORDRPC),1)
     RPC_LIBS := lib/discord/libdiscord-rpc.so
   endif
 endif
+ifeq ($(DISCORDGAMESDK),1)
+  ifeq ($(WINDOWS_BUILD),1)
+    RPC_LIBS := lib/discordsdk/discord_game_sdk.dll
+  else ifeq ($(OSX_BUILD),1) 
+    # needs testing
+    RPC_LIBS := lib/discordsdk/libdiscord_game_sdk.dylib
+  else
+    RPC_LIBS := lib/discordsdk/libdiscord_game_sdk.so
+  endif
+endif
 
 # Automatic dependency files
 DEP_FILES := $(O_FILES:.o=.d) $(ULTRA_O_FILES:.o=.d) $(GODDARD_O_FILES:.o=.d) $(BUILD_DIR)/$(LD_SCRIPT).d
@@ -473,6 +489,20 @@ else ifeq ($(WINDOWS_BUILD),1)
   else
     LD := $(CXX)
   endif
+endif
+
+ifeq ($(DISCORD_SDK),1)
+  LD := $(CXX)
+else ifeq ($(WINDOWS_BUILD),1)
+  ifeq ($(CROSS),i686-w64-mingw32.static-) # fixes compilation in MXE on Linux and WSL
+    LD := $(CC)
+  else ifeq ($(CROSS),x86_64-w64-mingw32.static-)
+    LD := $(CC)
+  else
+    LD := $(CXX)
+  endif
+else
+  LD := $(CXX)
 endif
 
 ifeq ($(WINDOWS_BUILD),1) # fixes compilation in MXE on Linux and WSL
@@ -605,6 +635,11 @@ ifeq ($(DISCORDRPC),1)
   CFLAGS += -DDISCORDRPC
 endif
 
+ifeq ($(DISCORDGAMESDK),1)
+  CC_CHECK += -DDISCORDGAMESDK
+  CFLAGS += -DDISCORDGAMESDK
+endif
+
 # Check for texture fix option
 ifeq ($(TEXTURE_FIX),1)
   CC_CHECK += -DTEXTURE_FIX
@@ -657,6 +692,9 @@ else ifeq ($(WINDOWS_BUILD),1)
   ifeq ($(WINDOWS_CONSOLE),1)
     LDFLAGS += -mconsole
   endif
+  ifeq ($(DISCORDGAMESDK),1)
+    LDFLAGS += -Wl,-Bdynamic -L./lib/discordsdk/ -ldiscord_game_sdk -Wl,-Bstatic
+  endif
 
 else ifeq ($(TARGET_RPI),1)
   LDFLAGS := $(OPT_FLAGS) -lm $(BACKEND_LDFLAGS) -no-pie
@@ -672,6 +710,10 @@ else
 
   ifeq ($(DISCORDRPC),1)
     LDFLAGS += -ldl -Wl,-rpath .
+  endif
+
+  ifeq ($(DISCORDGAMESDK),1)
+    LDFLAGS += -ldiscord_game_sdk -Wl,-rpath . -Wl,-rpath lib/discordsdk -Wl,-rpath
   endif
 
 endif # End of LDFLAGS

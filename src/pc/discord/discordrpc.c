@@ -229,13 +229,7 @@ void set_logo(void) {
 #endif
     discordRichPresence.largeImageText = "https://github.com/Llennpie/Saturn";
     if (gCurrLevelNum == LEVEL_SA) {
-        if (gCurrAreaIndex == 1) {
-            discordRichPresence.smallImageKey = "green";
-        } else if (gCurrAreaIndex == 2) {
-            discordRichPresence.smallImageKey = "blue";
-        } else if (gCurrAreaIndex == 3) {
-            discordRichPresence.smallImageKey = "pink";
-        }
+        discordRichPresence.smallImageKey = "green";
     } else {
         discordRichPresence.smallImageKey = "circle-512";
     }
@@ -283,8 +277,8 @@ void discord_init(void) {
 
         init_discord();
 
-        discordRichPresence.details = stage;
-        discordRichPresence.state = "In-Game [Machinima]";
+        //discordRichPresence.details = stage;
+        discordRichPresence.state = stage;
 
         lastUpdatedTime = 0;
     }
