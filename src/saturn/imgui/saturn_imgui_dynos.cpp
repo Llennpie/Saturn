@@ -23,7 +23,7 @@ extern "C" {
 #include <mario_animation_ids.h>
 }
 
-const Array<PackData *> &sDynosPacks = DynOS_Gfx_GetPacks();
+Array<PackData *> &sDynosPacks = DynOS_Gfx_GetPacks();
 
 using namespace std;
 
@@ -287,6 +287,8 @@ void sdynos_imgui_menu() {
                         
                 DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
 
+                gfx_precache_textures();
+
                 // Fetch model data
                 saturn_load_model_data(label);
                 for (int i = 0; i < 6; i++) {
@@ -312,21 +314,20 @@ void sdynos_imgui_menu() {
                     cc_spark_support = false;
                 }
             }
-            if (ImGui::BeginPopupContextItem())
-            {
+            if (ImGui::BeginPopupContextItem()) {
                 ImGui::Text("%s", label.c_str());
                 if (ImGui::Button("Set CC From Model")) {
                     set_cc_from_model(sDynosPacks[i]->mPath);
-                    //current_cc_id = -1;
                     set_editor_from_global_cc(label);
                     ImGui::CloseCurrentPopup();
                 }
-                if (is_selected && current_model_data.name != "") {
-                    ImGui::Separator();
-                    ImGui::Text(current_model_data.name.c_str());
-                    ImGui::Text(("By " + current_model_data.author).c_str());
-                    ImGui::Text(("v" + current_model_data.version).c_str());
+                ImGui::Separator();
+                if (ImGui::Button("Refresh Packs###refresh_dynos_packs")) {
+                    sDynosPacks.Clear();
+                    DynOS_Gfx_Init();
+                    ImGui::CloseCurrentPopup();
                 }
+                ImGui::SameLine(); imgui_bundled_help_marker("WARNING: Experimental. This will probably lag the game.");
                 ImGui::EndPopup();
             }
         }
@@ -382,6 +383,8 @@ void sdynos_imgui_menu() {
     else if (current_eye_state == 4) {
         scrollEyeState = 4;
 
+        // Eyes (No Model)
+
         if (!using_model_eyes) {
             if (eye_array.size() > 0) {
                 ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 150), true);
@@ -390,8 +393,18 @@ void sdynos_imgui_menu() {
                     string entry_name = eye_array[n];
 
                     if (ImGui::Selectable(entry_name.c_str(), is_eye_selected)) {
+                        gfx_precache_textures();
                         current_eye_index = n;
                         saturn_eye_selectable(entry_name, n);
+                    }
+
+                    // Refresh
+                    if (ImGui::BeginPopupContextItem()) {
+                        if (ImGui::Button("Refresh###refresh_v_eyes")) {
+                            saturn_load_eye_folder(current_eye_dir_path);
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
                     }
                 }
                 ImGui::EndChild();
@@ -405,7 +418,7 @@ void sdynos_imgui_menu() {
 
         ImGui::Separator();
 
-        // Expressions
+        // Model Expressions
 
         for (int i; i < current_model_data.expressions.size(); i++) {
             Expression expression = current_model_data.expressions[i];
@@ -422,8 +435,21 @@ void sdynos_imgui_menu() {
                     bool is_selected = (current_exp_index[i] == n);
 
                     if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
+                        gfx_precache_textures();
                         current_exp_index[i] = n;
                         saturn_set_model_texture(i, expression.path + expression.textures[n]);
+                    }
+
+                    // Refresh
+                    if (ImGui::BeginPopupContextItem()) {
+                        if (ImGui::Button("Refresh###refresh_m_eyes")) {
+                            saturn_load_model_data(current_folder_name);
+                            for (int i = 0; i < 6; i++) {
+                                current_exp_index[i] = 0;
+                            }
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
                     }
                 }
                 ImGui::EndChild();
@@ -435,13 +461,27 @@ void sdynos_imgui_menu() {
                     string label_name = "###menu_" + expression.name;
                     const char* preview_label_name = (expression.name + " >> " + expression.textures[current_exp_index[i]]).c_str();
                     if (ImGui::BeginCombo(label_name.c_str(), preview_label_name, ImGuiComboFlags_None)) {
+                        gfx_precache_textures();
                         for (int n = 0; n < expression.textures.size(); n++) {
                             bool is_selected = (current_exp_index[i] == n);
                             string entry_name = expression.textures[n];
 
                             if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
+                                gfx_precache_textures();
                                 current_exp_index[i] = n;
                                 saturn_set_model_texture(i, expression.path + expression.textures[n]);
+                            }
+
+                            // Refresh
+                            if (ImGui::BeginPopupContextItem()) {
+                                if (ImGui::Button("Refresh###refresh_m_exp")) {
+                                    saturn_load_model_data(current_folder_name);
+                                    for (int i = 0; i < 6; i++) {
+                                        current_exp_index[i] = 0;
+                                    }
+                                    ImGui::CloseCurrentPopup();
+                                }
+                                ImGui::EndPopup();
                             }
                         }
                         ImGui::EndCombo();

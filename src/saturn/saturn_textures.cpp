@@ -92,10 +92,10 @@ void saturn_load_eye_folder(std::string path) {
 
 void saturn_eye_selectable(std::string name, int index) {
     if (name.find(".png") != string::npos) {
-        // this is an eye
+        // This is an eye
         saturn_set_eye_texture(index);
-        std::cout << current_eye << std::endl;
     } else {
+        // This is a folder
         saturn_load_eye_folder(name);
     }
 }
@@ -108,7 +108,7 @@ std::string last_folder_name;
 */
 void saturn_set_eye_texture(int index) {
     if (eye_array[index].find(".png") == string::npos) {
-        // keep trying till we get a non-folder
+        // Keep trying till we get a non-folder
         saturn_set_eye_texture(index + 1);
         return;
     } else {
@@ -163,7 +163,7 @@ struct ModelData current_model_data;
 void saturn_set_model_texture(int expIndex, string path) {
     current_model_exp_tex[expIndex] = "../../" + path;
     current_model_exp_tex[expIndex] = current_model_exp_tex[expIndex].substr(0, current_model_exp_tex[expIndex].size() - 4);
-    std::cout << current_model_exp_tex[expIndex] << std::endl;
+    //std::cout << current_model_exp_tex[expIndex] << std::endl;
 }
 
 void saturn_load_model_expression_entry(string folder_name, string expression_name) {
@@ -242,6 +242,8 @@ void saturn_load_model_json(std::string folder_name) {
     }
 }
 
+string current_folder_name;
+
 void saturn_load_model_data(std::string folder_name) {
     // Reset current model data
     ModelData blank;
@@ -280,6 +282,9 @@ void saturn_load_model_data(std::string folder_name) {
             }
         }
     }
+
+    // Set the current folder name
+    current_folder_name = folder_name;
 
     string path = "dynos/packs/" + folder_name + "/expressions/";
     if (!fs::is_directory(path)) return;

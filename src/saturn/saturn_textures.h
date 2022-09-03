@@ -14,6 +14,7 @@
 extern std::vector<std::string> eye_array;
 extern int current_eye_index;
 extern bool model_eyes_enabled;
+extern std::string current_eye_dir_path;
 
 extern int current_mouth_index;
 extern std::vector<std::string> mouth_array;
@@ -41,6 +42,7 @@ struct ModelData {
 
 extern struct ModelData current_model_data;
 extern bool using_model_eyes;
+extern std::string current_folder_name;
 void saturn_load_model_json(std::string folder_name);
 void saturn_load_model_data(std::string folder_name);
 void saturn_set_model_texture(int expIndex, std::string path);
