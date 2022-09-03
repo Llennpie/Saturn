@@ -9,8 +9,10 @@
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
+#include "saturn/saturn_animation_ids.h"
 #include "saturn/saturn_animations.h"
 #include "saturn_imgui.h"
+#include "saturn/imgui/saturn_imgui_chroma.h"
 #include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
@@ -30,12 +32,15 @@ extern "C" {
 
 using namespace std;
 
+bool is_custom_anim;
+int custom_anim_index;
 int current_sanim_index = 7;
 std::string current_sanim_name = "BREAKDANCE";
 int current_sanim_id = MARIO_ANIM_BREAKDANCE;
 std::map<std::pair<int, std::string>, int> current_anim_map = sanim_actions;
 std::string anim_preview_name = "BREAKDANCE";
 int current_sanim_group_index = 1;
+int current_slevel_index;
 
 int current_level_sel = 0;
 void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
@@ -44,6 +49,16 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
 
     initiate_warp(destLevel, destArea, destWarpNode, 0);
     fade_into_special_warp(0,0);
+}
+
+void anim_play_button() {
+    if (is_custom_anim) {
+        saturn_read_animation(anim_preview_name);
+        saturn_play_animation(selected_animation);
+        saturn_play_custom_animation();
+    } else {
+        saturn_play_animation(selected_animation);
+    }
 }
 
 void smachinima_imgui_controls(SDL_Event * event) {
@@ -68,11 +83,11 @@ void smachinima_imgui_init() {
     Cheats.EnableCheats = true;
     Cheats.GodMode = true;
     Cheats.ExitAnywhere = true;
+    saturn_fetch_animations();
 }
 
 void smachinima_imgui_update() {
     ImGui::Checkbox("Machinima Camera", &camera_frozen);
-    imgui_bundled_tooltip("Toggles the machinima camera.");
     if (configMCameraMode == 2) {
         ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> LShift + Mouse Buttons");
     } else if (configMCameraMode == 1) {
@@ -93,8 +108,8 @@ void smachinima_imgui_update() {
     ImGui::Text("Animations");
     ImGui::Dummy(ImVec2(0, 5));
 
-    const char* anim_groups[] = { "Movement (50)", "Actions (24)", "Automatic (27)", "Damage/Deaths (22)",
-        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", "Misc. (2)" };
+    const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
+        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", "CUSTOM..." };
 
     if (ImGui::BeginCombo("###anim_groups", anim_groups[current_sanim_group_index], ImGuiComboFlags_None)) {
         for (int n = 0; n < IM_ARRAYSIZE(anim_groups); n++) {
@@ -110,38 +125,92 @@ void smachinima_imgui_update() {
                     case 5: current_anim_map = sanim_water; break;
                     case 6: current_anim_map = sanim_climbing; break;
                     case 7: current_anim_map = sanim_object; break;
-                    case 8: current_anim_map = sanim_misc; break;
+                    //case 8: current_anim_map = sanim_misc; break;
                 }
-                current_sanim_index = current_anim_map.begin()->first.first;
-                current_sanim_name = current_anim_map.begin()->first.second;
-                current_sanim_id = current_anim_map.begin()->second;
-                anim_preview_name = current_sanim_name;
+                if (current_sanim_group_index != 8) {
+                    is_custom_anim = false;
+                    current_sanim_index = current_anim_map.begin()->first.first;
+                    current_sanim_name = current_anim_map.begin()->first.second;
+                    current_sanim_id = current_anim_map.begin()->second;
+                    anim_preview_name = current_sanim_name;
+                } else {
+                    is_custom_anim = true;
+                    current_sanim_index = 0;
+                    current_sanim_name = canim_array[0];
+                    current_sanim_id = MARIO_ANIM_A_POSE;
+                    saturn_read_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+                    anim_preview_name = current_sanim_name;
+                    anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                }
             }
 
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
             if (is_selected)
                 ImGui::SetItemDefaultFocus();
         }
+        ImGui::SameLine(); imgui_bundled_help_marker("These are custom METAL Composer+ JSON animations.\nPlace in dynos/anims.");
         ImGui::EndCombo();
     }
 
     if (ImGui::BeginCombo("###anim_box", anim_preview_name.c_str(), ImGuiComboFlags_None)) {
-        for (auto &[a,b]:current_anim_map) {
-            current_sanim_index = a.first;
-            current_sanim_name = a.second;
-
-            const bool is_selected = (current_sanim_id == b);
-            if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+        if (current_sanim_group_index != 8) {
+            for (auto &[a,b]:current_anim_map) {
                 current_sanim_index = a.first;
                 current_sanim_name = a.second;
-                current_sanim_id = b;
-                anim_preview_name = current_sanim_name;
-            }
 
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
+                const bool is_selected = (current_sanim_id == b);
+                if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                    current_sanim_index = a.first;
+                    current_sanim_name = a.second;
+                    current_sanim_id = b;
+                    anim_preview_name = current_sanim_name;
+                }
+
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+        } else {
+            for (int i = 0; i < canim_array.size(); i++) {
+                current_sanim_name = canim_array[i];
+
+                const bool is_selected = (custom_anim_index == i);
+                if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                    custom_anim_index = i;
+                    current_sanim_name = canim_array[i];
+                    anim_preview_name = current_sanim_name;
+                    is_anim_looped = current_canim_looping;
+                    // Remove .json extension
+                    anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                    saturn_read_animation(anim_preview_name);
+                    // Stop anim
+                    is_anim_playing = false;
+                    is_anim_paused = false;
+                }
+
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
         }
         ImGui::EndCombo();
+    }
+    if (is_custom_anim) {
+        // Refresh
+        if (ImGui::BeginPopupContextItem()) {
+            if (ImGui::Button("Refresh###refresh_canim")) {
+                saturn_fetch_animations();
+                current_sanim_index = 0;
+                current_sanim_name = canim_array[0];
+                current_sanim_id = MARIO_ANIM_A_POSE;
+                saturn_read_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+                anim_preview_name = current_sanim_name;
+                anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+        // Animation Credit
+        string anim_credit = (current_canim_name + "\nBy " + current_canim_author);
+        ImGui::SameLine(); imgui_bundled_help_marker(anim_credit.c_str());
     }
 
     selected_animation = (MarioAnimID)current_sanim_id;
@@ -153,12 +222,15 @@ void smachinima_imgui_update() {
                 is_anim_paused = false;
             } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
             
-            ImGui::Text("Now Playing: %s", anim_preview_name.c_str());
+            if (is_custom_anim)
+                ImGui::Text("Now Playing: %s", current_canim_name.c_str());
+            else
+                ImGui::Text("Now Playing: %s", anim_preview_name.c_str());
             ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length);
             ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
         } else {
             if (ImGui::Button("Play")) {
-                saturn_play_animation(selected_animation);
+                anim_play_button();
             } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
         }
     }
@@ -204,24 +276,33 @@ void smachinima_imgui_update() {
         }
         ImGui::Dummy(ImVec2(0, 5));
 
-        // the unholy table of level switch cases
-        // i blame agent x
-        const char* levelList[] = { 
-            "Castle Grounds", "Castle Inside", "Chroma Key Stage", "Bob-omb Battlefield", 
-            "Whomp's Fortress", "Princess's Secret Slide", "Tower of the Wing Cap", 
-            "Jolly Roger Bay", "Cool, Cool Mountain",
-            "Bowser in the Dark World", "Big Boo's Haunt", "Hazy Maze Cave", 
-            "Cavern of the Metal Cap", "Lethal Lava Land", "Shifting Sand Land", 
-            "Vanish Cap under the Moat", "Dire, Dire Docks", "Bowser in the Fire Sea", 
-            "Snowman's Land", "Wet-Dry World", "Tall, Tall Mountain", "Tiny, Huge Island",
-            "Tick Tock Clock", "Wing Mario Over the Rainbow", "Rainbow Ride", "Bowser in the Sky"
+        s16 levelList[] = { 
+            LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_SA, LEVEL_BOB, 
+            LEVEL_WF, LEVEL_PSS, LEVEL_TOTWC, LEVEL_JRB, LEVEL_CCM,
+            LEVEL_BITDW, LEVEL_BBH, LEVEL_HMC, LEVEL_COTMC, LEVEL_LLL,
+            LEVEL_SSL, LEVEL_VCUTM, LEVEL_DDD, LEVEL_BITFS, 
+            LEVEL_SL, LEVEL_WDW, LEVEL_TTM, LEVEL_THI,
+            LEVEL_TTC, LEVEL_WMOTR, LEVEL_RR, LEVEL_BITS
         };
+
         ImGui::Text("Warp to Level");
-        ImGui::Combo("###warp_to_level", &current_level_sel, levelList, IM_ARRAYSIZE(levelList));
+        if (ImGui::BeginCombo("###warp_to_level", saturn_get_stage_name(levelList[current_slevel_index]), ImGuiComboFlags_None)) {
+            for (int n = 0; n < IM_ARRAYSIZE(levelList); n++) {
+                const bool is_selected = (current_slevel_index == n);
+
+                if (ImGui::Selectable(saturn_get_stage_name(levelList[n]), is_selected))
+                    current_slevel_index = n;
+
+                // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
         
         ImGui::SameLine();
         if (ImGui::Button("Warp")) {
-            switch (current_level_sel) {
+            switch (current_slevel_index) {
                 case 0:
                     warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
                     break;
@@ -229,79 +310,10 @@ void smachinima_imgui_update() {
                     warp_to(LEVEL_CASTLE, 0x01, 0x01);
                     break;
                 case 2:
-                    warp_to(LEVEL_SA);
-                    break;
-                case 3:
-                    warp_to(LEVEL_BOB);
-                    break;
-                case 4:
-                    warp_to(LEVEL_WF);
-                    break;
-                case 5:
-                    warp_to(LEVEL_PSS);
-                    break;
-                case 6:
-                    warp_to(LEVEL_TOTWC);
-                    break;
-                case 7:
-                    warp_to(LEVEL_JRB);
-                    break;
-                case 8:
-                    warp_to(LEVEL_CCM);
-                    break;
-                case 9:
-                    warp_to(LEVEL_BITDW);
-                    break;
-                case 10:
-                    warp_to(LEVEL_BBH);
-                    break;
-                case 11:
-                    warp_to(LEVEL_HMC);
-                    break;
-                case 12:
-                    warp_to(LEVEL_COTMC);
-                    break;
-                case 13:
-                    warp_to(LEVEL_LLL);
-                    break;
-                case 14:
-                    warp_to(LEVEL_SSL);
-                    break;
-                case 15:
-                    warp_to(LEVEL_VCUTM);
-                    break;
-                case 16:
-                    warp_to(LEVEL_DDD);
-                    break;
-                case 17:
-                    warp_to(LEVEL_BITFS);
-                    break;
-                case 18:
-                    warp_to(LEVEL_SL);
-                    break;
-                case 19:
-                    warp_to(LEVEL_WDW);
-                    break;
-                case 20:
-                    warp_to(LEVEL_TTM);
-                    break;
-                case 21:
-                    warp_to(LEVEL_THI);
-                    break;
-                case 22:
-                    warp_to(LEVEL_TTC);
-                    break;
-                case 23:
-                    warp_to(LEVEL_WMOTR);
-                    break;
-                case 24:
-                    warp_to(LEVEL_RR);
-                    break;
-                case 25:
-                    warp_to(LEVEL_BITS);
+                    DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, gCurrActNum);
                     break;
                 default:
-                    warp_to(LEVEL_CASTLE_GROUNDS);
+                    warp_to(levelList[current_slevel_index]);
                     break;
             }
         }
