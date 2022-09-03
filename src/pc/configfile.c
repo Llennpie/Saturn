@@ -78,12 +78,12 @@ unsigned int configRumbleStrength = 50;
 // Saturn
 unsigned int configKeyFreeze[MAX_BINDS]     = { 0x0021,   0x100B,     VK_INVALID };
 unsigned int configKeyPlayAnim[MAX_BINDS]   = { 0x0018,   0x100D,     VK_INVALID };
-unsigned int configKeyPauseAnim[MAX_BINDS]  = { 0x0019,   0x100E,     VK_INVALID };
+unsigned int configKeyLoopAnim[MAX_BINDS]   = { 0x0017,   0x100E,     VK_INVALID };
 unsigned int configKeyShowMenu[MAX_BINDS]   = { 0x003b,   0x1004,     VK_INVALID };
 #ifdef EXTERNAL_DATA
 bool configPrecacheRes = true;
 #endif
-unsigned int configEditorTheme   = 0;
+unsigned int configEditorTheme   = 1; // Moon by default
 unsigned int configMCameraMode   = 0; // keyboard is better
 bool         configEditorFastApply = false;
 bool         configEditorAutoSpark = true;
@@ -104,7 +104,7 @@ bool         configCameraMouse   = false;
 bool         configSkipIntro     = 1;
 bool         configHUD           = false;
 #ifdef DISCORDRPC
-bool         configDiscordRPC    = true;
+bool         configDiscordRPC    = false;
 #endif
 
 static const struct ConfigOption options[] = {
@@ -142,7 +142,7 @@ static const struct ConfigOption options[] = {
     #endif
     {.name = "key_freeze",           .type = CONFIG_TYPE_BIND, .uintValue = configKeyFreeze},
     {.name = "key_anim_play",        .type = CONFIG_TYPE_BIND, .uintValue = configKeyPlayAnim},
-    {.name = "key_anim_pause",       .type = CONFIG_TYPE_BIND, .uintValue = configKeyPauseAnim},
+    {.name = "key_anim_pause",       .type = CONFIG_TYPE_BIND, .uintValue = configKeyLoopAnim},
     {.name = "key_show_menu",        .type = CONFIG_TYPE_BIND, .uintValue = configKeyShowMenu},
     {.name = "editor_theme",         .type = CONFIG_TYPE_UINT, .uintValue = &configEditorTheme},
     {.name = "mcamera_mode",         .type = CONFIG_TYPE_UINT, .uintValue = &configMCameraMode},

@@ -45,7 +45,7 @@ extern unsigned int configRumbleStrength;
 // Saturn
 extern unsigned int configKeyFreeze[];
 extern unsigned int configKeyPlayAnim[];
-extern unsigned int configKeyPauseAnim[];
+extern unsigned int configKeyLoopAnim[];
 extern unsigned int configKeyShowMenu[];
 #ifdef EXTERNAL_DATA
 extern bool         configPrecacheRes;

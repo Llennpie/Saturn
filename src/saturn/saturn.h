@@ -44,6 +44,7 @@ extern unsigned int chromaKeyColorG;
 extern unsigned int chromaKeyColorB;
 
 extern u16 gChromaKeyColor;
+extern u16 gChromaKeyBackground;
 
 extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 
@@ -53,6 +54,7 @@ extern "C" {
     void saturn_update(void);
     void saturn_play_animation(MarioAnimID);
     void saturn_print(const char*);
+    const char* saturn_get_stage_name(int);
 #ifdef __cplusplus
 }
 #endif

@@ -6,6 +6,7 @@
 
 #include "data/dynos.cpp.h"
 #include "saturn/imgui/saturn_imgui.h"
+#include "saturn/imgui/saturn_imgui_machinima.h"
 #include "libs/sdl2_scancode_to_dinput.h"
 
 bool mario_exists;
@@ -70,6 +71,7 @@ unsigned int chromaKeyColorG = 255;
 unsigned int chromaKeyColorB = 0;
 
 u16 gChromaKeyColor = 0x07C1;
+u16 gChromaKeyBackground = 0;
 
 // SATURN Machinima Functions
 
@@ -82,15 +84,13 @@ void saturn_update() {
         if (gPlayer1Controller->buttonPressed & D_JPAD) showMenu = !showMenu;
         if (gPlayer1Controller->buttonPressed & L_JPAD) {
             if (!is_anim_playing) {
-                saturn_play_animation(selected_animation);
+                anim_play_button();
             } else {
-                is_anim_playing = false;
-                is_anim_paused = false;
+                is_anim_paused = !is_anim_paused;
             }
         }
         if (gPlayer1Controller->buttonPressed & R_JPAD) {
-            if (is_anim_playing)
-                is_anim_paused = !is_anim_paused;
+            is_anim_looped = !is_anim_looped;
         }
     }
 
@@ -197,6 +197,8 @@ void saturn_print(const char* text) {
         printf(text);
 }
 
+// Other
+
 SDL_Scancode saturn_key_to_scancode(unsigned int configKey[]) {
     for (int i = 0; i < MAX_BINDS; i++) {
         unsigned int key = configKey[i];
@@ -207,5 +209,39 @@ SDL_Scancode saturn_key_to_scancode(unsigned int configKey[]) {
             }
         }
         return SDL_SCANCODE_UNKNOWN;
+    }
+}
+
+const char* saturn_get_stage_name(int courseNum) {
+    switch(courseNum) {
+        case LEVEL_SA: return "Chroma Key Stage"; break;
+        case LEVEL_CASTLE: return "Peach's Castle"; break;
+        case LEVEL_CASTLE_GROUNDS: return "Castle Grounds"; break;
+        case LEVEL_CASTLE_COURTYARD: return "Castle Courtyard"; break;
+        case LEVEL_BOB: return "Bob-omb Battlefield"; break;
+        case LEVEL_CCM: return "Cool, Cool Mountain"; break;
+        case LEVEL_WF: return "Whomp's Fortress"; break;
+        case LEVEL_JRB: return "Jolly Roger Bay"; break;
+        case LEVEL_PSS: return "Princess's Secret Slide"; break;
+        case LEVEL_TOTWC: return "Tower of the Wing Cap"; break;
+        case LEVEL_BITDW: return "Bowser in the Dark World"; break;
+        case LEVEL_BBH: return "Big Boo's Haunt"; break;
+        case LEVEL_HMC: return "Hazy Maze Cave"; break;
+        case LEVEL_COTMC: return "Cavern of the Metal Cap"; break;
+        case LEVEL_LLL: return "Lethal Lava Land"; break;
+        case LEVEL_SSL: return "Shifting Sand Land"; break;
+        case LEVEL_VCUTM: return "Vanish Cap Under the Moat"; break;
+        case LEVEL_DDD: return "Dire, Dire Docks"; break;
+        case LEVEL_BITFS: return "Bowser in the Fire Sea"; break;
+        case LEVEL_SL: return "Snowman's Land"; break;
+        case LEVEL_WDW: return "Wet-Dry World"; break;
+        case LEVEL_TTM: return "Tall, Tall Mountain"; break;
+        case LEVEL_THI: return "Tiny, Huge Island"; break;
+        case LEVEL_TTC: return "Tick Tock Clock"; break;
+        case LEVEL_WMOTR: return "Wing Mario Over the Rainbow"; break;
+        case LEVEL_RR: return "Rainbow Ride"; break;
+        case LEVEL_BITS: return "Bowser in the Sky"; break;
+
+        default: return "Unknown"; break;
     }
 }
