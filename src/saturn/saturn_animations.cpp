@@ -45,6 +45,9 @@ void saturn_fetch_animations() {
     canim_directory = "dynos/anims/";
 #endif
 
+    if (!fs::exists(canim_directory))
+        return;
+
     for (const auto & entry : fs::directory_iterator(canim_directory)) {
         fs::path path = entry.path();
 
@@ -89,7 +92,7 @@ void run_hex_array(Json::Value root, string type) {
     }
 }
 
-void saturn_read_animation(string json_path) {
+void saturn_read_mcomp_animation(string json_path) {
     // Load the json file
     std::ifstream file("dynos/anims/" + json_path + ".json");
     if (!file.good()) { return; }

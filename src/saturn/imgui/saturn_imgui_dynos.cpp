@@ -21,6 +21,7 @@ extern "C" {
 #include "game/mario.h"
 #include "game/level_update.h"
 #include <mario_animation_ids.h>
+#include "pc/cheats.h"
 }
 
 Array<PackData *> &sDynosPacks = DynOS_Gfx_GetPacks();
@@ -298,6 +299,11 @@ void sdynos_imgui_menu() {
                 if (is_selected)
                     std::cout << "Loaded " << current_model_data.name << " by " << current_model_data.author << std::endl;
 
+                if (configEditorAutoModelCc) {
+                    set_cc_from_model(sDynosPacks[i]->mPath);
+                    set_editor_from_global_cc(label);
+                }
+
                 one_pack_selectable = false;
                 for (int k = 0; k < sDynosPacks.Count(); k++) {
                     if (DynOS_Opt_GetValue(String("dynos_pack_%d", k)))
@@ -309,9 +315,12 @@ void sdynos_imgui_menu() {
                     ModelData blank;
                     current_model_data = blank;
                     using_model_eyes = false;
-
                     cc_model_support = true;
                     cc_spark_support = false;
+                    if (configEditorAutoModelCc) {
+                        load_cc_file((char*)cc_array[current_cc_id].c_str());
+                        set_editor_from_global_cc(cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3));
+                    }
                 }
             }
             if (ImGui::BeginPopupContextItem()) {
@@ -337,21 +346,65 @@ void sdynos_imgui_menu() {
     if (ImGui::MenuItem("Color Code Editor###menu_cc_editor"))
         currentMenu = 2;
 
-    if (ImGui::BeginMenu("Shading###menu_shading")) {
-        
-        ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
-        ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
-        ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
-        ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
+    if (ImGui::BeginMenu("Misc.###menu_misc")) {
 
-        if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
-            if (ImGui::Button("Reset###reset_wshading")) {
-                world_light_dir1 = 0.f;
-                world_light_dir2 = 0.f;
-                world_light_dir3 = 0.f;
-                world_light_dir4 = 1.f;
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+        ImGui::BeginChild("Misc.###misc_child", ImVec2(225, 150), true, ImGuiWindowFlags_None);
+        if (ImGui::BeginTabBar("###misc_tabbar", ImGuiTabBarFlags_None)) {
+
+            if (ImGui::BeginTabItem("Switches###switches_scale")) {
+                const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
+                ImGui::Combo("Hand###hand_state", &scrollHandState, hands, IM_ARRAYSIZE(hands));
+                const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
+                ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
+                const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
+                ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
+
+                ImGui::EndTabItem();
             }
+            if (ImGui::BeginTabItem("Shading###tab_shading")) {
+                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
+                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
+                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
+                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
+
+                if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
+                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine();
+                    if (ImGui::Button("Reset###reset_wshading")) {
+                        world_light_dir1 = 0.f;
+                        world_light_dir2 = 0.f;
+                        world_light_dir3 = 0.f;
+                        world_light_dir4 = 1.f;
+                    }
+                }
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Scale###tab_scale")) {
+                if (linkMarioScale) {
+                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
+                } else {
+                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###mscale_x", &marioScaleSizeX, -2.f, 2.f);
+                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###mscale_y", &marioScaleSizeY, -2.f, 2.f);
+                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###mscale_z", &marioScaleSizeZ, -2.f, 2.f);
+                }
+                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::Checkbox("Link###link_mario_scale", &linkMarioScale);
+                if (marioScaleSizeX != 1.f || marioScaleSizeY != 1.f || marioScaleSizeZ != 1.f) {
+                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine();
+                    if (ImGui::Button("Reset###reset_mscale")) {
+                        marioScaleSizeX = 1.f;
+                        marioScaleSizeY = 1.f;
+                        marioScaleSizeZ = 1.f;
+                    }
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
         }
+
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
 
         ImGui::EndMenu();
     }
@@ -408,6 +461,8 @@ void sdynos_imgui_menu() {
                     }
                 }
                 ImGui::EndChild();
+            } else {
+                ImGui::Text("No eye textures found.\nPlace custom eye PNG textures\nin dynos/eyes/.");
             }
         }
     }

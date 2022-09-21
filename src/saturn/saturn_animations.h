@@ -21,7 +21,7 @@ extern u16 current_canim_indices[99999];
 extern std::vector<std::string> canim_array;
 extern std::string canim_directory;
 
-extern void saturn_read_animation(std::string);
+extern void saturn_read_mcomp_animation(std::string);
 extern void saturn_fetch_animations();
 extern void saturn_play_custom_animation();
 

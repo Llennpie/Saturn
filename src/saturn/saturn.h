@@ -28,7 +28,9 @@ extern bool enable_shadows;
 extern bool enable_dust_particles;
 extern bool can_fall_asleep;
 extern int saturnModelState;
+extern bool linkMarioScale;
 
+extern bool is_custom_anim;
 extern bool is_anim_playing;
 extern enum MarioAnimID selected_animation;
 extern bool is_anim_looped;

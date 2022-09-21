@@ -28,7 +28,9 @@ bool enable_shadows = true;
 bool enable_dust_particles = false;
 bool can_fall_asleep = false;
 int saturnModelState = 0;
+bool linkMarioScale;
 
+bool is_custom_anim;
 bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
 bool is_anim_looped = false;
@@ -57,6 +59,7 @@ extern "C" {
 #include <mario_animation_ids.h>
 #include <sm64.h>
 #include "pc/controller/controller_keyboard.h"
+#include "pc/cheats.h"
 }
 
 using namespace std;
@@ -180,6 +183,11 @@ void saturn_update() {
         case 2:     scrollModelState = 0x180;   break;  // Vanish Cap
         case 3:     scrollModelState = 0x380;   break;  // Both
         default:    scrollModelState = 0;       break;
+    }
+
+    if (linkMarioScale) {
+        marioScaleSizeY = marioScaleSizeX;
+        marioScaleSizeZ = marioScaleSizeX;
     }
 }
 
