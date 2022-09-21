@@ -35,6 +35,7 @@
 #define GRAPH_NODE_TYPE_ROTATION              0x017
 #define GRAPH_NODE_TYPE_OBJECT                0x018
 #define GRAPH_NODE_TYPE_ANIMATED_PART         0x019
+#define GRAPH_NODE_TYPE_MCOMP_EXTRA           0x022
 #define GRAPH_NODE_TYPE_BILLBOARD             0x01A
 #define GRAPH_NODE_TYPE_DISPLAY_LIST          0x01B
 #define GRAPH_NODE_TYPE_SCALE                 0x01C
@@ -110,8 +111,6 @@ struct GraphNodePerspective
     /*0x1C*/ f32 fov;   // horizontal field of view in degrees
     /*0x20*/ s16 near;  // near clipping plane
     /*0x22*/ s16 far;   // far clipping plane
-    f32 prevFov;
-    f32 prevTimestamp;
 };
 
 /** An entry in the master list. It is a linked list of display lists
@@ -120,9 +119,7 @@ struct GraphNodePerspective
 struct DisplayListNode
 {
     Mtx *transform;
-    void *transformInterpolated;
     void *displayList;
-    void *displayListInterpolated;
     struct DisplayListNode *next;
 };
 
@@ -189,11 +186,7 @@ struct GraphNodeCamera
     } config;
     /*0x1C*/ Vec3f pos;
     /*0x28*/ Vec3f focus;
-    Vec3f prevPos;
-    Vec3f prevFocus;
-    u32 prevTimestamp;
     /*0x34*/ Mat4 *matrixPtr; // pointer to look-at matrix of this camera as a Mat4
-    Mat4 *matrixPtrInterpolated;
     /*0x38*/ s16 roll; // roll in look at matrix. Doesn't account for light direction unlike rollScreen.
     /*0x3A*/ s16 rollScreen; // rolls screen while keeping the light direction consistent
 };
@@ -234,8 +227,7 @@ struct GraphNodeRotation
     /*0x00*/ struct GraphNode node;
     /*0x14*/ void *displayList;
     /*0x18*/ Vec3s rotation;
-    Vec3s prevRotation;
-    u32 prevTimestamp;
+    u8 pad1E[2];
 };
 
 /** GraphNode part that transforms itself and its children based on animation
@@ -332,9 +324,6 @@ struct GraphNodeBackground
     /*0x00*/ struct FnGraphNode fnNode;
     /*0x18*/ s32 unused;
     /*0x1C*/ s32 background; // background ID, or rgba5551 color if fnNode.func is null
-    Vec3f prevCameraPos;
-    Vec3f prevCameraFocus;
-    u32 prevCameraTimestamp;
 };
 
 /** Renders the object that Mario is holding.
@@ -345,8 +334,6 @@ struct GraphNodeHeldObject
     /*0x18*/ s32 playerIndex;
     /*0x1C*/ struct Object *objNode;
     /*0x20*/ Vec3s translation;
-    Vec3f prevShadowPos;
-    u32 prevShadowPosTimestamp;
 };
 
 /** A node that allows an object to specify a different culling radius than the
@@ -404,6 +391,8 @@ struct GraphNodeObject *init_graph_node_object(struct AllocOnlyPool *pool, struc
                                                struct GraphNode *sharedChild, Vec3f pos, Vec3s angle, Vec3f scale);
 struct GraphNodeCullingRadius *init_graph_node_culling_radius(struct AllocOnlyPool *pool, struct GraphNodeCullingRadius *graphNode, s16 radius);
 struct GraphNodeAnimatedPart *init_graph_node_animated_part(struct AllocOnlyPool *pool, struct GraphNodeAnimatedPart *graphNode,
+                                                            s32 drawingLayer, void *displayList, Vec3s translation);
+struct GraphNodeAnimatedPart *init_graph_node_mcomp_extra(struct AllocOnlyPool *pool, struct GraphNodeAnimatedPart *graphNode,
                                                             s32 drawingLayer, void *displayList, Vec3s translation);
 struct GraphNodeBillboard *init_graph_node_billboard(struct AllocOnlyPool *pool, struct GraphNodeBillboard *graphNode,
                                                      s32 drawingLayer, void *displayList, Vec3s translation);

@@ -660,12 +660,12 @@ static void gfx_opengl_on_resize(void) {
 u8 frameBreak = 0;
 
 static void gfx_opengl_start_frame(void) {
-    if (frameBreak == 0) {
+    //if (frameBreak == 0) {
         saturn_update();
-        frameBreak = 1;
-    } else {
-        frameBreak = 0;
-    }
+    //    frameBreak = 1;
+    //} else {
+    //    frameBreak = 0;
+    //}
     
     frame_count++;
 
