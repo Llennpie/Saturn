@@ -22,6 +22,7 @@ extern "C" {
 #include "game/level_update.h"
 #include "engine/level_script.h"
 #include "engine/geo_layout.h"
+#include "src/game/envfx_snow.h"
 }
 
 using namespace std;
@@ -60,7 +61,7 @@ void schroma_imgui_update() {
         ImGui::ColorEdit4("Chroma Key Color", (float*)&uiChromaColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
         ImGui::SameLine(); ImGui::Text("Color");
         ImGui::Checkbox("Render Floor", &renderFloor);
-        ImGui::SameLine(); imgui_bundled_help_marker("Renders a floor object. Useful for animations that clip through the ground.");
+        ImGui::SameLine(); imgui_bundled_help_marker("Renders a floor object; Useful for animations that clip through the ground.");
     } else {
         const char* mSkyboxSettings[] = { "Ocean Sky", "Flaming Sky", "Underwater City", "Below Clouds", "Snow Mountains", "Desert", "Haunted", "Green Sky", "Above Clouds", "Purple Sky" };
         ImGui::Combo("###skybox_background", (int*)&gChromaKeyBackground, mSkyboxSettings, IM_ARRAYSIZE(mSkyboxSettings));
@@ -80,5 +81,8 @@ void schroma_imgui_update() {
 
     ImGui::Checkbox("Shadows###chroma_shadows", &enable_shadows);
     ImGui::Checkbox("Dust Particles###chroma_dust", &enable_dust_particles);
-    imgui_bundled_tooltip("Displays dust particles when Mario moves - better to leave off when chroma keying.");
+    imgui_bundled_tooltip("Displays dust particles when Mario moves; Better to leave off when chroma keying.");
+    
+    const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
+    ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
 }
