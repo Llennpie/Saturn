@@ -13,6 +13,7 @@ typedef struct {
     bool vsync;
     bool enable_antialias;
     unsigned int antialias_level;
+    bool jabo_mode;
     bool reset;
     bool fullscreen;
     bool exiting_fullscreen;
@@ -53,6 +54,7 @@ extern bool         configPrecacheRes;
 extern unsigned int configEditorTheme;
 extern unsigned int configMCameraMode;
 extern bool         configEditorFastApply;
+extern bool         configEditorAutoModelCc;
 extern bool         configEditorAutoSpark;
 extern bool         configEditorNearClipping;
 #ifdef BETTERCAMERA

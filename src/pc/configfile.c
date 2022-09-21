@@ -46,6 +46,7 @@ ConfigWindow configWindow       = {
     .vsync = 1,
     .enable_antialias = false,
     .antialias_level = 4,
+    .jabo_mode = false,
     .reset = false,
     .fullscreen = false,
     .exiting_fullscreen = false,
@@ -86,6 +87,7 @@ bool configPrecacheRes = true;
 unsigned int configEditorTheme   = 1; // Moon by default
 unsigned int configMCameraMode   = 0; // keyboard is better
 bool         configEditorFastApply = false;
+bool         configEditorAutoModelCc = false;
 bool         configEditorAutoSpark = true;
 bool         configEditorNearClipping = false;
 #ifdef BETTERCAMERA
@@ -116,6 +118,7 @@ static const struct ConfigOption options[] = {
     {.name = "vsync",                .type = CONFIG_TYPE_BOOL, .boolValue = &configWindow.vsync},
     {.name = "aa_enabled",           .type = CONFIG_TYPE_BOOL, .boolValue = &configWindow.enable_antialias},
     {.name = "aa_level",             .type = CONFIG_TYPE_UINT, .uintValue = &configWindow.antialias_level},
+    {.name = "jabo_mode",            .type = CONFIG_TYPE_BOOL, .uintValue = &configWindow.jabo_mode},
     {.name = "texture_filtering",    .type = CONFIG_TYPE_UINT, .uintValue = &configFiltering},
     {.name = "master_volume",        .type = CONFIG_TYPE_UINT, .uintValue = &configMasterVolume},
     {.name = "music_volume",         .type = CONFIG_TYPE_UINT, .uintValue = &configMusicVolume},
@@ -147,6 +150,7 @@ static const struct ConfigOption options[] = {
     {.name = "editor_theme",         .type = CONFIG_TYPE_UINT, .uintValue = &configEditorTheme},
     {.name = "mcamera_mode",         .type = CONFIG_TYPE_UINT, .uintValue = &configMCameraMode},
     {.name = "editor_fast_apply",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorFastApply},
+    {.name = "editor_auto_model_cc", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoModelCc},
     {.name = "editor_auto_spark",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoSpark},
     {.name = "editor_near_clipping", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorNearClipping},
     #ifdef BETTERCAMERA

@@ -758,6 +758,10 @@ static void gfx_sp_pop_matrix(uint32_t count) {
 }
 
 static float gfx_adjust_x_for_aspect_ratio(float x) {
+    if (configWindow.jabo_mode) {
+        // 4:3
+        return x * (4.0f / 3.0f) / ((float)4 / (float)3);
+    }
     return x * (4.0f / 3.0f) / ((float)gfx_current_dimensions.width / (float)gfx_current_dimensions.height);
 }
 
@@ -1961,7 +1965,11 @@ void gfx_start_frame(void) {
         // Avoid division by zero
         gfx_current_dimensions.height = 1;
     }
-    gfx_current_dimensions.aspect_ratio = (float)gfx_current_dimensions.width / (float)gfx_current_dimensions.height;
+    if (configWindow.jabo_mode) {
+        gfx_current_dimensions.aspect_ratio = (float)4 / (float)3;
+    } else {
+        gfx_current_dimensions.aspect_ratio = (float)gfx_current_dimensions.width / (float)gfx_current_dimensions.height;
+    }
 }
 
 void gfx_run(Gfx *commands) {
