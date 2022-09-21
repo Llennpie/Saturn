@@ -305,6 +305,9 @@ void saturn_load_cc_directory() {
     colorCodeDir = "dynos/colorcodes/";
 #endif
 
+    if (!fs::exists(colorCodeDir))
+        return;
+
     for (const auto & entry : fs::directory_iterator(colorCodeDir)) {
         fs::path path = entry.path();
 

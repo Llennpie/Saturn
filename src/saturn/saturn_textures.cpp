@@ -58,6 +58,10 @@ void saturn_load_eye_folder(std::string path) {
     eye_array.clear();
     fs::create_directory("res/gfx");
 
+    // if eye folder is missing
+    if (!fs::exists("dynos/eyes/"))
+        return;
+
     // reset dir if we last used models or returned to root
     if (path == "../") path = "";
     if (model_eyes_enabled || path == "") {
@@ -149,10 +153,12 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
-    if (texName == "actors/mario/mario_eyes_left_unused.rgba16" || texName.find("saturn_eye") != string::npos) {
-        outputTexture = current_eye.c_str();
-        const void* output = static_cast<const void*>(outputTexture);
-        return output;
+    if (eye_array.size() > 0) {
+        if (texName == "actors/mario/mario_eyes_left_unused.rgba16" || texName.find("saturn_eye") != string::npos) {
+            outputTexture = current_eye.c_str();
+            const void* output = static_cast<const void*>(outputTexture);
+            return output;
+        }
     }
 
     return input;
