@@ -365,6 +365,19 @@
     CMD_PTR(function)
 
 /**
+ * 0x22: Create display list that becomes animated during custom animations
+ *   0x01: u8 drawingLayer
+ *   0x02: s16 xTranslation
+ *   0x04: s16 yTranslation
+ *   0x06: s16 zTranslation
+ *   0x08: u32 displayList: dislay list segmented address
+ */
+#define GEO_MCOMP_EXTRA(layer, x, y, z, displayList) \
+    CMD_BBH(0x22, layer, x), \
+    CMD_HH(y, z), \
+    CMD_PTR(displayList)
+
+/**
  * 0x1A: No operation
  */
 #define GEO_NOP_1A() \

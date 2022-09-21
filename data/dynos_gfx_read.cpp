@@ -1511,6 +1511,7 @@ static void ParseGeoSymbol(GfxData* aGfxData, DataNode<GeoLayout>* aNode, GeoLay
     geo_symbol_2(GEO_BACKGROUND, 1);
     geo_symbol_1(GEO_BACKGROUND_COLOR, 0);
     geo_symbol_1(GEO_BACKGROUND_DYN, 0);
+    geo_symbol_5(GEO_MCOMP_EXTRA, 2);
     geo_symbol_0(GEO_NOP_1A);
     geo_symbol_5(GEO_HELD_OBJECT, 2);
     geo_symbol_2(GEO_SCALE, 0);

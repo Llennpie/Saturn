@@ -366,6 +366,27 @@ struct GraphNodeAnimatedPart *init_graph_node_animated_part(struct AllocOnlyPool
 }
 
 /**
+ * Allocates and returns a newly created animated part node
+ */
+struct GraphNodeAnimatedPart *init_graph_node_mcomp_extra(struct AllocOnlyPool *pool,
+                                                            struct GraphNodeAnimatedPart *graphNode,
+                                                            s32 drawingLayer, void *displayList,
+                                                            Vec3s translation) {
+    if (pool != NULL) {
+        graphNode = alloc_only_pool_alloc(pool, sizeof(struct GraphNodeAnimatedPart));
+    }
+
+    if (graphNode != NULL) {
+        init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_MCOMP_EXTRA);
+        vec3s_copy(graphNode->translation, translation);
+        graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
+        graphNode->displayList = displayList;
+    }
+
+    return graphNode;
+}
+
+/**
  * Allocates and returns a newly created billboard node
  */
 struct GraphNodeBillboard *init_graph_node_billboard(struct AllocOnlyPool *pool,

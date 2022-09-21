@@ -46,6 +46,7 @@ GeoLayoutCommandProc GeoLayoutJumpTable[] = {
     geo_layout_cmd_nop3,
     geo_layout_cmd_node_culling_radius,
     geo_layout_cmd_dynamic_background,
+    geo_layout_cmd_node_mcomp_extra,
 };
 
 struct GraphNode gObjParentGraphNode;
@@ -739,6 +740,31 @@ void geo_layout_cmd_dynamic_background(void) {
     register_scene_graph_node(&graphNode->fnNode.node);
 
     gGeoLayoutCommand += 0x08 << CMD_SIZE_SHIFT;
+}
+
+/*
+  0x22: Create a scene graph node that is rotated by the object's animation.
+   cmd+0x01: u8 drawingLayer
+   cmd+0x02: s16 xTranslation
+   cmd+0x04: s16 yTranslation
+   cmd+0x06: s16 zTranslation
+   cmd+0x08: void *displayList
+*/
+void geo_layout_cmd_node_mcomp_extra(void) {
+    struct GraphNodeAnimatedPart *graphNode;
+    Vec3s translation;
+    s32 drawingLayer = cur_geo_cmd_u8(0x01);
+    void *displayList = cur_geo_cmd_ptr(0x08);
+    s16 *cmdPos = (s16 *) gGeoLayoutCommand;
+
+    read_vec3s(translation, &cmdPos[1]);
+
+    graphNode =
+        init_graph_node_mcomp_extra(gGraphNodePool, NULL, drawingLayer, displayList, translation);
+
+    register_scene_graph_node(&graphNode->node);
+
+    gGeoLayoutCommand += 0x0C << CMD_SIZE_SHIFT;
 }
 
 // 0x1A: No operation
