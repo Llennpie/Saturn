@@ -1254,31 +1254,7 @@ void squish_mario_model(struct MarioState *m) {
         // If no longer squished, scale back to default.
         // Also handles the Tiny Mario and Huge Mario cheats.
         if (m->squishTimer == 0) {
-            if (Cheats.EnableCheats) {
-                if (Cheats.CustomMarioScale) {
-                    finalMarioScale = marioScaleSize;
-                } else {
-                    finalMarioScale = 1.0f;
-                }
-
-                s32 playAsIndex = Cheats.PlayAs;
-                switch(playAsIndex) {
-                    case 0:     cheats_play_as_set_model_and_anims(m, MODEL_MARIO, NULL); break;
-                    case 1:     cheats_play_as_set_model_and_anims(m, MODEL_BLACK_BOBOMB, bobomb_seg8_anims_0802396C[0]); break;
-                    case 2:     cheats_play_as_set_model_and_anims(m, MODEL_BOBOMB_BUDDY, bobomb_seg8_anims_0802396C[0]); break;
-                    case 3:     cheats_play_as_set_model_and_anims(m, MODEL_GOOMBA, goomba_seg8_anims_0801DA4C[0]); finalMarioScale *= 1.5f; break;
-                    case 4:     cheats_play_as_set_model_and_anims(m, MODEL_KOOPA_SHELL, amp_seg8_anims_08004034[0]); break;
-                    case 5:     cheats_play_as_set_model_and_anims(m, MODEL_CHUCKYA, chuckya_seg8_anims_0800C070[0]); finalMarioScale *= 2.0f; break;
-                    case 6:     cheats_play_as_set_model_and_anims(m, MODEL_FLYGUY, flyguy_seg8_anims_08011A64[0]); finalMarioScale *= 1.5f; break;
-                    default:    cheats_play_as_set_model_and_anims(m, MODEL_MARIO, NULL); break;
-                }
-
-                vec3f_set(m->marioObj->header.gfx.scale, finalMarioScale, finalMarioScale, finalMarioScale);
-            }
-            else {
-                vec3f_set(m->marioObj->header.gfx.scale, 1.0f, 1.0f, 1.0f);
-            }
-            
+            vec3f_set(m->marioObj->header.gfx.scale, marioScaleSizeX, marioScaleSizeY, marioScaleSizeZ);
         }
         // If timer is less than 16, rubber-band Mario's size scale up and down.
         else if (m->squishTimer <= 16) {

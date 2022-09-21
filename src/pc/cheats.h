@@ -20,6 +20,8 @@ struct CheatList {
 
 extern struct CheatList Cheats;
 
-extern float marioScaleSize;
+extern float marioScaleSizeX;
+extern float marioScaleSizeY;
+extern float marioScaleSizeZ;
 
 #endif // _CHEATS_H

@@ -71,7 +71,7 @@ const char* translate_bind_to_name(int bind) {
     const char* sname = SDL_GetScancodeName(sc);
     if (strlen(sname) <= 9) { return sname; }
 
-    char* space = strchr(sname, ' ');
+    char* space = (char*)strchr(sname, ' ');
     if (space == NULL) { return sname; }
 
     snprintf(name, 10, "%c%s", sname[0], (space + 1));
@@ -133,8 +133,10 @@ void ssettings_imgui_init() {
 }
 
 void ssettings_imgui_update() {
-    ImGui::Checkbox("Limit FPS", &limit_fps);
-    imgui_bundled_tooltip("(F4) Helpful for speeding up slow in-game events. Works like Project64.");
+    if (ImGui::GetIO().Framerate > 50.f) {
+        ImGui::Checkbox("Limit FPS", &limit_fps);
+        imgui_bundled_tooltip("(F4) Helpful for speeding up slow in-game events. Works like Project64.");
+    }
 
     ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Graphics")) {
@@ -170,7 +172,10 @@ void ssettings_imgui_update() {
 
         ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
             //configWindow.settings_changed = true;
-        imgui_bundled_tooltip("EXPERIMENTAL. Enables/disables anti-aliasing with OpenGL.");
+        imgui_bundled_tooltip("Enables/disables anti-aliasing with OpenGL.");
+
+        ImGui::Checkbox("Jabo Mode", &configWindow.jabo_mode);
+        imgui_bundled_tooltip("Forces the game into a 4:3 aspect ratio, regardless of window resolution; For classic enthusiasts.");
 
         ImGui::Checkbox("Disable near-clipping", &configEditorNearClipping);
         imgui_bundled_tooltip("Enable when some close to the camera starts clipping through. Disable if the level fog goes nuts.");
@@ -233,23 +238,6 @@ void ssettings_imgui_update() {
             ImGui::EndTabBar();
         }
     }
-    if (ImGui::CollapsingHeader("Editor")) {
-#ifdef DISCORDRPC
-        ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
-        imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
-        ImGui::Dummy(ImVec2(0, 5));
-#endif
-        const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life" };
-        ImGui::Text("Theme");
-        ImGui::Combo("###theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
-        ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
-        ImGui::Dummy(ImVec2(0, 5));
-
-        ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
-        imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor. May cause lag on low-end machines.");
-        //ImGui::Checkbox("Auto-enable CometSPARK support", &configEditorAutoSpark);
-        //imgui_bundled_tooltip("If enabled, CometSPARK support will automatically turn on when a SPARK GS code is loaded.");
-    }
     if (ImGui::CollapsingHeader("Gameplay")) {
         ImGui::Checkbox("Infinite Health", &Cheats.GodMode);
         ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
@@ -258,4 +246,15 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Allows the level to be exited from any state.");
         ImGui::Checkbox("Skip Intro", &configSkipIntro);
     }
+    const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
+    ImGui::Combo("Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
+    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
+#ifdef DISCORDRPC
+    ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
+    imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
+#endif
+    ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
+    imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor. May cause lag on low-end machines.");
+    ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
+    imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
 }

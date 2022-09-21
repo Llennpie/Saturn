@@ -28,11 +28,11 @@ extern "C" {
 #include "game/level_update.h"
 #include "engine/level_script.h"
 #include "game/game_init.h"
+#include "src/game/envfx_snow.h"
 }
 
 using namespace std;
 
-bool is_custom_anim;
 int custom_anim_index;
 int current_sanim_index = 7;
 std::string current_sanim_name = "BREAKDANCE";
@@ -53,7 +53,7 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
 
 void anim_play_button() {
     if (is_custom_anim) {
-        saturn_read_animation(anim_preview_name);
+        saturn_read_mcomp_animation(anim_preview_name);
         saturn_play_animation(selected_animation);
         saturn_play_custom_animation();
     } else {
@@ -111,8 +111,9 @@ void smachinima_imgui_update() {
     const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
         "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", "CUSTOM..." };
 
+    int animArraySize = (canim_array.size() > 0) ? IM_ARRAYSIZE(anim_groups) : IM_ARRAYSIZE(anim_groups) - 1;
     if (ImGui::BeginCombo("###anim_groups", anim_groups[current_sanim_group_index], ImGuiComboFlags_None)) {
-        for (int n = 0; n < IM_ARRAYSIZE(anim_groups); n++) {
+        for (int n = 0; n < animArraySize; n++) {
             const bool is_selected = (current_sanim_group_index == n);
             if (ImGui::Selectable(anim_groups[n], is_selected)) {
                 current_sanim_group_index = n;
@@ -138,7 +139,7 @@ void smachinima_imgui_update() {
                     current_sanim_index = 0;
                     current_sanim_name = canim_array[0];
                     current_sanim_id = MARIO_ANIM_A_POSE;
-                    saturn_read_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+                    saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                 }
@@ -148,7 +149,9 @@ void smachinima_imgui_update() {
             if (is_selected)
                 ImGui::SetItemDefaultFocus();
         }
-        ImGui::SameLine(); imgui_bundled_help_marker("These are custom METAL Composer+ JSON animations.\nPlace in dynos/anims.");
+        if (canim_array.size() > 0)
+            ImGui::SameLine(); imgui_bundled_help_marker("These are custom METAL Composer+ JSON animations.\nPlace in dynos/anims.");
+            
         ImGui::EndCombo();
     }
 
@@ -181,7 +184,7 @@ void smachinima_imgui_update() {
                     is_anim_looped = current_canim_looping;
                     // Remove .json extension
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
-                    saturn_read_animation(anim_preview_name);
+                    saturn_read_mcomp_animation(anim_preview_name);
                     // Stop anim
                     is_anim_playing = false;
                     is_anim_paused = false;
@@ -201,7 +204,7 @@ void smachinima_imgui_update() {
                 current_sanim_index = 0;
                 current_sanim_name = canim_array[0];
                 current_sanim_id = MARIO_ANIM_A_POSE;
-                saturn_read_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+                saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
                 anim_preview_name = current_sanim_name;
                 anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                 ImGui::CloseCurrentPopup();
@@ -233,47 +236,9 @@ void smachinima_imgui_update() {
                 anim_play_button();
             } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
         }
-    }
 
-    imgui_bundled_space(20, "Quick Toggles", NULL);
+        // Warp To Level
 
-    ImGui::Checkbox("HUD", &configHUD);
-    imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-    ImGui::Checkbox("Shadows", &enable_shadows);
-    imgui_bundled_tooltip("Displays the shadows of various objects.");
-    if (mario_exists) {
-        if (ImGui::CollapsingHeader("Mario")) {
-            ImGui::Checkbox("Head Rotations", &enable_head_rotations);
-            imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
-            ImGui::Checkbox("Dust Particles", &enable_dust_particles);
-            imgui_bundled_tooltip("Displays dust particles when Mario moves.");
-            if (gMarioState->action != ACT_FIRST_PERSON) {
-                if (ImGui::Button("Sleep")) {
-                    set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
-                }
-                ImGui::SameLine();
-            }
-            ImGui::Checkbox("Can Fall Asleep", &can_fall_asleep);
-            ImGui::Dummy(ImVec2(0, 5));
-            ImGui::Text("States");
-            const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
-            ImGui::Combo("Hand###hand_state", &scrollHandState, hands, IM_ARRAYSIZE(hands));
-            const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
-            ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
-            const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
-            ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
-            ImGui::Dummy(ImVec2(0, 5));
-            ImGui::Checkbox("Custom Mario Scale", &Cheats.CustomMarioScale);
-            if (Cheats.CustomMarioScale)
-                ImGui::SliderFloat("Scale ###mario_scale", &marioScaleSize, 0.2f, 5.0f);
-            const char* playAsModels[] = { "Mario", "Bob-omb", "Bob-omb Buddy", "Goomba", "Koopa Shell", "Chuckya", "Fly Guy" };
-            /*if (gCurrLevelNum != LEVEL_SA) {
-                ImGui::Combo("Model", &Cheats.PlayAs, playAsModels, IM_ARRAYSIZE(playAsModels));
-                ImGui::SameLine(); imgui_bundled_tooltip(
-                    "EXPERIMENTAL: \"Play as\" cheats, allowing you to use a vanilla model. Prone to crashing and scaling issues.");
-            }
-            ImGui::Dummy(ImVec2(0, 5));*/
-        }
         ImGui::Dummy(ImVec2(0, 5));
 
         s16 levelList[] = { 
@@ -302,6 +267,9 @@ void smachinima_imgui_update() {
         
         ImGui::SameLine();
         if (ImGui::Button("Warp")) {
+            is_anim_playing = false;
+            is_anim_paused = false;
+
             switch (current_slevel_index) {
                 case 0:
                     warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
@@ -317,5 +285,32 @@ void smachinima_imgui_update() {
                     break;
             }
         }
+    }
+
+    imgui_bundled_space(20, "Quick Toggles", NULL);
+
+    if (ImGui::BeginTable("table_quick_toggles", 2)) {
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("HUD", &configHUD);
+        imgui_bundled_tooltip("Controls the in-game HUD visibility.");
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("Shadows", &enable_shadows);
+        imgui_bundled_tooltip("Displays the shadows of various objects.");
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("Head Rotations", &enable_head_rotations);
+        imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("Dust Particles", &enable_dust_particles);
+        imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+        ImGui::EndTable();
+    }
+    if (mario_exists) {
+        if (gMarioState->action != ACT_FIRST_PERSON) {
+            if (ImGui::Button("Sleep")) {
+                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
+            }
+        }
+        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
+        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
     }
 }

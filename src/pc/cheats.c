@@ -2,4 +2,6 @@
 
 struct CheatList Cheats;
 
-float marioScaleSize = 2.0f;
+float marioScaleSizeX = 1.0f;
+float marioScaleSizeY = 1.0f;
+float marioScaleSizeZ = 1.0f;
