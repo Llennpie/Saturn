@@ -312,6 +312,7 @@ namespace ImGui
     IMGUI_API void          StyleColorsClassic(ImGuiStyle* dst = NULL); // classic imgui style
     IMGUI_API void          StyleColorsMoon(ImGuiStyle* dst = NULL);    // a style based on saturn moon edition
     IMGUI_API void          StyleColorsHalfLife(ImGuiStyle* dst = NULL);    // a style based on half-life vgui
+    IMGUI_API void          StyleColorsM64MM(ImGuiStyle* dst = NULL);   // a style based on m64mm
 
     // Windows
     // - Begin() = push window to the stack and start appending to it. End() = pop window from the stack.

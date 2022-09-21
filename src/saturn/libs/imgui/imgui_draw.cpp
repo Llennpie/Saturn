@@ -252,6 +252,8 @@ void ImGui::StyleColorsClassic(ImGuiStyle* dst)
     ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
     ImVec4* colors = style->Colors;
 
+    style->ColorButtonPosition = ImGuiDir_Left;
+
     colors[ImGuiCol_Text]                   = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
     colors[ImGuiCol_TextDisabled]           = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
     colors[ImGuiCol_WindowBg]               = ImVec4(0.00f, 0.00f, 0.00f, 0.85f);
@@ -457,6 +459,97 @@ void ImGui::StyleColorsHalfLife(ImGuiStyle* dst)
     style.ScrollbarRounding = 0.0f;
     style.GrabRounding = 0.0f;
     style.TabRounding = 0.0f;
+}
+
+void ImGui::StyleColorsM64MM(ImGuiStyle* dst) {
+    // soft style from ImThemes
+	ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
+    ImVec4* colors = style->Colors;
+	
+	style->Alpha = 1.0;
+	style->DisabledAlpha = 0.6000000238418579;
+	//style->WindowPadding = ImVec2(8.0, 8.0);
+	style->WindowRounding = 0.0;
+	style->WindowBorderSize = 1.0;
+	//style->WindowMinSize = ImVec2(32.0, 32.0);
+	//style->WindowTitleAlign = ImVec2(0.0, 0.5);
+	//style->WindowMenuButtonPosition = ImGuiDir_Left;
+	style->ChildRounding = 0.0;
+	style->ChildBorderSize = 1.0;
+	style->PopupRounding = 0.0;
+	style->PopupBorderSize = 1.0;
+	//style->FramePadding = ImVec2(8.0, 4.0);
+	style->FrameRounding = 0.0;
+	style->FrameBorderSize = 1.0;
+	//style->ItemSpacing = ImVec2(8.0, 8.0);
+	//style->ItemInnerSpacing = ImVec2(4.0, 4.0);
+	//style->CellPadding = ImVec2(4.0, 2.0);
+	//style->IndentSpacing = 21.0;
+	//style->ColumnsMinSpacing = 6.0;
+	//style->ScrollbarSize = 14.0;
+	style->ScrollbarRounding = 0.0;
+	//style->GrabMinSize = 10.0;
+	style->GrabRounding = 0.0;
+	style->TabRounding = 0.0;
+	style->TabBorderSize = 1.0;
+	//style->TabMinWidthForCloseButton = 0.0;
+	style->ColorButtonPosition = ImGuiDir_Left;
+	//style->ButtonTextAlign = ImVec2(0.5, 0.5);
+	//style->SelectableTextAlign = ImVec2(0.0, 0.0);
+	
+	colors[ImGuiCol_Text] = ImVec4(9.999999974752427e-07, 9.999899930335232e-07, 9.999899930335232e-07, 1.0);
+	colors[ImGuiCol_TextDisabled] = ImVec4(0.3764705955982208, 0.3764705955982208, 0.3764705955982208, 1.0);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 1.0);
+	colors[ImGuiCol_ChildBg] = ImVec4(0.0, 0.0, 0.0, 0.0);
+	colors[ImGuiCol_PopupBg] = ImVec4(0.9411764740943909, 0.9411764740943909, 0.9411764740943909, 1.0);
+	colors[ImGuiCol_Border] = ImVec4(0.0, 0.0, 0.0, 0.1568627506494522);
+	colors[ImGuiCol_BorderShadow] = ImVec4(0.0, 0.0, 0.0, 0.0);
+	colors[ImGuiCol_FrameBg] = ImVec4(1.0, 1.0, 1.0, 0.3882353007793427);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 0.4000000059604645);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 0.6901960968971252);
+	colors[ImGuiCol_TitleBg] = ImVec4(0.9411764740943909, 0.9411764740943909, 0.9411764740943909, 1.0);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 0.8705882430076599);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 0.2000000029802322);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(1.0, 1.0, 1.0, 0.3882353007793427);
+	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.2000000029802322, 0.2470588237047195, 0.2980392277240753, 0.6000000238418579);
+	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 1.0);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 0.7882353067398071);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 1.0);
+	colors[ImGuiCol_CheckMark] = ImVec4(0.0, 0.4705882370471954, 0.843137264251709, 1.0);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.05968060344457626, 0.4575720429420471, 0.7725322246551514, 1.0);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.03903185203671455, 0.407722532749176, 0.6995707750320435, 1.0);
+	colors[ImGuiCol_Button] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 1.0);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 0.7882353067398071);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.0, 0.4705882370471954, 0.843137264251709, 1.0);
+	colors[ImGuiCol_Header] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 1.0);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 0.7882353067398071);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 1.0);
+	colors[ImGuiCol_Separator] = ImVec4(0.4980392158031464, 0.4980392158031464, 0.4980392158031464, 0.6000000238418579);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.6000000238418579, 0.6000000238418579, 0.6980392336845398, 1.0);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.6980392336845398, 0.6980392336845398, 0.8980392217636108, 1.0);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(1.0, 1.0, 1.0, 0.1000000014901161);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.7764706015586853, 0.8196078538894653, 1.0, 0.6000000238418579);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.7764706015586853, 0.8196078538894653, 1.0, 0.8999999761581421);
+	colors[ImGuiCol_Tab] = ImVec4(1.0, 1.0, 1.0, 0.3882353007793427);
+	colors[ImGuiCol_TabHovered] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 0.800000011920929);
+	colors[ImGuiCol_TabActive] = ImVec4(0.8039215803146362, 0.8039215803146362, 0.8039215803146362, 0.3882353007793427);
+	colors[ImGuiCol_TabUnfocused] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 0.8196078538894653);
+	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 0.8352941274642944);
+	colors[ImGuiCol_PlotLines] = ImVec4(0.0, 0.0, 0.0, 1.0);
+	colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.8980392217636108, 0.6980392336845398, 0.0, 1.0);
+	colors[ImGuiCol_PlotHistogram] = ImVec4(0.8980392217636108, 0.6980392336845398, 0.0, 1.0);
+	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.0, 0.6000000238418579, 0.0, 1.0);
+	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.8823529481887817, 0.8823529481887817, 0.8823529481887817, 1.0);
+	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.0, 0.0, 0.0, 1.0);
+	colors[ImGuiCol_TableBorderLight] = ImVec4(0.2588235437870026, 0.2588235437870026, 0.2784313857555389, 1.0);
+	colors[ImGuiCol_TableRowBg] = ImVec4(0.0, 0.0, 0.0, 0.0);
+	colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.0, 1.0, 1.0, 0.07000000029802322);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.0, 0.0, 1.0, 0.3499999940395355);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(1.0, 1.0, 0.0, 0.8999999761581421);
+	colors[ImGuiCol_NavHighlight] = ImVec4(0.4470588266849518, 0.4470588266849518, 0.8980392217636108, 0.800000011920929);
+	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0, 1.0, 1.0, 0.699999988079071);
+	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929, 0.800000011920929, 0.800000011920929, 0.2000000029802322);
+	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.2000000029802322, 0.2000000029802322, 0.2000000029802322, 0.3499999940395355);
 }
 
 // Those light colors are better suited with a thicker font than the default one + FrameBorder

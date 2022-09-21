@@ -109,6 +109,10 @@ void imgui_update_theme() {
         ImGui::StyleColorsMoon();
     } else if (configEditorTheme == 2) {
         ImGui::StyleColorsHalfLife();
+    } else if (configEditorTheme == 3) {
+        ImGui::StyleColorsM64MM();
+    } else if (configEditorTheme == 4) {
+        ImGui::StyleColorsClassic();
     }
 }
 
@@ -231,7 +235,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Chroma Key", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(300, 175));
+            ImGui::SetWindowSize(ImVec2(300, 200));
 
             schroma_imgui_update();
 
