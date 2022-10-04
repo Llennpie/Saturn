@@ -31,9 +31,12 @@ int saturnModelState = 0;
 bool linkMarioScale;
 
 bool is_custom_anim;
+bool using_chainer;
+int chainer_index;
 bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
 bool is_anim_looped = false;
+float anim_speed = 1.0f;
 int current_anim_frame;
 int current_anim_id;
 int current_anim_length;
@@ -41,6 +44,9 @@ bool is_anim_paused = false;
 int paused_anim_frame;
 
 bool limit_fps = true;
+
+// discord
+bool has_discord_init;
 
 // private
 bool is_chroma_keying = false;
@@ -75,6 +81,8 @@ unsigned int chromaKeyColorB = 0;
 
 u16 gChromaKeyColor = 0x07C1;
 u16 gChromaKeyBackground = 0;
+
+extern void saturn_run_chainer();
 
 // SATURN Machinima Functions
 
@@ -113,11 +121,21 @@ void saturn_update() {
                 cameraRotateDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
                 cameraRotateLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
                 cameraRotateRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+                // Stop from moving
+                cameraMoveForward = 0;
+                cameraMoveBackward = 0;
+                cameraMoveLeft = 0;
+                cameraMoveRight = 0;
             } else {
                 cameraMoveForward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & accept_text_input;
                 cameraMoveBackward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
                 cameraMoveLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
                 cameraMoveRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+                // Stop from rotating
+                cameraRotateUp = 0;
+                cameraRotateDown = 0;
+                cameraRotateLeft = 0;
+                cameraRotateRight = 0;
             }
             cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & accept_text_input;
             cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & accept_text_input;
@@ -153,16 +171,22 @@ void saturn_update() {
             gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
             gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
         } else if (is_anim_playing) {
-            if (is_anim_at_end(gMarioState)) {
-                if (is_anim_looped) {
+            if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
+                if (is_anim_looped && !using_chainer) {
                     gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
                     gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
                 } else {
-                    is_anim_playing = false;
+                    if (using_chainer) {
+                        chainer_index++;
+                    } else {
+                        is_anim_playing = false;
+                        is_anim_paused = false;
+                    }
                 }
             }
             if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
                 is_anim_playing = false;
+                is_anim_paused = false;
             }
 
             current_anim_id = (int)gMarioState->marioObj->header.gfx.unk38.animID;
@@ -170,6 +194,11 @@ void saturn_update() {
                 current_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
                 current_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
             }
+
+            if (anim_speed != 1.0f)
+                gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
+
+            if (using_chainer && is_anim_playing) saturn_run_chainer();
         }
     }
 
@@ -195,6 +224,7 @@ void saturn_update() {
 
 void saturn_play_animation(MarioAnimID anim) {
     set_mario_animation(gMarioState, anim);
+    //set_mario_anim_with_accel(gMarioState, anim, anim_speed * 65535);
     is_anim_playing = true;
 }
 
