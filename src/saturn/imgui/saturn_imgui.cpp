@@ -186,11 +186,7 @@ void saturn_imgui_update() {
             ImGui::SetWindowPos(ImVec2(10, 30));
             ImGui::SetWindowSize(ImVec2(300, 125));
             ImGui::Text("Platform: " PLATFORM " (" RAPI_NAME ")");
-            if (limit_fps) {
-                ImGui::Text("Status: %.1f FPS (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-            } else {
-                ImGui::Text("Status: Limitless FPS (Press F4)");
-            }
+            ImGui::Text("Status: %.1f FPS (%.3f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 #ifdef GIT_BRANCH
 #ifdef GIT_HASH
             ImGui::Text("Version: " GIT_BRANCH " " GIT_HASH);

@@ -152,7 +152,10 @@ static int test_vsync(void) {
 }
 
 static inline void gfx_sdl_set_vsync(const bool enabled) {
-    if (enabled) {
+    if (!limit_fps) frame_time = perf_freq / (6 * FRAMERATE);
+    else frame_time = perf_freq / (2 * FRAMERATE);
+
+    if (enabled && limit_fps) {
         // try to detect refresh rate
         SDL_GL_SetSwapInterval(1);
         int vblanks = test_vsync();
@@ -209,11 +212,7 @@ static void gfx_sdl_reset_dimension_and_pos(void) {
     SDL_SetWindowSize(wnd, configWindow.w, configWindow.h);
     SDL_SetWindowPosition(wnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     // in case vsync changed
-    if (limit_fps) {
-        gfx_sdl_set_vsync(configWindow.vsync);
-    } else {
-        gfx_sdl_set_vsync(false);
-    }
+    gfx_sdl_set_vsync(configWindow.vsync);
 }
 
 static void gfx_sdl_init(const char *window_title) {
@@ -250,14 +249,7 @@ static void gfx_sdl_init(const char *window_title) {
     gfx_sdl_set_fullscreen();
 
     perf_freq = SDL_GetPerformanceFrequency();
-    if (limit_fps) {
-        frame_time = perf_freq / (6 * FRAMERATE);
-    } else {
-        if (configFps60)
-            frame_time = perf_freq / (2 * FRAMERATE);
-        else
-            frame_time = perf_freq / (1 * FRAMERATE);
-    }
+    frame_time = perf_freq / (2 * FRAMERATE);
 
     for (size_t i = 0; i < sizeof(windows_scancode_table) / sizeof(SDL_Scancode); i++) {
         inverted_scancode_table[windows_scancode_table[i]] = i;

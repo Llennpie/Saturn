@@ -163,7 +163,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Enable/disable this if your game speed is too fast or slow.");
 
         const char* fps_limits[] = { "30", "60" };
-        ImGui::Combo("FPS###fps_limits", (int*)&configFps60, fps_limits, IM_ARRAYSIZE(fps_limits));
+        if (ImGui::Combo("FPS###fps_limits", (int*)&configFps60, fps_limits, IM_ARRAYSIZE(fps_limits)))
+            configWindow.settings_changed = true;
 
         ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
         imgui_bundled_tooltip("Enables/disables anti-aliasing with OpenGL.");
