@@ -57,6 +57,8 @@ extern bool         configEditorFastApply;
 extern bool         configEditorAutoModelCc;
 extern bool         configEditorAutoSpark;
 extern bool         configEditorNearClipping;
+extern unsigned int configFps60;
+extern bool         configEditorInterpolateAnims;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
 extern unsigned int configCameraYSens;

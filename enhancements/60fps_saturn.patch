@@ -606,7 +606,7 @@ index 7a83b536..f4acc2de 100644
 +    u32 spawnTimestamp;
  };
  
- extern s8 gEnvFxMode;
+ extern s16 gChromaEnv;
 diff --git a/src/game/hud.c b/src/game/hud.c
 index 1540b675..0de6e0bb 100644
 --- a/src/game/hud.c

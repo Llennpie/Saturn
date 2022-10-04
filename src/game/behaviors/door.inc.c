@@ -1,5 +1,7 @@
 // door.c.inc
 
+#include "src/game/camera.h"
+
 struct DoorAction
 {
     u32 flag;
@@ -19,10 +21,12 @@ void door_animation_and_reset(s32 sp18) {
 }
 
 void set_door_camera_event(void) {
-    if (segmented_to_virtual(bhvDoor) == o->behavior)
-        gPlayerCameraState->cameraEvent = CAM_EVENT_DOOR;
-    else
-        gPlayerCameraState->cameraEvent = CAM_EVENT_DOOR_WARP;
+    if (!machinimaMode) {
+        if (segmented_to_virtual(bhvDoor) == o->behavior)
+            gPlayerCameraState->cameraEvent = CAM_EVENT_DOOR;
+        else
+            gPlayerCameraState->cameraEvent = CAM_EVENT_DOOR_WARP;
+    }
     gPlayerCameraState->usedObj = o;
 }
 

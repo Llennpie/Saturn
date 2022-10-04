@@ -90,6 +90,8 @@ bool         configEditorFastApply = false;
 bool         configEditorAutoModelCc = false;
 bool         configEditorAutoSpark = true;
 bool         configEditorNearClipping = false;
+unsigned int configFps60            = true;
+bool         configEditorInterpolateAnims = false;
 #ifdef BETTERCAMERA
 // BetterCamera settings
 unsigned int configCameraXSens   = 50;
@@ -116,6 +118,7 @@ static const struct ConfigOption options[] = {
     {.name = "window_w",             .type = CONFIG_TYPE_UINT, .uintValue = &configWindow.w},
     {.name = "window_h",             .type = CONFIG_TYPE_UINT, .uintValue = &configWindow.h},
     {.name = "vsync",                .type = CONFIG_TYPE_BOOL, .boolValue = &configWindow.vsync},
+    {.name = "60_fps",               .type = CONFIG_TYPE_UINT, .uintValue = &configFps60},
     {.name = "aa_enabled",           .type = CONFIG_TYPE_BOOL, .boolValue = &configWindow.enable_antialias},
     {.name = "aa_level",             .type = CONFIG_TYPE_UINT, .uintValue = &configWindow.antialias_level},
     {.name = "jabo_mode",            .type = CONFIG_TYPE_BOOL, .uintValue = &configWindow.jabo_mode},
@@ -153,6 +156,7 @@ static const struct ConfigOption options[] = {
     {.name = "editor_auto_model_cc", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoModelCc},
     {.name = "editor_auto_spark",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoSpark},
     {.name = "editor_near_clipping", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorNearClipping},
+    {.name = "editor_interpolate_anims", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorInterpolateAnims},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
     {.name = "bettercam_analog",     .type = CONFIG_TYPE_BOOL, .boolValue = &configCameraAnalog},
