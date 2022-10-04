@@ -28,7 +28,7 @@ struct DiscordApplication app = { 0 };
 
 struct DiscordActivity gCurActivity;
 
-bool has_init;
+//bool has_init;
 
 // Functions
 
@@ -61,17 +61,24 @@ void sdiscord_init() {
     params.user_events = discord_user_initialize();
 
     int rc = DiscordCreate(DISCORD_VERSION, &params, &app.core);
+    if (rc == 0) {
+        std::cout << "Connected to Discord" << std::endl;
 
-    if (app.core != NULL) {
-        app.activities = app.core->get_activity_manager(app.core);
-        app.users = app.core->get_user_manager(app.core);
+        if (app.core != NULL) {
+            app.activities = app.core->get_activity_manager(app.core);
+            app.users = app.core->get_user_manager(app.core);
+        }
+
+        has_discord_init = true;
+    } else {
+        // Discord didn't initialize, disable feature
+        has_discord_init = false;
+        return;
     }
-
-    has_init = true;
 }
 
 void sdiscord_update() {
-    if (!configDiscordRPC || !has_init) return;
+    if (!configDiscordRPC || !has_discord_init) return;
     
     app.core->run_callbacks(app.core);
 
