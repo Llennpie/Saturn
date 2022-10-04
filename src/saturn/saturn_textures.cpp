@@ -52,6 +52,9 @@ string current_mouth_dir_path;
 int current_mouth_index;
 bool model_mouth_enabled;
 
+int current_keybind_exp;
+int current_exp_index[6];
+
 // Eye Folders, Non-Model
 
 void saturn_load_eye_folder(std::string path) {
@@ -202,6 +205,34 @@ void saturn_load_model_expression_entry(string folder_name, string expression_na
 
     if (ex_entry.textures.size() > 0)
         current_model_data.expressions.push_back(ex_entry);
+}
+
+/*
+    Loads an expression with a given number - helpful for keybinds.
+*/
+void saturn_load_expression_number(char number) {
+    // For models without expression support
+    for (int n = 0; n < eye_array.size(); n++) {
+        if (eye_array[n].front() == number) {
+            saturn_set_eye_texture(n);
+            break;
+        }
+    }
+    
+    for (int i = 0; i < current_model_data.expressions.size(); i++) {
+        // For every expression
+        Expression expression = current_model_data.expressions[i];
+        for (int j = 0; j < expression.textures.size(); j++) {
+            // For every texture in that expression
+            if (expression.textures[j].front() == number) {
+                // We found a matching expression
+                std::cout << (expression.path + expression.textures[j]) << std::endl;
+                saturn_set_model_texture(i, expression.path + expression.textures[j]);  
+                current_exp_index[i] = j;
+                break;
+            }
+        }
+    }
 }
 
 /*

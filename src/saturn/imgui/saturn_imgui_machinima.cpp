@@ -9,6 +9,7 @@
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
+#include "saturn/saturn_textures.h"
 #include "saturn/saturn_animation_ids.h"
 #include "saturn/saturn_animations.h"
 #include "saturn_imgui.h"
@@ -70,6 +71,17 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 if (camera_fov >= 2.0f) camera_fov -= 2.f;
             }
 
+            if (event->key.keysym.sym == SDLK_0 && accept_text_input) saturn_load_expression_number('0');
+            if (event->key.keysym.sym == SDLK_1 && accept_text_input) saturn_load_expression_number('1');
+            if (event->key.keysym.sym == SDLK_2 && accept_text_input) saturn_load_expression_number('2');
+            if (event->key.keysym.sym == SDLK_3 && accept_text_input) saturn_load_expression_number('3');
+            if (event->key.keysym.sym == SDLK_4 && accept_text_input) saturn_load_expression_number('4');
+            if (event->key.keysym.sym == SDLK_5 && accept_text_input) saturn_load_expression_number('5');
+            if (event->key.keysym.sym == SDLK_6 && accept_text_input) saturn_load_expression_number('6');
+            if (event->key.keysym.sym == SDLK_7 && accept_text_input) saturn_load_expression_number('7');
+            if (event->key.keysym.sym == SDLK_8 && accept_text_input) saturn_load_expression_number('8');
+            if (event->key.keysym.sym == SDLK_9 && accept_text_input) saturn_load_expression_number('9');
+
         case SDL_MOUSEMOTION:
             SDL_Delay(2);
             camera_view_move_x = event->motion.xrel;
@@ -104,137 +116,152 @@ void smachinima_imgui_update() {
     imgui_bundled_tooltip("Controls the FOV of the in-game camera. Default is 50.\nKeybind -> N/M");
     ImGui::Checkbox("Smooth###smooth_fov", &camera_fov_smooth);
 
-    ImGui::Dummy(ImVec2(0, 5));
-    ImGui::Text("Animations");
-    ImGui::Dummy(ImVec2(0, 5));
+    selected_animation = (MarioAnimID)current_sanim_id;
+    if (mario_exists) {
+        ImGui::Dummy(ImVec2(0, 5));
+        ImGui::Text("Animations");
+        ImGui::Dummy(ImVec2(0, 5));
 
-    const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
-        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", "CUSTOM..." };
+        if (!is_anim_playing) {
+            const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
+                "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", "CUSTOM..." };
 
-    int animArraySize = (canim_array.size() > 0) ? IM_ARRAYSIZE(anim_groups) : IM_ARRAYSIZE(anim_groups) - 1;
-    if (ImGui::BeginCombo("###anim_groups", anim_groups[current_sanim_group_index], ImGuiComboFlags_None)) {
-        for (int n = 0; n < animArraySize; n++) {
-            const bool is_selected = (current_sanim_group_index == n);
-            if (ImGui::Selectable(anim_groups[n], is_selected)) {
-                current_sanim_group_index = n;
-                switch(current_sanim_group_index) {
-                    case 0: current_anim_map = sanim_movement; break;
-                    case 1: current_anim_map = sanim_actions; break;
-                    case 2: current_anim_map = sanim_automatic; break;
-                    case 3: current_anim_map = sanim_damagedeaths; break;
-                    case 4: current_anim_map = sanim_cutscenes; break;
-                    case 5: current_anim_map = sanim_water; break;
-                    case 6: current_anim_map = sanim_climbing; break;
-                    case 7: current_anim_map = sanim_object; break;
-                    //case 8: current_anim_map = sanim_misc; break;
+            int animArraySize = (canim_array.size() > 0) ? IM_ARRAYSIZE(anim_groups) : IM_ARRAYSIZE(anim_groups) - 1;
+            if (ImGui::BeginCombo("###anim_groups", anim_groups[current_sanim_group_index], ImGuiComboFlags_None)) {
+                for (int n = 0; n < animArraySize; n++) {
+                    const bool is_selected = (current_sanim_group_index == n);
+                    if (ImGui::Selectable(anim_groups[n], is_selected)) {
+                        current_sanim_group_index = n;
+                        switch(current_sanim_group_index) {
+                            case 0: current_anim_map = sanim_movement; break;
+                            case 1: current_anim_map = sanim_actions; break;
+                            case 2: current_anim_map = sanim_automatic; break;
+                            case 3: current_anim_map = sanim_damagedeaths; break;
+                            case 4: current_anim_map = sanim_cutscenes; break;
+                            case 5: current_anim_map = sanim_water; break;
+                            case 6: current_anim_map = sanim_climbing; break;
+                            case 7: current_anim_map = sanim_object; break;
+                            //case 8: current_anim_map = sanim_misc; break;
+                        }
+                        if (current_sanim_group_index != 8) {
+                            is_custom_anim = false;
+                            current_sanim_index = current_anim_map.begin()->first.first;
+                            current_sanim_name = current_anim_map.begin()->first.second;
+                            current_sanim_id = current_anim_map.begin()->second;
+                            anim_preview_name = current_sanim_name;
+                        } else {
+                            is_custom_anim = true;
+                            current_sanim_index = 0;
+                            current_sanim_name = canim_array[0];
+                            current_sanim_id = MARIO_ANIM_A_POSE;
+                            saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+                            anim_preview_name = current_sanim_name;
+                            anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                        }
+                    }
+
+                    // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
                 }
-                if (current_sanim_group_index != 8) {
-                    is_custom_anim = false;
-                    current_sanim_index = current_anim_map.begin()->first.first;
-                    current_sanim_name = current_anim_map.begin()->first.second;
-                    current_sanim_id = current_anim_map.begin()->second;
-                    anim_preview_name = current_sanim_name;
-                } else {
-                    is_custom_anim = true;
-                    current_sanim_index = 0;
-                    current_sanim_name = canim_array[0];
-                    current_sanim_id = MARIO_ANIM_A_POSE;
-                    saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
-                    anim_preview_name = current_sanim_name;
-                    anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
-                }
+                if (canim_array.size() > 0)
+                    ImGui::SameLine(); imgui_bundled_help_marker("These are custom METAL Composer+ JSON animations.\nPlace in dynos/anims.");
+                    
+                ImGui::EndCombo();
             }
 
-            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-        if (canim_array.size() > 0)
-            ImGui::SameLine(); imgui_bundled_help_marker("These are custom METAL Composer+ JSON animations.\nPlace in dynos/anims.");
-            
-        ImGui::EndCombo();
-    }
+            if (ImGui::BeginCombo("###anim_box", anim_preview_name.c_str(), ImGuiComboFlags_None)) {
+                if (current_sanim_group_index != 8) {
+                    for (auto &[a,b]:current_anim_map) {
+                        current_sanim_index = a.first;
+                        current_sanim_name = a.second;
 
-    if (ImGui::BeginCombo("###anim_box", anim_preview_name.c_str(), ImGuiComboFlags_None)) {
-        if (current_sanim_group_index != 8) {
-            for (auto &[a,b]:current_anim_map) {
-                current_sanim_index = a.first;
-                current_sanim_name = a.second;
+                        const bool is_selected = (current_sanim_id == b);
+                        if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                            current_sanim_index = a.first;
+                            current_sanim_name = a.second;
+                            current_sanim_id = b;
+                            anim_preview_name = current_sanim_name;
+                        }
 
-                const bool is_selected = (current_sanim_id == b);
-                if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
-                    current_sanim_index = a.first;
-                    current_sanim_name = a.second;
-                    current_sanim_id = b;
-                    anim_preview_name = current_sanim_name;
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                } else {
+                    for (int i = 0; i < canim_array.size(); i++) {
+                        current_sanim_name = canim_array[i];
+
+                        const bool is_selected = (custom_anim_index == i);
+                        if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                            custom_anim_index = i;
+                            current_sanim_name = canim_array[i];
+                            anim_preview_name = current_sanim_name;
+                            is_anim_looped = current_canim_looping;
+                            // Remove .json extension
+                            anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                            saturn_read_mcomp_animation(anim_preview_name);
+                            // Stop anim
+                            is_anim_playing = false;
+                            is_anim_paused = false;
+                            using_chainer = false;
+                            chainer_index = 0;
+                        }
+
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
                 }
-
-                if (is_selected)
-                    ImGui::SetItemDefaultFocus();
+                ImGui::EndCombo();
+            }
+            if (is_custom_anim) {
+                // Refresh
+                if (ImGui::BeginPopupContextItem()) {
+                    if (ImGui::Button("Refresh###refresh_canim")) {
+                        saturn_fetch_animations();
+                        current_sanim_index = 0;
+                        current_sanim_name = canim_array[0];
+                        current_sanim_id = MARIO_ANIM_A_POSE;
+                        saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+                        anim_preview_name = current_sanim_name;
+                        anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+                // Animation Credit
+                string anim_credit = (current_canim_name + "\nBy " + current_canim_author);
+                ImGui::SameLine(); imgui_bundled_help_marker(anim_credit.c_str());
             }
         } else {
-            for (int i = 0; i < canim_array.size(); i++) {
-                current_sanim_name = canim_array[i];
-
-                const bool is_selected = (custom_anim_index == i);
-                if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
-                    custom_anim_index = i;
-                    current_sanim_name = canim_array[i];
-                    anim_preview_name = current_sanim_name;
-                    is_anim_looped = current_canim_looping;
-                    // Remove .json extension
-                    anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
-                    saturn_read_mcomp_animation(anim_preview_name);
-                    // Stop anim
-                    is_anim_playing = false;
-                    is_anim_paused = false;
-                }
-
-                if (is_selected)
-                    ImGui::SetItemDefaultFocus();
+            if (is_custom_anim) {
+                ImGui::Text("Now Playing: %s", current_canim_name.c_str());
+                string anim_credit1 = ("By " + current_canim_author);
+                ImGui::SameLine(); imgui_bundled_help_marker(anim_credit1.c_str());
+                if (using_chainer) ImGui::Text("Chainer: Enabled");
+            } else {
+                ImGui::Text("Now Playing: %s", anim_preview_name.c_str());
             }
-        }
-        ImGui::EndCombo();
-    }
-    if (is_custom_anim) {
-        // Refresh
-        if (ImGui::BeginPopupContextItem()) {
-            if (ImGui::Button("Refresh###refresh_canim")) {
-                saturn_fetch_animations();
-                current_sanim_index = 0;
-                current_sanim_name = canim_array[0];
-                current_sanim_id = MARIO_ANIM_A_POSE;
-                saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
-                anim_preview_name = current_sanim_name;
-                anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-        // Animation Credit
-        string anim_credit = (current_canim_name + "\nBy " + current_canim_author);
-        ImGui::SameLine(); imgui_bundled_help_marker(anim_credit.c_str());
-    }
 
-    selected_animation = (MarioAnimID)current_sanim_id;
-
-    if (mario_exists) {
-        if (is_anim_playing) {
             if (ImGui::Button("Stop")) {
                 is_anim_playing = false;
                 is_anim_paused = false;
+                using_chainer = false;
+                chainer_index = 0;
             } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
             
-            if (is_custom_anim)
-                ImGui::Text("Now Playing: %s", current_canim_name.c_str());
-            else
-                ImGui::Text("Now Playing: %s", anim_preview_name.c_str());
             ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length);
             ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
-        } else {
+        }
+        if (!is_anim_playing) {
             if (ImGui::Button("Play")) {
                 anim_play_button();
             } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+
+            ImGui::SliderFloat("Speed###anim_speed", &anim_speed, 0.1f, 2.0f);
+            if (anim_speed != 1.0f) {
+                if (ImGui::Button("Reset###reset_anim_speed"))
+                    anim_speed = 1.0f;
+            }
         }
 
         // Warp To Level

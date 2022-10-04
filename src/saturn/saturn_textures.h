@@ -46,6 +46,8 @@ extern std::string current_folder_name;
 void saturn_load_model_json(std::string folder_name);
 void saturn_load_model_data(std::string folder_name);
 void saturn_set_model_texture(int expIndex, std::string path);
+void saturn_load_expression_number(char number);
+extern int current_exp_index[6];
 
 extern "C" {
 #endif

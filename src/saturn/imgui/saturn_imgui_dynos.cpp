@@ -70,8 +70,6 @@ bool any_packs_selected;
 int windowListSize = 325;
 int cc_model_id;
 
-int current_exp_index[6];
-
 /*
 Sets Mario's global colors from the CC editor color values.
 */
