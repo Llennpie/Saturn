@@ -30,7 +30,7 @@ using namespace std;
 // Variables
 
 static ImVec4 uiChromaColor =              ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
-bool renderFloor = true;
+bool renderFloor = false;
 int currentChromaArea = 1;
 
 void set_chroma_color() {
@@ -66,7 +66,7 @@ void schroma_imgui_update() {
         const char* mSkyboxSettings[] = { "Ocean Sky", "Flaming Sky", "Underwater City", "Below Clouds", "Snow Mountains", "Desert", "Haunted", "Green Sky", "Above Clouds", "Purple Sky" };
         ImGui::Combo("###skybox_background", (int*)&gChromaKeyBackground, mSkyboxSettings, IM_ARRAYSIZE(mSkyboxSettings));
     }
-    currentChromaArea = (renderFloor & use_color_background) ? 2 : 1;
+    currentChromaArea = (renderFloor & use_color_background) ? 1 : 2;
         
     if (ImGui::IsItemActivated()) accept_text_input = false;
     if (ImGui::IsItemDeactivated()) accept_text_input = true;
