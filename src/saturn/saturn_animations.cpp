@@ -34,6 +34,11 @@ namespace fs = std::filesystem;
 
 std::vector<string> canim_array;
 std::string canim_directory;
+std::string chainer_name;
+
+extern "C" {
+#include "game/mario.h"
+}
 
 void saturn_fetch_animations() {
     canim_array.clear();
@@ -51,8 +56,14 @@ void saturn_fetch_animations() {
     for (const auto & entry : fs::directory_iterator(canim_directory)) {
         fs::path path = entry.path();
 
-        if (path.extension().u8string() == ".json")
-            canim_array.push_back(path.filename().u8string());
+        if (path.extension().u8string() == ".json") {
+            string filename = path.filename().u8string().substr(0, path.filename().u8string().size() - 5);
+            if (::isdigit(filename.back()) && filename.find("_") != string::npos) {
+                // Ignore
+            } else {
+                canim_array.push_back(path.filename().u8string());
+            }
+        }
     }
 }
 
@@ -97,6 +108,37 @@ void saturn_read_mcomp_animation(string json_path) {
     std::ifstream file("dynos/anims/" + json_path + ".json");
     if (!file.good()) { return; }
 
+    // Check if we should enable chainer
+    // This is only the case if we have a followup animation
+    // i.e. specialist.json, specialist_1.json
+    if (!using_chainer) {
+        std::ifstream file_c("dynos/anims/" + json_path + "_1.json");
+        if (file_c.good() && chainer_index == 0) {
+            using_chainer = true;
+            chainer_name = json_path;
+            // Chainer only works with looping off
+            //is_anim_looped = false;
+        }
+    } else {
+        // Check if we're at the end of our chain
+        std::ifstream file_c("dynos/anims/" + chainer_name + "_" + std::to_string(chainer_index) + ".json");
+        if (!file_c.good()) {
+            //if (is_anim_looped) {
+                // Looping restarts from the beginning
+            //    chainer_index = 0;
+            //    saturn_read_mcomp_animation(chainer_name);
+            //    saturn_play_animation(MARIO_ANIM_A_POSE);
+            //    saturn_play_custom_animation();
+            //    return;
+            //}
+            using_chainer = false;
+            chainer_index = 0;
+            is_anim_playing = false;
+            is_anim_paused = false;
+            return;
+        }
+    }
+
     // Begin reading
     Json::Value root;
     file >> root;
@@ -125,4 +167,35 @@ void saturn_play_custom_animation() {
     gMarioState->animation->targetAnim->index = (const u16*)current_canim_indices;
     gMarioState->animation->targetAnim->length = 0;
     gMarioState->marioObj->header.gfx.unk38.curAnim = gMarioState->animation->targetAnim;
+}
+
+void saturn_run_chainer() {
+    if (is_anim_playing && is_custom_anim) {
+        if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
+            // Check if our next animation exists
+            std::ifstream file_c1("dynos/anims/" + chainer_name + "_" + std::to_string(chainer_index) + ".json");
+            string test = "dynos/anims/" + chainer_name + "_" + std::to_string(chainer_index) + ".json";
+            std::cout << test << std::endl;
+            if (file_c1.good()) {
+                saturn_read_mcomp_animation(chainer_name + "_" + std::to_string(chainer_index));
+                saturn_play_animation(MARIO_ANIM_A_POSE);
+                saturn_play_custom_animation();
+            } else {
+                if (is_anim_looped) {
+                    // Looping restarts from the beginning
+                    is_anim_playing = false;
+                    using_chainer = false;
+                    chainer_index = 0;
+                    saturn_read_mcomp_animation(chainer_name);
+                    saturn_play_animation(MARIO_ANIM_A_POSE);
+                    saturn_play_custom_animation();
+                } else {
+                    using_chainer = false;
+                    chainer_index = 0;
+                    is_anim_playing = false;
+                    is_anim_paused = false;
+                }
+            }
+        }
+    }
 }

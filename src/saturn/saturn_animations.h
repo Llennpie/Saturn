@@ -24,6 +24,7 @@ extern std::string canim_directory;
 extern void saturn_read_mcomp_animation(std::string);
 extern void saturn_fetch_animations();
 extern void saturn_play_custom_animation();
+extern void saturn_run_chainer();
 
 #endif
 

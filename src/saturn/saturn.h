@@ -31,15 +31,19 @@ extern int saturnModelState;
 extern bool linkMarioScale;
 
 extern bool is_custom_anim;
+extern bool using_chainer;
+extern int chainer_index;
 extern bool is_anim_playing;
 extern enum MarioAnimID selected_animation;
 extern bool is_anim_looped;
+extern float anim_speed;
 extern int current_anim_frame;
 extern int current_anim_id;
 extern int current_anim_length;
 extern bool is_anim_paused;
 
 extern bool limit_fps;
+extern bool has_discord_init;
 
 extern unsigned int chromaKeyColorR;
 extern unsigned int chromaKeyColorG;
