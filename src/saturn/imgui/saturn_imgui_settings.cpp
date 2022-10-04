@@ -30,6 +30,7 @@ using namespace std;
 
 int windowWidth, windowHeight;
 bool waitingForKeyPress;
+int fpsChoice;
 
 const char* translate_bind_to_name(int bind) {
     static char name[11] = { 0 };
@@ -133,11 +134,6 @@ void ssettings_imgui_init() {
 }
 
 void ssettings_imgui_update() {
-    if (ImGui::GetIO().Framerate > 50.f) {
-        ImGui::Checkbox("Limit FPS", &limit_fps);
-        imgui_bundled_tooltip("(F4) Helpful for speeding up slow in-game events. Works like Project64.");
-    }
-
     ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Graphics")) {
         if (ImGui::Checkbox("Fullscreen", &configWindow.fullscreen))
@@ -166,24 +162,33 @@ void ssettings_imgui_update() {
             configWindow.settings_changed = true;
         imgui_bundled_tooltip("Enable/disable this if your game speed is too fast or slow.");
 
-        ImGui::Text("Texture Filtering");
-        const char* texture_filters[] = { "Nearest", "Linear", "Three-point" };
-        ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
+        const char* fps_limits[] = { "30", "60" };
+        ImGui::Combo("FPS###fps_limits", (int*)&configFps60, fps_limits, IM_ARRAYSIZE(fps_limits));
 
         ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
-            //configWindow.settings_changed = true;
         imgui_bundled_tooltip("Enables/disables anti-aliasing with OpenGL.");
-
-        ImGui::Checkbox("Jabo Mode", &configWindow.jabo_mode);
-        imgui_bundled_tooltip("Forces the game into a 4:3 aspect ratio, regardless of window resolution; For classic enthusiasts.");
 
         ImGui::Checkbox("Disable near-clipping", &configEditorNearClipping);
         imgui_bundled_tooltip("Enable when some close to the camera starts clipping through. Disable if the level fog goes nuts.");
 
         ImGui::Dummy(ImVec2(0, 5));
 
+        ImGui::Checkbox("Stretched widescreen", &configWindow.jabo_mode);
+        imgui_bundled_tooltip("Forces the game into a 4:3 aspect ratio, regardless of window resolution; For classic enthusiasts.");
+
         ImGui::Checkbox("Show wireframes", &wireframeMode);
         imgui_bundled_tooltip("Displays wireframes instead of filled polys; For debugging purposes.");
+
+        ImGui::Text("Texture Filtering");
+        const char* texture_filters[] = { "Nearest", "Linear", "Three-point" };
+        ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
+        
+        if (configFps60) ImGui::Dummy(ImVec2(0, 5));
+    }
+    if (configFps60) {
+        if (ImGui::Checkbox("Limit FPS", &limit_fps))
+            configWindow.settings_changed = true;
+        imgui_bundled_tooltip("(F4) Helpful for speeding up slow in-game events. Works like Project64.");
     }
     if (ImGui::CollapsingHeader("Audio")) {
         ImGui::Text("Volume");
@@ -230,9 +235,10 @@ void ssettings_imgui_update() {
                 }
                 ImGui::Text("Animation");
                 SaturnKeyBind("Play", configKeyPlayAnim, "bPlayA", 3*24);
+                ImGui::SameLine(); imgui_bundled_help_marker("Press again to pause the playing animation.");
                 SaturnKeyBind("Loop", configKeyLoopAnim, "bLoopA", 3*25);
                 ImGui::Text("Other");
-                SaturnKeyBind("Hide Menu", configKeyShowMenu, "bShowMenu", 3*27);
+                SaturnKeyBind("Menu", configKeyShowMenu, "bShowMenu", 3*27);
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -245,16 +251,23 @@ void ssettings_imgui_update() {
         ImGui::Checkbox("Exit Anywhere", &Cheats.ExitAnywhere);
         imgui_bundled_tooltip("Allows the level to be exited from any state.");
         ImGui::Checkbox("Skip Intro", &configSkipIntro);
+        ImGui::Dummy(ImVec2(0, 5));
     }
+#ifdef DISCORDRPC
+    if (has_discord_init) {
+        ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
+        imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
+    }
+#endif
     const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
     ImGui::Combo("Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
     ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
-#ifdef DISCORDRPC
-    ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
-    imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
-#endif
     ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
-    imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor. May cause lag on low-end machines.");
+    imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
     ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
     imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
+    //if (configFps60) {
+    //    ImGui::Checkbox("Interpolate custom animations", &configEditorInterpolateAnims);
+    //    imgui_bundled_tooltip("If enabled, custom animations will run in 60 FPS; May cause some animations to stutter.");
+    //}
 }

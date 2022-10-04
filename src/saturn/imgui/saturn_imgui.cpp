@@ -142,8 +142,10 @@ void saturn_imgui_handle_events(SDL_Event * event) {
     ImGui_ImplSDL2_ProcessEvent(event);
     switch (event->type){
         case SDL_KEYDOWN:
-            if(event->key.keysym.sym == SDLK_F4)
+            if(event->key.keysym.sym == SDLK_F4) {
                 limit_fps = !limit_fps;
+                configWindow.settings_changed = true;
+            }
         
         break;
     }
@@ -206,7 +208,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Machinima", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(275, 425));
+            ImGui::SetWindowSize(ImVec2(275, 435));
             
             smachinima_imgui_update();
 
