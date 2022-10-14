@@ -26,6 +26,7 @@ extern int current_eye_state;
 extern bool enable_head_rotations;
 extern bool enable_shadows;
 extern bool enable_dust_particles;
+extern bool enable_torso_rotation;
 extern bool can_fall_asleep;
 extern int saturnModelState;
 extern bool linkMarioScale;
@@ -51,6 +52,10 @@ extern unsigned int chromaKeyColorB;
 
 extern u16 gChromaKeyColor;
 extern u16 gChromaKeyBackground;
+
+extern bool mcamera_is_keyframe;
+extern bool mcamera_playing;
+extern int mcam_timer;
 
 extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 

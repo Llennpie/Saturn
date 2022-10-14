@@ -26,6 +26,7 @@ int camera_view_move_y;
 bool enable_head_rotations = false;
 bool enable_shadows = true;
 bool enable_dust_particles = false;
+bool enable_torso_rotation = true;
 bool can_fall_asleep = false;
 int saturnModelState = 0;
 bool linkMarioScale;
@@ -52,6 +53,10 @@ bool has_discord_init;
 bool is_chroma_keying = false;
 bool prev_quicks[3];
 int lastCourseNum = -1;
+
+bool mcamera_is_keyframe;
+bool mcamera_playing;
+int mcam_timer;
 
 extern "C" {
 #include "game/camera.h"
@@ -90,7 +95,7 @@ void saturn_update() {
 
     // Keybinds
 
-    if (accept_text_input) {
+    if (accept_text_input && mario_exists) {
         if (gPlayer1Controller->buttonPressed & U_JPAD) camera_frozen = !camera_frozen;
         if (gPlayer1Controller->buttonPressed & D_JPAD) showMenu = !showMenu;
         if (gPlayer1Controller->buttonPressed & L_JPAD) {
@@ -202,9 +207,31 @@ void saturn_update() {
         }
     }
 
+    // Keyframes
+
+    if (mcamera_playing) {
+        if (mcam_timer < (60 * 10)) {
+            mcam_timer++;
+        } else {
+            mcam_timer = 0;
+        }
+    }
+
+    //s16 pitch, yaw;
+    //f32 thisDist;
+    //vec3f_get_dist_and_angle(gCamera->focus, gCamera->pos, &thisDist, &pitch, &yaw);
+    //camera_approach_f32_symmetric_bool(&thisDist, 150.f, 7.f);
+    //vec3f_set_dist_and_angle(c->focus, c->pos, dist, pitch, yaw);
+    //update_camera_yaw(c);
+
     // Misc
 
     mario_exists = (gMarioState->action != ACT_UNINITIALIZED & sCurrPlayMode != 2 & mario_loaded);
+
+    if (!mario_exists) {
+        is_anim_playing = false;
+        is_anim_paused = false;
+    }
 
     switch(saturnModelState) {
         case 0:     scrollModelState = 0;       break;

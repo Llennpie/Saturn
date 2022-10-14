@@ -163,8 +163,11 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Enable/disable this if your game speed is too fast or slow.");
 
         const char* fps_limits[] = { "30", "60" };
-        if (ImGui::Combo("FPS###fps_limits", (int*)&configFps60, fps_limits, IM_ARRAYSIZE(fps_limits)))
+        if (ImGui::Combo("FPS###fps_limits", (int*)&configFps60, fps_limits, IM_ARRAYSIZE(fps_limits))) {
             configWindow.settings_changed = true;
+            is_anim_playing = false;
+            is_anim_paused = false;
+        }
 
         ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
         imgui_bundled_tooltip("Enables/disables anti-aliasing with OpenGL.");
@@ -255,10 +258,8 @@ void ssettings_imgui_update() {
         ImGui::Dummy(ImVec2(0, 5));
     }
 #ifdef DISCORDRPC
-    if (has_discord_init) {
-        ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
-        imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
-    }
+    ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
+    imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
 #endif
     const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
     ImGui::Combo("Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
