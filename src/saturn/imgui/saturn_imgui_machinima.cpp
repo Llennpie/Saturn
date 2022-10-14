@@ -2,12 +2,14 @@
 
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include <map>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
+#include "saturn/libs/imgui/imgui_neo_sequencer.h"
 #include "saturn/saturn.h"
 #include "saturn/saturn_textures.h"
 #include "saturn/saturn_animation_ids.h"
@@ -98,6 +100,112 @@ void smachinima_imgui_init() {
     saturn_fetch_animations();
 }
 
+uint32_t currentFrame = 0;
+uint32_t startFrame = 0;
+uint32_t endFrame = 60;
+std::vector<uint32_t> mcamera_keys = {0};
+
+std::vector<float> mcamera_k_pos_x = {0.f};
+
+int to_approach;
+
+float increaseVal = 0.f;
+float x_target = 0.f;
+float newVal;
+
+void smachinima_imgui_popout() {
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+    ImGui::Begin("Timeline###mcamera_timeline", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::SetWindowPos(ImVec2(300, 30));
+    ImGui::SetWindowSize(ImVec2(490, 175));
+
+    if (!mcamera_playing) {
+        if (ImGui::Button("Play###mcam_t_play")) {
+            mcam_timer = 0;
+            mcamera_playing = true;
+        }
+    } else {
+        if (ImGui::Button("Stop###mcam_t_stop")) {
+            mcamera_playing = false;
+        }
+    }
+
+    ImGui::Separator();
+            
+    // Popout
+    if(ImGui::BeginNeoSequencer("Sequencer###mcamera_sequencer", &currentFrame, &startFrame, &endFrame)) {
+        if(ImGui::BeginNeoTimeline("Position###mcam_t_pos", mcamera_keys)) {
+            ImGui::EndNeoTimeLine();
+        }
+        ImGui::EndNeoSequencer();
+    }
+
+    // Playing
+    if (mcamera_playing) {
+        currentFrame = (uint32_t)(mcam_timer / 10);
+
+        auto it1 = std::find(mcamera_keys.begin(), mcamera_keys.end(), currentFrame);
+        if (it1 != mcamera_keys.end()) {
+            int thisCycleFrame = (it1 - mcamera_keys.begin());
+            if (mcamera_k_pos_x.size() - 1 == thisCycleFrame) {
+                mcamera_playing = false;
+            } else {
+                int this_length = mcamera_keys.at(thisCycleFrame + 1) - currentFrame;
+                float size_up = mcamera_k_pos_x.at(thisCycleFrame + 1) - mcamera_k_pos_x.at(thisCycleFrame);
+                increaseVal = size_up / this_length;
+                x_target = mcamera_k_pos_x.at(thisCycleFrame + 1);
+                newVal = mcamera_k_pos_x.at(thisCycleFrame);
+
+                //std::cout << this_length << std::endl;
+                //marioScaleSizeX = approach_f32_asymptotic(marioScaleSizeX, mcamera_k_pos_x.at(thisCycleFrame + 1), increaseVal / 10);
+
+                //ImGui::Text("%f", increaseVal);
+            }
+        }
+        newVal += increaseVal;
+        marioScaleSizeX = approach_f32_asymptotic(marioScaleSizeX, x_target, newVal / 10);
+        ImGui::Text("%f", newVal);
+    }
+
+    // UI Controls
+    if (currentFrame != 0 && !mcamera_playing) {
+        if (std::find(mcamera_keys.begin(), mcamera_keys.end(), currentFrame) != mcamera_keys.end()) {
+            // We are hovering over a keyframe
+            auto it = std::find(mcamera_keys.begin(), mcamera_keys.end(), currentFrame);
+            if (it != mcamera_keys.end()) {
+                int key_index = it - mcamera_keys.begin();
+
+                if (ImGui::Button("Delete Keyframe###mcamera_d_frame")) {
+                    key_index = 0;
+                    currentFrame = 0;
+                    mcamera_keys.clear();
+                    mcamera_keys.push_back(0);
+                    mcamera_k_pos_x.clear();
+                    //mcamera_k_pos_y.clear();
+                    //mcamera_k_pos_z.clear();
+                    mcamera_k_pos_x.push_back(0.f);
+                    //mcamera_k_pos_y.push_back(gLakituState.curPos[1]);
+                    //mcamera_k_pos_z.push_back(gLakituState.curPos[2]);
+                } ImGui::SameLine(); ImGui::Text("at %i", (int)key_index);
+
+                // Show keyframe data
+                //if (mcamera_k_pos_x.size() > 0 && key_index != 0)
+                    //ImGui::Text("Position: (%f, %f, %f)", mcamera_k_pos_x.at(key_index), mcamera_k_pos_y.at(key_index), mcamera_k_pos_z.at(key_index));
+            }
+        } else {
+            // No keyframe here
+            if (ImGui::Button("Create Keyframe###mcamera_c_frame")) {
+                mcamera_keys.push_back(currentFrame);
+                mcamera_k_pos_x.push_back(marioScaleSizeX);
+
+            } ImGui::SameLine(); ImGui::Text("at %i", (int)currentFrame);
+        }
+    }
+
+    ImGui::End();
+    ImGui::PopStyleColor();
+}
+
 void smachinima_imgui_update() {
     ImGui::Checkbox("Machinima Camera", &camera_frozen);
     if (configMCameraMode == 2) {
@@ -111,6 +219,12 @@ void smachinima_imgui_update() {
         ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
         imgui_bundled_tooltip("Controls the speed of the machinima camera while enabled. Default is 1.");
     }
+
+    /*ImGui::SameLine(); if (ImGui::Button("K###mcamera_keybtn")) {
+        mcamera_is_keyframe = !mcamera_is_keyframe;
+    }
+    if (mcamera_is_keyframe) smachinima_imgui_popout();
+    */
 
     ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
     imgui_bundled_tooltip("Controls the FOV of the in-game camera. Default is 50.\nKeybind -> N/M");
@@ -329,6 +443,9 @@ void smachinima_imgui_update() {
         ImGui::TableNextColumn();
         ImGui::Checkbox("Dust Particles", &enable_dust_particles);
         imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+        ImGui::TableNextColumn();
+        ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
+        imgui_bundled_tooltip("Tilts Mario's torso when he moves; Disable for a \"beta running\" effect.");
         ImGui::EndTable();
     }
     if (mario_exists) {
