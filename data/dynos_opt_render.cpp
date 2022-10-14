@@ -297,13 +297,13 @@ void DynOS_Opt_DrawMenu(DynosOption *aCurrentOption, DynosOption *aCurrentMenu, 
 #define PROMPT_OFFSET (56.25f * GFX_DIMENSIONS_ASPECT_RATIO)
 void DynOS_Opt_DrawPrompt(DynosOption *aCurrentMenu, DynosOption *aOptionsMenu, DynosOption *aDynosMenu) {
     if (aCurrentMenu == aOptionsMenu) {
-        PrintString(DYNOS_TEXT_OPEN_LEFT,   PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 1);
+        //PrintString(DYNOS_TEXT_OPEN_LEFT,   PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 1);
         PrintString(DYNOS_TEXT_CLOSE_RIGHT, PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 0);
     } else if (aCurrentMenu == aDynosMenu) {
         PrintString(DYNOS_TEXT_CLOSE_LEFT,  PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 1);
         PrintString(DYNOS_TEXT_OPEN_RIGHT,  PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 0);
     } else {
-        PrintString(DYNOS_TEXT_OPEN_LEFT,   PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 1);
+        //PrintString(DYNOS_TEXT_OPEN_LEFT,   PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 1);
         PrintString(DYNOS_TEXT_OPEN_RIGHT,  PROMPT_OFFSET, 212, COLOR_WHITE, COLOR_BLACK, 0);
     }
 }

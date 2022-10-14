@@ -535,9 +535,9 @@ static void DynOS_Opt_ProcessInputs() {
         }
     } else if (gPlayer1Controller->buttonPressed & R_TRIG) {
         DynOS_Opt_Open(sOptionsMenu);
-    } else if (gPlayer1Controller->buttonPressed & Z_TRIG) {
-        DynOS_Opt_Open(sDynosMenu);
-    }
+    }// else if (gPlayer1Controller->buttonPressed & Z_TRIG) {
+    //    DynOS_Opt_Open(sDynosMenu);
+    //}
 }
 
 //
