@@ -132,6 +132,9 @@ string colorCodeDir;
 
 bool modelCcLoaded;
 
+std::vector<string> model_cc_array;
+string modelColorCodeDir;
+
 /*
     The currently active GameShark code in string format.
 */
@@ -688,24 +691,46 @@ void delete_cc_file(std::string name) {
     saturn_load_cc_directory();
 }
 
+void get_ccs_from_model(std::string modelPath) {
+    model_cc_array.clear();
+
+    // Old path
+    if (fs::exists(modelPath + "\\default.gs")) {
+        model_cc_array.push_back("../default.gs");
+    }
+
+#ifdef __MINGW32__
+    // windows moment
+    modelColorCodeDir = modelPath + "\\colorcodes\\";
+#else
+    modelColorCodeDir = modelPath + "/colorcodes/";
+#endif
+
+    if (!fs::exists(modelColorCodeDir))
+        return;
+
+    for (const auto & entry : fs::directory_iterator(modelColorCodeDir)) {
+        fs::path path = entry.path();
+
+        if (path.filename().u8string() != "Mario") {
+            if (path.extension().u8string() == ".gs")
+                model_cc_array.push_back(path.filename().u8string());
+        }
+    }
+}
+
 /*
     Sets Mario's colors using a defined model path.
 */
-void set_cc_from_model(std::string modelPath) {
-    // We're using "default.gs" to set a default palette
-#ifdef __MINGW32__
-    string filePath = modelPath + "\\default.gs";
-#else
-    string filePath = modelPath + "/default.gs";
-#endif
-    std::ifstream file(filePath, std::ios::in | std::ios::binary);
+void set_cc_from_model(std::string ccPath) {
+    std::ifstream file(ccPath, std::ios::in | std::ios::binary);
 
     if (!file.good()) {
         // No file exists, cancel
         return;
     }
 
-    const std::size_t& size = std::filesystem::file_size(filePath);
+    const std::size_t& size = std::filesystem::file_size(ccPath);
     std::string content(size, '\0');
     file.read(content.data(), size);
     file.close();

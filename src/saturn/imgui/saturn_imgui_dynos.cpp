@@ -70,6 +70,10 @@ bool any_packs_selected;
 int windowListSize = 325;
 int cc_model_id;
 
+bool using_custom_eyes;
+
+static int current_mcc_id = 0;
+
 /*
 Sets Mario's global colors from the CC editor color values.
 */
@@ -267,7 +271,7 @@ void sdynos_imgui_menu() {
         ImGui::SameLine(); imgui_bundled_help_marker(
             "These are DynOS model packs, used for live model loading.\nPlace packs in dynos/packs.");
 
-        ImGui::BeginChild("###menu_model_selector", ImVec2(175, 100), true);
+        ImGui::BeginChild("###menu_model_selector", ImVec2(175, 200), true);
         for (int i = 0; i < sDynosPacks.Count(); i++) {
             u64 _DirSep1 = sDynosPacks[i]->mPath.find_last_of('\\');
             u64 _DirSep2 = sDynosPacks[i]->mPath.find_last_of('/');
@@ -297,9 +301,16 @@ void sdynos_imgui_menu() {
                 if (is_selected)
                     std::cout << "Loaded " << current_model_data.name << " by " << current_model_data.author << std::endl;
 
+                current_mcc_id = -1;
+
                 if (configEditorAutoModelCc) {
-                    set_cc_from_model(sDynosPacks[i]->mPath);
-                    set_editor_from_global_cc(label);
+                    get_ccs_from_model(sDynosPacks[i]->mPath);
+                    if (model_cc_array.size() > 0) {
+                        set_cc_from_model(sDynosPacks[i]->mPath + "/colorcodes/" + model_cc_array[0].substr(0, model_cc_array[0].size()));
+                        set_editor_from_global_cc("Sample");
+                        //current_mcc_id = 0;
+                        //current_cc_id = -1;
+                    }
                 }
 
                 one_pack_selectable = false;
@@ -323,10 +334,33 @@ void sdynos_imgui_menu() {
             }
             if (ImGui::BeginPopupContextItem()) {
                 ImGui::Text("%s", label.c_str());
-                if (ImGui::Button("Set CC From Model")) {
-                    set_cc_from_model(sDynosPacks[i]->mPath);
-                    set_editor_from_global_cc(label);
-                    ImGui::CloseCurrentPopup();
+
+                // Model CCs
+                get_ccs_from_model(sDynosPacks[i]->mPath);
+                if (model_cc_array.size() > 0) {
+                    ImGui::BeginChild("###menu_model_ccs", ImVec2(125, 75), true);
+                    for (int n = 0; n < model_cc_array.size(); n++) {
+                        const bool is_selected = (current_mcc_id == n);
+                        cc_name = model_cc_array[n].substr(0, model_cc_array[n].size() - 3);
+
+                        if (ImGui::Selectable(cc_name.c_str(), is_selected)) {
+                            current_mcc_id = n;
+                            current_cc_id = -1;
+                            set_cc_from_model(sDynosPacks[i]->mPath + "/colorcodes/" + cc_name + ".gs");
+                            set_editor_from_global_cc("Sample");
+                        }
+
+                        if (ImGui::BeginPopupContextItem()) {
+                            if (ImGui::Button("Refresh")) {
+                                get_ccs_from_model(sDynosPacks[i]->mPath);
+                                ImGui::CloseCurrentPopup();
+                            }
+                            ImGui::Separator();
+                            ImGui::Text("%s.gs", cc_name.c_str());
+                            ImGui::EndPopup();
+                        }
+                    }
+                    ImGui::EndChild();
                 }
                 ImGui::Separator();
                 if (ImGui::Button("Refresh Packs###refresh_dynos_packs")) {
@@ -351,6 +385,11 @@ void sdynos_imgui_menu() {
         if (ImGui::BeginTabBar("###misc_tabbar", ImGuiTabBarFlags_None)) {
 
             if (ImGui::BeginTabItem("Switches###switches_scale")) {
+                const char* eyes[] = { "Blinking", "Open", "Half", "Closed", "Left", "Right", "Up", "Down", "Dead" };
+                if (ImGui::Combo("Eyes###eye_state", &current_eye_state, eyes, IM_ARRAYSIZE(eyes))) {
+                    if (current_eye_state < 4) using_custom_eyes = false;
+                }
+
                 const char* hands[] = { "Fists", "Open", "Peace", "With Cap", "With Wing Cap", "Right Open" };
                 ImGui::Combo("Hand###hand_state", &scrollHandState, hands, IM_ARRAYSIZE(hands));
                 const char* caps[] = { "Cap On", "Cap Off", "Wing Cap" }; // unused "wing cap off" not included
@@ -421,23 +460,24 @@ void sdynos_imgui_menu() {
         ImGui::Separator();
     }
 
-    ImGui::Text("Eyes");
-    if (current_eye_state == 4) {
-        ImGui::SameLine(); imgui_bundled_help_marker(
-            "Place custom eye PNG textures in dynos/eyes.");
+    // Custom Eyes - Overwrites the left eye switch with an external PNG image choice
+    if ((current_model_data.name != "" && current_model_data.eye_support == true) || current_model_data.name == "") {
+        if (ImGui::Checkbox("Custom Eyes", &using_custom_eyes)) {
+            if (current_eye_state < 4) current_eye_state = 4;
+            else current_eye_state = 0;
+        } ImGui::SameLine(); imgui_bundled_help_marker(
+                "Place custom eye PNG textures in dynos/eyes.");
+    } else {
+        using_custom_eyes = false;
     }
 
-    const char* eyes[] = { "Blinking", "Open", "Half", "Closed", "CUSTOM...", "Dead" };
-    ImGui::Combo("###eye_combo", &current_eye_state, eyes, IM_ARRAYSIZE(eyes));
-
-    if (current_eye_state == 5) { scrollEyeState = 8; }
-    else if (current_eye_state == 4) {
-        scrollEyeState = 4;
+    if (using_custom_eyes) {
+        //scrollEyeState = 4;
 
         // Eyes (No Model)
 
         if (!using_model_eyes) {
-            if (eye_array.size() > 0) {
+            if (eye_array.size() > 0 && using_custom_eyes) {
                 ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 150), true);
                 for (int n = 0; n < eye_array.size(); n++) {
                     const bool is_eye_selected = (current_eye_index == n);
@@ -462,14 +502,21 @@ void sdynos_imgui_menu() {
             } else {
                 ImGui::Text("No eye textures found.\nPlace custom eye PNG textures\nin dynos/eyes/.");
             }
+            ImGui::Separator();
+        }
+    } else {
+        if (current_model_data.eye_support && current_model_data.name != "") {
+            ImGui::Separator();
         }
     }
-    else { scrollEyeState = current_eye_state; }
-    is_replacing_eyes = (scrollEyeState == 4 || current_model_data.expressions.size() > 0);
+
+    scrollEyeState = current_eye_state;
+    // Expressions (including vanilla eyes)
+    is_replacing_exp = (using_custom_eyes && scrollEyeState > 3 || current_model_data.expressions.size() > 0);
+    // Vanilla and model eyes
+    is_replacing_eyes = (using_custom_eyes && scrollEyeState > 3 || current_model_data.expressions.size() > 0 && using_custom_eyes);
 
     if (current_model_data.expressions.size() > 0) {
-
-        ImGui::Separator();
 
         // Model Expressions
 
@@ -477,7 +524,7 @@ void sdynos_imgui_menu() {
             Expression expression = current_model_data.expressions[i];
 
             if (expression.name == "eye" || expression.name == "eyes") {
-                if (scrollEyeState != 4) {
+                if (scrollEyeState < 4 || !using_custom_eyes) {
                     continue;
                 }
 
@@ -506,38 +553,63 @@ void sdynos_imgui_menu() {
                     }
                 }
                 ImGui::EndChild();
-                
-            } else {
+
+                if (current_model_data.eye_support)
+                    ImGui::Separator();
+            }
+        }
+        for (int i; i < current_model_data.expressions.size(); i++) {
+            Expression expression = current_model_data.expressions[i];
+
+            if (expression.name != "eye" && expression.name != "eyes") {
 
                 // Everything but eyes
                 if (expression.textures.size() > 0) {
-                    string label_name = "###menu_" + expression.name;
-                    const char* preview_label_name = (expression.name + " >> " + expression.textures[current_exp_index[i]]).c_str();
-                    if (ImGui::BeginCombo(label_name.c_str(), preview_label_name, ImGuiComboFlags_None)) {
-                        gfx_precache_textures();
-                        for (int n = 0; n < expression.textures.size(); n++) {
-                            bool is_selected = (current_exp_index[i] == n);
-                            string entry_name = expression.textures[n];
+                    string label_name = expression.name + "###menu_" + expression.name;
 
-                            if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
-                                gfx_precache_textures();
-                                current_exp_index[i] = n;
-                                saturn_set_model_texture(i, expression.path + expression.textures[n]);
-                            }
-
-                            // Refresh
-                            if (ImGui::BeginPopupContextItem()) {
-                                if (ImGui::Button("Refresh###refresh_m_exp")) {
-                                    saturn_load_model_data(current_folder_name);
-                                    for (int i = 0; i < 6; i++) {
-                                        current_exp_index[i] = 0;
-                                    }
-                                    ImGui::CloseCurrentPopup();
-                                }
-                                ImGui::EndPopup();
+                    // If we just have "none" and "default" for an expression...
+                    // Use a checkbox instead for nicer UI
+                    if (expression.textures.size() == 2 && expression.textures[0].find("default") != string::npos && expression.textures[1].find("none") != string::npos) {
+                        bool is_selected = (current_exp_index[i] == 0);
+                        if (ImGui::Checkbox(label_name.c_str(), &is_selected)) {
+                            gfx_precache_textures();
+                            if (is_selected) {
+                                current_exp_index[i] = 0;
+                                saturn_set_model_texture(i, expression.path + expression.textures[0]);
+                            } else {
+                                current_exp_index[i] = 1;
+                                saturn_set_model_texture(i, expression.path + expression.textures[1]);
                             }
                         }
-                        ImGui::EndCombo();
+                    } else {
+                        string label_name = "###menu_" + expression.name;
+                        const char* preview_label_name = (expression.name + " >> " + expression.textures[current_exp_index[i]]).c_str();
+                        if (ImGui::BeginCombo(label_name.c_str(), preview_label_name, ImGuiComboFlags_None)) {
+                            gfx_precache_textures();
+                            for (int n = 0; n < expression.textures.size(); n++) {
+                                bool is_selected = (current_exp_index[i] == n);
+                                string entry_name = expression.textures[n];
+
+                                if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
+                                    gfx_precache_textures();
+                                    current_exp_index[i] = n;
+                                    saturn_set_model_texture(i, expression.path + expression.textures[n]);
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+
+                    // Refresh
+                    if (ImGui::BeginPopupContextItem()) {
+                        if (ImGui::Button("Refresh###refresh_m_exp")) {
+                            saturn_load_model_data(current_folder_name);
+                            for (int i = 0; i < 6; i++) {
+                                current_exp_index[i] = 0;
+                            }
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
                     }
                 }
             }
@@ -546,7 +618,7 @@ void sdynos_imgui_menu() {
 
     // CC Compatibility - Allows colors to be edited for models that support it
     if ((current_model_data.name != "" && current_model_data.cc_support == true) || current_model_data.name == "") {
-        ImGui::Separator();
+        if (current_model_data.expressions.size() > 1 && current_model_data.eye_support) ImGui::Separator();
         ImGui::Checkbox("CC Compatibility", &cc_model_support);
         ImGui::SameLine(); imgui_bundled_help_marker(
             "Toggles color code compatibility for model packs that support it.");

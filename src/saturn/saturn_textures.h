@@ -38,6 +38,7 @@ struct ModelData {
     std::vector<Expression> expressions;
     bool cc_support;
     bool spark_support;
+    bool eye_support;
 };
 
 extern struct ModelData current_model_data;
@@ -51,6 +52,7 @@ extern int current_exp_index[6];
 
 extern "C" {
 #endif
+    extern bool is_replacing_exp;
     extern bool is_replacing_eyes;
 
     const void* saturn_bind_texture(const void*);

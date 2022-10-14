@@ -36,6 +36,7 @@ namespace fs = std::filesystem;
 
 #include <json/json.h>
 
+bool is_replacing_exp;
 bool is_replacing_eyes;
 
 std::vector<string> eye_array;
@@ -156,8 +157,13 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
-    if (eye_array.size() > 0) {
-        if (texName == "actors/mario/mario_eyes_left_unused.rgba16" || texName.find("saturn_eye") != string::npos) {
+    if (eye_array.size() > 0 && is_replacing_eyes) {
+        if (texName.find("saturn_eye") != string::npos ||
+            texName == "actors/mario/mario_eyes_left_unused.rgba16" ||
+            texName == "actors/mario/mario_eyes_right_unused.rgba16" ||
+            texName == "actors/mario/mario_eyes_up_unused.rgba16" ||
+            texName == "actors/mario/mario_eyes_down_unused.rgba16" ||
+            texName == "actors/mario/mario_eyes_dead.rgba16") {
             outputTexture = current_eye.c_str();
             const void* output = static_cast<const void*>(outputTexture);
             return output;
@@ -317,6 +323,13 @@ void saturn_load_model_data(std::string folder_name) {
                 current_model_data.cc_support = true;
                 cc_model_support = true;
             }
+        }
+
+        // Custom eyes - enabled by default, but authors can optionally disable the feature
+        // If disabled, the "Custom Eyes" checkbox will be hidden from the menu
+        current_model_data.eye_support = true;
+        if (root.isMember("eye_support")) {
+            current_model_data.eye_support = root["eye_support"].asBool();
         }
     }
 
