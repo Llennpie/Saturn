@@ -42,7 +42,7 @@ extern "C" {
 
 void saturn_fetch_animations() {
     canim_array.clear();
-
+    
 #ifdef __MINGW32__
     // windows moment
     canim_directory = "dynos\\anims\\";
@@ -72,14 +72,14 @@ string current_canim_author;
 bool current_canim_looping;
 int current_canim_length;
 int current_canim_nodes;
-s16 current_canim_values[99999] = {};
-u16 current_canim_indices[99999] = {};
+std::vector<s16> current_canim_values;
+std::vector<u16> current_canim_indices;
 
 void run_hex_array(Json::Value root, string type) {
-    int i, j;
+    int i;
     string even_one, odd_one;
     for (auto itr : root[type]) {
-        if (i % 2 == 0 || i == 0) {
+        if (i % 2 == 0) {
             // Run on even
             even_one = itr.asString();
             even_one.erase(0, 2);
@@ -94,10 +94,9 @@ void run_hex_array(Json::Value root, string type) {
             ss << std::hex << newValue;
             ss >> output;
             if (type == "values")
-                current_canim_values[j] = (s16)output;
+                current_canim_values.push_back(output);
             else
-                current_canim_indices[j] = (u16)output;
-            j++;
+                current_canim_indices.push_back(output);
         }
         i++;
     }
@@ -150,6 +149,8 @@ void saturn_read_mcomp_animation(string json_path) {
     if (root["looping"].asString() == "false") current_canim_looping = false;
     current_canim_length = std::stoi(root["length"].asString());
     current_canim_nodes = std::stoi(root["nodes"].asString());
+    current_canim_indices.clear();
+    current_canim_values.clear();
     run_hex_array(root, "values");
     run_hex_array(root, "indices");
 
@@ -162,9 +163,9 @@ void saturn_play_custom_animation() {
     gMarioState->animation->targetAnim->unk04 = 0;
     gMarioState->animation->targetAnim->unk06 = 0;
     gMarioState->animation->targetAnim->unk08 = (s16)current_canim_length;
-    gMarioState->animation->targetAnim->unk0A = ANIMINDEX_NUMPARTS(current_canim_indices);
-    gMarioState->animation->targetAnim->values = (const s16*)current_canim_values;
-    gMarioState->animation->targetAnim->index = (const u16*)current_canim_indices;
+    gMarioState->animation->targetAnim->unk0A = current_canim_indices.size() / 6 - 1;
+    gMarioState->animation->targetAnim->values = current_canim_values.data();
+    gMarioState->animation->targetAnim->index = current_canim_indices.data();
     gMarioState->animation->targetAnim->length = 0;
     gMarioState->marioObj->header.gfx.unk38.curAnim = gMarioState->animation->targetAnim;
 }
