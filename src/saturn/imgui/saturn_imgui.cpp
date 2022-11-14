@@ -12,6 +12,7 @@
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
+#include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
 #ifdef __MINGW32__
@@ -64,8 +65,9 @@ bool showMenu = true;
 // Bundled Components
 
 void imgui_bundled_tooltip(const char* text) {
-    if (ImGui::IsItemHovered())
-    {
+    if (!configEditorShowTips) return;
+
+    if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(450.0f);
         ImGui::TextUnformatted(text);
@@ -74,11 +76,14 @@ void imgui_bundled_tooltip(const char* text) {
     }
 }
 
-void imgui_bundled_help_marker(const char* desc)
-{
+void imgui_bundled_help_marker(const char* desc) {
+    if (!configEditorShowTips) {
+        ImGui::TextDisabled("");
+        return;
+    }
+
     ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered())
-    {
+    if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
         ImGui::TextUnformatted(desc);
@@ -168,6 +173,9 @@ void saturn_imgui_update() {
         if (ImGui::BeginMenu("Appearance")) {
             currentMenu = -1;
             sdynos_imgui_menu();
+        } else {
+            if (currentMenu == -1 && !accept_text_input)
+                accept_text_input = true;
         }
         if (ImGui::MenuItem("Settings"))
             if (currentMenu != 4) { currentMenu = 4; }
@@ -220,7 +228,7 @@ void saturn_imgui_update() {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Settings", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));
-            ImGui::SetWindowSize(ImVec2(325, 400));
+            ImGui::SetWindowSize(ImVec2(325, 435));
 
             ssettings_imgui_update();
 

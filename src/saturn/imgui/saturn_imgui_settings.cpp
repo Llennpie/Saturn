@@ -264,6 +264,8 @@ void ssettings_imgui_update() {
     const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
     ImGui::Combo("Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
     ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
+    ImGui::Checkbox("Show tooltips", &configEditorShowTips);
+    imgui_bundled_tooltip("Displays tooltips and help markers for advanced features; Helpful for new users.");
     ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
     imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
     ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);

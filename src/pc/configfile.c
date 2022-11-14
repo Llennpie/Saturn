@@ -89,6 +89,7 @@ unsigned int configMCameraMode   = 0; // keyboard is better
 bool         configEditorFastApply = false;
 bool         configEditorAutoModelCc = false;
 bool         configEditorAutoSpark = true;
+bool         configEditorShowTips = true;
 bool         configEditorNearClipping = false;
 unsigned int configFps60            = true;
 bool         configEditorInterpolateAnims = false;
@@ -155,6 +156,7 @@ static const struct ConfigOption options[] = {
     {.name = "editor_fast_apply",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorFastApply},
     {.name = "editor_auto_model_cc", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoModelCc},
     {.name = "editor_auto_spark",    .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAutoSpark},
+    {.name = "editor_show_tips",     .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorShowTips},
     {.name = "editor_near_clipping", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorNearClipping},
     {.name = "editor_interpolate_anims", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorInterpolateAnims},
     #ifdef BETTERCAMERA
