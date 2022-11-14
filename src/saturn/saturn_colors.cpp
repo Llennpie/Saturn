@@ -647,6 +647,21 @@ void save_cc_file(std::string name, std::string gameshark) {
 }
 
 /*
+    Saves the global_gs_code() to a GS file.
+*/
+void save_cc_model_file(std::string name, std::string gameshark, std::string modelFolder) {
+    // Create colorcodes folder if it doesn't already exist
+    fs::create_directory("dynos/packs/" + modelFolder + "/colorcodes");
+
+#ifdef __MINGW32__
+    std::ofstream file("dynos\\packs\\" + modelFolder + "\\colorcodes\\" + name + ".gs");
+#else
+    std::ofstream file("dynos/packs/" + modelFolder + "/colorcodes/" + name + ".gs");
+#endif
+    file << gameshark;
+}
+
+/*
     Loads a GS file and sets Mario's colors.
 */
 void load_cc_file(char* cc_char_filename) {
@@ -685,6 +700,20 @@ void delete_cc_file(std::string name) {
     string cc_path = "dynos\\colorcodes\\" + name + ".gs";
 #else
     string cc_path = "dynos/colorcodes/" + name + ".gs";
+#endif
+
+    remove(cc_path.c_str());
+    saturn_load_cc_directory();
+}
+
+void delete_model_cc_file(std::string name, std::string modelFolder) {
+    if (name == "Mario")
+        name = "Sample";
+
+#ifdef __MINGW32__
+    string cc_path = "dynos\\packs\\" + modelFolder + "\\colorcodes\\" + name + ".gs";
+#else
+    string cc_path = "dynos/packs/" + modelFolder + "/colorcodes/" + name + ".gs";
 #endif
 
     remove(cc_path.c_str());

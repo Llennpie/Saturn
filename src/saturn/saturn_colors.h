@@ -108,7 +108,9 @@ extern std::string global_gs_code();
 
 void paste_gs_code(std::string content);
 void save_cc_file(std::string name, std::string gameshark);
+void save_cc_model_file(std::string name, std::string gameshark, std::string modelFolder);
 void delete_cc_file(std::string name);
+void delete_model_cc_file(std::string name, std::string modelFolder);
 void set_cc_from_model(std::string ccPath);
 extern std::vector<std::string> model_cc_array;
 void get_ccs_from_model(std::string modelPath);
