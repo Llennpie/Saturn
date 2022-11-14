@@ -1,0 +1,11 @@
+{
+    "name": "X3/ExMo3 Mario",
+    "author": "Llennpie | OG: Enkal",
+    "version": "3.0.0",
+
+    "description": "\nX3 (also known as ExMo3) is a highly customizable Mario model relying solely on textures and expressions.\n\n- Textures can be modified in /mario/. Delete mario_geo.bin after each texture edit\n- The hammer can equipped by setting Mario's hand switch to \"Right Open\"\n\nTo avoid including copyrighted textures, X3 Mario's default textures have been swapped with hand-drawn, royalty-free replacements.",
+    "type": "Mario",
+
+    "cc_support": false,
+    "spark_support": false
+}
