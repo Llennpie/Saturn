@@ -35,6 +35,8 @@ struct ModelData {
     std::string name;
     std::string author;
     std::string version;
+    std::string description;
+    std::string type;
     std::vector<Expression> expressions;
     bool cc_support;
     bool spark_support;
@@ -48,7 +50,7 @@ void saturn_load_model_json(std::string folder_name);
 void saturn_load_model_data(std::string folder_name);
 void saturn_set_model_texture(int expIndex, std::string path);
 void saturn_load_expression_number(char number);
-extern int current_exp_index[6];
+extern int current_exp_index[8];
 
 extern "C" {
 #endif

@@ -54,7 +54,7 @@ int current_mouth_index;
 bool model_mouth_enabled;
 
 int current_keybind_exp;
-int current_exp_index[6];
+int current_exp_index[8];
 
 // Eye Folders, Non-Model
 
@@ -303,6 +303,22 @@ void saturn_load_model_data(std::string folder_name) {
         current_model_data.name = root["name"].asString();
         current_model_data.author = root["author"].asString();
         current_model_data.version = root["version"].asString();
+
+        // Description (optional)
+        if (root.isMember("description")) {
+            current_model_data.description = root["description"].asString();
+            // 500 character limit
+            int characterLimit = 500;
+            if (current_model_data.description.length() > characterLimit) {
+                current_model_data.description = current_model_data.description.substr(0, characterLimit - 4);
+                current_model_data.description += " ...";
+            }
+        }
+
+        // Type (optional)
+        if (root.isMember("type")) {
+            current_model_data.type = root["type"].asString();
+        }
 
         // CC support is enabled by default, SPARK is disabled
         // This is just in case it wasn't defined in the model.json
