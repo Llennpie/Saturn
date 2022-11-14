@@ -73,16 +73,18 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 if (camera_fov >= 2.0f) camera_fov -= 2.f;
             }
 
-            if (event->key.keysym.sym == SDLK_0 && accept_text_input) saturn_load_expression_number('0');
-            if (event->key.keysym.sym == SDLK_1 && accept_text_input) saturn_load_expression_number('1');
-            if (event->key.keysym.sym == SDLK_2 && accept_text_input) saturn_load_expression_number('2');
-            if (event->key.keysym.sym == SDLK_3 && accept_text_input) saturn_load_expression_number('3');
-            if (event->key.keysym.sym == SDLK_4 && accept_text_input) saturn_load_expression_number('4');
-            if (event->key.keysym.sym == SDLK_5 && accept_text_input) saturn_load_expression_number('5');
-            if (event->key.keysym.sym == SDLK_6 && accept_text_input) saturn_load_expression_number('6');
-            if (event->key.keysym.sym == SDLK_7 && accept_text_input) saturn_load_expression_number('7');
-            if (event->key.keysym.sym == SDLK_8 && accept_text_input) saturn_load_expression_number('8');
-            if (event->key.keysym.sym == SDLK_9 && accept_text_input) saturn_load_expression_number('9');
+            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]) {
+                if (event->key.keysym.sym == SDLK_0 && accept_text_input) saturn_load_expression_number('0');
+                if (event->key.keysym.sym == SDLK_1 && accept_text_input) saturn_load_expression_number('1');
+                if (event->key.keysym.sym == SDLK_2 && accept_text_input) saturn_load_expression_number('2');
+                if (event->key.keysym.sym == SDLK_3 && accept_text_input) saturn_load_expression_number('3');
+                if (event->key.keysym.sym == SDLK_4 && accept_text_input) saturn_load_expression_number('4');
+                if (event->key.keysym.sym == SDLK_5 && accept_text_input) saturn_load_expression_number('5');
+                if (event->key.keysym.sym == SDLK_6 && accept_text_input) saturn_load_expression_number('6');
+                if (event->key.keysym.sym == SDLK_7 && accept_text_input) saturn_load_expression_number('7');
+                if (event->key.keysym.sym == SDLK_8 && accept_text_input) saturn_load_expression_number('8');
+                if (event->key.keysym.sym == SDLK_9 && accept_text_input) saturn_load_expression_number('9');
+            }
 
         case SDL_MOUSEMOTION:
             SDL_Delay(2);
@@ -428,7 +430,11 @@ void smachinima_imgui_update() {
         }
     }
 
-    imgui_bundled_space(20, "Quick Toggles", NULL);
+    ImGui::Dummy(ImVec2(0, 5));
+
+    //if (ImGui::Button("plane mode")) {
+    //    set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
+    //}
 
     if (ImGui::BeginTable("table_quick_toggles", 2)) {
         ImGui::TableNextColumn();
@@ -446,14 +452,15 @@ void smachinima_imgui_update() {
         ImGui::TableNextColumn();
         ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
         imgui_bundled_tooltip("Tilts Mario's torso when he moves; Disable for a \"beta running\" effect.");
-        ImGui::EndTable();
-    }
-    if (mario_exists) {
-        if (gMarioState->action != ACT_FIRST_PERSON) {
+        if (mario_exists && gMarioState->action != ACT_FIRST_PERSON) {
+            ImGui::TableNextColumn();
             if (ImGui::Button("Sleep")) {
                 set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
             }
         }
+        ImGui::EndTable();
+    }
+    if (mario_exists) {
         const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
         ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
     }
