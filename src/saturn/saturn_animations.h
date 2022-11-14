@@ -15,8 +15,8 @@ extern std::string current_canim_author;
 extern bool current_canim_looping;
 extern int current_canim_length;
 extern int current_canim_nodes;
-extern s16 current_canim_values[99999];
-extern u16 current_canim_indices[99999];
+extern std::vector<s16> current_canim_values;
+extern std::vector<u16> current_canim_indices;
 
 extern std::vector<std::string> canim_array;
 extern std::string canim_directory;
