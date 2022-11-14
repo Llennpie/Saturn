@@ -551,20 +551,27 @@ s32 act_debug_free_move(struct MarioState *m) {
     f32 speed;
     u32 action;
 
-    // integer immediates, generates convert instructions for some reason
-    speed = gPlayer1Controller->buttonDown & B_BUTTON ? 4 : 1;
-    if (gPlayer1Controller->buttonDown & L_TRIG) {
-        speed = 0.01f;
-    }
-
-    set_mario_animation(m, MARIO_ANIM_A_POSE);
     vec3f_copy(pos, m->pos);
 
-    if (gPlayer1Controller->buttonDown & U_JPAD) {
+    // integer immediates, generates convert instructions for some reason
+    speed = gPlayer1Controller->buttonDown & L_TRIG ? 4 : 1;
+    if (gPlayer1Controller->buttonDown & R_TRIG) {
+        speed = 0.125f;
+    }
+
+    if (gPlayer1Controller->buttonDown & A_BUTTON) {
         pos[1] += 16.0f * speed;
     }
-    if (gPlayer1Controller->buttonDown & D_JPAD) {
+    if (gPlayer1Controller->buttonDown & B_BUTTON) {
         pos[1] -= 16.0f * speed;
+    }
+    if (gPlayer1Controller->buttonPressed == Z_TRIG) {
+        if (m->pos[1] <= m->waterLevel - 100) {
+            action = ACT_WATER_IDLE;
+        } else {
+            action = ACT_IDLE;
+        }
+        set_mario_action(m, action, 0);
     }
 
     if (m->intendedMag > 0) {
@@ -586,13 +593,8 @@ s32 act_debug_free_move(struct MarioState *m) {
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
     vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
 
-    if (gPlayer1Controller->buttonPressed == A_BUTTON) {
-        if (m->pos[1] <= m->waterLevel - 100) {
-            action = ACT_WATER_IDLE;
-        } else {
-            action = ACT_IDLE;
-        }
-        set_mario_action(m, action, 0);
+    if (!is_anim_playing) {
+        set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
     }
 
     return FALSE;

@@ -3004,7 +3004,7 @@ void update_lakitu(struct Camera *c) {
         gLakituState.roll += sHandheldShakeRoll;
         gLakituState.roll += gLakituState.keyDanceRoll;
 
-        if (c->mode != CAMERA_MODE_C_UP && c->cutscene == 0 && !machinimaMode
+        if (c->mode != CAMERA_MODE_C_UP && c->cutscene == 0 && !machinimaMode && gMarioState->action != ACT_DEBUG_FREE_MOVE
 #ifdef BETTERCAMERA
             && c->mode != CAMERA_MODE_NEWCAM
 #endif
@@ -3066,7 +3066,7 @@ void update_camera(struct Camera *c) {
             && c->mode != CAMERA_MODE_NEWCAM
 #endif
             ) {
-            if (gPlayer1Controller->buttonPressed & R_TRIG && !machinimaMode) {
+            if (gPlayer1Controller->buttonPressed & R_TRIG && !machinimaMode && gMarioState->action != ACT_DEBUG_FREE_MOVE) {
                 if (set_cam_angle(0) == CAM_ANGLE_LAKITU) {
                     set_cam_angle(CAM_ANGLE_MARIO);
                 } else {

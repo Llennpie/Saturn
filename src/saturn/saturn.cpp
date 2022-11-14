@@ -108,6 +108,10 @@ void saturn_update() {
         if (gPlayer1Controller->buttonPressed & R_JPAD) {
             is_anim_looped = !is_anim_looped;
         }
+
+        if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F2] & accept_text_input) {
+            set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
+        }
     }
 
     // Machinima
@@ -184,6 +188,8 @@ void saturn_update() {
                     if (using_chainer) {
                         chainer_index++;
                     } else {
+                        if (gMarioState->action == ACT_DEBUG_FREE_MOVE)
+                            set_mario_animation(gMarioState, MARIO_ANIM_A_POSE);
                         is_anim_playing = false;
                         is_anim_paused = false;
                     }
@@ -195,7 +201,7 @@ void saturn_update() {
             }
 
             current_anim_id = (int)gMarioState->marioObj->header.gfx.unk38.animID;
-            if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON) {
+            if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON || gMarioState->action == ACT_DEBUG_FREE_MOVE) {
                 current_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
                 current_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
             }
