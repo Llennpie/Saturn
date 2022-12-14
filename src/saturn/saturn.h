@@ -30,6 +30,8 @@ extern bool enable_torso_rotation;
 extern bool can_fall_asleep;
 extern int saturnModelState;
 extern bool linkMarioScale;
+extern bool is_spinning;
+extern float spin_mult;
 
 extern bool is_custom_anim;
 extern bool using_chainer;

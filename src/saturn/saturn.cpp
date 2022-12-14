@@ -24,12 +24,14 @@ int camera_view_move_x;
 int camera_view_move_y;
 
 bool enable_head_rotations = false;
-bool enable_shadows = true;
+bool enable_shadows = false;
 bool enable_dust_particles = false;
 bool enable_torso_rotation = true;
 bool can_fall_asleep = false;
 int saturnModelState = 0;
 bool linkMarioScale;
+bool is_spinning;
+float spin_mult = 1.0f;
 
 bool is_custom_anim;
 bool using_chainer;
@@ -155,22 +157,26 @@ void saturn_update() {
 
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
-    if (gCurrLevelNum == LEVEL_SA && !is_chroma_keying) {
-        is_chroma_keying = true;
-        // Called once when entering Chroma Key Stage
-        prev_quicks[0] = enable_shadows;
-        prev_quicks[1] = enable_dust_particles;
-        prev_quicks[2] = configHUD;
-        enable_shadows = false;
-        enable_dust_particles = false;
-        configHUD = false;
+    if (configEditorAlwaysChroma || gCurrLevelNum == LEVEL_SA) {
+        if (!is_chroma_keying) is_chroma_keying = true;
     }
-    if (is_chroma_keying && gCurrLevelNum != LEVEL_SA) {
-        is_chroma_keying = false;
+
+    //if (gCurrLevelNum == LEVEL_SA && !is_chroma_keying) {
+        //is_chroma_keying = true;
+        // Called once when entering Chroma Key Stage
+        //prev_quicks[0] = enable_shadows;
+        //prev_quicks[1] = enable_dust_particles;
+        //prev_quicks[2] = configHUD;
+        //enable_shadows = false;
+        //enable_dust_particles = false;
+        //configHUD = false;
+    //}
+    if (gCurrLevelNum != LEVEL_SA && !configEditorAlwaysChroma) {
+        if (!is_chroma_keying) is_chroma_keying = false;
         // Called once when exiting Chroma Key Stage
-        enable_shadows = prev_quicks[0];
-        enable_dust_particles = prev_quicks[1];
-        configHUD = prev_quicks[2];
+        //enable_shadows = prev_quicks[0];
+        //enable_dust_particles = prev_quicks[1];
+        //configHUD = prev_quicks[2];
     }
 
     // Animations
@@ -229,6 +235,10 @@ void saturn_update() {
     //camera_approach_f32_symmetric_bool(&thisDist, 150.f, 7.f);
     //vec3f_set_dist_and_angle(c->focus, c->pos, dist, pitch, yaw);
     //update_camera_yaw(c);
+
+    if (is_spinning && mario_exists) {
+        gMarioState->faceAngle[1] += (s16)(spin_mult * 15 * 182.04f);
+    }
 
     // Misc
 
