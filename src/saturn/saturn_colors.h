@@ -106,6 +106,8 @@ extern bool cc_spark_support;
 extern std::vector<std::string> cc_array;
 extern std::string global_gs_code();
 
+extern bool is_default_cc(std::string gameshark);
+
 void paste_gs_code(std::string content);
 void save_cc_file(std::string name, std::string gameshark);
 void save_cc_model_file(std::string name, std::string gameshark, std::string modelFolder);
