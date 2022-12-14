@@ -26,8 +26,8 @@ void set_door_camera_event(void) {
             gPlayerCameraState->cameraEvent = CAM_EVENT_DOOR;
         else
             gPlayerCameraState->cameraEvent = CAM_EVENT_DOOR_WARP;
+        gPlayerCameraState->usedObj = o;
     }
-    gPlayerCameraState->usedObj = o;
 }
 
 void play_door_open_noise(void) {

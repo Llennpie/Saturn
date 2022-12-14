@@ -5432,86 +5432,89 @@ u8 get_cutscene_from_mario_status(struct Camera *c) {
         if (SURFACE_IS_PAINTING_WARP(sMarioGeometry.currFloorType)) {
             cutscene = CUTSCENE_ENTER_PAINTING;
         }
-        switch (sMarioCamState->action) {
-            case ACT_DEATH_EXIT:
-                cutscene = CUTSCENE_DEATH_EXIT;
-                break;
-            case ACT_EXIT_AIRBORNE:
-                cutscene = CUTSCENE_EXIT_PAINTING_SUCC;
-                break;
-            case ACT_SPECIAL_EXIT_AIRBORNE:
-                if (gPrevLevel == LEVEL_BOWSER_1 || gPrevLevel == LEVEL_BOWSER_2
-                    || gPrevLevel == LEVEL_BOWSER_3) {
-                    cutscene = CUTSCENE_EXIT_BOWSER_SUCC;
-                } else {
-                    cutscene = CUTSCENE_EXIT_SPECIAL_SUCC;
-                }
-                break;
-            case ACT_SPECIAL_DEATH_EXIT:
-                if (gPrevLevel == LEVEL_BOWSER_1 || gPrevLevel == LEVEL_BOWSER_2
-                    || gPrevLevel == LEVEL_BOWSER_3) {
-                    cutscene = CUTSCENE_EXIT_BOWSER_DEATH;
-                } else {
-                    cutscene = CUTSCENE_NONPAINTING_DEATH;
-                }
-                break;
-            case ACT_ENTERING_STAR_DOOR:
-                if (c->doorStatus == DOOR_DEFAULT) {
-                    cutscene = CUTSCENE_SLIDING_DOORS_OPEN;
-                } else {
-                    cutscene = CUTSCENE_DOOR_PULL_MODE;
-                }
-                break;
-            case ACT_UNLOCKING_KEY_DOOR:
-                cutscene = CUTSCENE_UNLOCK_KEY_DOOR;
-                break;
-            case ACT_WATER_DEATH:
-                cutscene = CUTSCENE_WATER_DEATH;
-                break;
-            case ACT_DEATH_ON_BACK:
-                cutscene = CUTSCENE_DEATH_ON_BACK;
-                break;
-            case ACT_DEATH_ON_STOMACH:
-                cutscene = CUTSCENE_DEATH_ON_STOMACH;
-                break;
-            case ACT_STANDING_DEATH:
-                cutscene = CUTSCENE_STANDING_DEATH;
-                break;
-            case ACT_SUFFOCATION:
-                cutscene = CUTSCENE_SUFFOCATION_DEATH;
-                break;
-            case ACT_QUICKSAND_DEATH:
-                cutscene = CUTSCENE_QUICKSAND_DEATH;
-                break;
-            case ACT_ELECTROCUTION:
-                cutscene = CUTSCENE_STANDING_DEATH;
-                break;
-            case ACT_STAR_DANCE_EXIT:
-                cutscene = determine_dance_cutscene(c);
-                break;
-            case ACT_STAR_DANCE_WATER:
-                cutscene = determine_dance_cutscene(c);
-                break;
-            case ACT_STAR_DANCE_NO_EXIT:
-                cutscene = CUTSCENE_DANCE_DEFAULT;
-                break;
-        }
-        switch (sMarioCamState->cameraEvent) {
-            case CAM_EVENT_START_INTRO:
-                cutscene = CUTSCENE_INTRO_PEACH;
-                break;
-            case CAM_EVENT_START_GRAND_STAR:
-                cutscene = CUTSCENE_GRAND_STAR;
-                break;
-            case CAM_EVENT_START_ENDING:
-                cutscene = CUTSCENE_ENDING;
-                break;
-            case CAM_EVENT_START_END_WAVING:
-                cutscene = CUTSCENE_END_WAVING;
-                break;
-            case CAM_EVENT_START_CREDITS:
-                cutscene = CUTSCENE_CREDITS;
-                break;
+
+        if (!machinimaMode) {
+            switch (sMarioCamState->action) {
+                case ACT_DEATH_EXIT:
+                    cutscene = CUTSCENE_DEATH_EXIT;
+                    break;
+                case ACT_EXIT_AIRBORNE:
+                    cutscene = CUTSCENE_EXIT_PAINTING_SUCC;
+                    break;
+                case ACT_SPECIAL_EXIT_AIRBORNE:
+                    if (gPrevLevel == LEVEL_BOWSER_1 || gPrevLevel == LEVEL_BOWSER_2
+                        || gPrevLevel == LEVEL_BOWSER_3) {
+                        cutscene = CUTSCENE_EXIT_BOWSER_SUCC;
+                    } else {
+                        cutscene = CUTSCENE_EXIT_SPECIAL_SUCC;
+                    }
+                    break;
+                case ACT_SPECIAL_DEATH_EXIT:
+                    if (gPrevLevel == LEVEL_BOWSER_1 || gPrevLevel == LEVEL_BOWSER_2
+                        || gPrevLevel == LEVEL_BOWSER_3) {
+                        cutscene = CUTSCENE_EXIT_BOWSER_DEATH;
+                    } else {
+                        cutscene = CUTSCENE_NONPAINTING_DEATH;
+                    }
+                    break;
+                case ACT_ENTERING_STAR_DOOR:
+                    if (c->doorStatus == DOOR_DEFAULT) {
+                        cutscene = CUTSCENE_SLIDING_DOORS_OPEN;
+                    } else {
+                        cutscene = CUTSCENE_DOOR_PULL_MODE;
+                    }
+                    break;
+                case ACT_UNLOCKING_KEY_DOOR:
+                    cutscene = CUTSCENE_UNLOCK_KEY_DOOR;
+                    break;
+                case ACT_WATER_DEATH:
+                    cutscene = CUTSCENE_WATER_DEATH;
+                    break;
+                case ACT_DEATH_ON_BACK:
+                    cutscene = CUTSCENE_DEATH_ON_BACK;
+                    break;
+                case ACT_DEATH_ON_STOMACH:
+                    cutscene = CUTSCENE_DEATH_ON_STOMACH;
+                    break;
+                case ACT_STANDING_DEATH:
+                    cutscene = CUTSCENE_STANDING_DEATH;
+                    break;
+                case ACT_SUFFOCATION:
+                    cutscene = CUTSCENE_SUFFOCATION_DEATH;
+                    break;
+                case ACT_QUICKSAND_DEATH:
+                    cutscene = CUTSCENE_QUICKSAND_DEATH;
+                    break;
+                case ACT_ELECTROCUTION:
+                    cutscene = CUTSCENE_STANDING_DEATH;
+                    break;
+                case ACT_STAR_DANCE_EXIT:
+                    cutscene = determine_dance_cutscene(c);
+                    break;
+                case ACT_STAR_DANCE_WATER:
+                    cutscene = determine_dance_cutscene(c);
+                    break;
+                case ACT_STAR_DANCE_NO_EXIT:
+                    cutscene = CUTSCENE_DANCE_DEFAULT;
+                    break;
+            }
+            switch (sMarioCamState->cameraEvent) {
+                case CAM_EVENT_START_INTRO:
+                    cutscene = CUTSCENE_INTRO_PEACH;
+                    break;
+                case CAM_EVENT_START_GRAND_STAR:
+                    cutscene = CUTSCENE_GRAND_STAR;
+                    break;
+                case CAM_EVENT_START_ENDING:
+                    cutscene = CUTSCENE_ENDING;
+                    break;
+                case CAM_EVENT_START_END_WAVING:
+                    cutscene = CUTSCENE_END_WAVING;
+                    break;
+                case CAM_EVENT_START_CREDITS:
+                    cutscene = CUTSCENE_CREDITS;
+                    break;
+            }
         }
     }
     //! doorStatus is reset every frame. CameraTriggers need to constantly set doorStatus
@@ -6509,9 +6512,7 @@ struct CameraTrigger sCamRR[] = {
  * to free_roam when Mario is not walking up the tower.
  */
 struct CameraTrigger sCamBOB[] = {
-    {  1, cam_bob_tower, 2468, 2720, -4608, 3263, 1696, 3072, 0 },
-    { -1, cam_bob_default_free_roam, 0, 0, 0, 0, 0, 0, 0 },
-    NULL_TRIGGER
+	NULL_TRIGGER
 };
 
 /**
