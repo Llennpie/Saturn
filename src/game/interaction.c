@@ -23,6 +23,7 @@
 #include "sm64.h"
 #include "sound_init.h"
 #include "thread6.h"
+#include "pc/configfile.h"
 
 #define INT_GROUND_POUND_OR_TWIRL (1 << 0) // 0x01
 #define INT_PUNCH                 (1 << 1) // 0x02
@@ -703,8 +704,12 @@ u32 take_damage_from_interact_object(struct MarioState *m) {
     return damage;
 }
 
+u8 enable_immunity;
 u32 take_damage_and_knock_back(struct MarioState *m, struct Object *o) {
     u32 damage;
+
+    if (enable_immunity)
+        return FALSE;
 
     if (!sInvulnerable && !(m->flags & MARIO_VANISH_CAP)
         && !(o->oInteractionSubtype & INT_SUBTYPE_DELAY_INVINCIBILITY)) {
@@ -887,39 +892,46 @@ u32 interact_warp(struct MarioState *m, UNUSED u32 interactType, struct Object *
 }
 
 u32 interact_warp_door(struct MarioState *m, UNUSED u32 interactType, struct Object *o) {
+    if (machinimaMode) {
+        interact_door(m, interactType, o);
+        return FALSE;
+    }
+
     u32 doorAction = 0;
     u32 saveFlags = save_file_get_flags();
     s16 warpDoorId = o->oBehParams >> 24;
     u32 actionArg;
 
     if (m->action == ACT_WALKING || m->action == ACT_DECELERATING) {
-        if (warpDoorId == 1 && !(saveFlags & SAVE_FLAG_UNLOCKED_UPSTAIRS_DOOR)) {
-            if (!(saveFlags & SAVE_FLAG_HAVE_KEY_2)) {
-                if (!sDisplayingDoorText) {
-                    set_mario_action(m, ACT_READING_AUTOMATIC_DIALOG,
-                                     (saveFlags & SAVE_FLAG_HAVE_KEY_1) ? DIALOG_023 : DIALOG_022);
-                }
-                sDisplayingDoorText = TRUE;
+        if (!configUnlockDoors) {
+            if (warpDoorId == 1 && !(saveFlags & SAVE_FLAG_UNLOCKED_UPSTAIRS_DOOR)) {
+                if (!(saveFlags & SAVE_FLAG_HAVE_KEY_2)) {
+                    if (!sDisplayingDoorText) {
+                        set_mario_action(m, ACT_READING_AUTOMATIC_DIALOG,
+                                        (saveFlags & SAVE_FLAG_HAVE_KEY_1) ? DIALOG_023 : DIALOG_022);
+                    }
+                    sDisplayingDoorText = TRUE;
 
-                return FALSE;
+                    return FALSE;
+                }
+
+                doorAction = ACT_UNLOCKING_KEY_DOOR;
             }
 
-            doorAction = ACT_UNLOCKING_KEY_DOOR;
-        }
+            if (warpDoorId == 2 && !(saveFlags & SAVE_FLAG_UNLOCKED_BASEMENT_DOOR)) {
+                if (!(saveFlags & SAVE_FLAG_HAVE_KEY_1)) {
+                    if (!sDisplayingDoorText) {
+                        // Moat door skip was intended confirmed
+                        set_mario_action(m, ACT_READING_AUTOMATIC_DIALOG,
+                                        (saveFlags & SAVE_FLAG_HAVE_KEY_2) ? DIALOG_023 : DIALOG_022);
+                    }
+                    sDisplayingDoorText = TRUE;
 
-        if (warpDoorId == 2 && !(saveFlags & SAVE_FLAG_UNLOCKED_BASEMENT_DOOR)) {
-            if (!(saveFlags & SAVE_FLAG_HAVE_KEY_1)) {
-                if (!sDisplayingDoorText) {
-                    // Moat door skip was intended confirmed
-                    set_mario_action(m, ACT_READING_AUTOMATIC_DIALOG,
-                                     (saveFlags & SAVE_FLAG_HAVE_KEY_2) ? DIALOG_023 : DIALOG_022);
+                    return FALSE;
                 }
-                sDisplayingDoorText = TRUE;
 
-                return FALSE;
+                doorAction = ACT_UNLOCKING_KEY_DOOR;
             }
-
-            doorAction = ACT_UNLOCKING_KEY_DOOR;
         }
 
         if (m->action == ACT_WALKING || m->action == ACT_DECELERATING) {
@@ -986,6 +998,8 @@ u32 interact_door(struct MarioState *m, UNUSED u32 interactType, struct Object *
     s16 requiredNumStars = o->oBehParams >> 24;
     s16 numStars = save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1);
 
+    if (configUnlockDoors) requiredNumStars = 0;
+
     if (m->action == ACT_WALKING || m->action == ACT_DECELERATING) {
         if (numStars >= requiredNumStars) {
             u32 actionArg = should_push_or_pull_door(m, o);
@@ -1006,7 +1020,7 @@ u32 interact_door(struct MarioState *m, UNUSED u32 interactType, struct Object *
                 enterDoorAction = ACT_ENTERING_STAR_DOOR;
             }
 
-            if (doorSaveFileFlag != 0 && !(save_file_get_flags() & doorSaveFileFlag)) {
+            if (doorSaveFileFlag != 0 && !(save_file_get_flags() & doorSaveFileFlag) && !configUnlockDoors) {
                 enterDoorAction = ACT_UNLOCKING_STAR_DOOR;
             }
 
@@ -1660,7 +1674,10 @@ u32 mario_can_talk(struct MarioState *m, u32 arg) {
 #define SIGN_RANGE 0x4000
 #endif
 
+u8 enable_dialogue = 1;
 u32 check_read_sign(struct MarioState *m, struct Object *o) {
+    if (!enable_dialogue) return FALSE;
+
     if ((m->input & READ_MASK) && mario_can_talk(m, 0) && object_facing_mario(m, o, SIGN_RANGE)) {
         s16 facingDYaw = (s16)(o->oMoveAngleYaw + 0x8000) - m->faceAngle[1];
         if (facingDYaw >= -SIGN_RANGE && facingDYaw <= SIGN_RANGE) {
@@ -1681,6 +1698,8 @@ u32 check_read_sign(struct MarioState *m, struct Object *o) {
 }
 
 u32 check_npc_talk(struct MarioState *m, struct Object *o) {
+    if (!enable_dialogue) return FALSE;
+
     if ((m->input & READ_MASK) && mario_can_talk(m, 1)) {
         s16 facingDYaw = mario_obj_angle_to_object(m, o) - m->faceAngle[1];
         if (facingDYaw >= -0x4000 && facingDYaw <= 0x4000) {
@@ -1826,10 +1845,12 @@ void mario_handle_special_floors(struct MarioState *m) {
         switch (floorType) {
             case SURFACE_DEATH_PLANE:
             case SURFACE_VERTICAL_WIND:
+                if (enable_immunity) return;
                 check_death_barrier(m);
                 break;
 
             case SURFACE_WARP:
+            if (enable_immunity) return;
                 level_trigger_warp(m, WARP_OP_WARP_FLOOR);
                 break;
 
@@ -1845,6 +1866,7 @@ void mario_handle_special_floors(struct MarioState *m) {
         if (!(m->action & ACT_FLAG_AIR) && !(m->action & ACT_FLAG_SWIMMING)) {
             switch (floorType) {
                 case SURFACE_BURNING:
+                    if (enable_immunity) return;
                     check_lava_boost(m);
                     break;
             }

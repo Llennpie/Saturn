@@ -32,6 +32,7 @@ extern "C" {
 #include "engine/level_script.h"
 #include "game/game_init.h"
 #include "src/game/envfx_snow.h"
+#include "src/game/interaction.h"
 }
 
 using namespace std;
@@ -47,8 +48,15 @@ int current_slevel_index;
 
 int current_level_sel = 0;
 void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
-    if (gCurrLevelNum == destLevel || !mario_exists)
+    if (!mario_exists)
         return;
+
+    if (destLevel == gCurrLevelNum) {
+        if (current_slevel_index < 2)
+            return;
+            
+        DynOS_Warp_ToLevel(gCurrLevelNum, gCurrAreaIndex, gCurrActNum);
+    }
 
     initiate_warp(destLevel, destArea, destWarpNode, 0);
     fade_into_special_warp(0,0);
@@ -413,6 +421,9 @@ void smachinima_imgui_update() {
             is_anim_playing = false;
             is_anim_paused = false;
 
+            if (current_slevel_index != 2) enable_shadows = true;
+            else enable_shadows = false;
+
             switch (current_slevel_index) {
                 case 0:
                     warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
@@ -444,14 +455,11 @@ void smachinima_imgui_update() {
         ImGui::Checkbox("Shadows", &enable_shadows);
         imgui_bundled_tooltip("Displays the shadows of various objects.");
         ImGui::TableNextColumn();
-        ImGui::Checkbox("Head Rotations", &enable_head_rotations);
-        imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+        ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
+        imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
         ImGui::TableNextColumn();
-        ImGui::Checkbox("Dust Particles", &enable_dust_particles);
-        imgui_bundled_tooltip("Displays dust particles when Mario moves.");
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
-        imgui_bundled_tooltip("Tilts Mario's torso when he moves; Disable for a \"beta running\" effect.");
+        ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
+        imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
         if (mario_exists && gMarioState->action != ACT_FIRST_PERSON) {
             ImGui::TableNextColumn();
             if (ImGui::Button("Sleep")) {
