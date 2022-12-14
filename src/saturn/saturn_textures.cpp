@@ -56,6 +56,8 @@ bool model_mouth_enabled;
 int current_keybind_exp;
 int current_exp_index[8];
 
+bool show_vmario_emblem;
+
 // Eye Folders, Non-Model
 
 void saturn_load_eye_folder(std::string path) {
@@ -116,8 +118,17 @@ std::string last_folder_name;
 */
 void saturn_set_eye_texture(int index) {
     if (eye_array[index].find(".png") == string::npos) {
-        // Keep trying till we get a non-folder
-        saturn_set_eye_texture(index + 1);
+        current_eye_index = -1;
+        //current_eye = "actors/mario/mario_eyes_left_unused.rgba16";
+        
+        // Attempt to select the first actual PNG
+        for (int i = 0; i < eye_array.size(); i++) {
+            if (eye_array[i].find(".png") != string::npos) {
+                saturn_set_eye_texture(i);
+                break;
+            }
+        }
+
         return;
     } else {
         current_eye_index = index;
@@ -128,7 +139,7 @@ void saturn_set_eye_texture(int index) {
 
 // NEW SYSTEM, Model
 
-string current_model_exp_tex[6];
+string current_model_exp_tex[8];
 bool using_model_eyes;
 
 /*
@@ -165,6 +176,14 @@ const void* saturn_bind_texture(const void* input) {
             texName == "actors/mario/mario_eyes_down_unused.rgba16" ||
             texName == "actors/mario/mario_eyes_dead.rgba16") {
             outputTexture = current_eye.c_str();
+            const void* output = static_cast<const void*>(outputTexture);
+            return output;
+        }
+    }
+
+    if (show_vmario_emblem) {
+        if (texName == "actors/mario/no_m.rgba16") {
+            outputTexture = string("actors/mario/mario_logo.rgba16").c_str();
             const void* output = static_cast<const void*>(outputTexture);
             return output;
         }
@@ -373,4 +392,27 @@ void saturn_load_model_data(std::string folder_name) {
             // Ignore, these are files
         }
     }
+}
+
+void saturn_copy_file(string from, string to) {
+    fs::path from_path(from);
+    string final = "" + fs::current_path().generic_string() + "/" + to + from_path.filename().generic_string();
+
+    fs::path final_path(final);
+    // Convert TXT files to GS
+    if (final_path.extension() == ".txt") {
+        final = "" + fs::current_path().generic_string() + "/" + to + from_path.stem().generic_string() + ".gs";
+    }
+
+    std::cout << from << " - " << final << std::endl;
+
+    // Skip existing files
+    if (fs::exists(final))
+        return;
+
+    fs::copy(from, final, fs::copy_options::skip_existing);
+}
+
+void saturn_delete_file(string file) {
+    remove(file.c_str());
 }

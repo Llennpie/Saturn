@@ -51,6 +51,10 @@ void saturn_load_model_data(std::string folder_name);
 void saturn_set_model_texture(int expIndex, std::string path);
 void saturn_load_expression_number(char number);
 extern int current_exp_index[8];
+void saturn_copy_file(std::string from, std::string to);
+void saturn_delete_file(std::string file);
+
+extern bool show_vmario_emblem;
 
 extern "C" {
 #endif
