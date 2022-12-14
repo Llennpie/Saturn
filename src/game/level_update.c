@@ -368,9 +368,12 @@ void set_mario_initial_action(struct MarioState *m, u32 spawnType, u32 actionArg
 
 void init_mario_after_warp(void) {
     struct ObjectWarpNode *spawnNode = area_get_warp_node(sWarpDest.nodeId);
+    if (spawnNode == NULL || spawnNode->object == NULL) { spawnNode = &gCurrentArea->warpNodes[0xFA]; }
+    if (spawnNode == NULL || spawnNode->object == NULL) { spawnNode = &gCurrentArea->warpNodes[0x00]; }
+    if (spawnNode == NULL || spawnNode->object == NULL) { return; }
     u32 marioSpawnType = get_mario_spawn_type(spawnNode->object);
 
-    if (gMarioState->action != ACT_UNINITIALIZED) {
+    if (gMarioState && gMarioState->action != ACT_UNINITIALIZED) {
         gPlayerSpawnInfos[0].startPos[0] = (s16) spawnNode->object->oPosX;
         gPlayerSpawnInfos[0].startPos[1] = (s16) spawnNode->object->oPosY;
         gPlayerSpawnInfos[0].startPos[2] = (s16) spawnNode->object->oPosZ;
@@ -395,7 +398,9 @@ void init_mario_after_warp(void) {
         gMarioState->usedObj = spawnNode->object;
     }
 
-    reset_camera(gCurrentArea->camera);
+    if (gCurrentArea) {
+        reset_camera(gCurrentArea->camera);
+    }
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
 
@@ -423,8 +428,10 @@ void init_mario_after_warp(void) {
             break;
     }
 
-    if (gCurrDemoInput == NULL) {
-        set_background_music(gCurrentArea->musicParam, gCurrentArea->musicParam2, 0);
+    if (gCurrDemoInput == NULL && gMarioState) {
+        if (gCurrentArea) {
+            set_background_music(gCurrentArea->musicParam, gCurrentArea->musicParam2, 0);
+        }
 
         if (gMarioState->flags & MARIO_METAL_CAP) {
             play_cap_music(SEQUENCE_ARGS(4, SEQ_EVENT_METAL_CAP));
@@ -1289,6 +1296,7 @@ s32 lvl_set_current_level(UNUSED s16 arg0, s32 levelNum) {
     D_8032C9E0 = 0;
     gCurrLevelNum = levelNum;
     gCurrCourseNum = gLevelToCourseNumTable[levelNum - 1];
+	if (gCurrLevelNum == LEVEL_BOB) return 0;
 	if (gCurrLevelNum == LEVEL_SA) return 0;
 
     if (gCurrDemoInput != NULL || gCurrCreditsEntry != NULL || gCurrCourseNum == COURSE_NONE) {
