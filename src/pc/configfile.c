@@ -58,6 +58,7 @@ unsigned int configMusicVolume = MAX_VOLUME;
 unsigned int configSfxVolume = MAX_VOLUME;
 unsigned int configEnvVolume = MAX_VOLUME;
 bool         configVoicesEnabled = false;
+unsigned int configAudioMode   = 0;          // 0 = stereo, 1 = mono
 
 // Keyboard mappings (VK_ values, by default keyboard/gamepad/mouse)
 unsigned int configKeyA[MAX_BINDS]          = { 0x0026,   0x1000,     0x1103     };
@@ -93,6 +94,9 @@ bool         configEditorShowTips = true;
 bool         configEditorNearClipping = false;
 unsigned int configFps60            = true;
 bool         configEditorInterpolateAnims = false;
+bool         configEditorAlwaysChroma = false;
+unsigned int configFakeStarCount    = 0;
+bool         configUnlockDoors = true;
 #ifdef BETTERCAMERA
 // BetterCamera settings
 unsigned int configCameraXSens   = 50;
@@ -128,6 +132,7 @@ static const struct ConfigOption options[] = {
     {.name = "music_volume",         .type = CONFIG_TYPE_UINT, .uintValue = &configMusicVolume},
     {.name = "sfx_volume",           .type = CONFIG_TYPE_UINT, .uintValue = &configSfxVolume},
     {.name = "env_volume",           .type = CONFIG_TYPE_UINT, .uintValue = &configEnvVolume},
+    {.name = "audio_mode",           .type = CONFIG_TYPE_UINT, .uintValue = &configAudioMode},
     {.name = "key_a",                .type = CONFIG_TYPE_BIND, .uintValue = configKeyA},
     {.name = "key_b",                .type = CONFIG_TYPE_BIND, .uintValue = configKeyB},
     {.name = "key_start",            .type = CONFIG_TYPE_BIND, .uintValue = configKeyStart},
@@ -159,6 +164,9 @@ static const struct ConfigOption options[] = {
     {.name = "editor_show_tips",     .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorShowTips},
     {.name = "editor_near_clipping", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorNearClipping},
     {.name = "editor_interpolate_anims", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorInterpolateAnims},
+    {.name = "editor_always_chroma", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAlwaysChroma},
+    {.name = "fake_star_count", .type = CONFIG_TYPE_UINT, .uintValue = &configFakeStarCount},
+    {.name = "fake_unlock_doors", .type = CONFIG_TYPE_BOOL, .uintValue = &configUnlockDoors},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
     {.name = "bettercam_analog",     .type = CONFIG_TYPE_BOOL, .boolValue = &configCameraAnalog},

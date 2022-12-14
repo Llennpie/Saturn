@@ -7,6 +7,7 @@
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
+#include "saturn/libs/imgui/imgui-knobs.h"
 #include "saturn/saturn.h"
 #include "saturn_imgui.h"
 #include <SDL2/SDL.h>
@@ -22,6 +23,7 @@ extern "C" {
 #include "pc/controller/controller_api.h"
 #include "pc/controller/controller_sdl.h"
 #include "pc/controller/controller_keyboard.h"
+#include "audio/load.h"
 }
 
 using namespace std;
@@ -128,9 +130,16 @@ void SaturnKeyBind(const char* title, unsigned int configKey[], const char* id, 
     ImGui::Text(title);
 }
 
+static char starCount[128];
+
 void ssettings_imgui_init() {
     windowWidth = configWindow.w;
     windowHeight = configWindow.h;
+
+    if (configAudioMode == 0) gSoundMode = 0;
+    if (configAudioMode == 1) gSoundMode = 3;
+
+    sprintf(starCount, "%d", configFakeStarCount);
 }
 
 void ssettings_imgui_update() {
@@ -195,12 +204,19 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("(F4) Helpful for speeding up slow in-game events. Works like Project64.");
     }
     if (ImGui::CollapsingHeader("Audio")) {
-        ImGui::Text("Volume");
-        ImGui::SliderInt("Master", (int*)&configMasterVolume, 0, MAX_VOLUME);
-        ImGui::SliderInt("SFX", (int*)&configSfxVolume, 0, MAX_VOLUME);
-        ImGui::SliderInt("Music", (int*)&configMusicVolume, 0, MAX_VOLUME);
-        ImGui::SliderInt("Fanfares", (int*)&configEnvVolume, 0, MAX_VOLUME);
-        ImGui::Checkbox("Enable Voices", &configVoicesEnabled);
+        ImGuiKnobs::KnobInt("Master", (int*)&configMasterVolume, 0, MAX_VOLUME, 0.f, "%i dB", ImGuiKnobVariant_Tick, 0.f, ImGuiKnobFlags_DragHorizontal); ImGui::SameLine();
+        ImGuiKnobs::KnobInt("SFX", (int*)&configSfxVolume, 0, MAX_VOLUME, 0.f, "%i dB", ImGuiKnobVariant_Tick, 0.f, ImGuiKnobFlags_DragHorizontal); ImGui::SameLine();
+        ImGuiKnobs::KnobInt("Music", (int*)&configMusicVolume, 0, MAX_VOLUME, 0.f, "%i dB", ImGuiKnobVariant_Tick, 0.f, ImGuiKnobFlags_DragHorizontal); ImGui::SameLine();
+        ImGuiKnobs::KnobInt("Fanfares", (int*)&configEnvVolume, 0, MAX_VOLUME, 0.f, "%i dB", ImGuiKnobVariant_Tick, 0.f, ImGuiKnobFlags_DragHorizontal);
+
+        ImGui::Checkbox("Enable voices", &configVoicesEnabled);
+        imgui_bundled_tooltip("If disabled, Mario's voice clips will be silenced; Preferable for custom character models.");
+        
+        const char* audio_modes[] = { "Stereo", "Mono" };
+        if (ImGui::Combo("Audio Mode", (int*)&configAudioMode, audio_modes, IM_ARRAYSIZE(audio_modes))) {
+            if (configAudioMode == 0) gSoundMode = 0;
+            if (configAudioMode == 1) gSoundMode = 3;
+        }
     }
     if (ImGui::CollapsingHeader("Controls")) {
         if (ImGui::BeginTabBar("###controls_tabbar", ImGuiTabBarFlags_None)) {
@@ -252,9 +268,14 @@ void ssettings_imgui_update() {
         ImGui::Checkbox("Infinite Health", &Cheats.GodMode);
         ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
         imgui_bundled_tooltip("Just like '07! Hold L to in the air to moon jump.");
-        ImGui::Checkbox("Exit Anywhere", &Cheats.ExitAnywhere);
-        imgui_bundled_tooltip("Allows the level to be exited from any state.");
-        ImGui::Checkbox("Skip Intro", &configSkipIntro);
+
+        if (ImGui::InputInt("Stars###star_count", (int*)&configFakeStarCount)) {
+            gMarioState->numStars = configFakeStarCount;
+        } ImGui::SameLine(); imgui_bundled_help_marker("The game-logic star counter; Controls unlockable doors, HUD, cutscenes, etc.");
+        ImGui::Checkbox("Unlock Doors", &configUnlockDoors);
+        imgui_bundled_tooltip("Unlocks all areas in the castle, regardless of save file.");
+        
+        ImGui::Separator();
         ImGui::Dummy(ImVec2(0, 5));
     }
 #ifdef DISCORDRPC
@@ -268,9 +289,11 @@ void ssettings_imgui_update() {
     imgui_bundled_tooltip("Displays tooltips and help markers for advanced features; Helpful for new users.");
     ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
     imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
-    ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
-    imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
-    //if (configFps60) {
+    //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
+    //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
+    ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);
+    imgui_bundled_tooltip("Allows the usage of CHROMA KEY features outside of the paired stage; Useful only for models and custom-compiled levels.");
+    //if (configFps60) { 
     //    ImGui::Checkbox("Interpolate custom animations", &configEditorInterpolateAnims);
     //    imgui_bundled_tooltip("If enabled, custom animations will run in 60 FPS; May cause some animations to stutter.");
     //}

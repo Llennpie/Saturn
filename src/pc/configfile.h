@@ -26,6 +26,7 @@ extern unsigned int configMasterVolume;
 extern unsigned int configMusicVolume;
 extern unsigned int configSfxVolume;
 extern unsigned int configEnvVolume;
+extern unsigned int configAudioMode;
 //extern bool         configVoicesEnabled;
 extern unsigned int configKeyA[];
 extern unsigned int configKeyB[];
@@ -60,6 +61,9 @@ extern bool         configEditorNearClipping;
 extern bool         configEditorShowTips;
 extern unsigned int configFps60;
 extern bool         configEditorInterpolateAnims;
+extern unsigned int configFakeStarCount;
+extern bool         configUnlockDoors;
+extern bool         configEditorAlwaysChroma;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
 extern unsigned int configCameraYSens;

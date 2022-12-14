@@ -12,6 +12,7 @@
 #include "thread6.h"
 #include "macros.h"
 #include "pc/ini.h"
+#include "pc/configfile.h"
 
 #define MENU_DATA_MAGIC 0x4849
 #define SAVE_FILE_MAGIC 0x4441
@@ -571,7 +572,7 @@ s32 save_file_get_course_star_count(s32 fileIndex, s32 courseIndex) {
 }
 
 s32 save_file_get_total_star_count(s32 fileIndex, s32 minCourse, s32 maxCourse) {
-    s32 count = 0;
+    /*s32 count = 0;
 
     // Get standard course star count.
     for (; minCourse <= maxCourse; minCourse++) {
@@ -579,7 +580,9 @@ s32 save_file_get_total_star_count(s32 fileIndex, s32 minCourse, s32 maxCourse) 
     }
 
     // Add castle secret star count.
-    return save_file_get_course_star_count(fileIndex, -1) + count;
+    return save_file_get_course_star_count(fileIndex, -1) + count;*/
+
+    return configFakeStarCount;
 }
 
 void save_file_set_flags(u32 flags) {
