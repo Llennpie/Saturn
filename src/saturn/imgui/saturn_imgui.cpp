@@ -180,7 +180,7 @@ void saturn_imgui_update() {
         if (ImGui::MenuItem("Settings"))
             if (currentMenu != 4) { currentMenu = 4; }
             else {currentMenu = -1; }
-        if (gCurrLevelNum == LEVEL_SA) {
+        if (gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma) {
             if (ImGui::MenuItem("CHROMA KEY"))
                 if (currentMenu != 5) { currentMenu = 5; }
                 else {currentMenu = -1; }
@@ -237,7 +237,7 @@ void saturn_imgui_update() {
         }
 
         // Chroma Key
-        if (currentMenu == 5 && gCurrLevelNum == LEVEL_SA && mario_exists) {
+        if (currentMenu == 5 && (gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma) && mario_exists) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGui::Begin("Chroma Key", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
             ImGui::SetWindowPos(ImVec2(10, 30));

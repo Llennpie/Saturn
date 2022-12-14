@@ -228,7 +228,7 @@ void set_logo(void) {
     discordRichPresence.smallImageText = "Legacy";
 #endif
     discordRichPresence.largeImageText = "https://github.com/Llennpie/Saturn";
-    if (gCurrLevelNum == LEVEL_SA) {
+    if (gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma) {
         discordRichPresence.smallImageKey = "green";
     } else {
         discordRichPresence.smallImageKey = "circle-512";

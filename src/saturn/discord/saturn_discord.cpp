@@ -87,7 +87,7 @@ void sdiscord_update() {
     strcpy(gCurActivity.details, saturn_get_stage_name(gCurrLevelNum));
 
     strcpy(gCurActivity.assets.large_image, "saturn-legacy-icon1");
-    if (gCurrLevelNum == LEVEL_SA) strcpy(gCurActivity.assets.small_image, "green");
+    if (gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma) strcpy(gCurActivity.assets.small_image, "green");
     else strcpy(gCurActivity.assets.small_image, "circle-512");
 #ifdef GIT_HASH
     strcpy(gCurActivity.assets.small_text, GIT_BRANCH " " GIT_HASH);
