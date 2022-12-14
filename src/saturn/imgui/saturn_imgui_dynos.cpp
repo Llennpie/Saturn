@@ -1,13 +1,17 @@
 #include "saturn_imgui_dynos.h"
 
+#include "saturn/libs/portable-file-dialogs.h"
+
 #include <algorithm>
 #include <string>
+#include <cstring>
 #include <iostream>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
+#include "saturn/libs/imgui/imgui-knobs.h"
 #include "saturn/saturn.h"
 #include "saturn/saturn_colors.h"
 #include "saturn/saturn_textures.h"
@@ -72,11 +76,14 @@ bool any_packs_selected;
 int windowListSize = 325;
 int cc_model_id;
 int current_cc_to_model_index;
+string ui_model_gameshark;
 
 bool using_custom_eyes;
 
 static char searchTerm[128];
 static int current_mcc_id = 0;
+
+float this_face_angle;
 
 /*
 Sets Mario's global colors from the CC editor color values.
@@ -258,6 +265,7 @@ void sdynos_imgui_menu() {
                     imgui_bundled_tooltip(("/dynos/colorcodes/" + cc_name + ".gs").c_str());
                     if (ImGui::SmallButton("Delete File")) {
                         delete_cc_file(cc_name);
+                        current_cc_id = -1;
                         ImGui::CloseCurrentPopup();
                     } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
                     ImGui::Separator();
@@ -271,6 +279,18 @@ void sdynos_imgui_menu() {
             }
         }
         ImGui::EndChild();
+        if (ImGui::Button("Add CC File...###add_v_cc")) {
+            auto selection3 = pfd::open_file("Select a file", ".",
+                        { "Color Code Files", "*.gs *.txt",
+                            "All Files", "*" },
+                        pfd::opt::multiselect).result();
+
+            // Do something with selection
+            for (auto const &filename3 : selection3) {
+                saturn_copy_file(filename3, "dynos/colorcodes/");
+                saturn_load_cc_directory();
+            }
+        }
 
         ImGui::Text("Model Packs");
         ImGui::SameLine(); imgui_bundled_help_marker(
@@ -336,13 +356,12 @@ void sdynos_imgui_menu() {
 
                     current_mcc_id = -1;
 
-                    if (configEditorAutoModelCc) {
+                    if (is_default_cc(ui_gameshark)) {
                         get_ccs_from_model(sDynosPacks[i]->mPath);
                         if (model_cc_array.size() > 0) {
                             set_cc_from_model(sDynosPacks[i]->mPath + "/colorcodes/" + model_cc_array[0].substr(0, model_cc_array[0].size()));
                             set_editor_from_global_cc("Sample");
-                            //current_mcc_id = 0;
-                            //current_cc_id = -1;
+                            ui_model_gameshark = ui_gameshark;
                         }
                     }
 
@@ -354,19 +373,23 @@ void sdynos_imgui_menu() {
 
                     any_packs_selected = one_pack_selectable;
                     if (!any_packs_selected) {
+
+                        if (ui_model_gameshark == ui_gameshark) {
+                            ui_model_gameshark = "";
+                            current_cc_id = 0;
+                            load_cc_file((char*)cc_array[current_cc_id].c_str());
+                            set_editor_from_global_cc("Sample");
+                        }
+
                         ModelData blank;
                         current_model_data = blank;
                         using_model_eyes = false;
                         cc_model_support = true;
                         cc_spark_support = false;
-                        if (configEditorAutoModelCc) {
-                            load_cc_file((char*)cc_array[current_cc_id].c_str());
-                            set_editor_from_global_cc(cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3));
-                        }
                     }
                 }
                 if (ImGui::BeginPopupContextItem()) {
-                    ImGui::Text("%s", label.c_str());
+                    ImGui::Text("%s/", label.c_str());
                     imgui_bundled_tooltip(("/dynos/packs/" + label).c_str());
 
                     // Model CCs
@@ -403,6 +426,18 @@ void sdynos_imgui_menu() {
                             }
                         }
                         ImGui::EndChild();
+                        if (ImGui::Button("Add CC File...###add_m_cc")) {
+                            auto selection4 = pfd::open_file("Select a file", ".",
+                                        { "Color Code Files", "*.gs *.txt",
+                                            "All Files", "*" },
+                                        pfd::opt::multiselect).result();
+
+                            // Do something with selection
+                            for (auto const &filename4 : selection4) {
+                                saturn_copy_file(filename4, "dynos/packs/" + label + "/colorcodes/");
+                                get_ccs_from_model(sDynosPacks[i]->mPath);
+                            }
+                        }
                     }
                     ImGui::Separator();
                     ImGui::TextDisabled("%i model pack(s)", sDynosPacks.Count());
@@ -481,13 +516,56 @@ void sdynos_imgui_menu() {
 
                 ImGui::EndTabItem();
             }
-
             ImGui::EndTabBar();
         }
-
         ImGui::EndChild();
-        ImGui::PopStyleVar();
 
+        if (ImGui::BeginTable("misc_table", 2)) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Checkbox("Head Rotations", &enable_head_rotations);
+            imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+            ImGui::Checkbox("Dust Particles", &enable_dust_particles);
+            imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+            ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
+            imgui_bundled_tooltip("Tilts Mario's torso when he moves; Disable for a \"beta running\" effect.");
+
+            ImGui::Dummy(ImVec2(0, 5));
+
+            if (!any_packs_selected) {
+                ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
+                imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
+            }
+
+            ImGui::TableSetColumnIndex(1);
+            if (gMarioState) {
+                if (ImGuiKnobs::Knob("Angle", &this_face_angle, -180.f, 180.f, 0.f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
+                    gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
+                } else {
+                    this_face_angle = (float)gMarioState->faceAngle[1] / 182.04;
+                }
+            }
+
+            ImGui::Checkbox("Spin###spin_angle", &is_spinning);
+            if (is_spinning) {
+                ImGui::SliderFloat("Speed###spin,speed", &spin_mult, -2.f, 2.f, "%.1f");
+            }
+
+            if (this_face_angle > 180) this_face_angle = -180;
+            if (this_face_angle < -180) this_face_angle = 180;
+
+            ImGui::EndTable();
+        }
+
+        /*ImGui::Checkbox("Head Rotations", &enable_head_rotations);
+        imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+        ImGui::Checkbox("Dust Particles", &enable_dust_particles);
+        imgui_bundled_tooltip("Displays dust particles when Mario moves.");
+        ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
+        imgui_bundled_tooltip("Tilts Mario's torso when he moves; Disable for a \"beta running\" effect.");
+        */
+
+        ImGui::PopStyleVar();
         ImGui::EndMenu();
     }
 
@@ -543,6 +621,19 @@ void sdynos_imgui_menu() {
 
                     // Refresh
                     if (ImGui::BeginPopupContextItem()) {
+                        if (entry_name.find(".png") != string::npos) {
+                            ImGui::Text("%s", entry_name.c_str());
+                            imgui_bundled_tooltip((current_eye_dir_path + entry_name).c_str());
+                            if (eye_array.size() > 1) {
+                                if (ImGui::SmallButton("Delete File")) {
+                                    saturn_delete_file(current_eye_dir_path + entry_name);
+                                    saturn_load_eye_folder(current_eye_dir_path);
+                                    ImGui::CloseCurrentPopup();
+                                } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                            }
+                            ImGui::Separator();
+                        }
+                        ImGui::TextDisabled("%i eye texture(s)", eye_array.size());
                         if (ImGui::Button("Refresh###refresh_v_eyes")) {
                             saturn_load_eye_folder(current_eye_dir_path);
                             ImGui::CloseCurrentPopup();
@@ -551,6 +642,18 @@ void sdynos_imgui_menu() {
                     }
                 }
                 ImGui::EndChild();
+                if (ImGui::Button("Add Eye...###add_v_eye")) {
+                    auto selection = pfd::open_file("Select a file", ".",
+                                { "PNG Textures", "*.png ",
+                                  "All Files", "*" },
+                                pfd::opt::multiselect).result();
+
+                    // Do something with selection
+                    for (auto const &filename : selection) {
+                        saturn_copy_file(filename, current_eye_dir_path);
+                        saturn_load_eye_folder(current_eye_dir_path);
+                    }
+                }
             } else {
                 ImGui::Text("No eye textures found.\nPlace custom eye PNG textures\nin dynos/eyes/.");
             }
@@ -594,9 +697,24 @@ void sdynos_imgui_menu() {
 
                     // Refresh
                     if (ImGui::BeginPopupContextItem()) {
+                        ImGui::Text("%s", entry_name.c_str());
+                        imgui_bundled_tooltip(("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name).c_str());
+                        if (expression.textures.size() > 1) {
+                            if (ImGui::SmallButton("Delete File")) {
+                                saturn_delete_file("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name);
+                                saturn_load_model_data(current_folder_name);
+                                for (int i = 0; i < 8; i++) {
+                                    current_exp_index[i] = 0;
+                                }
+                                ImGui::CloseCurrentPopup();
+                            } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                        }
+                        ImGui::Separator();
+
+                        ImGui::TextDisabled("%i eye texture(s)", expression.textures.size());
                         if (ImGui::Button("Refresh###refresh_m_eyes")) {
                             saturn_load_model_data(current_folder_name);
-                            for (int i = 0; i < 6; i++) {
+                            for (int i = 0; i < 8; i++) {
                                 current_exp_index[i] = 0;
                             }
                             ImGui::CloseCurrentPopup();
@@ -605,6 +723,18 @@ void sdynos_imgui_menu() {
                     }
                 }
                 ImGui::EndChild();
+                if (ImGui::Button("Add Eye...###add_m_eye")) {
+                    auto selection1 = pfd::open_file("Select a file", ".",
+                                { "PNG Textures", "*.png ",
+                                  "All Files", "*" },
+                                pfd::opt::multiselect).result();
+
+                    // Do something with selection
+                    for (auto const &filename1 : selection1) {
+                        saturn_copy_file(filename1, "dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/");
+                        saturn_load_model_data(current_folder_name);
+                    }
+                }
 
                 if (current_model_data.eye_support)
                     ImGui::Separator();
@@ -642,7 +772,6 @@ void sdynos_imgui_menu() {
                         string label_name = "###menu_" + expression.name;
                         const char* preview_label_name = (expression.name + " >> " + expression.textures[current_exp_index[i]]).c_str();
                         if (ImGui::BeginCombo(label_name.c_str(), preview_label_name, ImGuiComboFlags_None)) {
-                            gfx_precache_textures();
                             for (int n = 0; n < expression.textures.size(); n++) {
                                 bool is_selected = (current_exp_index[i] == n);
                                 string entry_name = expression.textures[n];
@@ -652,6 +781,23 @@ void sdynos_imgui_menu() {
                                     current_exp_index[i] = n;
                                     saturn_set_model_texture(i, expression.path + expression.textures[n]);
                                 }
+
+                                // Add / Delete
+                                if (ImGui::BeginPopupContextItem()) {
+                                    ImGui::Text("%s", entry_name.c_str());
+                                    imgui_bundled_tooltip(("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name).c_str());
+                                    if (expression.textures.size() > 1) {
+                                        if (ImGui::SmallButton("Delete File")) {
+                                            saturn_delete_file("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name);
+                                            saturn_load_model_data(current_folder_name);
+                                            for (int i = 0; i < 8; i++) {
+                                                current_exp_index[i] = 0;
+                                            }
+                                            ImGui::CloseCurrentPopup();
+                                        } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                                    }
+                                    ImGui::EndPopup();
+                                }
                             }
                             ImGui::EndCombo();
                         }
@@ -659,9 +805,24 @@ void sdynos_imgui_menu() {
 
                     // Refresh
                     if (ImGui::BeginPopupContextItem()) {
+                        if (ImGui::Button("Add Expression...###add_m_exp")) {
+                            auto selection1 = pfd::open_file("Select a file", ".",
+                                        { "PNG Textures", "*.png ",
+                                        "All Files", "*" },
+                                        pfd::opt::multiselect).result();
+
+                            // Do something with selection
+                            for (auto const &filename1 : selection1) {
+                                saturn_copy_file(filename1, "dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/");
+                                saturn_load_model_data(current_folder_name);
+                                ImGui::CloseCurrentPopup();
+                            }
+                        }
+                        ImGui::Separator();
+                        ImGui::TextDisabled("%i %s expression(s)", expression.textures.size(), expression.name.c_str());
                         if (ImGui::Button("Refresh###refresh_m_exp")) {
                             saturn_load_model_data(current_folder_name);
-                            for (int i = 0; i < 6; i++) {
+                            for (int i = 0; i < 8; i++) {
                                 current_exp_index[i] = 0;
                             }
                             ImGui::CloseCurrentPopup();
