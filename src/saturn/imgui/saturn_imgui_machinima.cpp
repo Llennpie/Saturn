@@ -82,16 +82,11 @@ void smachinima_imgui_controls(SDL_Event * event) {
             }
 
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]) {
-                if (event->key.keysym.sym == SDLK_0 && accept_text_input) saturn_load_expression_number('0');
-                if (event->key.keysym.sym == SDLK_1 && accept_text_input) saturn_load_expression_number('1');
-                if (event->key.keysym.sym == SDLK_2 && accept_text_input) saturn_load_expression_number('2');
-                if (event->key.keysym.sym == SDLK_3 && accept_text_input) saturn_load_expression_number('3');
-                if (event->key.keysym.sym == SDLK_4 && accept_text_input) saturn_load_expression_number('4');
-                if (event->key.keysym.sym == SDLK_5 && accept_text_input) saturn_load_expression_number('5');
-                if (event->key.keysym.sym == SDLK_6 && accept_text_input) saturn_load_expression_number('6');
-                if (event->key.keysym.sym == SDLK_7 && accept_text_input) saturn_load_expression_number('7');
-                if (event->key.keysym.sym == SDLK_8 && accept_text_input) saturn_load_expression_number('8');
-                if (event->key.keysym.sym == SDLK_9 && accept_text_input) saturn_load_expression_number('9');
+                if (accept_text_input) {
+                    if(event->key.keysym.sym >= SDLK_0 && event->key.keysym.sym <= SDLK_9) {
+                        saturn_load_expression_number(event->key.keysym.sym);
+                    }
+                }
             }
 
         case SDL_MOUSEMOTION:
@@ -151,30 +146,52 @@ void smachinima_imgui_popout() {
     }
 
     // Playing
+    float inbetween_time;
+    float size_up;
+    int thisCycleFrame;
+
     if (mcamera_playing) {
         currentFrame = (uint32_t)(mcam_timer / 10);
 
         auto it1 = std::find(mcamera_keys.begin(), mcamera_keys.end(), currentFrame);
         if (it1 != mcamera_keys.end()) {
-            int thisCycleFrame = (it1 - mcamera_keys.begin());
-            if (mcamera_k_pos_x.size() - 1 == thisCycleFrame) {
+            // on keyframe
+            // int thisCycleFrame = (it1 - mcamera_keys.begin());
+            /*if (mcamera_k_pos_x.size() - 1 == thisCycleFrame) {
                 mcamera_playing = false;
             } else {
-                int this_length = mcamera_keys.at(thisCycleFrame + 1) - currentFrame;
-                float size_up = mcamera_k_pos_x.at(thisCycleFrame + 1) - mcamera_k_pos_x.at(thisCycleFrame);
+                inbetween_time = mcamera_keys.at(thisCycleFrame);
+                size_up = mcamera_k_pos_x.at(thisCycleFrame + 1) - mcamera_k_pos_x.at(thisCycleFrame);
                 increaseVal = size_up / this_length;
                 x_target = mcamera_k_pos_x.at(thisCycleFrame + 1);
-                newVal = mcamera_k_pos_x.at(thisCycleFrame);
+                newVal = mcamera_k_pos_x.at(thisCycleFrame);*/
 
                 //std::cout << this_length << std::endl;
                 //marioScaleSizeX = approach_f32_asymptotic(marioScaleSizeX, mcamera_k_pos_x.at(thisCycleFrame + 1), increaseVal / 10);
 
                 //ImGui::Text("%f", increaseVal);
+            //}
+        }
+        else {
+            // between keyframes
+            thisCycleFrame = (it1 - mcamera_keys.begin());
+
+            if (mcamera_k_pos_x.size() - 1 == thisCycleFrame) {
+                mcamera_playing = false;
+            } else {
+                inbetween_time = mcamera_keys.at(thisCycleFrame + 1) - currentFrame;
+                size_up = mcamera_k_pos_x.at(thisCycleFrame + 1) - mcamera_k_pos_x.at(thisCycleFrame);
+                increaseVal = size_up / inbetween_time;
+                x_target = mcamera_k_pos_x.at(thisCycleFrame + 1);
+                newVal = mcamera_k_pos_x.at(thisCycleFrame);
             }
         }
         newVal += increaseVal;
         marioScaleSizeX = approach_f32_asymptotic(marioScaleSizeX, x_target, newVal / 10);
-        ImGui::Text("%f", newVal);
+        ImGui::Text("%i", thisCycleFrame);
+        ImGui::Text("difference: %d", inbetween_time);
+        ImGui::Text("size_up: %f", size_up);
+
     }
 
     // UI Controls
@@ -186,16 +203,7 @@ void smachinima_imgui_popout() {
                 int key_index = it - mcamera_keys.begin();
 
                 if (ImGui::Button("Delete Keyframe###mcamera_d_frame")) {
-                    key_index = 0;
-                    currentFrame = 0;
-                    mcamera_keys.clear();
-                    mcamera_keys.push_back(0);
-                    mcamera_k_pos_x.clear();
-                    //mcamera_k_pos_y.clear();
-                    //mcamera_k_pos_z.clear();
-                    mcamera_k_pos_x.push_back(0.f);
-                    //mcamera_k_pos_y.push_back(gLakituState.curPos[1]);
-                    //mcamera_k_pos_z.push_back(gLakituState.curPos[2]);
+                    mcamera_keys.erase(mcamera_keys.begin() + key_index);
                 } ImGui::SameLine(); ImGui::Text("at %i", (int)key_index);
 
                 // Show keyframe data
@@ -230,11 +238,10 @@ void smachinima_imgui_update() {
         imgui_bundled_tooltip("Controls the speed of the machinima camera while enabled. Default is 1.");
     }
 
-    /*ImGui::SameLine(); if (ImGui::Button("K###mcamera_keybtn")) {
+    ImGui::SameLine(); if (ImGui::Button("K###mcamera_keybtn")) {
         mcamera_is_keyframe = !mcamera_is_keyframe;
     }
     if (mcamera_is_keyframe) smachinima_imgui_popout();
-    */
 
     ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
     imgui_bundled_tooltip("Controls the FOV of the in-game camera. Default is 50.\nKeybind -> N/M");
