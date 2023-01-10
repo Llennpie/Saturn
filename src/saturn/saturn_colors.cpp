@@ -27,100 +27,32 @@ using namespace std;
 #include <fstream>
 #include <assert.h>
 #include <stdlib.h>
+#include <array>
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-unsigned int defaultColorHatRLight = 255;
-unsigned int defaultColorHatRDark = 127;
-unsigned int defaultColorHatGLight = 0;
-unsigned int defaultColorHatGDark = 0;
-unsigned int defaultColorHatBLight = 0;
-unsigned int defaultColorHatBDark = 0;
+// arrays are ordered like this: [{RLight, RDark}, {GLight, GDark}, {BLight, BDark}]
+// NOTE: This will only work with C++ standards above C++14!
+// There are most likely ways to further minimize repetition and overall complexity,
+// However i will not be doing that here
 
-unsigned int defaultColorOverallsRLight = 0;
-unsigned int defaultColorOverallsRDark = 0;
-unsigned int defaultColorOverallsGLight = 0;
-unsigned int defaultColorOverallsGDark = 0;
-unsigned int defaultColorOverallsBLight = 255;
-unsigned int defaultColorOverallsBDark = 127;
-
-unsigned int defaultColorGlovesRLight = 255;
-unsigned int defaultColorGlovesRDark = 127;
-unsigned int defaultColorGlovesGLight = 255;
-unsigned int defaultColorGlovesGDark = 127;
-unsigned int defaultColorGlovesBLight = 255;
-unsigned int defaultColorGlovesBDark = 127;
-
-unsigned int defaultColorShoesRLight = 114;
-unsigned int defaultColorShoesRDark = 57;
-unsigned int defaultColorShoesGLight = 28;
-unsigned int defaultColorShoesGDark = 14;
-unsigned int defaultColorShoesBLight = 14;
-unsigned int defaultColorShoesBDark = 7;
-
-unsigned int defaultColorSkinRLight = 254;
-unsigned int defaultColorSkinRDark = 127;
-unsigned int defaultColorSkinGLight = 193;
-unsigned int defaultColorSkinGDark = 96;
-unsigned int defaultColorSkinBLight = 121;
-unsigned int defaultColorSkinBDark = 60;
-
-unsigned int defaultColorHairRLight = 115;
-unsigned int defaultColorHairRDark = 57;
-unsigned int defaultColorHairGLight = 6;
-unsigned int defaultColorHairGDark = 3;
-unsigned int defaultColorHairBLight = 0;
-unsigned int defaultColorHairBDark = 0;
+// Default
+std::array<std::array<unsigned int, 2>, 3> defaultColorHat {{255, 127}, {0, 0}, {0, 0}};
+std::array<std::array<unsigned int, 2>, 3> defaultColorOveralls {{0, 0}, {0, 0}, {255, 127}};
+std::array<std::array<unsigned int, 2>, 3> defaultColorGloves {{255, 127}, {255, 127}, {255, 127}};
+std::array<std::array<unsigned int, 2>, 3> defaultColorShoes {{114, 57}, {28, 14}, {14, 7}};
+std::array<std::array<unsigned int, 2>, 3> defaultColorSkin {{254, 127}, {193, 96}, {121, 60}};
+std::array<std::array<unsigned int, 2>, 3> defaultColorHair {{115, 57}, {6, 3}, {0, 0}};
 
 // CometSPARK
-unsigned int sparkColorShirtRLight = 255;
-unsigned int sparkColorShirtRDark = 127;
-unsigned int sparkColorShirtGLight = 255;
-unsigned int sparkColorShirtGDark = 127;
-unsigned int sparkColorShirtBLight = 0;
-unsigned int sparkColorShirtBDark = 0;
+std::array<std::array<unsigned int, 2>, 3> sparkColorShirt {{255, 127}, {255, 127}, {0, 0}};
+std::array<std::array<unsigned int, 2>, 3> sparkColorShoulders {{0, 0}, {255 127}, {255, 127}};
+std::array<std::array<unsigned int, 2>, 3> sparkColorArms {{0, 0}, {255, 127}, {127, 64}};
+std::array<std::array<unsigned int, 2>, 3> sparkColorOverallsBottom {{255, 127}, {0, 0}, {255, 127}}; 
+std::array<std::array<unsigned int, 2>, 3> sparkColorLegTop {{255, 127}, {0, 0}, {127, 64}};
+std::array<std::array<unsigned int, 2>, 3> sparkColorLegBottom {{127, 64}, {0, 0}, {255, 127}};
 
-unsigned int sparkColorShouldersRLight = 0;
-unsigned int sparkColorShouldersRDark = 0;
-unsigned int sparkColorShouldersGLight = 255;
-unsigned int sparkColorShouldersGDark = 127;
-unsigned int sparkColorShouldersBLight = 255;
-unsigned int sparkColorShouldersBDark = 127;
-
-unsigned int sparkColorArmsRLight = 0;
-unsigned int sparkColorArmsRDark = 0;
-unsigned int sparkColorArmsGLight = 255;
-unsigned int sparkColorArmsGDark = 127;
-unsigned int sparkColorArmsBLight = 127;
-unsigned int sparkColorArmsBDark = 64;
-
-unsigned int sparkColorOverallsBottomRLight = 255;
-unsigned int sparkColorOverallsBottomRDark = 127;
-unsigned int sparkColorOverallsBottomGLight = 0;
-unsigned int sparkColorOverallsBottomGDark = 0;
-unsigned int sparkColorOverallsBottomBLight = 255;
-unsigned int sparkColorOverallsBottomBDark = 127;
-
-unsigned int sparkColorLegTopRLight = 255;
-unsigned int sparkColorLegTopRDark = 127;
-unsigned int sparkColorLegTopGLight = 0;
-unsigned int sparkColorLegTopGDark = 0;
-unsigned int sparkColorLegTopBLight = 127;
-unsigned int sparkColorLegTopBDark = 64;
-
-unsigned int sparkColorLegBottomRLight = 127;
-unsigned int sparkColorLegBottomRDark = 64;
-unsigned int sparkColorLegBottomGLight = 0;
-unsigned int sparkColorLegBottomGDark = 0;
-unsigned int sparkColorLegBottomBLight = 255;
-unsigned int sparkColorLegBottomBDark = 127;
-
-unsigned int chromaColorRLight = 0;
-unsigned int chromaColorRDark = 0;
-unsigned int chromaColorGLight = 255;
-unsigned int chromaColorGDark = 127;
-unsigned int chromaColorBLight = 0;
-unsigned int chromaColorBDark = 0;
+std::array<std::array<unsigned int, 2>, 3> chromaColor {{0, 0}, {255, 127}, {0, 0}};
 
 // Color Codes
 
@@ -135,48 +67,44 @@ bool modelCcLoaded;
 std::vector<string> model_cc_array;
 string modelColorCodeDir;
 
+std::string formatColumn(std::array<std::array<unsigned int, 2>, 3> &colorBodyPart, int shade) {
+    char column[64];
+    ImFormatString(column, IM_ARRAYSIZE(column), "%02X%02X%02X"
+            , ImClamp(colorBodyPart[0][shade], 0, 255)
+            , ImClamp(colorBodyPart[1][shade], 0, 255)
+            , ImClamp(colorBodyPart[2][shade], 0, 255));
+    std::string col = column;
+
+    return col;
+} // this should help remove a lot of the repetition,
+  // however it's still very repetitive and should be worked on further
+  // shade can either be 0 or 1, 0 for light, 1 for dark
+
 /*
     The currently active GameShark code in string format.
 */
 std::string global_gs_code() {
     std::string gameshark;
 
-    char col1char[64];
-    ImFormatString(col1char, IM_ARRAYSIZE(col1char), "%02X%02X%02X", ImClamp((int)defaultColorHatRLight, 0, 255), ImClamp((int)defaultColorHatGLight, 0, 255), ImClamp((int)defaultColorHatBLight, 0, 255));
-    std::string col1 = col1char;
-    char col2char[64];
-    ImFormatString(col2char, IM_ARRAYSIZE(col2char), "%02X%02X%02X", ImClamp((int)defaultColorHatRDark, 0, 255), ImClamp((int)defaultColorHatGDark, 0, 255), ImClamp((int)defaultColorHatBDark, 0, 255));
-    std::string col2 = col2char;
-    char col3char[64];
-    ImFormatString(col3char, IM_ARRAYSIZE(col3char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRLight, 0, 255), ImClamp((int)defaultColorOverallsGLight, 0, 255), ImClamp((int)defaultColorOverallsBLight, 0, 255));
-    std::string col3 = col3char;
-    char col4char[64];
-    ImFormatString(col4char, IM_ARRAYSIZE(col4char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRDark, 0, 255), ImClamp((int)defaultColorOverallsGDark, 0, 255), ImClamp((int)defaultColorOverallsBDark, 0, 255));
-    std::string col4 = col4char;
-    char col5char[64];
-    ImFormatString(col5char, IM_ARRAYSIZE(col5char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRLight, 0, 255), ImClamp((int)defaultColorGlovesGLight, 0, 255), ImClamp((int)defaultColorGlovesBLight, 0, 255));
-    std::string col5 = col5char;
-    char col6char[64];
-    ImFormatString(col6char, IM_ARRAYSIZE(col6char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRDark, 0, 255), ImClamp((int)defaultColorGlovesGDark, 0, 255), ImClamp((int)defaultColorGlovesBDark, 0, 255));
-    std::string col6 = col6char;
-    char col7char[64];
-    ImFormatString(col7char, IM_ARRAYSIZE(col7char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRLight, 0, 255), ImClamp((int)defaultColorShoesGLight, 0, 255), ImClamp((int)defaultColorShoesBLight, 0, 255));
-    std::string col7 = col7char;
-    char col8char[64];
-    ImFormatString(col8char, IM_ARRAYSIZE(col8char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRDark, 0, 255), ImClamp((int)defaultColorShoesGDark, 0, 255), ImClamp((int)defaultColorShoesBDark, 0, 255));
-    std::string col8 = col8char;
-    char col9char[64];
-    ImFormatString(col9char, IM_ARRAYSIZE(col9char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRLight, 0, 255), ImClamp((int)defaultColorSkinGLight, 0, 255), ImClamp((int)defaultColorSkinBLight, 0, 255));
-    std::string col9 = col9char;
-    char col10char[64];
-    ImFormatString(col10char, IM_ARRAYSIZE(col10char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRDark, 0, 255), ImClamp((int)defaultColorSkinGDark, 0, 255), ImClamp((int)defaultColorSkinBDark, 0, 255));
-    std::string col10 = col10char;
-    char col11char[64];
-    ImFormatString(col11char, IM_ARRAYSIZE(col11char), "%02X%02X%02X", ImClamp((int)defaultColorHairRLight, 0, 255), ImClamp((int)defaultColorHairGLight, 0, 255), ImClamp((int)defaultColorHairBLight, 0, 255));
-    std::string col11 = col11char;
-    char col12char[64];
-    ImFormatString(col12char, IM_ARRAYSIZE(col12char), "%02X%02X%02X", ImClamp((int)defaultColorHairRDark, 0, 255), ImClamp((int)defaultColorHairGDark, 0, 255), ImClamp((int)defaultColorHairBDark, 0, 255));
-    std::string col12 = col12char;
+    // TODO: Clean this code up, I dont think it needs 36 similar blocks of code lol
+
+    std::string col1 = formatColumn(defaultColorHat, 0);
+    std::string col2 = formatColumn(defaultColorHat, 1);
+
+    std::string col3 = formatColumn(defaultColorOveralls, 0);
+    std::string col4 = formatColumn(defaultColorOveralls, 1);
+
+    std::string col5 = formatColumn(defaultColorGloves, 0);
+    std::string col6 = formatColumn(defaultColorGloves, 1);
+
+    std::string col7 = formatColumn(defaultColorShoes, 0);
+    std::string col8 = formatColumn(defaultColorShoes, 1);
+
+    std::string col9 = formatColumn(defaultColorSkin, 0);
+    std::string col10 = formatColumn(defaultColorSkin, 1);
+
+    std::string col11 = formatColumn(defaultColorHair, 0);
+    std::string col12 = formatColumn(defaultColorHair, 1);
 
     gameshark += "8107EC40 " + col1.substr(0, 2) + col1.substr(2, 2) + "\n";
     gameshark += "8107EC42 " + col1.substr(4, 2) + "00\n";
@@ -206,42 +134,23 @@ std::string global_gs_code() {
     } else {
         gameshark += "8107EC9A " + col12.substr(4, 2) + "00\n";
 
-        char col13char[64];
-        ImFormatString(col13char, IM_ARRAYSIZE(col13char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRLight, 0, 255), ImClamp((int)sparkColorShirtGLight, 0, 255), ImClamp((int)sparkColorShirtBLight, 0, 255));
-        std::string col13 = col13char;
-        char col14char[64];
-        ImFormatString(col14char, IM_ARRAYSIZE(col14char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRDark, 0, 255), ImClamp((int)sparkColorShirtGDark, 0, 255), ImClamp((int)sparkColorShirtBDark, 0, 255));
-        std::string col14 = col14char;
-        char col15char[64];
-        ImFormatString(col15char, IM_ARRAYSIZE(col15char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRLight, 0, 255), ImClamp((int)sparkColorShouldersGLight, 0, 255), ImClamp((int)sparkColorShouldersBLight, 0, 255));
-        std::string col15 = col15char;
-        char col16char[64];
-        ImFormatString(col16char, IM_ARRAYSIZE(col16char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRDark, 0, 255), ImClamp((int)sparkColorShouldersGDark, 0, 255), ImClamp((int)sparkColorShouldersBDark, 0, 255));
-        std::string col16 = col16char;
-        char col17char[64];
-        ImFormatString(col17char, IM_ARRAYSIZE(col17char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRLight, 0, 255), ImClamp((int)sparkColorArmsGLight, 0, 255), ImClamp((int)sparkColorArmsBLight, 0, 255));
-        std::string col17 = col17char;
-        char col18char[64];
-        ImFormatString(col18char, IM_ARRAYSIZE(col18char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRDark, 0, 255), ImClamp((int)sparkColorArmsGDark, 0, 255), ImClamp((int)sparkColorArmsBDark, 0, 255));
-        std::string col18 = col18char;
-        char col19char[64];
-        ImFormatString(col19char, IM_ARRAYSIZE(col19char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRLight, 0, 255), ImClamp((int)sparkColorOverallsBottomGLight, 0, 255), ImClamp((int)sparkColorOverallsBottomBLight, 0, 255));
-        std::string col19 = col19char;
-        char col20char[64];
-        ImFormatString(col20char, IM_ARRAYSIZE(col20char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRDark, 0, 255), ImClamp((int)sparkColorOverallsBottomGDark, 0, 255), ImClamp((int)sparkColorOverallsBottomBDark, 0, 255));
-        std::string col20 = col20char;
-        char col21char[64];
-        ImFormatString(col21char, IM_ARRAYSIZE(col21char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRLight, 0, 255), ImClamp((int)sparkColorLegTopGLight, 0, 255), ImClamp((int)sparkColorLegTopBLight, 0, 255));
-        std::string col21 = col21char;
-        char col22char[64];
-        ImFormatString(col22char, IM_ARRAYSIZE(col22char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRDark, 0, 255), ImClamp((int)sparkColorLegTopGDark, 0, 255), ImClamp((int)sparkColorLegTopBDark, 0, 255));
-        std::string col22 = col22char;
-        char col23char[64];
-        ImFormatString(col23char, IM_ARRAYSIZE(col23char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRLight, 0, 255), ImClamp((int)sparkColorLegBottomGLight, 0, 255), ImClamp((int)sparkColorLegBottomBLight, 0, 255));
-        std::string col23 = col23char;
-        char col24char[64];
-        ImFormatString(col24char, IM_ARRAYSIZE(col24char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRDark, 0, 255), ImClamp((int)sparkColorLegBottomGDark, 0, 255), ImClamp((int)sparkColorLegBottomBDark, 0, 255));
-        std::string col24 = col24char;
+        std::string col13 = formatColumn(sparkColorShirt, 0);
+        std::string col14 = formatColumn(sparkColorShirt, 1);
+
+        std::string col15 = formatColumn(sparkColorShoulders, 0);
+        std::string col16 = formatColumn(sparkColorShoulders, 1);
+
+        std::string col17 = formatColumn(sparkColorArms, 0);
+        std::string col18 = formatColumn(sparkColorArms, 1);
+
+        std::string col19 = formatColumn(sparkColorOverallsBottom, 0);
+        std::string col20 = formatColumn(sparkColorOverallsBottom, 1);
+
+        std::string col21 = formatColumn(sparkColorLegTop, 0);
+        std::string col22 = formatColumn(sparkColorLegTop, 1);
+
+        std::string col23 = formatColumn(sparkColorLegBottom, 0);
+        std::string col24 = formatColumn(sparkColorLegBottom, 1);
 
         gameshark += "8107ECB8 " + col13.substr(0, 2) + col13.substr(2, 2) + "\n";
         gameshark += "8107ECBA " + col13.substr(4, 2) + "00\n";
@@ -324,101 +233,104 @@ void saturn_load_cc_directory() {
 /*
     Preferably used in a while loop, sets a global color with a defined address and value.
 */
+
+// NOTE:    Past this point I only changed the functions to work with the new system.
+//          Look at it only if you dare.
 void run_cc_replacement(string address, int value1, int value2) {
     // Hat
     if (address == "07EC40") {
-        defaultColorHatRLight = value1;
-        defaultColorHatGLight = value2;
+        defaultColorHat[0][0] = value1;
+        defaultColorHat[1][0] = value2;
     }
     if (address == "07EC42") {
-        defaultColorHatBLight = value1;
+        defaultColorHat[2][0] = value1;
     }
     if (address == "07EC38") {
-        defaultColorHatRDark = value1;
-        defaultColorHatGDark = value2;
+        defaultColorHat[0][1] = value1;
+        defaultColorHat[1][1] = value2;
     }
     if (address == "07EC3A") {
-        defaultColorHatBDark = value1;
+        defaultColorHat[2][1] = value1;
     }
 
     // Overalls
     if (address == "07EC28") {
-        defaultColorOverallsRLight = value1;
-        defaultColorOverallsGLight = value2;
+        defaultColorOveralls[0][0] = value1;
+        defaultColorOveralls[1][0] = value2;
     }
     if (address == "07EC2A") {
-        defaultColorOverallsBLight = value1;
+        defaultColorOveralls[2][0] = value1;
     }
     if (address == "07EC20") {
-        defaultColorOverallsRDark = value1;
-        defaultColorOverallsGDark = value2;
+        defaultColorOveralls[0][1] = value1;
+        defaultColorOveralls[1][1] = value2;
     }
     if (address == "07EC22") {
-        defaultColorOverallsBDark = value1;
+        defaultColorOveralls[2][1] = value1;
     }
 
     // Gloves
     if (address == "07EC58") {
-        defaultColorGlovesRLight = value1;
-        defaultColorGlovesGLight = value2;
+        defaultColorGloves[0][0] = value1;
+        defaultColorGloves[1][0] = value2;
     }
     if (address == "07EC5A") {
-        defaultColorGlovesBLight = value1;
+        defaultColorGloves[2][0] = value1;
     }
     if (address == "07EC50") {
-        defaultColorGlovesRDark = value1;
-        defaultColorGlovesGDark = value2;
+        defaultColorGloves[0][1] = value1;
+        defaultColorGloves[1][1] = value2;
     }
     if (address == "07EC52") {
-        defaultColorGlovesBDark = value1;
+        defaultColorGloves[2][1] = value1;
     }
 
     // Shoes
     if (address == "07EC70") {
-        defaultColorShoesRLight = value1;
-        defaultColorShoesGLight = value2;
+        defaultColorShoes[0][0] = value1;
+        defaultColorShoes[1][0] = value2;
     }
     if (address == "07EC72") {
-        defaultColorShoesBLight = value1;
+        defaultColorShoes[2][0] = value1;
     }
     if (address == "07EC68") {
-        defaultColorShoesRDark = value1;
-        defaultColorShoesGDark = value2;
+        defaultColorShoes[0][1] = value1;
+        defaultColorShoes[1][1] = value2;
     }
     if (address == "07EC6A") {
-        defaultColorShoesBDark = value1;
+        defaultColorShoes[2][1] = value1;
     }
 
     // Skin
     if (address == "07EC88") {
-        defaultColorSkinRLight = value1;
-        defaultColorSkinGLight = value2;
+        defaultColorSkin[0][0] = value1;
+        defaultColorSkin[1][0] = value2;
     }
     if (address == "07EC8A") {
-        defaultColorSkinBLight = value1;
+        defaultColorSkin[2][0] = value1;
     }
     if (address == "07EC80") {
-        defaultColorSkinRDark = value1;
-        defaultColorSkinGDark = value2;
+        defaultColorSkin[0][1] = value1;
+        defaultColorSkin[1][1] = value2;
     }
     if (address == "07EC82") {
-        defaultColorSkinBDark = value1;
+        defaultColorSkin[2][1] = value1;
     }
 
     // Hair
     if (address == "07ECA0") {
-        defaultColorHairRLight = value1;
-        defaultColorHairGLight = value2;
+        defaultColorHair[0][0] = value1;
+        defaultColorHair[1][0] = value2;
     }
     if (address == "07ECA2") {
-        defaultColorHairBLight = value1;
+        defaultColorHair[2][0] = value1;
     }
     if (address == "07EC98") {
-        defaultColorHairRDark = value1;
-        defaultColorHairGDark = value2;
+        defaultColorHair[0][1] = value1;
+        defaultColorHair[1][1] = value2;
     }
     if (address == "07EC9A") {
-        defaultColorHairBDark = value1;
+        defaultColorHair[2][1] = value1;
     }
 
     // --------
@@ -433,189 +345,131 @@ void run_cc_replacement(string address, int value1, int value2) {
 
     // Shirt
     if (address == "07ECB8") {
-        sparkColorShirtRLight = value1;
-        sparkColorShirtGLight = value2;
+        sparkColorShirt[0][0] = value1;
+        sparkColorShirt[1][0] = value2;
     }
     if (address == "07ECBA") {
-        sparkColorShirtBLight = value1;
+        sparkColorShirt[2][0] = value1;
     }
     if (address == "07ECB0") {
-        sparkColorShirtRDark = value1;
-        sparkColorShirtGDark = value2;
+        sparkColorShirt[0][1] = value1;
+        sparkColorShirt[1][1] = value2;
     }
     if (address == "07ECB2") {
-        sparkColorShirtBDark = value1;
+        sparkColorShirt[2][1] = value1;
     }
 
     // Shoulders
     if (address == "07ECD0") {
-        sparkColorShouldersRLight = value1;
-        sparkColorShouldersGLight = value2;
+        sparkColorShoulders[0][0] = value1;
+        sparkColorShoulders[1][0] = value2;
     }
     if (address == "07ECD2") {
-        sparkColorShouldersBLight = value1;
+        sparkColorShoulders[2][0] = value1;
     }
     if (address == "07ECC8") {
-        sparkColorShouldersRDark = value1;
-        sparkColorShouldersGDark = value2;
+        sparkColorShoulders[0][1] = value1;
+        sparkColorShoulders[1][1] = value2;
     }
     if (address == "07ECCA") {
-        sparkColorShouldersBDark = value1;
+        sparkColorShoulders[2][1] = value1;
     }
 
     // Arms
     if (address == "07ECE8") {
-        sparkColorArmsRLight = value1;
-        sparkColorArmsGLight = value2;
+        sparkColorArms[0][0] = value1;
+        sparkColorArms[1][0] = value2;
     }
     if (address == "07ECEA") {
-        sparkColorArmsBLight = value1;
+        sparkColorArms[2][0] = value1;
     }
     if (address == "07ECE0") {
-        sparkColorArmsRDark = value1;
-        sparkColorArmsGDark = value2;
+        sparkColorArms[0][1] = value1;
+        sparkColorArms[1][1] = value2;
     }
     if (address == "07ECE2") {
-        sparkColorArmsBDark = value1;
+        sparkColorArms[2][1] = value1;
     }
 
     // OverallsBottom
     if (address == "07ED00") {
-        sparkColorOverallsBottomRLight = value1;
-        sparkColorOverallsBottomGLight = value2;
+        sparkColorOverallsBottom[0][0] = value1;
+        sparkColorOverallsBottom[1][0] = value2;
     }
     if (address == "07ED02") {
-        sparkColorOverallsBottomBLight = value1;
+        sparkColorOverallsBottom[2][0] = value1;
     }
     if (address == "07ECF8") {
-        sparkColorOverallsBottomRDark = value1;
-        sparkColorOverallsBottomGDark = value2;
+        sparkColorOverallsBottom[0][1] = value1;
+        sparkColorOverallsBottom[1][1] = value2;
     }
     if (address == "07ECFA") {
-        sparkColorOverallsBottomBDark = value1;
+        sparkColorOverallsBottom[2][1] = value1;
     }
 
     // LegTop
     if (address == "07ED18") {
-        sparkColorLegTopRLight = value1;
-        sparkColorLegTopGLight = value2;
+        sparkColorLegTop[0][0] = value1;
+        sparkColorLegTop[1][0] = value2;
     }
     if (address == "07ED1A") {
-        sparkColorLegTopBLight = value1;
+        sparkColorLegTop[2][0] = value1;
     }
     if (address == "07ED10") {
-        sparkColorLegTopRDark = value1;
-        sparkColorLegTopGDark = value2;
+        sparkColorLegTop[0][1] = value1;
+        sparkColorLegTop[1][1] = value2;
     }
     if (address == "07ED12") {
-        sparkColorLegTopBDark = value1;
+        sparkColorLegTop[2][1] = value1;
     }
 
     // LegBottom
     if (address == "07ED30") {
-        sparkColorLegBottomRLight = value1;
-        sparkColorLegBottomGLight = value2;
+        sparkColorLegBottom[0][0] = value1;
+        sparkColorLegBottom[1][0] = value2;
     }
     if (address == "07ED32") {
-        sparkColorLegBottomBLight = value1;
+        sparkColorLegBottom[2][0] = value1;
     }
     if (address == "07ED28") {
-        sparkColorLegBottomRDark = value1;
-        sparkColorLegBottomGDark = value2;
+        sparkColorLegBottom[0][1] = value1;
+        sparkColorLegBottom[1][1] = value2;
     }
     if (address == "07ED2A") {
-        sparkColorLegBottomBDark = value1;
+        sparkColorLegBottom[2][1] = value1;
     }
 }
 
 /*
     Resets Mario's colors to default.
 */
+void reset_colors(std::array<std::array<unsigned int, 2>, 3> &ccColor, int val1, int val2, int val3, int val4, int val5, int val6) {
+    ccColor[0][0] = val1;
+    ccColor[0][1] = val2;
+
+    ccColor[1][0] = val3;
+    ccColor[1][1] = val4;
+
+    ccColor[2][0] = val5;
+    ccColor[2][1] = val6;
+}
+// Please save me
+
 void reset_cc_colors() {
-    defaultColorHatRLight = 255;
-    defaultColorHatRDark = 127;
-    defaultColorHatGLight = 0;
-    defaultColorHatGDark = 0;
-    defaultColorHatBLight = 0;
-    defaultColorHatBDark = 0;
-
-    defaultColorOverallsRLight = 0;
-    defaultColorOverallsRDark = 0;
-    defaultColorOverallsGLight = 0;
-    defaultColorOverallsGDark = 0;
-    defaultColorOverallsBLight = 255;
-    defaultColorOverallsBDark = 127;
-
-    defaultColorGlovesRLight = 255;
-    defaultColorGlovesRDark = 127;
-    defaultColorGlovesGLight = 255;
-    defaultColorGlovesGDark = 127;
-    defaultColorGlovesBLight = 255;
-    defaultColorGlovesBDark = 127;
-
-    defaultColorShoesRLight = 114;
-    defaultColorShoesRDark = 57;
-    defaultColorShoesGLight = 28;
-    defaultColorShoesGDark = 14;
-    defaultColorShoesBLight = 14;
-    defaultColorShoesBDark = 7;
-
-    defaultColorSkinRLight = 254;
-    defaultColorSkinRDark = 127;
-    defaultColorSkinGLight = 193;
-    defaultColorSkinGDark = 96;
-    defaultColorSkinBLight = 121;
-    defaultColorSkinBDark = 60;
-
-    defaultColorHairRLight = 115;
-    defaultColorHairRDark = 57;
-    defaultColorHairGLight = 6;
-    defaultColorHairGDark = 3;
-    defaultColorHairBLight = 0;
-    defaultColorHairBDark = 0;
+    reset_colors(defaultColorHat, 255, 127, 0, 0, 0, 0);
+    reset_colors(defaultColorOveralls, 0, 0, 0, 0, 255, 127);
+    reset_colors(defaultColorGloves, 255, 127, 255, 127, 255, 127);
+    reset_colors(defaultColorShoes, 114, 57, 28, 14, 14, 7);
+    reset_colors(defaultColorSkin, 254, 127, 193, 96, 121, 60);
+    reset_colors(defaultColorHair = 115, 57, 6, 3, 0, 0);
 
     // CometSPARK
-    sparkColorShirtRLight = 255;
-    sparkColorShirtRDark = 127;
-    sparkColorShirtGLight = 255;
-    sparkColorShirtGDark = 127;
-    sparkColorShirtBLight = 0;
-    sparkColorShirtBDark = 0;
-
-    sparkColorShouldersRLight = 0;
-    sparkColorShouldersRDark = 0;
-    sparkColorShouldersGLight = 255;
-    sparkColorShouldersGDark = 127;
-    sparkColorShouldersBLight = 255;
-    sparkColorShouldersBDark = 127;
-
-    sparkColorArmsRLight = 0;
-    sparkColorArmsRDark = 0;
-    sparkColorArmsGLight = 255;
-    sparkColorArmsGDark = 127;
-    sparkColorArmsBLight = 127;
-    sparkColorArmsBDark = 64;
-
-    sparkColorOverallsBottomRLight = 255;
-    sparkColorOverallsBottomRDark = 127;
-    sparkColorOverallsBottomGLight = 0;
-    sparkColorOverallsBottomGDark = 0;
-    sparkColorOverallsBottomBLight = 255;
-    sparkColorOverallsBottomBDark = 127;
-
-    sparkColorLegTopRLight = 255;
-    sparkColorLegTopRDark = 127;
-    sparkColorLegTopGLight = 0;
-    sparkColorLegTopGDark = 0;
-    sparkColorLegTopBLight = 127;
-    sparkColorLegTopBDark = 64;
-
-    sparkColorLegBottomRLight = 127;
-    sparkColorLegBottomRDark = 64;
-    sparkColorLegBottomGLight = 0;
-    sparkColorLegBottomGDark = 0;
-    sparkColorLegBottomBLight = 255;
-    sparkColorLegBottomBDark = 127;
+    reset_colors(sparkColorShirt, 255, 127, 255, 127, 0, 0);
+    reset_colors(sparkColorShoulders, 0, 0, 255, 127, 255, 127);
+    reset_colors(sparkColorArms, 0, 0, 255, 127, 127, 64);
+    reset_colors(sparkColorOverallsBottom, 255, 127, 0, 0, 255, 127);
+    reset_colors(sparkColorLegTop, 255, 127, 0, 0, 127, 64);
+    reset_colors(sparkColorLegBottom, 127, 64, 0, 0, 255, 127);
 }
 
 bool is_default_cc(string gameshark) {
