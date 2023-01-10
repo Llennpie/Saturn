@@ -42,13 +42,13 @@ void set_chroma_color() {
     int gShift = (int) b5 << 1;
     gChromaKeyColor = (int) (bShift | gShift | rShift | 1);
 
-    chromaColorRLight = (int)(uiChromaColor.x * 255);
-    chromaColorGLight = (int)(uiChromaColor.y * 255);
-    chromaColorBLight = (int)(uiChromaColor.z * 255);
+    chromaColor[0] = (int)(uiChromaColor.x * 255);
+    chromaColor[2] = (int)(uiChromaColor.y * 255);
+    chromaColor[4] = (int)(uiChromaColor.z * 255);
     // No shading
-    chromaColorRDark = chromaColorRLight;
-    chromaColorGDark = chromaColorGLight;
-    chromaColorBDark = chromaColorBLight;
+    chromaColor[1] = chromaColor[0];
+    chromaColor[3] = chromaColor[2];
+    chromaColor[5] = chromaColor[4];
 }
 
 void schroma_imgui_init() {

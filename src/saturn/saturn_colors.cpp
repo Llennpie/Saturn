@@ -37,22 +37,22 @@ namespace fs = std::filesystem;
 // However i will not be doing that here
 
 // Default
-std::array<std::array<unsigned int, 2>, 3> defaultColorHat {{255, 127}, {0, 0}, {0, 0}};
-std::array<std::array<unsigned int, 2>, 3> defaultColorOveralls {{0, 0}, {0, 0}, {255, 127}};
-std::array<std::array<unsigned int, 2>, 3> defaultColorGloves {{255, 127}, {255, 127}, {255, 127}};
-std::array<std::array<unsigned int, 2>, 3> defaultColorShoes {{114, 57}, {28, 14}, {14, 7}};
-std::array<std::array<unsigned int, 2>, 3> defaultColorSkin {{254, 127}, {193, 96}, {121, 60}};
-std::array<std::array<unsigned int, 2>, 3> defaultColorHair {{115, 57}, {6, 3}, {0, 0}};
+unsigned int defaultColorHat[6] {255, 127, 0, 0, 0, 0};
+unsigned int defaultColorOveralls[6] {0, 0, 0, 0, 255, 127};
+unsigned int defaultColorGloves[6] {255, 127, 255, 127, 255, 127};
+unsigned int defaultColorShoes[6] {114, 57, 28, 14, 14, 7};
+unsigned int defaultColorSkin[6] {254, 127, 193, 96, 121, 60};
+unsigned int defaultColorHair[6] {115, 57, 6, 3, 0, 0};
 
 // CometSPARK
-std::array<std::array<unsigned int, 2>, 3> sparkColorShirt {{255, 127}, {255, 127}, {0, 0}};
-std::array<std::array<unsigned int, 2>, 3> sparkColorShoulders {{0, 0}, {255 127}, {255, 127}};
-std::array<std::array<unsigned int, 2>, 3> sparkColorArms {{0, 0}, {255, 127}, {127, 64}};
-std::array<std::array<unsigned int, 2>, 3> sparkColorOverallsBottom {{255, 127}, {0, 0}, {255, 127}}; 
-std::array<std::array<unsigned int, 2>, 3> sparkColorLegTop {{255, 127}, {0, 0}, {127, 64}};
-std::array<std::array<unsigned int, 2>, 3> sparkColorLegBottom {{127, 64}, {0, 0}, {255, 127}};
+unsigned int sparkColorShirt[6] {255, 127, 255, 127, 0, 0};
+unsigned int sparkColorShoulders[6] {0, 0, 255, 127, 255, 127};
+unsigned int sparkColorArms[6] {0, 0, 255, 127, 127, 64};
+unsigned int sparkColorOverallsBottom[6] {255, 127, 0, 0, 255, 127}; 
+unsigned int sparkColorLegTop[6] {255, 127, 0, 0, 127, 64};
+unsigned int sparkColorLegBottom[6] {127, 64, 0, 0, 255, 127};
 
-std::array<std::array<unsigned int, 2>, 3> chromaColor {{0, 0}, {255, 127}, {0, 0}};
+unsigned int chromaColor[6] {0, 0, 255, 127, 0, 0};
 
 // Color Codes
 
@@ -67,12 +67,12 @@ bool modelCcLoaded;
 std::vector<string> model_cc_array;
 string modelColorCodeDir;
 
-std::string formatColumn(std::array<std::array<unsigned int, 2>, 3> &colorBodyPart, int shade) {
+std::string formatColumn(unsigned int *colorBodyPart, int shade) {
     char column[64];
     ImFormatString(column, IM_ARRAYSIZE(column), "%02X%02X%02X"
-            , ImClamp(colorBodyPart[0][shade], 0, 255)
-            , ImClamp(colorBodyPart[1][shade], 0, 255)
-            , ImClamp(colorBodyPart[2][shade], 0, 255));
+            , ImClamp((int)colorBodyPart[shade], 0, 255)
+            , ImClamp((int)colorBodyPart[shade+2], 0, 255)
+            , ImClamp((int)colorBodyPart[shade+4], 0, 255));
     std::string col = column;
 
     return col;
@@ -239,98 +239,98 @@ void saturn_load_cc_directory() {
 void run_cc_replacement(string address, int value1, int value2) {
     // Hat
     if (address == "07EC40") {
-        defaultColorHat[0][0] = value1;
-        defaultColorHat[1][0] = value2;
+        defaultColorHat[0] = value1;
+        defaultColorHat[2] = value2;
     }
     if (address == "07EC42") {
-        defaultColorHat[2][0] = value1;
+        defaultColorHat[4] = value1;
     }
     if (address == "07EC38") {
-        defaultColorHat[0][1] = value1;
-        defaultColorHat[1][1] = value2;
+        defaultColorHat[1] = value1;
+        defaultColorHat[3] = value2;
     }
     if (address == "07EC3A") {
-        defaultColorHat[2][1] = value1;
+        defaultColorHat[5] = value1;
     }
 
     // Overalls
     if (address == "07EC28") {
-        defaultColorOveralls[0][0] = value1;
-        defaultColorOveralls[1][0] = value2;
+        defaultColorOveralls[0] = value1;
+        defaultColorOveralls[2] = value2;
     }
     if (address == "07EC2A") {
-        defaultColorOveralls[2][0] = value1;
+        defaultColorOveralls[4] = value1;
     }
     if (address == "07EC20") {
-        defaultColorOveralls[0][1] = value1;
-        defaultColorOveralls[1][1] = value2;
+        defaultColorOveralls[1] = value1;
+        defaultColorOveralls[3] = value2;
     }
     if (address == "07EC22") {
-        defaultColorOveralls[2][1] = value1;
+        defaultColorOveralls[5] = value1;
     }
 
     // Gloves
     if (address == "07EC58") {
-        defaultColorGloves[0][0] = value1;
-        defaultColorGloves[1][0] = value2;
+        defaultColorGloves[0] = value1;
+        defaultColorGloves[2] = value2;
     }
     if (address == "07EC5A") {
-        defaultColorGloves[2][0] = value1;
+        defaultColorGloves[4] = value1;
     }
     if (address == "07EC50") {
-        defaultColorGloves[0][1] = value1;
-        defaultColorGloves[1][1] = value2;
+        defaultColorGloves[1] = value1;
+        defaultColorGloves[3] = value2;
     }
     if (address == "07EC52") {
-        defaultColorGloves[2][1] = value1;
+        defaultColorGloves[5] = value1;
     }
 
     // Shoes
     if (address == "07EC70") {
-        defaultColorShoes[0][0] = value1;
-        defaultColorShoes[1][0] = value2;
+        defaultColorShoes[0] = value1;
+        defaultColorShoes[2] = value2;
     }
     if (address == "07EC72") {
-        defaultColorShoes[2][0] = value1;
+        defaultColorShoes[4] = value1;
     }
     if (address == "07EC68") {
-        defaultColorShoes[0][1] = value1;
-        defaultColorShoes[1][1] = value2;
+        defaultColorShoes[1] = value1;
+        defaultColorShoes[3] = value2;
     }
     if (address == "07EC6A") {
-        defaultColorShoes[2][1] = value1;
+        defaultColorShoes[5] = value1;
     }
 
     // Skin
     if (address == "07EC88") {
-        defaultColorSkin[0][0] = value1;
-        defaultColorSkin[1][0] = value2;
+        defaultColorSkin[0] = value1;
+        defaultColorSkin[2] = value2;
     }
     if (address == "07EC8A") {
-        defaultColorSkin[2][0] = value1;
+        defaultColorSkin[4] = value1;
     }
     if (address == "07EC80") {
-        defaultColorSkin[0][1] = value1;
-        defaultColorSkin[1][1] = value2;
+        defaultColorSkin[1] = value1;
+        defaultColorSkin[3] = value2;
     }
     if (address == "07EC82") {
-        defaultColorSkin[2][1] = value1;
+        defaultColorSkin[5] = value1;
     }
 
     // Hair
     if (address == "07ECA0") {
-        defaultColorHair[0][0] = value1;
-        defaultColorHair[1][0] = value2;
+        defaultColorHair[0] = value1;
+        defaultColorHair[2] = value2;
     }
     if (address == "07ECA2") {
-        defaultColorHair[2][0] = value1;
+        defaultColorHair[4] = value1;
     }
     if (address == "07EC98") {
-        defaultColorHair[0][1] = value1;
-        defaultColorHair[1][1] = value2;
+        defaultColorHair[1] = value1;
+        defaultColorHair[3] = value2;
     }
     if (address == "07EC9A") {
-        defaultColorHair[2][1] = value1;
+        defaultColorHair[5] = value1;
     }
 
     // --------
@@ -345,113 +345,113 @@ void run_cc_replacement(string address, int value1, int value2) {
 
     // Shirt
     if (address == "07ECB8") {
-        sparkColorShirt[0][0] = value1;
-        sparkColorShirt[1][0] = value2;
+        sparkColorShirt[0] = value1;
+        sparkColorShirt[2] = value2;
     }
     if (address == "07ECBA") {
-        sparkColorShirt[2][0] = value1;
+        sparkColorShirt[4] = value1;
     }
     if (address == "07ECB0") {
-        sparkColorShirt[0][1] = value1;
-        sparkColorShirt[1][1] = value2;
+        sparkColorShirt[1] = value1;
+        sparkColorShirt[3] = value2;
     }
     if (address == "07ECB2") {
-        sparkColorShirt[2][1] = value1;
+        sparkColorShirt[5] = value1;
     }
 
     // Shoulders
     if (address == "07ECD0") {
-        sparkColorShoulders[0][0] = value1;
-        sparkColorShoulders[1][0] = value2;
+        sparkColorShoulders[0] = value1;
+        sparkColorShoulders[2] = value2;
     }
     if (address == "07ECD2") {
-        sparkColorShoulders[2][0] = value1;
+        sparkColorShoulders[4] = value1;
     }
     if (address == "07ECC8") {
-        sparkColorShoulders[0][1] = value1;
-        sparkColorShoulders[1][1] = value2;
+        sparkColorShoulders[1] = value1;
+        sparkColorShoulders[3] = value2;
     }
     if (address == "07ECCA") {
-        sparkColorShoulders[2][1] = value1;
+        sparkColorShoulders[5] = value1;
     }
 
     // Arms
     if (address == "07ECE8") {
-        sparkColorArms[0][0] = value1;
-        sparkColorArms[1][0] = value2;
+        sparkColorArms[0] = value1;
+        sparkColorArms[2] = value2;
     }
     if (address == "07ECEA") {
-        sparkColorArms[2][0] = value1;
+        sparkColorArms[4] = value1;
     }
     if (address == "07ECE0") {
-        sparkColorArms[0][1] = value1;
-        sparkColorArms[1][1] = value2;
+        sparkColorArms[1] = value1;
+        sparkColorArms[3] = value2;
     }
     if (address == "07ECE2") {
-        sparkColorArms[2][1] = value1;
+        sparkColorArms[5] = value1;
     }
 
     // OverallsBottom
     if (address == "07ED00") {
-        sparkColorOverallsBottom[0][0] = value1;
-        sparkColorOverallsBottom[1][0] = value2;
+        sparkColorOverallsBottom[0] = value1;
+        sparkColorOverallsBottom[2] = value2;
     }
     if (address == "07ED02") {
-        sparkColorOverallsBottom[2][0] = value1;
+        sparkColorOverallsBottom[4] = value1;
     }
     if (address == "07ECF8") {
-        sparkColorOverallsBottom[0][1] = value1;
-        sparkColorOverallsBottom[1][1] = value2;
+        sparkColorOverallsBottom[1] = value1;
+        sparkColorOverallsBottom[3] = value2;
     }
     if (address == "07ECFA") {
-        sparkColorOverallsBottom[2][1] = value1;
+        sparkColorOverallsBottom[5] = value1;
     }
 
     // LegTop
     if (address == "07ED18") {
-        sparkColorLegTop[0][0] = value1;
-        sparkColorLegTop[1][0] = value2;
+        sparkColorLegTop[0] = value1;
+        sparkColorLegTop[2] = value2;
     }
     if (address == "07ED1A") {
-        sparkColorLegTop[2][0] = value1;
+        sparkColorLegTop[4] = value1;
     }
     if (address == "07ED10") {
-        sparkColorLegTop[0][1] = value1;
-        sparkColorLegTop[1][1] = value2;
+        sparkColorLegTop[1] = value1;
+        sparkColorLegTop[3] = value2;
     }
     if (address == "07ED12") {
-        sparkColorLegTop[2][1] = value1;
+        sparkColorLegTop[5] = value1;
     }
 
     // LegBottom
     if (address == "07ED30") {
-        sparkColorLegBottom[0][0] = value1;
-        sparkColorLegBottom[1][0] = value2;
+        sparkColorLegBottom[0] = value1;
+        sparkColorLegBottom[2] = value2;
     }
     if (address == "07ED32") {
-        sparkColorLegBottom[2][0] = value1;
+        sparkColorLegBottom[4] = value1;
     }
     if (address == "07ED28") {
-        sparkColorLegBottom[0][1] = value1;
-        sparkColorLegBottom[1][1] = value2;
+        sparkColorLegBottom[1] = value1;
+        sparkColorLegBottom[3] = value2;
     }
     if (address == "07ED2A") {
-        sparkColorLegBottom[2][1] = value1;
+        sparkColorLegBottom[5] = value1;
     }
 }
 
 /*
     Resets Mario's colors to default.
 */
-void reset_colors(std::array<std::array<unsigned int, 2>, 3> &ccColor, int val1, int val2, int val3, int val4, int val5, int val6) {
-    ccColor[0][0] = val1;
-    ccColor[0][1] = val2;
+void reset_colors(unsigned int* ccColor, int val1, int val2, int val3, int val4, int val5, int val6) {
+    ccColor[0] = val1;  // R
+    ccColor[1] = val2;
 
-    ccColor[1][0] = val3;
-    ccColor[1][1] = val4;
+    ccColor[2] = val3;  // G
+    ccColor[3] = val4;
 
-    ccColor[2][0] = val5;
-    ccColor[2][1] = val6;
+    ccColor[4] = val5;  // B
+    ccColor[5] = val6;
 }
 // Please save me
 
@@ -461,7 +461,7 @@ void reset_cc_colors() {
     reset_colors(defaultColorGloves, 255, 127, 255, 127, 255, 127);
     reset_colors(defaultColorShoes, 114, 57, 28, 14, 14, 7);
     reset_colors(defaultColorSkin, 254, 127, 193, 96, 121, 60);
-    reset_colors(defaultColorHair = 115, 57, 6, 3, 0, 0);
+    reset_colors(defaultColorHair, 115, 57, 6, 3, 0, 0);
 
     // CometSPARK
     reset_colors(sparkColorShirt, 255, 127, 255, 127, 0, 0);

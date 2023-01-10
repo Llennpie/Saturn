@@ -3,43 +3,21 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#ifdef __cplusplus
-#include <array>
+extern unsigned int defaultColorHat[6];
+extern unsigned int defaultColorOveralls[6];
+extern unsigned int defaultColorGloves[6];
+extern unsigned int defaultColorShoes[6];
+extern unsigned int defaultColorSkin[6];
+extern unsigned int defaultColorHair[6];
 
-extern std::array<std::array<unsigned int, 2>, 3> defaultColorHat;
-extern std::array<std::array<unsigned int, 2>, 3> defaultColorOveralls;
-extern std::array<std::array<unsigned int, 2>, 3> defaultColorGloves;
-extern std::array<std::array<unsigned int, 2>, 3> defaultColorShoes;
-extern std::array<std::array<unsigned int, 2>, 3> defaultColorSkin;
-extern std::array<std::array<unsigned int, 2>, 3> defaultColorHair;
+extern unsigned int sparkColorShirt[6];
+extern unsigned int sparkColorShoulders[6];
+extern unsigned int sparkColorArms[6];
+extern unsigned int sparkColorOverallsBottom[6];
+extern unsigned int sparkColorLegTop[6];
+extern unsigned int sparkColorLegBottom[6];
 
-// CometSPARK
-extern std::array<std::array<unsigned int, 2>, 3> sparkColorShirt;
-extern std::array<std::array<unsigned int, 2>, 3> sparkColorShoulders;
-extern std::array<std::array<unsigned int, 2>, 3> sparkColorArms;
-extern std::array<std::array<unsigned int, 2>, 3> sparkColorOverallsBottom;
-extern std::array<std::array<unsigned int, 2>, 3> sparkColorLegTop;
-extern std::array<std::array<unsigned int, 2>, 3> sparkColorLegBottom;
-
-extern std::array<std::array<unsigned int, 2>, 3> chromaColor;
-
-#else
-extern unsigned int defaultColorHat[3][2];
-extern unsigned int defaultColorOveralls[3][2];
-extern unsigned int defaultColorGloves[3][2];
-extern unsigned int defaultColorShoes[3][2];
-extern unsigned int defaultColorSkin[3][2];
-extern unsigned int defaultColorHair[3][2];
-
-extern unsigned int sparkColorShirt[3][2];
-extern unsigned int sparkColorShoulders[3][2];
-extern unsigned int sparkColorArms[3][2];
-extern unsigned int sparkColorOverallsBottom[3][2];
-extern unsigned int sparkColorLegTop[3][2];
-extern unsigned int sparkColorLegBottom[3][2];
-
-extern unsigned int chromaColor[3][2];
-#endif
+extern unsigned int chromaColor[6];
 
 extern bool cc_model_support;
 extern bool cc_spark_support;
