@@ -227,8 +227,7 @@ void run_cc_replacement(int address, int value1, int value2) {
             defaultColorHat[3] = value2;
             break;
         case 0x07EC3A:
-            defaultColorHat[1] = value1;
-            defaultColorHat[3] = value2;
+            defaultColorHat[5] = value1;
             break;
 
             //Overalls
@@ -540,7 +539,7 @@ void paste_gs_code(string content) {
     std::string line;
         
     while (std::getline(f, line)) {
-        int address = std::stoi(line.substr(2, 6));
+        int address = std::stoi(line.substr(2, 6), 0, 16);
         int value1 = std::stoi(line.substr(9, 2), 0, 16);
         int value2 = std::stoi(line.substr(11, 2), 0, 16);
 
