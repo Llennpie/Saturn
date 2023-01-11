@@ -68,18 +68,20 @@ bool modelCcLoaded;
 std::vector<string> model_cc_array;
 string modelColorCodeDir;
 
-std::string formatColour(unsigned int *colorBodyPart, int shade) {
+std::string formatColour(unsigned int *colorBodyPart) {
     char colour[64];
-    ImFormatString(colour, IM_ARRAYSIZE(colour), "%02X%02X%02X"
-            , ImClamp((int)colorBodyPart[shade], 0, 255)
-            , ImClamp((int)colorBodyPart[shade+2], 0, 255)
-            , ImClamp((int)colorBodyPart[shade+4], 0, 255));
+    ImFormatString(colour, IM_ARRAYSIZE(colour), "%02X%02X%02X%02X%02X%02X"
+            , ImClamp((int)colorBodyPart[0], 0, 255)
+            , ImClamp((int)colorBodyPart[2], 0, 255)
+            , ImClamp((int)colorBodyPart[4], 0, 255)
+            , ImClamp((int)colorBodyPart[1], 0, 255)
+            , ImClamp((int)colorBodyPart[3], 0, 255)
+            , ImClamp((int)colorBodyPart[5], 0, 255));
     std::string col = colour;
 
     return col;
 } // this should help remove a lot of the repetition,
   // however it's still very repetitive and should be worked on further
-  // shade can either be 0 or 1, 0 for light, 1 for dark
 
 /*
     The currently active GameShark code in string format.
@@ -89,95 +91,72 @@ std::string global_gs_code() {
 
     // TODO: Clean this code up, I dont think it needs 36 similar blocks of code lol
 
-    std::string col1 = formatColour(defaultColorHat, 0);
-    std::string col2 = formatColour(defaultColorHat, 1);
+    std::string col1 = formatColour(defaultColorHat);
+    std::string col2 = formatColour(defaultColorOveralls);
+    std::string col3 = formatColour(defaultColorGloves);
+    std::string col4 = formatColour(defaultColorShoes);
+    std::string col5 = formatColour(defaultColorSkin);
+    std::string col6 = formatColour(defaultColorHair);
 
-    std::string col3 = formatColour(defaultColorOveralls, 0);
-    std::string col4 = formatColour(defaultColorOveralls, 1);
-
-    std::string col5 = formatColour(defaultColorGloves, 0);
-    std::string col6 = formatColour(defaultColorGloves, 1);
-
-    std::string col7 = formatColour(defaultColorShoes, 0);
-    std::string col8 = formatColour(defaultColorShoes, 1);
-
-    std::string col9 = formatColour(defaultColorSkin, 0);
-    std::string col10 = formatColour(defaultColorSkin, 1);
-
-    std::string col11 = formatColour(defaultColorHair, 0);
-    std::string col12 = formatColour(defaultColorHair, 1);
-
-    gameshark += "8107EC40 " + col1.substr(0, 2) + col1.substr(2, 2) + "\n";
+    gameshark += "8107EC40 " + col1.substr(0, 4) + "\n";
     gameshark += "8107EC42 " + col1.substr(4, 2) + "00\n";
-    gameshark += "8107EC38 " + col2.substr(0, 2) + col2.substr(2, 2) + "\n";
-    gameshark += "8107EC3A " + col2.substr(4, 2) + "00\n";
-    gameshark += "8107EC28 " + col3.substr(0, 2) + col3.substr(2, 2) + "\n";
-    gameshark += "8107EC2A " + col3.substr(4, 2) + "00\n";
-    gameshark += "8107EC20 " + col4.substr(0, 2) + col4.substr(2, 2) + "\n";
-    gameshark += "8107EC22 " + col4.substr(4, 2) + "00\n";
-    gameshark += "8107EC58 " + col5.substr(0, 2) + col5.substr(2, 2) + "\n";
-    gameshark += "8107EC5A " + col5.substr(4, 2) + "00\n";
-    gameshark += "8107EC50 " + col6.substr(0, 2) + col6.substr(2, 2) + "\n";
-    gameshark += "8107EC52 " + col6.substr(4, 2) + "00\n";
-    gameshark += "8107EC70 " + col7.substr(0, 2) + col7.substr(2, 2) + "\n";
-    gameshark += "8107EC72 " + col7.substr(4, 2) + "00\n";
-    gameshark += "8107EC68 " + col8.substr(0, 2) + col8.substr(2, 2) + "\n";
-    gameshark += "8107EC6A " + col8.substr(4, 2) + "00\n";
-    gameshark += "8107EC88 " + col9.substr(0, 2) + col9.substr(2, 2) + "\n";
-    gameshark += "8107EC8A " + col9.substr(4, 2) + "00\n";
-    gameshark += "8107EC80 " + col10.substr(0, 2) + col10.substr(2, 2) + "\n";
-    gameshark += "8107EC82 " + col10.substr(4, 2) + "00\n";
-    gameshark += "8107ECA0 " + col11.substr(0, 2) + col11.substr(2, 2) + "\n";
-    gameshark += "8107ECA2 " + col11.substr(4, 2) + "00\n";
-    gameshark += "8107EC98 " + col12.substr(0, 2) + col12.substr(2, 2) + "\n";
+    gameshark += "8107EC38 " + col1.substr(6, 4) + "\n";
+    gameshark += "8107EC3A " + col1.substr(10, 2) + "00\n";
+    gameshark += "8107EC28 " + col2.substr(0, 4) + "\n";
+    gameshark += "8107EC2A " + col2.substr(4, 2) + "00\n";
+    gameshark += "8107EC20 " + col2.substr(6, 4) + "\n";
+    gameshark += "8107EC22 " + col2.substr(10, 2) + "00\n";
+    gameshark += "8107EC58 " + col3.substr(0, 4) + "\n";
+    gameshark += "8107EC5A " + col3.substr(4, 2) + "00\n";
+    gameshark += "8107EC50 " + col3.substr(6, 4) + "\n";
+    gameshark += "8107EC52 " + col3.substr(10, 2) + "00\n";
+    gameshark += "8107EC70 " + col4.substr(0, 4) + "\n";
+    gameshark += "8107EC72 " + col4.substr(4, 2) + "00\n";
+    gameshark += "8107EC68 " + col4.substr(6, 4) + "\n";
+    gameshark += "8107EC6A " + col4.substr(10, 2) + "00\n";
+    gameshark += "8107EC88 " + col5.substr(0, 4) + "\n";
+    gameshark += "8107EC8A " + col5.substr(4, 2) + "00\n";
+    gameshark += "8107EC80 " + col5.substr(6, 4) + "\n";
+    gameshark += "8107EC82 " + col5.substr(10, 2) + "00\n";
+    gameshark += "8107ECA0 " + col6.substr(0, 4)+ "\n";
+    gameshark += "8107ECA2 " + col6.substr(4, 2) + "00\n";
+    gameshark += "8107EC98 " + col6.substr(6, 4)+ "\n";
+    gameshark += "8107EC9A " + col6.substr(10, 2) + "00";
 
-    if (!cc_spark_support) {
-        gameshark += "8107EC9A " + col12.substr(4, 2) + "00";
-    } else {
-        gameshark += "8107EC9A " + col12.substr(4, 2) + "00\n";
+    if (cc_spark_support) {
+        gameshark += "\n";
 
-        std::string col13 = formatColour(sparkColorShirt, 0);
-        std::string col14 = formatColour(sparkColorShirt, 1);
+        std::string col7 = formatColour(sparkColorShirt);
+        std::string col8 = formatColour(sparkColorShoulders);
+        std::string col9 = formatColour(sparkColorArms);
+        std::string col10 = formatColour(sparkColorOverallsBottom);
+        std::string col11 = formatColour(sparkColorLegTop);
+        std::string col12 = formatColour(sparkColorLegBottom);
 
-        std::string col15 = formatColour(sparkColorShoulders, 0);
-        std::string col16 = formatColour(sparkColorShoulders, 1);
-
-        std::string col17 = formatColour(sparkColorArms, 0);
-        std::string col18 = formatColour(sparkColorArms, 1);
-
-        std::string col19 = formatColour(sparkColorOverallsBottom, 0);
-        std::string col20 = formatColour(sparkColorOverallsBottom, 1);
-
-        std::string col21 = formatColour(sparkColorLegTop, 0);
-        std::string col22 = formatColour(sparkColorLegTop, 1);
-
-        std::string col23 = formatColour(sparkColorLegBottom, 0);
-        std::string col24 = formatColour(sparkColorLegBottom, 1);
-
-        gameshark += "8107ECB8 " + col13.substr(0, 2) + col13.substr(2, 2) + "\n";
-        gameshark += "8107ECBA " + col13.substr(4, 2) + "00\n";
-        gameshark += "8107ECB0 " + col14.substr(0, 2) + col14.substr(2, 2) + "\n";
-        gameshark += "8107ECB2 " + col14.substr(4, 2) + "00\n";
-        gameshark += "8107ECD0 " + col15.substr(0, 2) + col15.substr(2, 2) + "\n";
-        gameshark += "8107ECD2 " + col15.substr(4, 2) + "00\n";
-        gameshark += "8107ECC8 " + col16.substr(0, 2) + col16.substr(2, 2) + "\n";
-        gameshark += "8107ECCA " + col16.substr(4, 2) + "00\n";
-        gameshark += "8107ECE8 " + col17.substr(0, 2) + col17.substr(2, 2) + "\n";
-        gameshark += "8107ECEA " + col17.substr(4, 2) + "00\n";
-        gameshark += "8107ECE0 " + col18.substr(0, 2) + col18.substr(2, 2) + "\n";
-        gameshark += "8107ECE2 " + col18.substr(4, 2) + "00\n";
-        gameshark += "8107ED00 " + col19.substr(0, 2) + col19.substr(2, 2) + "\n";
-        gameshark += "8107ED02 " + col19.substr(4, 2) + "00\n";
-        gameshark += "8107ECF8 " + col20.substr(0, 2) + col20.substr(2, 2) + "\n";
-        gameshark += "8107ECFA " + col20.substr(4, 2) + "00\n";
-        gameshark += "8107ED18 " + col21.substr(0, 2) + col21.substr(2, 2) + "\n";
-        gameshark += "8107ED1A " + col21.substr(4, 2) + "00\n";
-        gameshark += "8107ED10 " + col22.substr(0, 2) + col22.substr(2, 2) + "\n";
-        gameshark += "8107ED12 " + col22.substr(4, 2) + "00\n";
-        gameshark += "8107ED30 " + col23.substr(0, 2) + col23.substr(2, 2) + "\n";
-        gameshark += "8107ED32 " + col23.substr(4, 2) + "00\n";
-        gameshark += "8107ED28 " + col24.substr(0, 2) + col24.substr(2, 2) + "\n";
-        gameshark += "8107ED2A " + col24.substr(4, 2) + "00";
+        gameshark += "8107ECB8 " + col7.substr(0, 4) + "\n";
+        gameshark += "8107ECBA " + col7.substr(4, 2) + "00\n";
+        gameshark += "8107ECB0 " + col7.substr(6, 4) + "\n";
+        gameshark += "8107ECB2 " + col7.substr(10, 2) + "00\n";
+        gameshark += "8107ECD0 " + col8.substr(0, 4) + "\n";
+        gameshark += "8107ECD2 " + col8.substr(4, 2) + "00\n";
+        gameshark += "8107ECC8 " + col8.substr(6, 4) + "\n";
+        gameshark += "8107ECCA " + col8.substr(10, 2) + "00\n";
+        gameshark += "8107ECE8 " + col9.substr(0, 4) + "\n";
+        gameshark += "8107ECEA " + col9.substr(4, 2) + "00\n";
+        gameshark += "8107ECE0 " + col9.substr(6, 4) + "\n";
+        gameshark += "8107ECE2 " + col9.substr(10, 2) + "00\n";
+        gameshark += "8107ED00 " + col10.substr(0, 4) + "\n";
+        gameshark += "8107ED02 " + col10.substr(4, 2) + "00\n";
+        gameshark += "8107ECF8 " + col10.substr(6, 4) + "\n";
+        gameshark += "8107ECFA " + col10.substr(10, 2) + "00\n";
+        gameshark += "8107ED18 " + col11.substr(0, 4) + "\n";
+        gameshark += "8107ED1A " + col11.substr(4, 2) + "00\n";
+        gameshark += "8107ED10 " + col11.substr(6, 4) + "\n";
+        gameshark += "8107ED12 " + col11.substr(10, 2) + "00\n";
+        gameshark += "8107ED30 " + col12.substr(0, 4) + "\n";
+        gameshark += "8107ED32 " + col12.substr(4, 2) + "00\n";
+        gameshark += "8107ED28 " + col12.substr(6, 4) + "\n";
+        gameshark += "8107ED2A " + col12.substr(10, 2) + "00";
     }
 
     return gameshark;
