@@ -35,6 +35,7 @@ namespace fs = std::filesystem;
 // NOTE: This will only work with C++ standards above C++14!
 // There are most likely ways to further minimize repetition and overall complexity,
 // However i will not be doing that here
+// Structs might help, Will I use them here? Nope!
 
 // Default
 unsigned int defaultColorHat[6]             {255, 127, 0, 0, 0, 0};
@@ -129,6 +130,7 @@ std::string global_gs_code() {
     gameshark += "8107ECA0 " + col11.substr(0, 2) + col11.substr(2, 2) + "\n";
     gameshark += "8107ECA2 " + col11.substr(4, 2) + "00\n";
     gameshark += "8107EC98 " + col12.substr(0, 2) + col12.substr(2, 2) + "\n";
+
     if (!cc_spark_support) {
         gameshark += "8107EC9A " + col12.substr(4, 2) + "00";
     } else {
@@ -179,7 +181,7 @@ std::string global_gs_code() {
     }
 
     return gameshark;
-}
+} // :(
 
 /*
     Returns true if a defined address is for the CometSPARK format.
@@ -230,7 +232,7 @@ void saturn_load_cc_directory() {
 */
 
 void run_cc_replacement(int address, int value1, int value2) {
-    //NOTE: There are better ways to do this, please optimize further! 
+    // NOTE: There are better ways to do this, please optimize further! 
     
     switch(address) {
             //Hat
@@ -437,102 +439,6 @@ void run_cc_replacement(int address, int value1, int value2) {
             sparkColorLegBottom[5] = value1;
             break;
     }
-/*
-    // Shirt
-    if (address == "07ECB8") {
-        sparkColorShirt[0] = value1;
-        sparkColorShirt[2] = value2;
-    }
-    if (address == "07ECBA") {
-        sparkColorShirt[4] = value1;
-    }
-    if (address == "07ECB0") {
-        sparkColorShirt[1] = value1;
-        sparkColorShirt[3] = value2;
-    }
-    if (address == "07ECB2") {
-        sparkColorShirt[5] = value1;
-    }
-
-    // Shoulders
-    if (address == "07ECD0") {
-        sparkColorShoulders[0] = value1;
-        sparkColorShoulders[2] = value2;
-    }
-    if (address == "07ECD2") {
-        sparkColorShoulders[4] = value1;
-    }
-    if (address == "07ECC8") {
-        sparkColorShoulders[1] = value1;
-        sparkColorShoulders[3] = value2;
-    }
-    if (address == "07ECCA") {
-        sparkColorShoulders[5] = value1;
-    }
-
-    // Arms
-    if (address == "07ECE8") {
-        sparkColorArms[0] = value1;
-        sparkColorArms[2] = value2;
-    }
-    if (address == "07ECEA") {
-        sparkColorArms[4] = value1;
-    }
-    if (address == "07ECE0") {
-        sparkColorArms[1] = value1;
-        sparkColorArms[3] = value2;
-    }
-    if (address == "07ECE2") {
-        sparkColorArms[5] = value1;
-    }
-
-    // OverallsBottom
-    if (address == "07ED00") {
-        sparkColorOverallsBottom[0] = value1;
-        sparkColorOverallsBottom[2] = value2;
-    }
-    if (address == "07ED02") {
-        sparkColorOverallsBottom[4] = value1;
-    }
-    if (address == "07ECF8") {
-        sparkColorOverallsBottom[1] = value1;
-        sparkColorOverallsBottom[3] = value2;
-    }
-    if (address == "07ECFA") {
-        sparkColorOverallsBottom[5] = value1;
-    }
-
-    // LegTop
-    if (address == "07ED18") {
-        sparkColorLegTop[0] = value1;
-        sparkColorLegTop[2] = value2;
-    }
-    if (address == "07ED1A") {
-        sparkColorLegTop[4] = value1;
-    }
-    if (address == "07ED10") {
-        sparkColorLegTop[1] = value1;
-        sparkColorLegTop[3] = value2;
-    }
-    if (address == "07ED12") {
-        sparkColorLegTop[5] = value1;
-    }
-
-    // LegBottom
-    if (address == "07ED30") {
-        sparkColorLegBottom[0] = value1;
-        sparkColorLegBottom[2] = value2;
-    }
-    if (address == "07ED32") {
-        sparkColorLegBottom[4] = value1;
-    }
-    if (address == "07ED28") {
-        sparkColorLegBottom[1] = value1;
-        sparkColorLegBottom[3] = value2;
-    }
-    if (address == "07ED2A") {
-        sparkColorLegBottom[5] = value1;
-    } */
 }
 
 /*
@@ -568,8 +474,78 @@ void reset_cc_colors() {
 }
 
 bool is_default_cc(string gameshark) {
-    std::string default_cc =    "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000";
-    std::string default_spark_cc =  "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000\n8107ECB8 FFFF\n8107ECBA 0000\n8107ECB0 7F7F\n8107ECB2 0000\n8107ECD0 00FF\n8107ECD2 FF00\n8107ECC8 007F\n8107ECCA 7F00\n8107ECE8 00FF\n8107ECEA 7F00\n8107ECE0 007F\n8107ECE2 4000\n8107ED00 FF00\n8107ED02 FF00\n8107ECF8 7F00\n8107ECFA 7F00\n8107ED18 FF00\n8107ED1A 7F00\n8107ED10 7F00\n8107ED12 4000\n8107ED30 7F00\n8107ED32 FF00\n8107ED28 4000\n8107ED2A 7F00";
+    std::string default_cc =    "8107EC40 FF00\n"
+                                "8107EC42 0000\n"
+                                "8107EC38 7F00\n"
+                                "8107EC3A 0000\n"
+                                "8107EC28 0000\n"
+                                "8107EC2A FF00\n"
+                                "8107EC20 0000\n"
+                                "8107EC22 7F00\n"
+                                "8107EC58 FFFF\n"
+                                "8107EC5A FF00\n"
+                                "8107EC50 7F7F\n"
+                                "8107EC52 7F00\n"
+                                "8107EC70 721C\n"
+                                "8107EC72 0E00\n"
+                                "8107EC68 390E\n"
+                                "8107EC6A 0700\n"
+                                "8107EC88 FEC1\n"
+                                "8107EC8A 7900\n"
+                                "8107EC80 7F60\n"
+                                "8107EC82 3C00\n"
+                                "8107ECA0 7306\n"
+                                "8107ECA2 0000\n"
+                                "8107EC98 3903\n"
+                                "8107EC9A 0000";
+    std::string default_spark_cc =  "8107EC40 FF00\n"
+                                    "8107EC42 0000\n"
+                                    "8107EC38 7F00\n"
+                                    "8107EC3A 0000\n"
+                                    "8107EC28 0000\n"
+                                    "8107EC2A FF00\n"
+                                    "8107EC20 0000\n"
+                                    "8107EC22 7F00\n"
+                                    "8107EC58 FFFF\n"
+                                    "8107EC5A FF00\n"
+                                    "8107EC50 7F7F\n"
+                                    "8107EC52 7F00\n"
+                                    "8107EC70 721C\n"
+                                    "8107EC72 0E00\n"
+                                    "8107EC68 390E\n"
+                                    "8107EC6A 0700\n"
+                                    "8107EC88 FEC1\n"
+                                    "8107EC8A 7900\n"
+                                    "8107EC80 7F60\n"
+                                    "8107EC82 3C00\n"
+                                    "8107ECA0 7306\n"
+                                    "8107ECA2 0000\n"
+                                    "8107EC98 3903\n"
+                                    "8107EC9A 0000\n"
+                                    "8107ECB8 FFFF\n"
+                                    "8107ECBA 0000\n"
+                                    "8107ECB0 7F7F\n"
+                                    "8107ECB2 0000\n"
+                                    "8107ECD0 00FF\n"
+                                    "8107ECD2 FF00\n"
+                                    "8107ECC8 007F\n"
+                                    "8107ECCA 7F00\n"
+                                    "8107ECE8 00FF\n"
+                                    "8107ECEA 7F00\n"
+                                    "8107ECE0 007F\n"
+                                    "8107ECE2 4000\n"
+                                    "8107ED00 FF00\n"
+                                    "8107ED02 FF00\n"
+                                    "8107ECF8 7F00\n"
+                                    "8107ECFA 7F00\n"
+                                    "8107ED18 FF00\n"
+                                    "8107ED1A 7F00\n"
+                                    "8107ED10 7F00\n"
+                                    "8107ED12 4000\n"
+                                    "8107ED30 7F00\n"
+                                    "8107ED32 FF00\n"
+                                    "8107ED28 4000\n"
+                                    "8107ED2A 7F00";
 
     if (gameshark == default_cc || gameshark == default_spark_cc)
         return true;
