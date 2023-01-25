@@ -24,11 +24,13 @@ struct DiscordApplication {
 };
 extern struct DiscordApplication app;
 extern struct DiscordActivity gCurActivity;
+extern struct DiscordUser gCurUser;
 
 extern "C" {
 #endif
     void sdiscord_init(void);
     void sdiscord_update(void);
+    void sdiscord_shutdown(void);
 #ifdef __cplusplus
 }
 #endif
