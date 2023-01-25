@@ -11,6 +11,9 @@ extern "C" {
     void smachinima_imgui_init(void);
     void smachinima_imgui_update(void);
     void smachinima_imgui_controls(SDL_Event * event);
+
+    void imgui_machinima_animation_player(void);
+    void imgui_machinima_quick_options(void);
 #ifdef __cplusplus
 }
 #endif

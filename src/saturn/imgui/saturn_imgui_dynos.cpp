@@ -20,6 +20,8 @@
 #include "data/dynos.cpp.h"
 #include <SDL2/SDL.h>
 
+#include "icons/IconsForkAwesome.h"
+
 extern "C" {
 #include "pc/gfx/gfx_pc.h"
 #include "pc/configfile.h"
@@ -74,13 +76,15 @@ string ui_mfolder_name;
 bool one_pack_selectable;
 bool any_packs_selected;
 int windowListSize = 325;
+int current_model_id;
 int cc_model_id;
 int current_cc_to_model_index;
 string ui_model_gameshark;
 
 bool using_custom_eyes;
 
-static char searchTerm[128];
+static char modelSearchTerm[128];
+static char ccSearchTerm[128];
 static int current_mcc_id = 0;
 
 float this_face_angle;
@@ -215,20 +219,51 @@ void set_editor_from_global_cc(std::string cc_name) {
 // UI
 
 void handle_cc_box(const char* name, const char* mainName, const char* shadeName, ImVec4* colorValue, ImVec4* shadeColorValue, string id) {
-    ImGui::ColorEdit4(mainName, (float*)colorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-    if (ImGui::IsItemActivated()) accept_text_input = false;
-    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-    ImGui::SameLine(); ImGui::Text(name);
+    string nameStr = name;
+    if (nameStr != "") {
+        ImGui::ColorEdit4(mainName, (float*)colorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoInputs);
+        if (ImGui::IsItemActivated()) accept_text_input = false;
+        if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
-    ImGui::ColorEdit4(shadeName, (float*)shadeColorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
-    if (ImGui::IsItemActivated()) accept_text_input = false;
-    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+        if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+            ImGui::OpenPopup(id.c_str());
+        if (ImGui::BeginPopup(id.c_str())) {
+            if (ImGui::Selectable("×2")) {
+                colorValue->x = shadeColorValue->x * 1.99f;
+                colorValue->y = shadeColorValue->y * 1.99f;
+                colorValue->z = shadeColorValue->z * 1.99f;
+            }
+            if (ImGui::Selectable("Randomize")) {
+                colorValue->x = (rand() % 255) / 255.0f;
+                colorValue->y = (rand() % 255) / 255.0f;
+                colorValue->z = (rand() % 255) / 255.0f;
+            }
+            ImGui::EndPopup();
+        }
 
-    ImGui::SameLine();
-    if (ImGui::Button(id.c_str())) {
-        shadeColorValue->x = colorValue->x / 2.0f;
-        shadeColorValue->y = colorValue->y / 2.0f;
-        shadeColorValue->z = colorValue->z / 2.0f;
+        ImGui::SameLine();
+        ImGui::ColorEdit4(shadeName, (float*)shadeColorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoInputs);
+        if (ImGui::IsItemActivated()) accept_text_input = false;
+        if (ImGui::IsItemDeactivated()) accept_text_input = true;
+
+        if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+            ImGui::OpenPopup((id + "1").c_str());
+        if (ImGui::BeginPopup((id + "1").c_str())) {
+            if (ImGui::Selectable("1/2")) {
+                shadeColorValue->x = floor(colorValue->x / 2.0f * 255.0f) / 255.0f;
+                shadeColorValue->y = floor(colorValue->y / 2.0f * 255.0f) / 255.0f;
+                shadeColorValue->z = floor(colorValue->z / 2.0f * 255.0f) / 255.0f;
+            }
+            if (ImGui::Selectable("Randomize")) {
+                shadeColorValue->x = (rand() % 127) / 255.0f;
+                shadeColorValue->y = (rand() % 127) / 255.0f;
+                shadeColorValue->z = (rand() % 127) / 255.0f;
+            }
+            ImGui::EndPopup();
+        }
+
+        ImGui::SameLine();
+        ImGui::Text(name);
     }
 }
 
@@ -239,39 +274,92 @@ void sdynos_imgui_init() {
     //saturn_load_eye_directory();
     saturn_load_eye_folder("");
     strcpy(ui_gameshark, global_gs_code().c_str());
+
+    model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
+    if (sDynosPacks.Count() != 1) model_details += "s";
 }
 
 void sdynos_imgui_menu() {
-    if (ImGui::BeginMenu("Edit Avatar###menu_edit_avatar")) {
+    if (ImGui::BeginMenu(ICON_FK_USER_CIRCLE " Edit Avatar###menu_edit_avatar")) {
 
         ImGui::Text("Color Codes");
         ImGui::SameLine(); imgui_bundled_help_marker(
             "These are GameShark color codes, which overwrite Mario's lights. Place GS files in dynos/colorcodes.");
+
+        if (cc_array.size() >= 18) {
+            ImGui::InputTextWithHint("###cc_search_text", ICON_FK_SEARCH " Search color codes...", ccSearchTerm, IM_ARRAYSIZE(ccSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
+            if (ImGui::IsItemActivated()) accept_text_input = false;
+            if (ImGui::IsItemDeactivated()) accept_text_input = true;
+        } else {
+            // If our CC list is reloaded, and we now have less than 18 files, this can cause filter issues if not reset to nothing
+            if (ccSearchTerm != "") strcpy(ccSearchTerm, "");
+        }
+        string ccSearchLower = ccSearchTerm;
+        std::transform(ccSearchLower.begin(), ccSearchLower.end(), ccSearchLower.begin(),
+            [](unsigned char c){ return std::tolower(c); });
 
         ImGui::BeginChild("###menu_cc_selector", ImVec2(208, 100), true);
         for (int n = 0; n < cc_array.size(); n++) {
             const bool is_selected = (current_cc_id == n);
             cc_name = cc_array[n].substr(0, cc_array[n].size() - 3);
 
+            // If we're searching, only include CCs with the search keyword in the name
+            // Also convert to lowercase
+            if (ccSearchLower != "") {
+                string nameLower = cc_name;
+                std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(),
+                    [](unsigned char c1){ return std::tolower(c1); });
+
+                if (nameLower.find(ccSearchLower) == string::npos) {
+                    continue;
+                }
+            }
+
             if (ImGui::Selectable(cc_name.c_str(), is_selected)) {
                 current_cc_id = n;
                 load_cc_file((char*)cc_array[current_cc_id].c_str());
                 set_editor_from_global_cc(cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3));
+
+                cc_details = "" + std::to_string(cc_array.size()) + " color code";
+                if (cc_array.size() != 1) cc_details += "s";
             }
 
             if (ImGui::BeginPopupContextItem()) {
                 if (cc_name != "Mario") {
                     ImGui::Text("%s.gs", cc_name.c_str());
                     imgui_bundled_tooltip(("/dynos/colorcodes/" + cc_name + ".gs").c_str());
-                    if (ImGui::SmallButton("Delete File")) {
+                    if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                         delete_cc_file(cc_name);
                         current_cc_id = -1;
                         ImGui::CloseCurrentPopup();
                     } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
                     ImGui::Separator();
                 }
+                if (cc_spark_support) {
+                    if (ImGui::Button("SPARKILIZE###cc_context_sparkilize")) {
+                        current_cc_id = n;
+                        load_cc_file((char*)cc_array[current_cc_id].c_str());
+                        set_editor_from_global_cc(cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3));
+
+                        uiShirtColor = uiHatColor;
+                        uiShirtShadeColor = uiHatShadeColor;
+                        uiShouldersColor= uiHatColor;
+                        uiShouldersShadeColor = uiShirtShadeColor;
+                        uiArmsColor = uiHatColor;
+                        uiArmsShadeColor = uiShirtShadeColor;
+                        uiOverallsBottomColor = uiOverallsColor;
+                        uiOverallsBottomShadeColor = uiOverallsShadeColor;
+                        uiLegTopColor = uiOverallsColor;
+                        uiLegTopShadeColor = uiOverallsShadeColor;
+                        uiLegBottomColor = uiOverallsColor;
+                        uiLegBottomShadeColor = uiOverallsShadeColor;
+                        apply_cc_from_editor();
+                    } ImGui::SameLine(); imgui_bundled_help_marker("Automatically converts a regular CC to a SPARK CC; WARNING: This will overwrite your active color code.");
+
+                    ImGui::Separator();
+                }
                 ImGui::TextDisabled("%i color code(s)", cc_array.size());
-                if (ImGui::Button("Refresh")) {
+                if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
                     saturn_load_cc_directory();
                     ImGui::CloseCurrentPopup();
                 }
@@ -279,7 +367,7 @@ void sdynos_imgui_menu() {
             }
         }
         ImGui::EndChild();
-        if (ImGui::Button("Add CC File...###add_v_cc")) {
+        if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_v_cc")) {
             auto selection3 = pfd::open_file("Select a file", ".",
                         { "Color Code Files", "*.gs *.txt",
                             "All Files", "*" },
@@ -297,15 +385,15 @@ void sdynos_imgui_menu() {
             "DynOS v1.1 by PeachyPeach\n\nThese are DynOS model packs, used for live model loading.\nPlace packs in /dynos/packs.");
 
         if (sDynosPacks.Count() >= 20) {
-            ImGui::InputTextWithHint("###model_search_text", "Search models...", searchTerm, IM_ARRAYSIZE(searchTerm), ImGuiInputTextFlags_AutoSelectAll);
+            ImGui::InputTextWithHint("###model_search_text", ICON_FK_SEARCH " Search models...", modelSearchTerm, IM_ARRAYSIZE(modelSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
             if (ImGui::IsItemActivated()) accept_text_input = false;
             if (ImGui::IsItemDeactivated()) accept_text_input = true;
         } else {
             // If our model list is reloaded, and we now have less than 20 packs, this can cause filter issues if not reset to nothing
-            if (searchTerm != "") strcpy(searchTerm, "");
+            if (modelSearchTerm != "") strcpy(modelSearchTerm, "");
         }
-        string searchLower = searchTerm;
-        std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(),
+        string modelSearchLower = modelSearchTerm;
+        std::transform(modelSearchLower.begin(), modelSearchLower.end(), modelSearchLower.begin(),
             [](unsigned char c){ return std::tolower(c); });
 
         if (sDynosPacks.Count() <= 0) {
@@ -323,12 +411,12 @@ void sdynos_imgui_menu() {
 
                 // If we're searching, only include models with the search keyword in the name
                 // Also convert to lowercase
-                if (searchLower != "") {
-                    string labelLower = label;
+                if (modelSearchLower != "") {
+                    string labelLower = saturn_load_search(label);
                     std::transform(labelLower.begin(), labelLower.end(), labelLower.begin(),
                         [](unsigned char c1){ return std::tolower(c1); });
 
-                    if (labelLower.find(searchLower) == string::npos) {
+                    if (labelLower.find(modelSearchLower) == string::npos) {
                         continue;
                     }
                 }
@@ -355,6 +443,10 @@ void sdynos_imgui_menu() {
                         std::cout << "Loaded " << current_model_data.name << " by " << current_model_data.author << std::endl;
 
                     current_mcc_id = -1;
+                    current_model_id = i;
+
+                    model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
+                    if (sDynosPacks.Count() != 1) model_details += "s";
 
                     if (is_default_cc(ui_gameshark)) {
                         get_ccs_from_model(sDynosPacks[i]->mPath);
@@ -362,6 +454,7 @@ void sdynos_imgui_menu() {
                             set_cc_from_model(sDynosPacks[i]->mPath + "/colorcodes/" + model_cc_array[0].substr(0, model_cc_array[0].size()));
                             set_editor_from_global_cc("Sample");
                             ui_model_gameshark = ui_gameshark;
+                            last_model_cc_address = ui_model_gameshark;
                         }
                     }
 
@@ -373,7 +466,6 @@ void sdynos_imgui_menu() {
 
                     any_packs_selected = one_pack_selectable;
                     if (!any_packs_selected) {
-
                         if (ui_model_gameshark == ui_gameshark) {
                             ui_model_gameshark = "";
                             current_cc_id = 0;
@@ -386,6 +478,9 @@ void sdynos_imgui_menu() {
                         using_model_eyes = false;
                         cc_model_support = true;
                         cc_spark_support = false;
+                        set_editor_from_global_cc("Sample");
+                        strcpy(ui_gameshark, global_gs_code().c_str());
+                        enable_torso_rotation = true;
                     }
                 }
                 if (ImGui::BeginPopupContextItem()) {
@@ -411,14 +506,38 @@ void sdynos_imgui_menu() {
                                 ImGui::Text("%s.gs", cc_name.c_str());
                                 imgui_bundled_tooltip(("/dynos/packs/" + label + "/colorcodes/" + cc_name + ".gs").c_str());
                                 if (cc_name != "../default") {
-                                    if (ImGui::SmallButton("Delete File")) {
+                                    if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                                         delete_model_cc_file(cc_name, label);
                                         ImGui::CloseCurrentPopup();
                                     } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
                                 }
                                 ImGui::Separator();
+                                if (cc_spark_support) {
+                                    if (ImGui::Button("SPARKILIZE###cc_context_sparkilize")) {
+                                        current_mcc_id = n;
+                                        current_cc_id = -1;
+                                        set_cc_from_model(sDynosPacks[i]->mPath + "/colorcodes/" + cc_name + ".gs");
+                                        set_editor_from_global_cc("Sample");
+
+                                        uiShirtColor = uiHatColor;
+                                        uiShirtShadeColor = uiHatShadeColor;
+                                        uiShouldersColor= uiHatColor;
+                                        uiShouldersShadeColor = uiShirtShadeColor;
+                                        uiArmsColor = uiHatColor;
+                                        uiArmsShadeColor = uiShirtShadeColor;
+                                        uiOverallsBottomColor = uiOverallsColor;
+                                        uiOverallsBottomShadeColor = uiOverallsShadeColor;
+                                        uiLegTopColor = uiOverallsColor;
+                                        uiLegTopShadeColor = uiOverallsShadeColor;
+                                        uiLegBottomColor = uiOverallsColor;
+                                        uiLegBottomShadeColor = uiOverallsShadeColor;
+                                        apply_cc_from_editor();
+                                    } ImGui::SameLine(); imgui_bundled_help_marker("Automatically converts a regular CC to a SPARK CC; WARNING: This will overwrite your active color code.");
+
+                                    ImGui::Separator();
+                                }
                                 ImGui::TextDisabled("%i color code(s)", model_cc_array.size());
-                                if (ImGui::Button("Refresh")) {
+                                if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
                                     get_ccs_from_model(sDynosPacks[i]->mPath);
                                     ImGui::CloseCurrentPopup();
                                 }
@@ -426,7 +545,7 @@ void sdynos_imgui_menu() {
                             }
                         }
                         ImGui::EndChild();
-                        if (ImGui::Button("Add CC File...###add_m_cc")) {
+                        if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_m_cc")) {
                             auto selection4 = pfd::open_file("Select a file", ".",
                                         { "Color Code Files", "*.gs *.txt",
                                             "All Files", "*" },
@@ -441,7 +560,7 @@ void sdynos_imgui_menu() {
                     }
                     ImGui::Separator();
                     ImGui::TextDisabled("%i model pack(s)", sDynosPacks.Count());
-                    if (ImGui::Button("Refresh Packs###refresh_dynos_packs")) {
+                    if (ImGui::Button(ICON_FK_DOWNLOAD " Refresh Packs###refresh_dynos_packs")) {
                         sDynosPacks.Clear();
                         DynOS_Gfx_Init();
                         ImGui::CloseCurrentPopup();
@@ -454,8 +573,38 @@ void sdynos_imgui_menu() {
         }
         ImGui::EndMenu();
     }
-    if (ImGui::MenuItem("Color Code Editor###menu_cc_editor"))
-        currentMenu = 2;
+    if (ImGui::MenuItem(ICON_FK_PAINT_BRUSH " Color Code Editor###menu_cc_editor", NULL, windowCcEditor, cc_model_support)) {
+        if (cc_model_support) {
+            windowAnimPlayer = false;
+            windowChromaKey = false;
+            windowCcEditor = !windowCcEditor;
+        }
+    }
+    if (ImGui::MenuItem(ICON_FK_FILM " Animation Mixtape###menu_anim_player", NULL, windowAnimPlayer, mario_exists)) {
+        windowCcEditor = false;
+        windowChromaKey = false;
+        windowAnimPlayer = !windowAnimPlayer;
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::BeginMenu("Color Settings###menu_color", ((current_model_data.name != "" && current_model_data.cc_support == true) || current_model_data.name == "") || ((current_model_data.name != "" && current_model_data.spark_support == true) || current_model_data.name == ""))) {
+        // CC Compatibility - Allows colors to be edited for models that support it
+        if ((current_model_data.name != "" && current_model_data.cc_support == true) || current_model_data.name == "") {
+            ImGui::Checkbox("CC Compatibility", &cc_model_support);
+            ImGui::SameLine(); imgui_bundled_help_marker(
+                "Toggles color code compatibility for model packs that support it.");
+        }
+        // CometSPARK Support - When a model is present, allows SPARK colors to be edited for models that support it
+        if (any_packs_selected) {
+            if ((current_model_data.name != "" && current_model_data.spark_support == true) || current_model_data.name == "") {
+                ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
+                ImGui::SameLine(); imgui_bundled_help_marker(
+                    "Grants a model extra color values. See the GitHub wiki for setup instructions.");
+            }
+        }
+        ImGui::EndMenu();
+    }
 
     if (ImGui::BeginMenu("Misc.###menu_misc")) {
 
@@ -481,9 +630,13 @@ void sdynos_imgui_menu() {
             }
             if (ImGui::BeginTabItem("Shading###tab_shading")) {
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
+                saturn_keyframe_popout(&world_light_dir1, "Mario Shade X", "k_shade_x");
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
+                saturn_keyframe_popout(&world_light_dir2, "Mario Shade Y", "k_shade_y");
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
+                saturn_keyframe_popout(&world_light_dir3, "Mario Shade Z", "k_shade_z");
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
+                saturn_keyframe_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
 
                 if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine();
@@ -498,11 +651,15 @@ void sdynos_imgui_menu() {
             }
             if (ImGui::BeginTabItem("Scale###tab_scale")) {
                 if (linkMarioScale) {
-                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
+                    ImGui::Dummy(ImVec2(8, 0)); ImGui::SameLine(); ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
+                    saturn_keyframe_popout(&marioScaleSizeX, "Mario Scale", "k_scale");
                 } else {
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###mscale_x", &marioScaleSizeX, -2.f, 2.f);
+                    saturn_keyframe_popout(&marioScaleSizeX, "Mario Scale X", "k_scale_x");
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###mscale_y", &marioScaleSizeY, -2.f, 2.f);
+                    saturn_keyframe_popout(&marioScaleSizeY, "Mario Scale Y", "k_scale_y");
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###mscale_z", &marioScaleSizeZ, -2.f, 2.f);
+                    saturn_keyframe_popout(&marioScaleSizeZ, "Mario Scale Z", "k_scale_z");
                 }
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::Checkbox("Link###link_mario_scale", &linkMarioScale);
                 if (marioScaleSizeX != 1.f || marioScaleSizeY != 1.f || marioScaleSizeZ != 1.f) {
@@ -574,15 +731,17 @@ void sdynos_imgui_menu() {
     if (current_model_data.name != "") {
 
         // Metadata
-
+        string metaLabelText = (ICON_FK_USER " " + current_model_data.name);
         string metaDataText = "v" + current_model_data.version;
         if (current_model_data.description != "")
             metaDataText = "v" + current_model_data.version + "\n" + current_model_data.description;
 
-        ImGui::Text(current_model_data.name.c_str());
-        ImGui::SameLine(); imgui_bundled_help_marker(
-            metaDataText.c_str());
-        ImGui::Text(("By " + current_model_data.author).c_str());
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+        ImGui::BeginChild("###model_metadata", ImVec2(0, 45), true, ImGuiWindowFlags_NoScrollbar);
+        ImGui::Text(metaLabelText.c_str()); imgui_bundled_tooltip(metaDataText.c_str());
+        ImGui::TextDisabled(("@ " + current_model_data.author).c_str());
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
 
         ImGui::Separator();
     }
@@ -625,7 +784,7 @@ void sdynos_imgui_menu() {
                             ImGui::Text("%s", entry_name.c_str());
                             imgui_bundled_tooltip((current_eye_dir_path + entry_name).c_str());
                             if (eye_array.size() > 1) {
-                                if (ImGui::SmallButton("Delete File")) {
+                                if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                                     saturn_delete_file(current_eye_dir_path + entry_name);
                                     saturn_load_eye_folder(current_eye_dir_path);
                                     ImGui::CloseCurrentPopup();
@@ -634,7 +793,7 @@ void sdynos_imgui_menu() {
                             ImGui::Separator();
                         }
                         ImGui::TextDisabled("%i eye texture(s)", eye_array.size());
-                        if (ImGui::Button("Refresh###refresh_v_eyes")) {
+                        if (ImGui::Button(ICON_FK_UNDO " Refresh###refresh_v_eyes")) {
                             saturn_load_eye_folder(current_eye_dir_path);
                             ImGui::CloseCurrentPopup();
                         }
@@ -642,7 +801,7 @@ void sdynos_imgui_menu() {
                     }
                 }
                 ImGui::EndChild();
-                if (ImGui::Button("Add Eye...###add_v_eye")) {
+                if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Eye...###add_v_eye")) {
                     auto selection = pfd::open_file("Select a file", ".",
                                 { "PNG Textures", "*.png ",
                                   "All Files", "*" },
@@ -657,12 +816,10 @@ void sdynos_imgui_menu() {
             } else {
                 ImGui::Text("No eye textures found.\nPlace custom eye PNG textures\nin dynos/eyes/.");
             }
-            ImGui::Separator();
+            if (current_model_data.expressions.size() >= 1) ImGui::Separator();
         }
     } else {
-        if (current_model_data.eye_support && current_model_data.name != "") {
-            ImGui::Separator();
-        }
+        if (current_model_data.expressions.size() >= 1) ImGui::Separator();
     }
 
     scrollEyeState = current_eye_state;
@@ -700,7 +857,7 @@ void sdynos_imgui_menu() {
                         ImGui::Text("%s", entry_name.c_str());
                         imgui_bundled_tooltip(("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name).c_str());
                         if (expression.textures.size() > 1) {
-                            if (ImGui::SmallButton("Delete File")) {
+                            if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                                 saturn_delete_file("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name);
                                 saturn_load_model_data(current_folder_name);
                                 for (int i = 0; i < 8; i++) {
@@ -712,7 +869,7 @@ void sdynos_imgui_menu() {
                         ImGui::Separator();
 
                         ImGui::TextDisabled("%i eye texture(s)", expression.textures.size());
-                        if (ImGui::Button("Refresh###refresh_m_eyes")) {
+                        if (ImGui::Button(ICON_FK_UNDO " Refresh###refresh_m_eyes")) {
                             saturn_load_model_data(current_folder_name);
                             for (int i = 0; i < 8; i++) {
                                 current_exp_index[i] = 0;
@@ -723,7 +880,7 @@ void sdynos_imgui_menu() {
                     }
                 }
                 ImGui::EndChild();
-                if (ImGui::Button("Add Eye...###add_m_eye")) {
+                if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Eye...###add_m_eye")) {
                     auto selection1 = pfd::open_file("Select a file", ".",
                                 { "PNG Textures", "*.png ",
                                   "All Files", "*" },
@@ -735,9 +892,7 @@ void sdynos_imgui_menu() {
                         saturn_load_model_data(current_folder_name);
                     }
                 }
-
-                if (current_model_data.eye_support)
-                    ImGui::Separator();
+                if (current_model_data.expressions.size() >= 1) ImGui::Separator();
             }
         }
         for (int i; i < current_model_data.expressions.size(); i++) {
@@ -747,7 +902,7 @@ void sdynos_imgui_menu() {
 
                 // Everything but eyes
                 if (expression.textures.size() > 0) {
-                    string label_name = expression.name + "###menu_" + expression.name;
+                    string label_name = "###menu_" + expression.name;
 
                     // If we just have "none" and "default" for an expression...
                     // Use a checkbox instead for nicer UI
@@ -758,6 +913,8 @@ void sdynos_imgui_menu() {
                         int cdeselect_index = (expression.textures[0].find("none") != string::npos) ? 0 : 1;
                         bool is_selected = (current_exp_index[i] == cselect_index);
 
+                        ImGui::Text(expression.name.c_str());
+                        ImGui::SameLine(75);
                         if (ImGui::Checkbox(label_name.c_str(), &is_selected)) {
                             gfx_precache_textures();
                             if (is_selected) {
@@ -770,8 +927,10 @@ void sdynos_imgui_menu() {
                         }
                     } else {
                         string label_name = "###menu_" + expression.name;
-                        const char* preview_label_name = (expression.name + " >> " + expression.textures[current_exp_index[i]]).c_str();
-                        if (ImGui::BeginCombo(label_name.c_str(), preview_label_name, ImGuiComboFlags_None)) {
+                        ImGui::Text(expression.name.c_str());
+                        ImGui::SameLine(75);
+                        ImGui::PushItemWidth(150);
+                        if (ImGui::BeginCombo(label_name.c_str(), expression.textures[current_exp_index[i]].c_str(), ImGuiComboFlags_None)) {
                             for (int n = 0; n < expression.textures.size(); n++) {
                                 bool is_selected = (current_exp_index[i] == n);
                                 string entry_name = expression.textures[n];
@@ -787,7 +946,7 @@ void sdynos_imgui_menu() {
                                     ImGui::Text("%s", entry_name.c_str());
                                     imgui_bundled_tooltip(("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name).c_str());
                                     if (expression.textures.size() > 1) {
-                                        if (ImGui::SmallButton("Delete File")) {
+                                        if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                                             saturn_delete_file("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name);
                                             saturn_load_model_data(current_folder_name);
                                             for (int i = 0; i < 8; i++) {
@@ -801,11 +960,12 @@ void sdynos_imgui_menu() {
                             }
                             ImGui::EndCombo();
                         }
+                        ImGui::PopItemWidth();
                     }
 
                     // Refresh
                     if (ImGui::BeginPopupContextItem()) {
-                        if (ImGui::Button("Add Expression...###add_m_exp")) {
+                        if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Expression...###add_m_exp")) {
                             auto selection1 = pfd::open_file("Select a file", ".",
                                         { "PNG Textures", "*.png ",
                                         "All Files", "*" },
@@ -820,7 +980,7 @@ void sdynos_imgui_menu() {
                         }
                         ImGui::Separator();
                         ImGui::TextDisabled("%i %s expression(s)", expression.textures.size(), expression.name.c_str());
-                        if (ImGui::Button("Refresh###refresh_m_exp")) {
+                        if (ImGui::Button(ICON_FK_UNDO " Refresh###refresh_m_exp")) {
                             saturn_load_model_data(current_folder_name);
                             for (int i = 0; i < 8; i++) {
                                 current_exp_index[i] = 0;
@@ -833,113 +993,144 @@ void sdynos_imgui_menu() {
             }
         }
     }
-
-    // CC Compatibility - Allows colors to be edited for models that support it
-    if ((current_model_data.name != "" && current_model_data.cc_support == true) || current_model_data.name == "") {
-        if (current_model_data.expressions.size() > 1 && current_model_data.eye_support) ImGui::Separator();
-        ImGui::Checkbox("CC Compatibility", &cc_model_support);
-        ImGui::SameLine(); imgui_bundled_help_marker(
-            "Toggles color code compatibility for model packs that support it.");
-    }
-    // CometSPARK Support - When a model is present, allows SPARK colors to be edited for models that support it
-    if (any_packs_selected) {
-        if ((current_model_data.name != "" && current_model_data.spark_support == true) || current_model_data.name == "") {
-            ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
-            ImGui::SameLine(); imgui_bundled_help_marker(
-                "Grants a model extra color values. See the GitHub wiki for setup instructions.");
-        }
-    }
-
-    ImGui::EndMenu();
 }
 
-void sdynos_imgui_update() {
-    if (currentMenu != 2) return;
+void imgui_dynos_cc_editor() {
+    if (!cc_model_support) {
+        ImGui::BeginDisabled();
+        if (current_model_data.name != "") {
+            ImGui::TextWrapped("%s does not include color code features", current_model_data.name.c_str());
+        } else {
+            ImGui::TextWrapped("Color code support is disabled");
+        }
+        ImGui::EndDisabled();
+        return;
+    }
 
-    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-    ImGui::Begin("Color Code Editor", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-    ImGui::SetWindowPos(ImVec2(10, 30));
-    ImGui::SetWindowSize(ImVec2(275, 435));
+    ImGui::PushItemWidth(100);
+    ImGui::InputText(".gs", ui_cc_name, IM_ARRAYSIZE(ui_cc_name));
+    if (ImGui::IsItemActivated()) accept_text_input = false;
+    if (ImGui::IsItemDeactivated()) accept_text_input = true;
+    ImGui::PopItemWidth();
 
-    if (ImGui::Button("Reset Colors")) {
-        current_cc_id = 0;
-        load_cc_file((char*)cc_array[current_cc_id].c_str());
-        set_editor_from_global_cc("Sample");
+    ImGui::SameLine(150);
+
+    //ImGui::Text("Save to:"); ImGui::SameLine(); ImGui::Dummy(ImVec2(5, 0));
+    //ImGui::SameLine();
+    if (ImGui::Button(ICON_FK_FILE_TEXT " File###save_cc_to_file")) {
+        apply_cc_from_editor();
+        std::string cc_name = ui_cc_name;
+        // Filter out potential paths
+        std::replace(cc_name.begin(), cc_name.end(), '.', '-');
+        std::replace(cc_name.begin(), cc_name.end(), '/', '-');
+        std::replace(cc_name.begin(), cc_name.end(), '\\', '-');
+        // We don't want to save a CC named "Mario", as it may cause file issues.
+        if (cc_name != "Mario") {
+            save_cc_file(cc_name, global_gs_code());
+        } else {
+            strcpy(ui_cc_name, "Sample");
+            save_cc_file("Sample", global_gs_code());
+        }
+        saturn_load_cc_directory();
+    }
+    ImGui::Text("");
+    ImGui::SameLine(150);
+    if (sDynosPacks.Count() > 0 && one_pack_selectable && cc_model_support) {
+        string buttonLabel = ICON_FK_FOLDER_OPEN_O " Model###save_cc_to_model";
+        if (ImGui::Button(buttonLabel.c_str())) {
+            apply_cc_from_editor();
+            std::string cc_name = ui_cc_name;
+            // Filter out potential paths
+            std::replace(cc_name.begin(), cc_name.end(), '.', '-');
+            std::replace(cc_name.begin(), cc_name.end(), '/', '-');
+            std::replace(cc_name.begin(), cc_name.end(), '\\', '-');
+            // We don't want to save a CC named "Mario", as it may cause file issues.
+            if (cc_name != "Mario") {
+                save_cc_model_file(cc_name, global_gs_code(), ui_mfolder_name);
+            } else {
+                strcpy(ui_cc_name, "Sample");
+                save_cc_model_file("Sample", global_gs_code(), ui_mfolder_name);
+            }
+            saturn_load_cc_directory();
+        }
+        string tooltipLabel = "dynos/packs/" + ui_mfolder_name + "/colorcodes/" + ui_cc_name;
+        imgui_bundled_tooltip(tooltipLabel.c_str());
     }
 
     ImGui::Dummy(ImVec2(0, 5));
 
+    if (ImGui::Button(ICON_FK_UNDO " Reset Colors")) {
+        current_cc_id = 0;
+
+        if (any_packs_selected) {
+            get_ccs_from_model(sDynosPacks[current_model_id]->mPath);
+            if (model_cc_array.size() > 0 && cc_model_support) {
+                set_cc_from_model(sDynosPacks[current_model_id]->mPath + "/colorcodes/" + model_cc_array[0].substr(0, model_cc_array[0].size()));
+                set_editor_from_global_cc("Sample");
+                ui_model_gameshark = ui_gameshark;
+                last_model_cc_address = ui_model_gameshark;
+            }
+        } else {
+            load_cc_file((char*)cc_array[current_cc_id].c_str());
+            set_editor_from_global_cc("Sample");
+        }
+    }
+
     if (ImGui::BeginTabBar("###dynos_tabbar", ImGuiTabBarFlags_None)) {
 
-        if (ImGui::BeginTabItem("CC Editor")) {
-            handle_cc_box("Hat", "Hat, Main", "Hat, Shade", &uiHatColor, &uiHatShadeColor, "1/2###hat_half");
-            handle_cc_box("Overalls", "Overalls, Main", "Overalls, Shade", &uiOverallsColor, &uiOverallsShadeColor, "1/2###overalls_half");
-            handle_cc_box("Gloves", "Gloves, Main", "Gloves, Shade", &uiGlovesColor, &uiGlovesShadeColor, "1/2###gloves_half");
-            handle_cc_box("Shoes", "Shoes, Main", "Shoes, Shade", &uiShoesColor, &uiShoesShadeColor, "1/2###shoes_half");
-            handle_cc_box("Skin", "Skin, Main", "Skin, Shade", &uiSkinColor, &uiSkinShadeColor, "1/2###skin_half");
-            handle_cc_box("Hair", "Hair, Main", "Hair, Shade", &uiHairColor, &uiHairShadeColor, "1/2###hair_half");
-            if (cc_spark_support) {
-                if (ImGui::CollapsingHeader("SPARK###spark_color_edit")) {
-                    handle_cc_box("Shirt", "Shirt, Main", "Shirt, Shade", &uiShirtColor, &uiShirtShadeColor, "1/2###shirt_half");
-                    handle_cc_box("Shoulders", "Shoulders, Main", "Shoulders, Shade", &uiShouldersColor, &uiShouldersShadeColor, "1/2###shoulders_half");
-                    handle_cc_box("Arms", "Arms, Main", "Arms, Shade", &uiArmsColor, &uiArmsShadeColor, "1/2###arms_half");
-                    handle_cc_box("Overalls (Bottom)", "Overalls (Bottom), Main", "Overalls (Bottom), Shade", &uiOverallsBottomColor, &uiOverallsBottomShadeColor, "1/2###overalls_bottom_half");
-                    handle_cc_box("Leg (Top)", "Leg (Top), Main", "Leg (Top), Shade", &uiLegTopColor, &uiLegTopShadeColor, "1/2###leg_top_half");
-                    handle_cc_box("Leg (Bottom)", "Leg (Bottom), Main", "Leg (Bottom), Shade", &uiLegBottomColor, &uiLegBottomShadeColor, "1/2###leg_bottom_half");
-                }
-            }
+        if (ImGui::BeginTabItem("Editor")) {
+            handle_cc_box(current_model_data.hat_label.c_str(), "Hat, Main", "Hat, Shade", &uiHatColor, &uiHatShadeColor, "1/2###hat_half");
+            handle_cc_box(current_model_data.overalls_label.c_str(), "Overalls, Main", "Overalls, Shade", &uiOverallsColor, &uiOverallsShadeColor, "1/2###overalls_half");
+            handle_cc_box(current_model_data.gloves_label.c_str(), "Gloves, Main", "Gloves, Shade", &uiGlovesColor, &uiGlovesShadeColor, "1/2###gloves_half");
+            handle_cc_box(current_model_data.shoes_label.c_str(), "Shoes, Main", "Shoes, Shade", &uiShoesColor, &uiShoesShadeColor, "1/2###shoes_half");
+            handle_cc_box(current_model_data.skin_label.c_str(), "Skin, Main", "Skin, Shade", &uiSkinColor, &uiSkinShadeColor, "1/2###skin_half");
+            handle_cc_box(current_model_data.hair_label.c_str(), "Hair, Main", "Hair, Shade", &uiHairColor, &uiHairShadeColor, "1/2###hair_half");
 
-            if (!configEditorFastApply) {
-                if (ImGui::Button("Apply CC###apply_cc_from_editor")) {
+            if (cc_spark_support) {
+                if (ImGui::SmallButton("v SPARKILIZE v###cc_editor_sparkilize")) {
+                    uiShirtColor = uiHatColor;
+                    uiShirtShadeColor = uiHatShadeColor;
+                    uiShouldersColor= uiHatColor;
+                    uiShouldersShadeColor = uiShirtShadeColor;
+                    uiArmsColor = uiHatColor;
+                    uiArmsShadeColor = uiShirtShadeColor;
+                    uiOverallsBottomColor = uiOverallsColor;
+                    uiOverallsBottomShadeColor = uiOverallsShadeColor;
+                    uiLegTopColor = uiOverallsColor;
+                    uiLegTopShadeColor = uiOverallsShadeColor;
+                    uiLegBottomColor = uiOverallsColor;
+                    uiLegBottomShadeColor = uiOverallsShadeColor;
                     apply_cc_from_editor();
-                }
-            } else {
-                apply_cc_from_editor();
+                } ImGui::SameLine(); imgui_bundled_help_marker("Automatically converts a regular CC to a SPARK CC; WARNING: This will overwrite your active color code.");
+
+                handle_cc_box(current_model_data.shirt_label.c_str(), "Shirt, Main", "Shirt, Shade", &uiShirtColor, &uiShirtShadeColor, "1/2###shirt_half");
+                handle_cc_box(current_model_data.shoulders_label.c_str(), "Shoulders, Main", "Shoulders, Shade", &uiShouldersColor, &uiShouldersShadeColor, "1/2###shoulders_half");
+                handle_cc_box(current_model_data.arms_label.c_str(), "Arms, Main", "Arms, Shade", &uiArmsColor, &uiArmsShadeColor, "1/2###arms_half");
+                handle_cc_box(current_model_data.pelvis_label.c_str(), "Overalls (Bottom), Main", "Overalls (Bottom), Shade", &uiOverallsBottomColor, &uiOverallsBottomShadeColor, "1/2###overalls_bottom_half");
+                handle_cc_box(current_model_data.thighs_label.c_str(), "Leg (Top), Main", "Leg (Top), Shade", &uiLegTopColor, &uiLegTopShadeColor, "1/2###leg_top_half");
+                handle_cc_box(current_model_data.calves_label.c_str(), "Leg (Bottom), Main", "Leg (Bottom), Shade", &uiLegBottomColor, &uiLegBottomShadeColor, "1/2###leg_bottom_half");
             }
 
             ImGui::Dummy(ImVec2(0, 5));
 
-            ImGui::InputText(".gs", ui_cc_name, IM_ARRAYSIZE(ui_cc_name));
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
-
-            ImGui::Text("Save to:"); ImGui::SameLine(); ImGui::Dummy(ImVec2(5, 0));
-            ImGui::SameLine(); if (ImGui::Button("File###save_cc_to_file")) {
-                apply_cc_from_editor();
-                std::string cc_name = ui_cc_name;
-                // We don't want to save a CC named "Mario", as it may cause file issues.
-                if (cc_name != "Mario") {
-                    save_cc_file(cc_name, global_gs_code());
-                } else {
-                    strcpy(ui_cc_name, "Sample");
-                    save_cc_file("Sample", global_gs_code());
-                }
-                saturn_load_cc_directory();
-            }
-            if (sDynosPacks.Count() > 0 && one_pack_selectable && cc_model_support) {
-                string buttonLabel = ui_mfolder_name + "###save_cc_to_model";
-                ImGui::SameLine(); if (ImGui::Button(buttonLabel.c_str())) {
+            if (!configEditorFastApply) {
+                if (ImGui::Button(ICON_FK_CLIPBOARD " Apply CC###apply_cc_from_editor")) {
                     apply_cc_from_editor();
-                    std::string cc_name = ui_cc_name;
-                    // We don't want to save a CC named "Mario", as it may cause file issues.
-                    if (cc_name != "Mario") {
-                        save_cc_model_file(cc_name, global_gs_code(), ui_mfolder_name);
-                    } else {
-                        strcpy(ui_cc_name, "Sample");
-                        save_cc_model_file("Sample", global_gs_code(), ui_mfolder_name);
-                    }
-                    saturn_load_cc_directory();
                 }
+                ImGui::Dummy(ImVec2(0, 5));
+            } else {
+                apply_cc_from_editor();
             }
+
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("GameShark")) {
-            ImGui::InputTextMultiline("###gameshark_box", ui_gameshark, IM_ARRAYSIZE(ui_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase);
+            ImGui::InputTextMultiline("###gameshark_box", ui_gameshark, IM_ARRAYSIZE(ui_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_AutoSelectAll);
             if (ImGui::IsItemActivated()) accept_text_input = false;
             if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
-            if (ImGui::Button("Paste GS Code")) {
+            if (ImGui::Button(ICON_FK_CLIPBOARD " Apply GS Code")) {
                 string ui_gameshark_input = ui_gameshark;
                 paste_gs_code(ui_gameshark_input);
                 set_editor_from_global_cc("Sample");
@@ -951,7 +1142,4 @@ void sdynos_imgui_update() {
         }
         ImGui::EndTabBar();
     }
-
-    ImGui::End();
-    ImGui::PopStyleColor();
 }

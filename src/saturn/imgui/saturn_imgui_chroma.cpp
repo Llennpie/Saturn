@@ -56,17 +56,24 @@ void schroma_imgui_init() {
 }
 
 void schroma_imgui_update() {
-    ImGui::Checkbox("Color Skybox", &use_color_background);
+    if (ImGui::Checkbox("Color Skybox", &use_color_background))
+        chromaRequireReload = true;
+
     if (use_color_background) {
-        ImGui::ColorEdit4("Chroma Key Color", (float*)&uiChromaColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel);
+        if (ImGui::ColorEdit4("Chroma Key Color", (float*)&uiChromaColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel))
+            chromaRequireReload = true;
+
         ImGui::SameLine(); ImGui::Text("Color");
         if (gCurrLevelNum == LEVEL_SA) {
-            ImGui::Checkbox("Render Floor", &renderFloor);
+            if (ImGui::Checkbox("Render Floor", &renderFloor))
+                chromaRequireReload = true;
+
             ImGui::SameLine(); imgui_bundled_help_marker("Renders a floor object; Useful for animations that clip through the ground.");
         }
     } else {
         const char* mSkyboxSettings[] = { "Ocean Sky", "Flaming Sky", "Underwater City", "Below Clouds", "Snow Mountains", "Desert", "Haunted", "Green Sky", "Above Clouds", "Purple Sky" };
-        ImGui::Combo("###skybox_background", (int*)&gChromaKeyBackground, mSkyboxSettings, IM_ARRAYSIZE(mSkyboxSettings));
+        if (ImGui::Combo("###skybox_background", (int*)&gChromaKeyBackground, mSkyboxSettings, IM_ARRAYSIZE(mSkyboxSettings)))
+            chromaRequireReload = true;
     }
     currentChromaArea = (renderFloor & use_color_background) ? 1 : 2;
     if (gCurrLevelNum != LEVEL_SA) currentChromaArea = gCurrAreaIndex;
@@ -77,6 +84,7 @@ void schroma_imgui_update() {
     if (ImGui::Button("Reload###apply_chroma_color")) {
         set_chroma_color();
         mario_loaded = false;
+        chromaRequireReload = false;
         bool result = DynOS_Warp_ToLevel(gCurrLevelNum, (s32)currentChromaArea, gCurrActNum);
     } imgui_bundled_tooltip("WARNING: This will restart the level!");
 
