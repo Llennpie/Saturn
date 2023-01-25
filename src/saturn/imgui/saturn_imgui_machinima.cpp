@@ -232,11 +232,17 @@ void imgui_machinima_quick_options() {
     imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
     ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
     imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
-    if (mario_exists && gMarioState->action != ACT_FIRST_PERSON) {
-        ImGui::Separator();
-        if (ImGui::Button("Sleep")) {
-            set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
+    if (mario_exists) {
+        if (gMarioState->action == ACT_IDLE) {
+            if (ImGui::Button("Sleep")) {
+                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
+            }
         }
+        ImGui::Separator();
+        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
+        ImGui::PushItemWidth(100);
+        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
+        ImGui::PopItemWidth();
     }
 }
 
