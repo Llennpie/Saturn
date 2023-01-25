@@ -7,6 +7,7 @@
 
 #include "saturn/saturn.h"
 #include "saturn/imgui/saturn_imgui.h"
+#include "saturn/saturn_textures.h"
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -276,6 +277,9 @@ std::string global_gs_code() {
     Returns true if a defined address is for the CometSPARK format.
 */
 bool is_spark_address(string address) {
+    if (!current_model_data.spark_support)
+        return false;;
+
     // The unholy address table
     if (address == "07ECB8" || address == "07ECBA" || address == "07ECB0" || address == "07ECB2")
         return true;
@@ -293,6 +297,8 @@ bool is_spark_address(string address) {
     // Nope
     return false;
 }
+
+string last_model_cc_address;
 
 /*
     Loads the dynos/colorcodes/ folder into the CC array.
@@ -319,6 +325,9 @@ void saturn_load_cc_directory() {
                 cc_array.push_back(path.filename().u8string());
         }
     }
+
+    cc_details = "" + std::to_string(cc_array.size()) + " color code";
+    if (cc_array.size() != 1) cc_details += "s";
 }
 
 /*
@@ -622,7 +631,7 @@ bool is_default_cc(string gameshark) {
     std::string default_cc =    "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000";
     std::string default_spark_cc =  "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000\n8107ECB8 FFFF\n8107ECBA 0000\n8107ECB0 7F7F\n8107ECB2 0000\n8107ECD0 00FF\n8107ECD2 FF00\n8107ECC8 007F\n8107ECCA 7F00\n8107ECE8 00FF\n8107ECEA 7F00\n8107ECE0 007F\n8107ECE2 4000\n8107ED00 FF00\n8107ED02 FF00\n8107ECF8 7F00\n8107ECFA 7F00\n8107ED18 FF00\n8107ED1A 7F00\n8107ED10 7F00\n8107ED12 4000\n8107ED30 7F00\n8107ED32 FF00\n8107ED28 4000\n8107ED2A 7F00";
 
-    if (gameshark == default_cc || gameshark == default_spark_cc)
+    if (gameshark == default_cc || gameshark == default_spark_cc || gameshark == last_model_cc_address)
         return true;
 
     return false;
@@ -636,11 +645,13 @@ void paste_gs_code(string content) {
     std::string line;
         
     while (std::getline(f, line)) {
-        std::string address = line.substr(2, 6);
-        int value1 = std::stoi(line.substr(9, 2), 0, 16);
-        int value2 = std::stoi(line.substr(11, 2), 0, 16);
+        if (line.rfind("81", 0) == 0) {
+            std::string address = line.substr(2, 6);
+            int value1 = std::stoi(line.substr(9, 2), 0, 16);
+            int value2 = std::stoi(line.substr(11, 2), 0, 16);
 
-        run_cc_replacement(address, value1, value2);
+            run_cc_replacement(address, value1, value2);
+        }
     }
 }
 
