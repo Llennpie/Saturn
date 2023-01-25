@@ -51,6 +51,7 @@ ConfigWindow configWindow       = {
     .fullscreen = false,
     .exiting_fullscreen = false,
     .settings_changed = false,
+    .fps_changed = false,
 };
 unsigned int configFiltering    = 1;          // 0=force nearest, 1=linear, (TODO) 2=three-point
 unsigned int configMasterVolume = MAX_VOLUME; // 0 - MAX_VOLUME

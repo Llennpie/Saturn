@@ -18,6 +18,7 @@ typedef struct {
     bool fullscreen;
     bool exiting_fullscreen;
     bool settings_changed;
+    bool fps_changed;
 } ConfigWindow;
 
 extern ConfigWindow configWindow;
