@@ -34,6 +34,7 @@
 #define CBUTTON_MASK (U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS)
 
 u8 machinimaMode = 0;
+u8 machinimaKeyframing = 0;
 
 /**
  * @file camera.c
@@ -3034,6 +3035,7 @@ void update_lakitu(struct Camera *c) {
 f32 camVelY = 0.f;
 s16 yarSpeed = 0;
 f32 camVelSpeed = 1.f;
+f32 camVelRSpeed = 1.f;
 
 Vec3f camVelROffset;
 s16 camVelRPitch;
@@ -3049,6 +3051,11 @@ u8 cameraRotateLeft;
 u8 cameraRotateRight;
 u8 cameraRotateUp;
 u8 cameraRotateDown;
+
+Vec3f mCameraKeyPos;
+Vec3f mCameraKeyFoc;
+s16 mCameraKeyYaw;
+s16 mCameraKeyPitch;
 
 /**
  * The main camera update function.
@@ -3139,54 +3146,207 @@ void update_camera(struct Camera *c) {
         sYawSpeed = 0x400;
 
         if (machinimaMode) {
-            if (configMCameraMode == 0) {
-                // Better Keyboard Controls
+            if (!machinimaKeyframing) {
+                if (configMCameraMode == 0) {
+                    // Better Keyboard Controls
 
-                if (cameraMoveForward) {
-                    c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                } else if (cameraMoveBackward) {
-                    c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                }
-                if (cameraMoveRight) {
-                    c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                } else if (cameraMoveLeft) {
-                    c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                }
-                if (cameraMoveUp) {
-                    camVelY += 5.f * camVelSpeed;
-                } else if (cameraMoveDown) {
-                    camVelY -= 5.f * camVelSpeed;
+                    if (cameraMoveForward) {
+                        c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                    } else if (cameraMoveBackward) {
+                        c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                    }
+                    if (cameraMoveRight) {
+                        c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                    } else if (cameraMoveLeft) {
+                        c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                    }
+                    if (cameraMoveUp) {
+                        camVelY += 5.f * camVelSpeed;
+                    } else if (cameraMoveDown) {
+                        camVelY -= 5.f * camVelSpeed;
+                    }
+
+                    // Rotation
+                    f32 dist;
+                    s16 pitch, yaw;
+
+                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
+                    if (cameraRotateUp && pitch < 12000) {
+                        pitch += (camVelRSpeed / 1.5f) * 512;
+                    }
+                    if (cameraRotateDown && pitch > -12000) {
+                        pitch -= (camVelRSpeed / 1.5f) * 512;
+                    }
+                    if (cameraRotateRight) {
+                        yaw -= (camVelRSpeed / 1.5f) * 512;
+                    }
+                    if (cameraRotateLeft) {
+                        yaw += (camVelRSpeed / 1.5f) * 512;
+                    }
+                    vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
+
+                    // Zoom In / Enter C-Up
+                    if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
+                        if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
+                            gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
+                        } else {
+                            set_mode_c_up(c);
+                        }
+                    }
+                    // Zoom Out
+                    if (gPlayer1Controller->buttonPressed & D_CBUTTONS || gPlayer1Controller->buttonPressed & B_BUTTON) {
+                        //if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
+                            exit_c_up(c);
+                        //}
+                    }
+                    if (c->mode == CAMERA_MODE_C_UP) {
+                        move_mario_head_c_up(c);
+                    }
+
                 }
 
-                // Rotation
+                if (configMCameraMode == 1) {
+                    if (gPlayer1Controller->buttonDown & L_TRIG) {
+                        if (gPlayer1Controller->buttonDown & Z_TRIG) {
+                            // Rotation
+                            f32 dist;
+                            s16 pitch, yaw;
+                            vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
+                            if (gPlayer1Controller->buttonDown & U_CBUTTONS && pitch < 12000) {
+                                pitch += (camVelRSpeed / 1.5f) * 512;
+                            }
+                            if (gPlayer1Controller->buttonDown & D_CBUTTONS && pitch > -12000) {
+                                pitch -= (camVelRSpeed / 1.5f) * 512;
+                            }
+                            if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
+                                yaw -= (camVelRSpeed / 1.5f) * 512;
+                            }
+                            if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
+                                yaw += (camVelRSpeed / 1.5f) * 512;
+                            }
+                            vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
+                        } else {
+                            // Vertical
+                            if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+                                camVelY += 5.f * camVelSpeed;
+                            }
+                            if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+                                camVelY -= 5.f * camVelSpeed;
+                            }
+                        }
+                    } else if (gPlayer1Controller->buttonDown & R_TRIG) {
+                        // Horizontal & Forward
+                        if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+                            c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                            c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                            c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                            c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        }
+                        if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+                            c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                            c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                            c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                            c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
+                        }
+                        if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
+                            c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                            c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                            c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                            c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        }
+                        if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
+                            c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                            c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                            c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                            c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
+                        }
+                    } else {
+                        // Zoom In / Enter C-Up
+                        if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
+                            if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
+                                gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
+                            } else {
+                                set_mode_c_up(c);
+                            }
+                        }
+                        // Zoom Out
+                        if (gPlayer1Controller->buttonPressed & D_CBUTTONS || gPlayer1Controller->buttonPressed & B_BUTTON) {
+                            //if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
+                                exit_c_up(c);
+                            //}
+                        }
+                        if (c->mode == CAMERA_MODE_C_UP) {
+                            move_mario_head_c_up(c);
+                        }
+                    }
+                } else if (configMCameraMode == 2) {
+                    // Mouse Control
+                    if (camera_view_enabled) {
+                        if (camera_view_moving) {
+                            c->pos[0] += sins(c->yaw + atan2s(0, 127)) * camera_view_move_x;
+                            c->pos[2] += coss(c->yaw + atan2s(0, 127)) * camera_view_move_x;
+                            c->focus[0] += sins(c->yaw + atan2s(0, 127)) * camera_view_move_x;
+                            c->focus[2] += coss(c->yaw + atan2s(0, 127)) * camera_view_move_x;
+                            camVelY -= camera_view_move_y;
+                        } else if (camera_view_zooming) {
+                            c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
+                            c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
+                            c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
+                            c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
+                        } else if (camera_view_rotating) {
+                            f32 dist;
+                            s16 pitch, yaw;
+                            vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
+                            if (pitch > -12000 && pitch < 12000) {
+                                yaw += camera_view_move_x * 32;
+                                pitch += camera_view_move_y * 32;
+                            }
+                            vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
+                        }
+                    } else {
+                        // Zoom In / Enter C-Up
+                        if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
+                            if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
+                                gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
+                            } else {
+                                set_mode_c_up(c);
+                            }
+                        }
+                        // Zoom Out
+                        if (gPlayer1Controller->buttonPressed & D_CBUTTONS) {
+                            if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
+                                exit_c_up(c);
+                            }
+                        }
+                        if (c->mode == CAMERA_MODE_C_UP) {
+                            move_mario_head_c_up(c);
+                        }
+                    }
+                }
+
+                c->pos[1] += camVelY;
+                c->focus[1] += camVelY;
+                camVelY = approach_f32_symmetric(camVelY, 0.f, 2.f);
+                camVelY = approach_f32_asymptotic(camVelY, 0.f, 0.1f);
+            } else {
                 f32 dist;
                 s16 pitch, yaw;
+                vec3f_get_dist_and_angle(c->pos, mCameraKeyFoc, &dist, &pitch, &yaw);
 
-                vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
-                if (cameraRotateUp && pitch < 12000) {
-                    pitch += (camVelSpeed / 2) * 512;
-                }
-                if (cameraRotateDown && pitch > -12000) {
-                    pitch -= (camVelSpeed / 2) * 512;
-                }
-                if (cameraRotateRight) {
-                    yaw -= (camVelSpeed / 2) * 512;
-                }
-                if (cameraRotateLeft) {
-                    yaw += (camVelSpeed / 2) * 512;
-                }
+                vec3f_copy(c->pos, mCameraKeyPos);
+                //vec3f_copy(c->focus, mCameraKeyFoc);
                 vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
 
                 // Zoom In / Enter C-Up
@@ -3206,132 +3366,7 @@ void update_camera(struct Camera *c) {
                 if (c->mode == CAMERA_MODE_C_UP) {
                     move_mario_head_c_up(c);
                 }
-
             }
-
-            if (configMCameraMode == 1) {
-                if (gPlayer1Controller->buttonDown & L_TRIG) {
-                    if (gPlayer1Controller->buttonDown & Z_TRIG) {
-                        // Rotation
-                        f32 dist;
-                        s16 pitch, yaw;
-                        vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
-                        if (gPlayer1Controller->buttonDown & U_CBUTTONS && pitch < 12000) {
-                            pitch += (camVelSpeed / 2) * 512;
-                        }
-                        if (gPlayer1Controller->buttonDown & D_CBUTTONS && pitch > -12000) {
-                            pitch -= (camVelSpeed / 2) * 512;
-                        }
-                        if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
-                            yaw -= (camVelSpeed / 2) * 512;
-                        }
-                        if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
-                            yaw += (camVelSpeed / 2) * 512;
-                        }
-                        vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
-                    } else {
-                        // Vertical
-                        if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
-                            camVelY += 5.f * camVelSpeed;
-                        }
-                        if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
-                            camVelY -= 5.f * camVelSpeed;
-                        }
-                    }
-                } else if (gPlayer1Controller->buttonDown & R_TRIG) {
-                    // Horizontal & Forward
-                    if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
-                        c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                        c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                        c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                        c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    }
-                    if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
-                        c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                        c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                        c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                        c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
-                    }
-                    if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
-                        c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                        c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                        c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                        c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    }
-                    if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
-                        c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                        c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                        c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                        c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
-                    }
-                } else {
-                    // Zoom In / Enter C-Up
-                    if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
-                        if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
-                            gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
-                        } else {
-                            set_mode_c_up(c);
-                        }
-                    }
-                    // Zoom Out
-                    if (gPlayer1Controller->buttonPressed & D_CBUTTONS || gPlayer1Controller->buttonPressed & B_BUTTON) {
-                        //if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
-                            exit_c_up(c);
-                        //}
-                    }
-                    if (c->mode == CAMERA_MODE_C_UP) {
-                        move_mario_head_c_up(c);
-                    }
-                }
-            } else if (configMCameraMode == 2) {
-                // Mouse Control
-                if (camera_view_enabled) {
-                    if (camera_view_moving) {
-                        c->pos[0] += sins(c->yaw + atan2s(0, 127)) * camera_view_move_x;
-                        c->pos[2] += coss(c->yaw + atan2s(0, 127)) * camera_view_move_x;
-                        c->focus[0] += sins(c->yaw + atan2s(0, 127)) * camera_view_move_x;
-                        c->focus[2] += coss(c->yaw + atan2s(0, 127)) * camera_view_move_x;
-                        camVelY -= camera_view_move_y;
-                    } else if (camera_view_zooming) {
-                        c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
-                        c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
-                        c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
-                        c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
-                    } else if (camera_view_rotating) {
-                        f32 dist;
-                        s16 pitch, yaw;
-                        vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
-                        if (pitch > -12000 && pitch < 12000) {
-                            yaw += camera_view_move_x * 32;
-                            pitch += camera_view_move_y * 32;
-                        }
-                        vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
-                    }
-                } else {
-                    // Zoom In / Enter C-Up
-                    if (gPlayer1Controller->buttonPressed & U_CBUTTONS) {
-                        if (gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) {
-                            gCameraMovementFlags &= ~CAM_MOVE_ZOOMED_OUT;
-                        } else {
-                            set_mode_c_up(c);
-                        }
-                    }
-                    // Zoom Out
-                    if (gPlayer1Controller->buttonPressed & D_CBUTTONS) {
-                        if ((gCameraMovementFlags & CAM_MOVE_ZOOMED_OUT) == 0) {
-                            exit_c_up(c);
-                        }
-                    }
-                    if (c->mode == CAMERA_MODE_C_UP) {
-                        move_mario_head_c_up(c);
-                    }
-                }
-            }
-
-            c->pos[1] += camVelY;
-            c->focus[1] += camVelY;
-            camVelY = approach_f32_symmetric(camVelY, 0.f, 2.f);
-            camVelY = approach_f32_asymptotic(camVelY, 0.f, 0.1f);
 
             c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
             c->yaw = gCamera->nextYaw;

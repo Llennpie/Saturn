@@ -778,7 +778,9 @@ void obj_rotate_towards_point(struct Object *o, Vec3f point, s16 pitchOff, s16 y
 Gfx *geo_camera_fov(s32 callContext, struct GraphNode *g, UNUSED void *context);
 
 extern u8 machinimaMode;
+extern u8 machinimaKeyframing;
 extern f32 camVelSpeed;
+extern f32 camVelRSpeed;
 
 extern u8 cameraMoveForward;
 extern u8 cameraMoveBackward;
@@ -790,5 +792,10 @@ extern u8 cameraRotateLeft;
 extern u8 cameraRotateRight;
 extern u8 cameraRotateUp;
 extern u8 cameraRotateDown;
+
+extern Vec3f mCameraKeyPos;
+extern Vec3f mCameraKeyFoc;
+extern s16 mCameraKeyYaw;
+extern s16 mCameraKeyPitch;
 
 #endif // CAMERA_H
