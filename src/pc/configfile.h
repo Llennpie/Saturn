@@ -62,6 +62,7 @@ extern bool         configEditorNearClipping;
 extern bool         configEditorShowTips;
 extern unsigned int configFps60;
 extern bool         configEditorInterpolateAnims;
+extern bool         configEditorExpressionPreviews;
 extern unsigned int configFakeStarCount;
 extern bool         configUnlockDoors;
 extern bool         configEditorAlwaysChroma;
