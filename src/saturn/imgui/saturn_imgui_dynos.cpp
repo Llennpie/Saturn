@@ -6,6 +6,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include "GL/glew.h"
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -217,6 +218,41 @@ void set_editor_from_global_cc(std::string cc_name) {
 }
 
 // UI
+
+// Simple helper function to load an image into a OpenGL texture with common settings
+bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_width, int* out_height)
+{
+    // Load from file
+    int image_width = 0;
+    int image_height = 0;
+    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
+    if (image_data == NULL)
+        return false;
+
+    // Create a OpenGL texture identifier
+    GLuint image_texture;
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+
+    // Setup filtering parameters for display
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+
+    // Upload pixels into texture
+#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+#endif
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    stbi_image_free(image_data);
+
+    *out_texture = image_texture;
+    *out_width = image_width;
+    *out_height = image_height;
+
+    return true;
+}
 
 void handle_cc_box(const char* name, const char* mainName, const char* shadeName, ImVec4* colorValue, ImVec4* shadeColorValue, string id) {
     string nameStr = name;
@@ -772,6 +808,19 @@ void sdynos_imgui_menu() {
                     const bool is_eye_selected = (current_eye_index == n);
                     string entry_name = eye_array[n];
 
+                    if (entry_name.find(".png") != string::npos && configEditorExpressionPreviews) {
+                        // ImageTest
+                        int my_image_width = 0;
+                        int my_image_height = 0;
+                        GLuint my_image_texture = 0;
+                        bool ret = LoadTextureFromFile((current_eye_dir_path + entry_name).c_str(), &my_image_texture, &my_image_width, &my_image_height);
+                        IM_ASSERT(ret);
+
+                        int sample_ratio = (my_image_height / 16);
+                        ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(my_image_width/sample_ratio, my_image_height/sample_ratio));
+                        ImGui::SameLine();
+                    }
+
                     if (ImGui::Selectable(entry_name.c_str(), is_eye_selected)) {
                         gfx_precache_textures();
                         current_eye_index = n;
@@ -845,6 +894,19 @@ void sdynos_imgui_menu() {
                 for (int n = 0; n < expression.textures.size(); n++) {
                     string entry_name = expression.textures[n];
                     bool is_selected = (current_exp_index[i] == n);
+
+                    if (configEditorExpressionPreviews) {
+                        // ImageTest
+                        int my_image_width = 0;
+                        int my_image_height = 0;
+                        GLuint my_image_texture = 0;
+                        bool ret = LoadTextureFromFile((expression.path + expression.textures[n]).c_str(), &my_image_texture, &my_image_width, &my_image_height);
+                        IM_ASSERT(ret);
+
+                        int sample_ratio = (my_image_height / 16);
+                        ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(my_image_width/sample_ratio, my_image_height/sample_ratio));
+                        ImGui::SameLine();
+                    }
 
                     if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
                         gfx_precache_textures();
@@ -934,6 +996,19 @@ void sdynos_imgui_menu() {
                             for (int n = 0; n < expression.textures.size(); n++) {
                                 bool is_selected = (current_exp_index[i] == n);
                                 string entry_name = expression.textures[n];
+
+                                if (configEditorExpressionPreviews) {
+                                    // ImageTest
+                                    int my_image_width = 0;
+                                    int my_image_height = 0;
+                                    GLuint my_image_texture = 0;
+                                    bool ret = LoadTextureFromFile((expression.path + expression.textures[n]).c_str(), &my_image_texture, &my_image_width, &my_image_height);
+                                    IM_ASSERT(ret);
+
+                                    int sample_ratio = (my_image_height / 16);
+                                    ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(my_image_width/sample_ratio, my_image_height/sample_ratio));
+                                    ImGui::SameLine();
+                                }
 
                                 if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
                                     gfx_precache_textures();
@@ -1062,9 +1137,9 @@ void imgui_dynos_cc_editor() {
     if (ImGui::Button(ICON_FK_UNDO " Reset Colors")) {
         current_cc_id = 0;
 
-        if (any_packs_selected) {
+        if (any_packs_selected && model_cc_array.size() > 0) {
             get_ccs_from_model(sDynosPacks[current_model_id]->mPath);
-            if (model_cc_array.size() > 0 && cc_model_support) {
+            if (cc_model_support) {
                 set_cc_from_model(sDynosPacks[current_model_id]->mPath + "/colorcodes/" + model_cc_array[0].substr(0, model_cc_array[0].size()));
                 set_editor_from_global_cc("Sample");
                 ui_model_gameshark = ui_gameshark;

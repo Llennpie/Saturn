@@ -140,8 +140,6 @@ void ssettings_imgui_init() {
 
     if (configAudioMode == 0) gSoundMode = 0;
     if (configAudioMode == 1) gSoundMode = 3;
-
-    sprintf(starCount, "%d", configFakeStarCount);
 }
 
 void ssettings_imgui_update() {
@@ -284,17 +282,19 @@ void ssettings_imgui_update() {
         ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
         imgui_bundled_tooltip("Just like '07! Hold L to in the air to moon jump.");
 
-        ImGui::PushItemWidth(150);
-        if (ImGui::InputInt("Stars###star_count", (int*)&configFakeStarCount)) {
-            gMarioState->numStars = configFakeStarCount;
-        } ImGui::SameLine(); imgui_bundled_help_marker("The game-logic star counter; Controls unlockable doors, HUD, cutscenes, etc.");
-        ImGui::PopItemWidth();
+        //ImGui::PushItemWidth(150);
+        //if (ImGui::InputInt("Stars###star_count", (int*)&configFakeStarCount)) {
+        //    gMarioState->numStars = configFakeStarCount;
+        //} ImGui::SameLine(); imgui_bundled_help_marker("The game-logic star counter; Controls unlockable doors, HUD, cutscenes, etc.");
+        //ImGui::PopItemWidth();
         ImGui::Checkbox("Unlock Doors", &configUnlockDoors);
         imgui_bundled_tooltip("Unlocks all areas in the castle, regardless of save file.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);
         imgui_bundled_tooltip("Displays tooltips and help markers for advanced features; Helpful for new users.");
+        ImGui::Checkbox("Show expression previews", &configEditorExpressionPreviews);
+        imgui_bundled_tooltip("Displays small image previews for expression and eye textures; May cause lag on low-end machines.");
         ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
         imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
         //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
