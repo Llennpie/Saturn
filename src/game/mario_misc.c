@@ -375,6 +375,26 @@ Gfx *geo_switch_mario_eyes(s32 callContext, struct GraphNode *node, UNUSED Mat4 
     return NULL;
 }
 
+static s8 gSatAnimation[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+
+/**
+ * Clone of geo_switch_mario_eyes that allows a more consistent animation
+ */
+Gfx *saturn_switch_anim(s32 callContext, struct GraphNode *node, UNUSED Mat4 *c) {
+    struct GraphNodeSwitchCase *switchCase = (struct GraphNodeSwitchCase *) node;
+    s16 animFrame;
+
+    if (callContext == GEO_CONTEXT_RENDER) {
+        animFrame = ((30 + gAreaUpdateCounter) >> 1) & (switchCase->numCases - 1);
+        if (animFrame <= switchCase->numCases) {
+            switchCase->selectedCase = gSatAnimation[animFrame];
+        } else {
+            switchCase->selectedCase = 0;
+        }
+    }
+    return NULL;
+}
+
 /**
  * Makes Mario's upper body tilt depending on the rotation stored in his bodyState
  */
