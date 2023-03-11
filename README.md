@@ -1,27 +1,23 @@
 # Saturn
 
-- Saturn *(legacy)* is a fork of [sm64pc/sm64ex](https://github.com/sm64pc/sm64ex) designed for machinima.
-- In order to compile the editor, a prior copy of the game is required. This is to avoid including any copyrighted material.
-- Looking for **Saturn: Moon Edition**? Check the [moon](https://github.com/Llennpie/Saturn/tree/moon) branch.
+- **Saturn** is an all-in-one machinima studio for *Super Mario 64*, based on [sm64pc/sm64ex](https://github.com/sm64pc/sm64ex).
+- *In order to compile the editor, a prior copy of the game is required. This is to avoid including any copyrighted material.*
+
+![image](https://user-images.githubusercontent.com/44985633/224411160-315ee99b-9eb2-45f8-93e5-06a7b9d48d28.png)
 
 ### Features
 
 ```
-- New "machinima camera" system
-- Color code system
-  - Uses the common *GameShark* format
-  - Visual real-time editor
-  - Full support for ***[CometSPARK](https://github.com/projectcomet64/SPARK)***
-- Live custom model loading (via DynOS)
-  - Uses *Fast64* models
+- Machinima camera system
+- Extensive color code editor
+- Custom model library
+  - Create, share, and download custom playermodels. No reloading required!
   - Works with color codes
-- Chroma key stage
-  - Supports any RGB/HEX color
-- Completely customizable expressions
-  - Eye/mouth textures can be loaded as PNG files
-- Texture pack support
+  - Thousands of completely customizable expressions
+- CHROMA KEY STAGE
+- Keyframe editor
+  - Animate almost anything!
 - Completely rebindable controls
-  - All controls in the game, including those used for machinima, are 100% configurable
   - Supports most modern controllers
 - Dynamic window size/resolution
 - Interpolated 60 fps
@@ -29,13 +25,12 @@
 ...and more!
 ```
 
-### Setup
-
-For building instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).
+- For installation instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).
+- *Written guides, including custom model creation can be found there as well.*
 
 ---
 
-![image](https://user-images.githubusercontent.com/44985633/176593427-019dd59b-6b0a-4461-98ed-6707441d8fa6.png)
+![image](https://user-images.githubusercontent.com/44985633/224412720-4abf4f73-1bde-4ac6-8002-4d5c004d8b49.png)
 
 *In case you feel this project deserves some extra love, I have a Ko-fi below.*
 

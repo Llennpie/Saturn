@@ -1,0 +1,19 @@
+{
+    "name": "Creator Mario",
+    "author": "Llennpie",
+    "version": "2.0.0",
+
+    "description": "An expanded, fully customizable Mario model.\n\nFeatures:\n- Customize anything - eyes, mustache, cap emblem, sideburns & buttons\n- Fully cc-able; Sideburns take the color of the hair, and the cap M takes the color of the cap\n- Optional mouth expression for even more expressiveness\n- Copyright-free textures for easy distribution",
+
+    "cc_support": true,
+    "spark_support": true,
+
+    "colors": {
+        "shirt": "Buttons",
+        "shoulders": "Mustache",
+        "arms": "Emblem",
+        "pelvis": "",
+        "thighs": "",
+        "calves": ""
+    }
+}

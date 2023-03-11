@@ -349,6 +349,11 @@ static void gfx_sdl_handle_events(void) {
         gfx_sdl_reset_dimension_and_pos();
         configWindow.settings_changed = false;
     }
+
+    if (configWindow.fps_changed) {
+        gfx_sdl_set_vsync(configWindow.vsync);
+        configWindow.fps_changed = false;
+    }
 }
 
 static void gfx_sdl_set_keyboard_callbacks(kb_callback_t on_key_down, kb_callback_t on_key_up, void (*on_all_keys_up)(void)) {

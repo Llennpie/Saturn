@@ -388,6 +388,7 @@ static const Array<Pair<const char *, void *>> sGeoFunctions = {
     { "geo_rotate_coin", (void *) geo_rotate_3d_coin },
     define_geo_function(geo_offset_klepto_held_object),
     define_geo_function(geo_switch_peach_eyes),
+    { "saturn_switch_anim", (void *) saturn_switch_anim },
 };
 #undef define_geo_function
 return sGeoFunctions;

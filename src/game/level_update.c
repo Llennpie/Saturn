@@ -35,6 +35,8 @@
 #include "pc/cliopts.h"
 #include "pc/configfile.h"
 
+#include "saturn/saturn.h"
+
 #define PLAY_MODE_NORMAL 0
 #define PLAY_MODE_PAUSED 2
 #define PLAY_MODE_CHANGE_AREA 3
@@ -994,8 +996,8 @@ s32 play_mode_normal(void) {
         update_camera(gCurrentArea->camera);
     }
 
-    initiate_painting_warp();
-    initiate_delayed_warp();
+    if (!machinimaMode) initiate_painting_warp();
+    if (!machinimaMode) initiate_delayed_warp();
 
     // If either initiate_painting_warp or initiate_delayed_warp initiated a
     // warp, change play mode accordingly.
@@ -1024,6 +1026,7 @@ s32 play_mode_paused(void) {
         set_play_mode(PLAY_MODE_NORMAL);
     } else if (gPauseScreenMode == 2) {
         // Exit level
+        enable_shadows = true;
         if (gDebugLevelSelect) {
             fade_into_special_warp(-9, 1);
         } else {
@@ -1296,7 +1299,6 @@ s32 lvl_set_current_level(UNUSED s16 arg0, s32 levelNum) {
     D_8032C9E0 = 0;
     gCurrLevelNum = levelNum;
     gCurrCourseNum = gLevelToCourseNumTable[levelNum - 1];
-	if (gCurrLevelNum == LEVEL_BOB) return 0;
 	if (gCurrLevelNum == LEVEL_SA) return 0;
 
     if (gCurrDemoInput != NULL || gCurrCreditsEntry != NULL || gCurrCourseNum == COURSE_NONE) {

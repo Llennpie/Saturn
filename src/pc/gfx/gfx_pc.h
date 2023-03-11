@@ -32,6 +32,8 @@ void gfx_end_frame(void);
 void gfx_precache_textures(void);
 void gfx_shutdown(void);
 
+extern int preloaded_textures_count;
+
 extern void load_texture(const char*);
 extern bool preload_texture(void *, const char *);
 

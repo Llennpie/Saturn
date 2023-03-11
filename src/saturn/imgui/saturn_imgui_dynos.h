@@ -13,7 +13,7 @@ extern "C" {
 #endif
     void sdynos_imgui_init(void);
     void sdynos_imgui_menu(void);
-    void sdynos_imgui_update(void);
+    void imgui_dynos_cc_editor(void);
 #ifdef __cplusplus
 }
 #endif

@@ -7,6 +7,7 @@
 
 #include "saturn/saturn.h"
 #include "saturn/imgui/saturn_imgui.h"
+#include "saturn/saturn_textures.h"
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -165,7 +166,10 @@ std::string global_gs_code() {
 /*
     Returns true if a defined address is for the CometSPARK format.
 */
-bool is_spark_address(int address) {
+bool is_spark_address(string address) {
+    if (!current_model_data.spark_support)
+        return false;;
+        
     // The unholy address table
     if (address == 0x07ECB8 || address == 0x07ECBA || address == 0x07ECB0 || address == 0x07ECB2
      || address == 0x07ECD0 || address == 0x07ECD2 || address == 0x07ECC8 || address == 0x07ECCA
@@ -178,6 +182,8 @@ bool is_spark_address(int address) {
     // Nope
     return false;
 }
+
+string last_model_cc_address;
 
 /*
     Loads the dynos/colorcodes/ folder into the CC array.
@@ -204,6 +210,9 @@ void saturn_load_cc_directory() {
                 cc_array.push_back(path.filename().u8string());
         }
     }
+
+    cc_details = "" + std::to_string(cc_array.size()) + " color code";
+    if (cc_array.size() != 1) cc_details += "s";
 }
 
 /*
@@ -525,7 +534,7 @@ bool is_default_cc(string gameshark) {
                                     "8107ED28 4000\n"
                                     "8107ED2A 7F00";
 
-    if (gameshark == default_cc || gameshark == default_spark_cc)
+    if (gameshark == default_cc || gameshark == default_spark_cc || gameshark == last_model_cc_address)
         return true;
 
     return false;
@@ -539,11 +548,13 @@ void paste_gs_code(string content) {
     std::string line;
         
     while (std::getline(f, line)) {
-        int address = std::stoi(line.substr(2, 6), 0, 16);
-        int value1 = std::stoi(line.substr(9, 2), 0, 16);
-        int value2 = std::stoi(line.substr(11, 2), 0, 16);
+        if (line.rfind("81", 0) == 0) {
+            std::string address = line.substr(2, 6);
+            int value1 = std::stoi(line.substr(9, 2), 0, 16);
+            int value2 = std::stoi(line.substr(11, 2), 0, 16);
 
-        run_cc_replacement(address, value1, value2);
+            run_cc_replacement(address, value1, value2);
+        }
     }
 }
 

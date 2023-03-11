@@ -5,13 +5,22 @@
 
 #ifdef __cplusplus
 
+#include <string>
+
 extern void imgui_update_theme();
 extern void imgui_bundled_tooltip(const char*);
 extern void imgui_bundled_help_marker(const char*);
 extern void imgui_bundled_space(float, const char*, const char*);
+extern void saturn_keyframe_popout(float*, std::string, std::string);
 
 extern bool showMenu;
 extern int currentMenu;
+
+extern bool windowCcEditor;
+extern bool windowAnimPlayer;
+extern bool windowChromaKey;
+
+extern bool chromaRequireReload;
 
 extern SDL_Window* window;
 

@@ -27,14 +27,21 @@ static int64_t applicationId = 862767511208460318;
 struct DiscordApplication app = { 0 };
 
 struct DiscordActivity gCurActivity;
+struct DiscordUser gCurUser = { 0 };
+
+std::string discord_state;
+std::string discord_details;
+int model_count;
+int cc_count;
+
+bool has_set_time;
 
 //bool has_init;
 
 // Functions
 
 static void on_current_user_update(UNUSED void* data) {
-    struct DiscordUser user = { 0 };
-    app.users->get_current_user(app.users, &user);
+    app.users->get_current_user(app.users, &gCurUser);
 }
 
 // Callbacks
@@ -83,17 +90,55 @@ void sdiscord_update() {
     app.core->run_callbacks(app.core);
 
     gCurActivity.type = DiscordActivityType_Playing;
-    strcpy(gCurActivity.state, "In-Game [Machinima]");
-    strcpy(gCurActivity.details, saturn_get_stage_name(gCurrLevelNum));
+    strcpy(gCurActivity.details, (model_details + ", " + cc_details).c_str());
 
-    strcpy(gCurActivity.assets.large_image, "saturn-legacy-icon1");
-    if (gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma) strcpy(gCurActivity.assets.small_image, "green");
-    else strcpy(gCurActivity.assets.small_image, "circle-512");
+    switch(gCurrLevelNum) {
+        case LEVEL_SA:
+            strcpy(gCurActivity.assets.large_image, "lvl-chroma");
+            strcpy(gCurActivity.assets.small_image, "play-icon-bg");
+            break;
+
+        case LEVEL_CASTLE_GROUNDS:
+            strcpy(gCurActivity.assets.large_image, "lvl-castle");
+            strcpy(gCurActivity.assets.small_image, "play-icon-bg");
+            break;
+
+        case LEVEL_CASTLE:
+            strcpy(gCurActivity.assets.large_image, "lvl-castle-inside");
+            strcpy(gCurActivity.assets.small_image, "play-icon-bg");
+            break;
+
+        case LEVEL_CASTLE_COURTYARD:
+            strcpy(gCurActivity.assets.large_image, "lvl-castle");
+            strcpy(gCurActivity.assets.small_image, "play-icon-bg");
+            break;
+
+        default:
+            strcpy(gCurActivity.assets.large_image, "play-icon-bg");
+            strcpy(gCurActivity.assets.small_image, "circle-512");
+            break;
+    }
+    strcpy(gCurActivity.assets.large_text, saturn_get_stage_name(gCurrLevelNum));
+
 #ifdef GIT_HASH
     strcpy(gCurActivity.assets.small_text, GIT_BRANCH " " GIT_HASH);
 #else
     strcpy(gCurActivity.assets.small_text, "legacy");
 #endif
 
+    if (!has_set_time) {
+        gCurActivity.timestamps.start = (int64_t)time(0);
+        has_set_time = true;
+    }
+
+    if (!k_popout_open && !is_cc_editing)
+        discord_state = "In-Game // Animating";
+
+    strcpy(gCurActivity.state, discord_state.c_str());
+
     app.activities->update_activity(app.activities, &gCurActivity, NULL, on_activity_update_callback);
+}
+
+void sdiscord_shutdown() {
+    app.activities->clear_activity(app.activities, NULL, NULL);
 }

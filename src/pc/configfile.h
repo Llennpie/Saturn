@@ -18,6 +18,7 @@ typedef struct {
     bool fullscreen;
     bool exiting_fullscreen;
     bool settings_changed;
+    bool fps_changed;
 } ConfigWindow;
 
 extern ConfigWindow configWindow;
@@ -61,6 +62,7 @@ extern bool         configEditorNearClipping;
 extern bool         configEditorShowTips;
 extern unsigned int configFps60;
 extern bool         configEditorInterpolateAnims;
+extern bool         configEditorExpressionPreviews;
 extern unsigned int configFakeStarCount;
 extern bool         configUnlockDoors;
 extern bool         configEditorAlwaysChroma;

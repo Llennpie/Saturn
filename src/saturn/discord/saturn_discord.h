@@ -4,7 +4,7 @@
 #include "SDL2/SDL.h"
 
 #ifdef __cplusplus
-
+#include <string>
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
@@ -24,11 +24,15 @@ struct DiscordApplication {
 };
 extern struct DiscordApplication app;
 extern struct DiscordActivity gCurActivity;
+extern struct DiscordUser gCurUser;
+
+extern std::string discord_state;
 
 extern "C" {
 #endif
     void sdiscord_init(void);
     void sdiscord_update(void);
+    void sdiscord_shutdown(void);
 #ifdef __cplusplus
 }
 #endif

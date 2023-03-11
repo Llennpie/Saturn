@@ -260,51 +260,20 @@ void saturn_load_expression_number(char number) {
     }
 }
 
-/*
-    Loads a model.json from a given model (if it exists).
-*/
-void saturn_load_model_json(std::string folder_name) {
-    // Reset current model data
-    ModelData blank;
-    current_model_data = blank;
-    using_model_eyes = false;
+string current_folder_name;
 
+string saturn_load_search(std::string folder_name) {
     // Load the json file
     std::ifstream file("dynos/packs/" + folder_name + "/model.json");
-    if (!file.good()) { return; }
+    if (file.good()) {
+        // Begin reading
+        Json::Value root;
+        file >> root;
 
-    // Begin reading
-    Json::Value root;
-    file >> root;
-
-    current_model_data.name = root["name"].asString();
-    current_model_data.author = root["author"].asString();
-    current_model_data.version = root["version"].asString();
-
-    if (root.isMember("textures")) {
-        // Create res/gfx if it doesn't already exist
-        fs::create_directory("res/gfx");
-
-        // Texture entries : eyes, mouths
-        for(int i = 0; i < root["textures"].size(); i++) {
-            // Capped at 6
-            if (i > 6) break;
-
-            const char* index = std::to_string(i).c_str();
-            string expression_name = root["textures"][index].asString();
-            saturn_load_model_expression_entry(folder_name, expression_name);
-
-            // Choose first texture as default
-            current_model_exp_tex[i] = "../../" + current_model_data.expressions[i].path + current_model_data.expressions[i].textures[0];
-            current_model_exp_tex[i] = current_model_exp_tex[i].substr(0, current_model_exp_tex[i].size() - 4);
-
-            // Toggle model eyes
-            if (expression_name.find("eye") != string::npos) using_model_eyes = true;
-        }
+        return folder_name + " " + root["name"].asString() + " " + root["author"].asString();
     }
+    return folder_name;
 }
-
-string current_folder_name;
 
 void saturn_load_model_data(std::string folder_name) {
     // Reset current model data
@@ -358,6 +327,29 @@ void saturn_load_model_data(std::string folder_name) {
                 current_model_data.cc_support = true;
                 cc_model_support = true;
             }
+        }
+
+        // CC Editor Labels (optional)
+        if (root.isMember("colors")) {
+            if (root["colors"].isMember("hat")) current_model_data.hat_label = root["colors"]["hat"].asString();
+            if (root["colors"].isMember("overalls")) current_model_data.overalls_label = root["colors"]["overalls"].asString();
+            if (root["colors"].isMember("gloves")) current_model_data.gloves_label = root["colors"]["gloves"].asString();
+            if (root["colors"].isMember("shoes")) current_model_data.shoes_label = root["colors"]["shoes"].asString();
+            if (root["colors"].isMember("skin")) current_model_data.skin_label = root["colors"]["skin"].asString();
+            if (root["colors"].isMember("hair")) current_model_data.hair_label = root["colors"]["hair"].asString();
+            if (root["colors"].isMember("shirt")) current_model_data.shirt_label = root["colors"]["shirt"].asString();
+            if (root["colors"].isMember("shoulders")) current_model_data.shoulders_label = root["colors"]["shoulders"].asString();
+            if (root["colors"].isMember("arms")) current_model_data.arms_label = root["colors"]["arms"].asString();
+            if (root["colors"].isMember("pelvis")) current_model_data.pelvis_label = root["colors"]["pelvis"].asString();
+            if (root["colors"].isMember("thighs")) current_model_data.thighs_label = root["colors"]["thighs"].asString();
+            if (root["colors"].isMember("calves")) current_model_data.calves_label = root["colors"]["calves"].asString();
+        }
+
+        // Torso Rotations (optional)
+        enable_torso_rotation = true;
+        if (root.isMember("torso_rotations")) {
+            current_model_data.torso_rotations = root["torso_rotations"].asBool();
+            enable_torso_rotation = current_model_data.torso_rotations;
         }
 
         // Custom eyes - enabled by default, but authors can optionally disable the feature
@@ -415,4 +407,8 @@ void saturn_copy_file(string from, string to) {
 
 void saturn_delete_file(string file) {
     remove(file.c_str());
+}
+
+std::size_t number_of_files_in_directory(std::filesystem::path path) {
+    return (std::size_t)std::distance(std::filesystem::directory_iterator{path}, std::filesystem::directory_iterator{});
 }

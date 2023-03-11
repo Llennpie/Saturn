@@ -26,6 +26,8 @@ extern "C" {
 #include "audio/load.h"
 }
 
+#include "icons/IconsForkAwesome.h"
+
 using namespace std;
 
 // Variables
@@ -138,11 +140,19 @@ void ssettings_imgui_init() {
 
     if (configAudioMode == 0) gSoundMode = 0;
     if (configAudioMode == 1) gSoundMode = 3;
-
-    sprintf(starCount, "%d", configFakeStarCount);
 }
 
 void ssettings_imgui_update() {
+    const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
+    ImGui::PushItemWidth(150);
+    ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
+    ImGui::PopItemWidth();
+    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
+#ifdef DISCORDRPC
+    ImGui::Checkbox(ICON_FK_DISCORD " Discord Activity Status", &configDiscordRPC);
+    imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
+#endif
+
     ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Graphics")) {
         if (ImGui::Checkbox("Fullscreen", &configWindow.fullscreen))
@@ -172,11 +182,14 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Enable/disable this if your game speed is too fast or slow.");
 
         const char* fps_limits[] = { "30", "60" };
-        if (ImGui::Combo("FPS###fps_limits", (int*)&configFps60, fps_limits, IM_ARRAYSIZE(fps_limits))) {
+        ImGui::Text(ICON_FK_CLOCK_O " FPS");
+        ImGui::PushItemWidth(150);
+        if (ImGui::Combo("###fps_limits", (int*)&configFps60, fps_limits, IM_ARRAYSIZE(fps_limits))) {
             configWindow.settings_changed = true;
             is_anim_playing = false;
             is_anim_paused = false;
         }
+        ImGui::PopItemWidth();
 
         ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
         imgui_bundled_tooltip("Enables/disables anti-aliasing with OpenGL.");
@@ -192,16 +205,13 @@ void ssettings_imgui_update() {
         ImGui::Checkbox("Show wireframes", &wireframeMode);
         imgui_bundled_tooltip("Displays wireframes instead of filled polys; For debugging purposes.");
 
-        ImGui::Text("Texture Filtering");
+        ImGui::Text(ICON_FK_PICTURE_O " Texture Filtering");
         const char* texture_filters[] = { "Nearest", "Linear", "Three-point" };
+        ImGui::PushItemWidth(150);
         ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
+        ImGui::PopItemWidth();
         
         if (configFps60) ImGui::Dummy(ImVec2(0, 5));
-    }
-    if (configFps60) {
-        if (ImGui::Checkbox("Limit FPS", &limit_fps))
-            configWindow.settings_changed = true;
-        imgui_bundled_tooltip("(F4) Helpful for speeding up slow in-game events. Works like Project64.");
     }
     if (ImGui::CollapsingHeader("Audio")) {
         ImGuiKnobs::KnobInt("Master", (int*)&configMasterVolume, 0, MAX_VOLUME, 0.f, "%i dB", ImGuiKnobVariant_Tick, 0.f, ImGuiKnobFlags_DragHorizontal); ImGui::SameLine();
@@ -213,10 +223,13 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("If disabled, Mario's voice clips will be silenced; Preferable for custom character models.");
         
         const char* audio_modes[] = { "Stereo", "Mono" };
-        if (ImGui::Combo("Audio Mode", (int*)&configAudioMode, audio_modes, IM_ARRAYSIZE(audio_modes))) {
+        ImGui::Text(ICON_FK_VOLUME_CONTROL_PHONE " Audio Mode");
+        ImGui::PushItemWidth(150);
+        if (ImGui::Combo("###audio_mode", (int*)&configAudioMode, audio_modes, IM_ARRAYSIZE(audio_modes))) {
             if (configAudioMode == 0) gSoundMode = 0;
             if (configAudioMode == 1) gSoundMode = 3;
         }
+        ImGui::PopItemWidth();
     }
     if (ImGui::CollapsingHeader("Controls")) {
         if (ImGui::BeginTabBar("###controls_tabbar", ImGuiTabBarFlags_None)) {
@@ -269,32 +282,24 @@ void ssettings_imgui_update() {
         ImGui::Checkbox("Moon Jump", &Cheats.MoonJump);
         imgui_bundled_tooltip("Just like '07! Hold L to in the air to moon jump.");
 
-        if (ImGui::InputInt("Stars###star_count", (int*)&configFakeStarCount)) {
-            gMarioState->numStars = configFakeStarCount;
-        } ImGui::SameLine(); imgui_bundled_help_marker("The game-logic star counter; Controls unlockable doors, HUD, cutscenes, etc.");
+        //ImGui::PushItemWidth(150);
+        //if (ImGui::InputInt("Stars###star_count", (int*)&configFakeStarCount)) {
+        //    gMarioState->numStars = configFakeStarCount;
+        //} ImGui::SameLine(); imgui_bundled_help_marker("The game-logic star counter; Controls unlockable doors, HUD, cutscenes, etc.");
+        //ImGui::PopItemWidth();
         ImGui::Checkbox("Unlock Doors", &configUnlockDoors);
         imgui_bundled_tooltip("Unlocks all areas in the castle, regardless of save file.");
-        
-        ImGui::Separator();
-        ImGui::Dummy(ImVec2(0, 5));
     }
-#ifdef DISCORDRPC
-    ImGui::Checkbox("Discord Activity Status", &configDiscordRPC);
-    imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
-#endif
-    const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
-    ImGui::Combo("Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
-    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
-    ImGui::Checkbox("Show tooltips", &configEditorShowTips);
-    imgui_bundled_tooltip("Displays tooltips and help markers for advanced features; Helpful for new users.");
-    ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
-    imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
-    //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
-    //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
-    ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);
-    imgui_bundled_tooltip("Allows the usage of CHROMA KEY features outside of the paired stage; Useful only for models and custom-compiled levels.");
-    //if (configFps60) { 
-    //    ImGui::Checkbox("Interpolate custom animations", &configEditorInterpolateAnims);
-    //    imgui_bundled_tooltip("If enabled, custom animations will run in 60 FPS; May cause some animations to stutter.");
-    //}
+    if (ImGui::CollapsingHeader("Editor###editor_settings")) {
+        ImGui::Checkbox("Show tooltips", &configEditorShowTips);
+        imgui_bundled_tooltip("Displays tooltips and help markers for advanced features; Helpful for new users.");
+        ImGui::Checkbox("Show expression previews", &configEditorExpressionPreviews);
+        imgui_bundled_tooltip("Displays small image previews for expression and eye textures; May cause lag on low-end machines.");
+        ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
+        imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
+        //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
+        //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
+        ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);
+        imgui_bundled_tooltip("Allows the usage of CHROMA KEY features outside of the paired stage; Useful only for models and custom-compiled levels.");
+    }
 }

@@ -566,6 +566,8 @@ static bool texname_to_texformat(const char *name, u8 *fmt, u8 *siz) {
     return false;
 }
 
+int preloaded_textures_count;
+
 // calls import_texture() on every texture in the res folder
 // we can get the format and size from the texture files
 // and then cache them using gfx_texture_cache_lookup
@@ -592,8 +594,10 @@ bool preload_texture(void *user, const char *path) {
     assert(actualname);
 
     struct TextureHashmapNode *n;
-    if (!gfx_texture_cache_lookup(0, &n, actualname, fmt, siz))
+    if (!gfx_texture_cache_lookup(0, &n, actualname, fmt, siz)) {
         load_texture(path); // new texture, load it
+        preloaded_textures_count += 1;
+    }
 
     return true;
 }

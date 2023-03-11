@@ -51,6 +51,7 @@ ConfigWindow configWindow       = {
     .fullscreen = false,
     .exiting_fullscreen = false,
     .settings_changed = false,
+    .fps_changed = false,
 };
 unsigned int configFiltering    = 1;          // 0=force nearest, 1=linear, (TODO) 2=three-point
 unsigned int configMasterVolume = MAX_VOLUME; // 0 - MAX_VOLUME
@@ -87,7 +88,7 @@ bool configPrecacheRes = true;
 #endif
 unsigned int configEditorTheme   = 1; // Moon by default
 unsigned int configMCameraMode   = 0; // keyboard is better
-bool         configEditorFastApply = false;
+bool         configEditorFastApply = true;
 bool         configEditorAutoModelCc = false;
 bool         configEditorAutoSpark = true;
 bool         configEditorShowTips = true;
@@ -95,6 +96,7 @@ bool         configEditorNearClipping = false;
 unsigned int configFps60            = true;
 bool         configEditorInterpolateAnims = false;
 bool         configEditorAlwaysChroma = false;
+bool         configEditorExpressionPreviews = false;
 unsigned int configFakeStarCount    = 0;
 bool         configUnlockDoors = true;
 #ifdef BETTERCAMERA
@@ -165,6 +167,7 @@ static const struct ConfigOption options[] = {
     {.name = "editor_near_clipping", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorNearClipping},
     {.name = "editor_interpolate_anims", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorInterpolateAnims},
     {.name = "editor_always_chroma", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorAlwaysChroma},
+    {.name = "editor_preview_expressions", .type = CONFIG_TYPE_BOOL, .uintValue = &configEditorExpressionPreviews},
     {.name = "fake_star_count", .type = CONFIG_TYPE_UINT, .uintValue = &configFakeStarCount},
     {.name = "fake_unlock_doors", .type = CONFIG_TYPE_BOOL, .uintValue = &configUnlockDoors},
     #ifdef BETTERCAMERA
