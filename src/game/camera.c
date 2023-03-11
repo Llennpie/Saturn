@@ -5429,46 +5429,46 @@ u8 get_cutscene_from_mario_status(struct Camera *c) {
     UNUSED u8 unused2[12];
 
     if (cutscene == 0) {
-        // A cutscene started by an object, if any, will start if nothing else happened
-        cutscene = sObjectCutscene;
-        sObjectCutscene = 0;
-        if (sMarioCamState->cameraEvent == CAM_EVENT_DOOR) {
-            switch (gCurrLevelArea) {
-                case AREA_CASTLE_LOBBY:
-                    //! doorStatus is never DOOR_ENTER_LOBBY when cameraEvent == 6, because
-                    //! doorStatus is only used for the star door in the lobby, which uses
-                    //! ACT_ENTERING_STAR_DOOR
-                    if (c->mode == CAMERA_MODE_SPIRAL_STAIRS || c->mode == CAMERA_MODE_CLOSE
-                                                                 || c->doorStatus == DOOR_ENTER_LOBBY) {
-                        cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL_MODE, CUTSCENE_DOOR_PUSH_MODE);
-                    } else {
-                        cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL, CUTSCENE_DOOR_PUSH);
-                    }
-                    break;
-                case AREA_BBH:
-                    //! Castle Lobby uses 0 to mean 'no special modes', but BBH uses 1...
-                    if (c->doorStatus == DOOR_LEAVING_SPECIAL) {
-                        cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL, CUTSCENE_DOOR_PUSH);
-                    } else {
-                        cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL_MODE, CUTSCENE_DOOR_PUSH_MODE);
-                    }
-                    break;
-                default:
-                    cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL, CUTSCENE_DOOR_PUSH);
-                    break;
-            }
-        }
-        if (sMarioCamState->cameraEvent == CAM_EVENT_DOOR_WARP) {
-            cutscene = CUTSCENE_DOOR_WARP;
-        }
-        if (sMarioCamState->cameraEvent == CAM_EVENT_CANNON) {
-            cutscene = CUTSCENE_ENTER_CANNON;
-        }
-        if (SURFACE_IS_PAINTING_WARP(sMarioGeometry.currFloorType)) {
-            cutscene = CUTSCENE_ENTER_PAINTING;
-        }
-
         if (!machinimaMode) {
+            // A cutscene started by an object, if any, will start if nothing else happened
+            cutscene = sObjectCutscene;
+            sObjectCutscene = 0;
+            if (sMarioCamState->cameraEvent == CAM_EVENT_DOOR) {
+                switch (gCurrLevelArea) {
+                    case AREA_CASTLE_LOBBY:
+                        //! doorStatus is never DOOR_ENTER_LOBBY when cameraEvent == 6, because
+                        //! doorStatus is only used for the star door in the lobby, which uses
+                        //! ACT_ENTERING_STAR_DOOR
+                        if (c->mode == CAMERA_MODE_SPIRAL_STAIRS || c->mode == CAMERA_MODE_CLOSE
+                                                                    || c->doorStatus == DOOR_ENTER_LOBBY) {
+                            cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL_MODE, CUTSCENE_DOOR_PUSH_MODE);
+                        } else {
+                            cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL, CUTSCENE_DOOR_PUSH);
+                        }
+                        break;
+                    case AREA_BBH:
+                        //! Castle Lobby uses 0 to mean 'no special modes', but BBH uses 1...
+                        if (c->doorStatus == DOOR_LEAVING_SPECIAL) {
+                            cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL, CUTSCENE_DOOR_PUSH);
+                        } else {
+                            cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL_MODE, CUTSCENE_DOOR_PUSH_MODE);
+                        }
+                        break;
+                    default:
+                        cutscene = open_door_cutscene(CUTSCENE_DOOR_PULL, CUTSCENE_DOOR_PUSH);
+                        break;
+                }
+            }
+            if (sMarioCamState->cameraEvent == CAM_EVENT_DOOR_WARP) {
+                cutscene = CUTSCENE_DOOR_WARP;
+            }
+            if (sMarioCamState->cameraEvent == CAM_EVENT_CANNON) {
+                cutscene = CUTSCENE_ENTER_CANNON;
+            }
+            if (SURFACE_IS_PAINTING_WARP(sMarioGeometry.currFloorType)) {
+                cutscene = CUTSCENE_ENTER_PAINTING;
+            }
+
             switch (sMarioCamState->action) {
                 case ACT_DEATH_EXIT:
                     cutscene = CUTSCENE_DEATH_EXIT;
