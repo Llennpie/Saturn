@@ -354,7 +354,11 @@ void saturn_imgui_update() {
 
 #ifdef DISCORDRPC
             if (has_discord_init && gCurUser.username != "") {
-                ImGui::Text(ICON_FK_DISCORD " %s#%s", gCurUser.username, gCurUser.discriminator);
+                if (gCurUser.username == NULL || gCurUser.username == "") {
+                    ImGui::Text(ICON_FK_DISCORD " Loading...");
+                } else {
+                    ImGui::Text(ICON_FK_DISCORD " %s#%s", gCurUser.username, gCurUser.discriminator);
+                }
                 ImGui::Separator();
             }
 #endif
@@ -372,6 +376,10 @@ void saturn_imgui_update() {
             imgui_dynos_cc_editor();
             ImGui::End();
             ImGui::PopStyleColor();
+
+#ifdef DISCORDRPC
+            discord_state = "In-Game // Editing a CC";
+#endif
         }
         if (windowAnimPlayer && mario_exists) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
@@ -423,6 +431,10 @@ int endFrameText = 60;
 void saturn_keyframe_popout(float* edit_value, string value_name, string id) {
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
     string windowLabel = "Timeline###kw_" + id;
+
+#ifdef DISCORDRPC
+    discord_state = "In-Game // Keyframing";
+#endif
 
     ImGui::SameLine();
     if (ImGui::Button(buttonLabel.c_str())) {

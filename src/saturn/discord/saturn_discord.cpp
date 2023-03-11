@@ -90,9 +90,7 @@ void sdiscord_update() {
     app.core->run_callbacks(app.core);
 
     gCurActivity.type = DiscordActivityType_Playing;
-    strcpy(gCurActivity.state, "In-Game // Animating");
     strcpy(gCurActivity.details, (model_details + ", " + cc_details).c_str());
-    if (!k_popout_open) gCurActivity.party.size.current_size = 0;
 
     switch(gCurrLevelNum) {
         case LEVEL_SA:
@@ -133,14 +131,10 @@ void sdiscord_update() {
         has_set_time = true;
     }
 
-    if (is_cc_editing) strcpy(gCurActivity.state, "In-Game // Editing a CC");
-    if (k_popout_open) {
-        strcpy(gCurActivity.state, "In-Game // Keyframing");
-        gCurActivity.party.size.current_size = 1;
-        gCurActivity.party.size.max_size = k_frame_keys.size();
-    } else {
+    if (!k_popout_open && !is_cc_editing)
+        discord_state = "In-Game // Animating";
 
-    }
+    strcpy(gCurActivity.state, discord_state.c_str());
 
     app.activities->update_activity(app.activities, &gCurActivity, NULL, on_activity_update_callback);
 }
