@@ -596,9 +596,8 @@ bool preload_texture(void *user, const char *path) {
     struct TextureHashmapNode *n;
     if (!gfx_texture_cache_lookup(0, &n, actualname, fmt, siz)) {
         load_texture(path); // new texture, load it
-        preloaded_textures_count += 1;
+        preloaded_textures_count++;
     }
-
     return true;
 }
 

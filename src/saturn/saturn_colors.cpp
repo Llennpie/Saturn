@@ -166,7 +166,7 @@ std::string global_gs_code() {
 /*
     Returns true if a defined address is for the CometSPARK format.
 */
-bool is_spark_address(string address) {
+bool is_spark_address(int address) {
     if (!current_model_data.spark_support)
         return false;;
         
@@ -549,7 +549,7 @@ void paste_gs_code(string content) {
         
     while (std::getline(f, line)) {
         if (line.rfind("81", 0) == 0) {
-            std::string address = line.substr(2, 6);
+            int address = std::stoi(line.substr(2, 6), 0, 16);
             int value1 = std::stoi(line.substr(9, 2), 0, 16);
             int value2 = std::stoi(line.substr(11, 2), 0, 16);
 
