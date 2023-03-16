@@ -32,29 +32,34 @@ using namespace std;
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-// arrays are ordered like this: [{RLight, RDark}, {GLight, GDark}, {BLight, BDark}]
-// NOTE: This will only work with C++ standards above C++14!
-// There are most likely ways to further minimize repetition and overall complexity,
-// However i will not be doing that here
-// Structs might help, Will I use them here? Nope!
+// Struct definition:
+/*    
+    struct ColorTemplate {
+        unsigned int red[2];
+        unsigned int green[2];
+        unsigned int blue[2];
+    };
+*/
+// [0] for light
+// [1] for dark
 
 // Default
-unsigned int defaultColorHat[6]             {255, 127, 0, 0, 0, 0};
-unsigned int defaultColorOveralls[6]        {0, 0, 0, 0, 255, 127};
-unsigned int defaultColorGloves[6]          {255, 127, 255, 127, 255, 127};
-unsigned int defaultColorShoes[6]           {114, 57, 28, 14, 14, 7};
-unsigned int defaultColorSkin[6]            {254, 127, 193, 96, 121, 60};
-unsigned int defaultColorHair[6]            {115, 57, 6, 3, 0, 0};
+ColorTemplate defaultColorHat               {255, 127, 0,   0,   0,   0  };
+ColorTemplate defaultColorOveralls          {0,   0,   0,   0,   255, 127};
+ColorTemplate defaultColorGloves            {255, 127, 255, 127, 255, 127};
+ColorTemplate defaultColorShoes             {114, 57,  28,  14,  14,  7  };
+ColorTemplate defaultColorSkin              {254, 127, 193, 96,  121, 60 };
+ColorTemplate defaultColorHair              {115, 57,  6,   3,   0,   0  };
 
 // CometSPARK
-unsigned int sparkColorShirt[6]             {255, 127, 255, 127, 0, 0};
-unsigned int sparkColorShoulders[6]         {0, 0, 255, 127, 255, 127};
-unsigned int sparkColorArms[6]              {0, 0, 255, 127, 127, 64};
-unsigned int sparkColorOverallsBottom[6]    {255, 127, 0, 0, 255, 127}; 
-unsigned int sparkColorLegTop[6]            {255, 127, 0, 0, 127, 64};
-unsigned int sparkColorLegBottom[6]         {127, 64, 0, 0, 255, 127};
+ColorTemplate sparkColorShirt               {255, 127, 255, 127, 0,   0  };
+ColorTemplate sparkColorShoulders           {0,   0,   255, 127, 255, 127};
+ColorTemplate sparkColorArms                {0,   0,   255, 127, 127, 64 };
+ColorTemplate sparkColorOverallsBottom      {255, 127, 0,   0,   255, 127}; 
+ColorTemplate sparkColorLegTop              {255, 127, 0,   0,   127, 64 };
+ColorTemplate sparkColorLegBottom           {127, 64,  0,   0,   255, 127};
 
-unsigned int chromaColor[6]                 {0, 0, 255, 127, 0, 0};
+ColorTemplate chromaColor                   {0,   0,   255, 127, 0,   0  };
 
 // Color Codes
 
@@ -69,15 +74,15 @@ bool modelCcLoaded;
 std::vector<string> model_cc_array;
 string modelColorCodeDir;
 
-std::string formatColour(unsigned int *colorBodyPart) {
+std::string formatColour(ColorTemplate &colorBodyPart) {
     char colour[64];
     ImFormatString(colour, IM_ARRAYSIZE(colour), "%02X%02X%02X%02X%02X%02X"
-            , ImClamp((int)colorBodyPart[0], 0, 255)
-            , ImClamp((int)colorBodyPart[2], 0, 255)
-            , ImClamp((int)colorBodyPart[4], 0, 255)
-            , ImClamp((int)colorBodyPart[1], 0, 255)
-            , ImClamp((int)colorBodyPart[3], 0, 255)
-            , ImClamp((int)colorBodyPart[5], 0, 255));
+            , ImClamp((int)colorBodyPart.red[0], 0, 255)
+            , ImClamp((int)colorBodyPart.green[0], 0, 255)
+            , ImClamp((int)colorBodyPart.blue[0], 0, 255)
+            , ImClamp((int)colorBodyPart.red[1], 0, 255)
+            , ImClamp((int)colorBodyPart.green[1], 0, 255)
+            , ImClamp((int)colorBodyPart.blue[1], 0, 255));
     std::string col = colour;
 
     return col;
@@ -225,97 +230,97 @@ void run_cc_replacement(int address, int value1, int value2) {
     switch(address) {
             //Hat
         case 0x07EC40:  
-            defaultColorHat[0] = value1;
-            defaultColorHat[2] = value2;
+            defaultColorHat.red[0] = value1;
+            defaultColorHat.green[0] = value2;
             break;
         case 0x07EC42:
-            defaultColorHat[4] = value1;
+            defaultColorHat.blue[0] = value1;
             break;
         case 0x07EC38:
-            defaultColorHat[1] = value1;
-            defaultColorHat[3] = value2;
+            defaultColorHat.red[1] = value1;
+            defaultColorHat.green[1] = value2;
             break;
         case 0x07EC3A:
-            defaultColorHat[5] = value1;
+            defaultColorHat.blue[1] = value1;
             break;
 
             //Overalls
         case 0x07EC28:
-            defaultColorOveralls[0] = value1;
-            defaultColorOveralls[2] = value2;
+            defaultColorOveralls.red[0] = value1;
+            defaultColorOveralls.green[0] = value2;
             break;
         case 0x07EC2A:
-            defaultColorOveralls[4] = value1;
+            defaultColorOveralls.blue[0] = value1;
             break;
         case 0x07EC20:
-            defaultColorOveralls[3] = value2;
+            defaultColorOveralls.green[1] = value2;
             break;
         case 0x07EC22:
-            defaultColorOveralls[5] = value1;
+            defaultColorOveralls.blue[1] = value1;
             break;
 
             //Gloves
         case 0x07EC58:
-            defaultColorGloves[0] = value1;
-            defaultColorGloves[2] = value2;
+            defaultColorGloves.red[0] = value1;
+            defaultColorGloves.green[0] = value2;
             break;
         case 0x07EC5A:
-            defaultColorGloves[4] = value1;
+            defaultColorGloves.blue[0] = value1;
             break;
         case 0x07EC50:
-            defaultColorGloves[1] = value1;
-            defaultColorGloves[3] = value2;
+            defaultColorGloves.red[1] = value1;
+            defaultColorGloves.green[1] = value2;
             break;
         case 0x08EC52:
-            defaultColorGloves[5] = value1;
+            defaultColorGloves.blue[1] = value1;
             break;
 
             //Shoes
         case 0x07EC70:
-            defaultColorShoes[0] = value1;
-            defaultColorShoes[2] = value2;
+            defaultColorShoes.red[0] = value1;
+            defaultColorShoes.green[0] = value2;
             break;
         case 0x07EC72:
-            defaultColorShoes[4] = value1;
+            defaultColorShoes.blue[0] = value1;
             break;
         case 0x07EC68:
-            defaultColorShoes[1] = value1;
-            defaultColorShoes[3] = value2;
+            defaultColorShoes.red[1] = value1;
+            defaultColorShoes.green[1] = value2;
             break;
         case 0x07EC6A:
-            defaultColorShoes[5] = value1;
+            defaultColorShoes.blue[1] = value1;
             break;
 
             //Skin
         case 0x07EC88:
-            defaultColorSkin[0] = value1;
-            defaultColorSkin[2] = value2;
+            defaultColorSkin.red[0] = value1;
+            defaultColorSkin.green[0] = value2;
             break;
         case 0x07EC8A:
-            defaultColorSkin[4] = value1;
+            defaultColorSkin.blue[0] = value1;
             break;
         case 0x07EC80:
-            defaultColorSkin[1] = value1;
-            defaultColorSkin[3] = value2;
+            defaultColorSkin.red[1] = value1;
+            defaultColorSkin.green[1] = value2;
             break;
         case 0x07EC82:
-            defaultColorSkin[5] = value1;
+            defaultColorSkin.blue[1] = value1;
             break;
 
             //Hair
         case 0x07ECA0:
-            defaultColorHair[0] = value1;
-            defaultColorHair[2] = value2;
+            defaultColorHair.red[0] = value1;
+            defaultColorHair.green[0] = value2;
             break;
         case 0x07ECA2:
-            defaultColorHair[4] = value1;
+            defaultColorHair.blue[0] = value1;
             break;
         case 0x07EC98:
-            defaultColorHair[1] = value1;
-            defaultColorHair[3] = value2;
+            defaultColorHair.red[1] = value1;
+            defaultColorHair.green[1] = value2;
             break;
         case 0x07EC9A:
-            defaultColorHair[5] = value1;
+            defaultColorHair.blue[1] = value1;
             break;
     }
 
@@ -332,98 +337,98 @@ void run_cc_replacement(int address, int value1, int value2) {
     switch(address) {
         //Shirt
         case 0x07ECB8:  
-            sparkColorShirt[0] = value1;
-            sparkColorShirt[2] = value2;
+            sparkColorShirt.red[0] = value1;
+            sparkColorShirt.green[0] = value2;
             break;
         case 0x07ECBA:
-            sparkColorShirt[4] = value1;
+            sparkColorShirt.blue[0] = value1;
             break;
         case 0x07ECB0:
-            sparkColorShirt[1] = value1;
-            sparkColorShirt[3] = value2;
+            sparkColorShirt.red[1] = value1;
+            sparkColorShirt.green[1] = value2;
             break;
         case 0x07ECB2:
-            sparkColorShirt[1] = value1;
-            sparkColorShirt[3] = value2;
+            sparkColorShirt.red[1] = value1;
+            sparkColorShirt.green[1] = value2;
             break;
 
             //Shoulders
         case 0x07ECD0:
-            sparkColorShoulders[0] = value1;
-            sparkColorShoulders[2] = value2;
+            sparkColorShoulders.red[0] = value1;
+            sparkColorShoulders.green[0] = value2;
             break;
         case 0x07ECD2:
-            sparkColorShoulders[4] = value1;
+            sparkColorShoulders.blue[0] = value1;
             break;
         case 0x07ECC8:
-            sparkColorShoulders[3] = value2;
+            sparkColorShoulders.green[1] = value2;
             break;
         case 0x07ECCA:
-            sparkColorShoulders[5] = value1;
+            sparkColorShoulders.blue[1] = value1;
             break;
 
             //Arms
         case 0x07ECE8:
-            sparkColorArms[0] = value1;
-            sparkColorArms[2] = value2;
+            sparkColorArms.red[0] = value1;
+            sparkColorArms.green[0] = value2;
             break;
         case 0x07ECEA:
-            sparkColorArms[4] = value1;
+            sparkColorArms.blue[0] = value1;
             break;
         case 0x07ECE0:
-            sparkColorArms[1] = value1;
-            sparkColorArms[3] = value2;
+            sparkColorArms.red[1] = value1;
+            sparkColorArms.green[1] = value2;
             break;
         case 0x08ECE2:
-            sparkColorArms[5] = value1;
+            sparkColorArms.blue[1] = value1;
             break;
 
             //OverallsBottom
         case 0x07ED00:
-            sparkColorOverallsBottom[0] = value1;
-            sparkColorOverallsBottom[2] = value2;
+            sparkColorOverallsBottom.red[0] = value1;
+            sparkColorOverallsBottom.green[0] = value2;
             break;
         case 0x07ED02:
-            sparkColorOverallsBottom[4] = value1;
+            sparkColorOverallsBottom.blue[0] = value1;
             break;
         case 0x07ECF8:
-            sparkColorOverallsBottom[1] = value1;
-            sparkColorOverallsBottom[3] = value2;
+            sparkColorOverallsBottom.red[1] = value1;
+            sparkColorOverallsBottom.green[1] = value2;
             break;
         case 0x07ECFA:
-            sparkColorOverallsBottom[5] = value1;
+            sparkColorOverallsBottom.blue[1] = value1;
             break;
 
             //LegTop
         case 0x07ED18:
-            sparkColorLegTop[0] = value1;
-            sparkColorLegTop[2] = value2;
+            sparkColorLegTop.red[0] = value1;
+            sparkColorLegTop.green[0] = value2;
             break;
         case 0x07ED1A:
-            sparkColorLegTop[4] = value1;
+            sparkColorLegTop.blue[0] = value1;
             break;
         case 0x07ED10:
-            sparkColorLegTop[1] = value1;
-            sparkColorLegTop[3] = value2;
+            sparkColorLegTop.red[1] = value1;
+            sparkColorLegTop.green[1] = value2;
             break;
         case 0x07ED12:
-            sparkColorLegTop[5] = value1;
+            sparkColorLegTop.blue[1] = value1;
             break;
 
             //LegBottom
         case 0x07ED30:
-            sparkColorLegBottom[0] = value1;
-            sparkColorLegBottom[2] = value2;
+            sparkColorLegBottom.red[0] = value1;
+            sparkColorLegBottom.green[0] = value2;
             break;
         case 0x07ED32:
-            sparkColorLegBottom[4] = value1;
+            sparkColorLegBottom.blue[0] = value1;
             break;
         case 0x07ED28:
-            sparkColorLegBottom[1] = value1;
-            sparkColorLegBottom[3] = value2;
+            sparkColorLegBottom.red[1] = value1;
+            sparkColorLegBottom.green[1] = value2;
             break;
         case 0x07ED2A:
-            sparkColorLegBottom[5] = value1;
+            sparkColorLegBottom.blue[1] = value1;
             break;
     }
 }
@@ -431,15 +436,15 @@ void run_cc_replacement(int address, int value1, int value2) {
 /*
     Resets Mario's colors to default.
 */
-void reset_colors(unsigned int* ccColor, int val1, int val2, int val3, int val4, int val5, int val6) {
-    ccColor[0] = val1;  // R
-    ccColor[1] = val2;
+void reset_colors(ColorTemplate &ccColor, int val1, int val2, int val3, int val4, int val5, int val6) {
+    ccColor.red[0] = val1;  // R
+    ccColor.red[1] = val2;
 
-    ccColor[2] = val3;  // G
-    ccColor[3] = val4;
+    ccColor.green[0] = val3;  // G
+    ccColor.green[1] = val4;
 
-    ccColor[4] = val5;  // B
-    ccColor[5] = val6;
+    ccColor.blue[0] = val5;  // B
+    ccColor.blue[1] = val6;
 }
 // Please save me
 

@@ -3,21 +3,28 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-extern unsigned int defaultColorHat[6];
-extern unsigned int defaultColorOveralls[6];
-extern unsigned int defaultColorGloves[6];
-extern unsigned int defaultColorShoes[6];
-extern unsigned int defaultColorSkin[6];
-extern unsigned int defaultColorHair[6];
 
-extern unsigned int sparkColorShirt[6];
-extern unsigned int sparkColorShoulders[6];
-extern unsigned int sparkColorArms[6];
-extern unsigned int sparkColorOverallsBottom[6];
-extern unsigned int sparkColorLegTop[6];
-extern unsigned int sparkColorLegBottom[6];
+struct ColorTemplate {
+    unsigned int red[2];
+    unsigned int green[2];
+    unsigned int blue[2];
+};
 
-extern unsigned int chromaColor[6];
+extern struct ColorTemplate defaultColorHat;
+extern struct ColorTemplate defaultColorOveralls;
+extern struct ColorTemplate defaultColorGloves;
+extern struct ColorTemplate defaultColorShoes;
+extern struct ColorTemplate defaultColorSkin;
+extern struct ColorTemplate defaultColorHair;
+
+extern struct ColorTemplate sparkColorShirt;
+extern struct ColorTemplate sparkColorShoulders;
+extern struct ColorTemplate sparkColorArms;
+extern struct ColorTemplate sparkColorOverallsBottom; 
+extern struct ColorTemplate sparkColorLegTop;
+extern struct ColorTemplate sparkColorLegBottom;
+
+extern struct ColorTemplate chromaColor;
 
 extern bool cc_model_support;
 extern bool cc_spark_support;

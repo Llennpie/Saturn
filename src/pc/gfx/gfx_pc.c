@@ -823,71 +823,71 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             // Override them lazily
             if (cc_model_support || chroma_floor) {
                 if (mario_hat) {
-                    r = defaultColorHat[1];
-                    g = defaultColorHat[3];
-                    b = defaultColorHat[5];
+                    r = defaultColorHat.red[1];
+                    g = defaultColorHat.green[1];
+                    b = defaultColorHat.blue[1];
                 }
                 if (mario_overalls) {
-                    r = defaultColorOveralls[1];
-                    g = defaultColorOveralls[3];
-                    b = defaultColorOveralls[5];
+                    r = defaultColorOveralls.red[1];
+                    g = defaultColorOveralls.green[1];
+                    b = defaultColorOveralls.blue[1];
                 }
                 if (mario_gloves) {
-                    r = defaultColorGloves[1];
-                    g = defaultColorGloves[3];
-                    b = defaultColorGloves[5];
+                    r = defaultColorGloves.red[1];
+                    g = defaultColorGloves.green[1];
+                    b = defaultColorGloves.blue[1];
                 }
                 if (mario_shoes) {
-                    r = defaultColorShoes[1];
-                    g = defaultColorShoes[3];
-                    b = defaultColorShoes[5];
+                    r = defaultColorShoes.red[1];
+                    g = defaultColorShoes.green[1];
+                    b = defaultColorShoes.blue[1];
                 }
                 if (mario_skin) {
-                    r = defaultColorSkin[1];
-                    g = defaultColorSkin[3];
-                    b = defaultColorSkin[5];
+                    r = defaultColorSkin.red[1];
+                    g = defaultColorSkin.green[1];
+                    b = defaultColorSkin.blue[1];
                 }
                 if (mario_hair) {
-                    r = defaultColorHair[1];
-                    g = defaultColorHair[3];
-                    b = defaultColorHair[5];
+                    r = defaultColorHair.red[1];
+                    g = defaultColorHair.green[1];
+                    b = defaultColorHair.blue[1];
                 }
                 if (cc_spark_support) {
                     if (mario_shirt) {
-                        r = sparkColorShirt[1];
-                        g = sparkColorShirt[3];
-                        b = sparkColorShirt[5];
+                        r = sparkColorShirt.red[1];
+                        g = sparkColorShirt.green[1];
+                        b = sparkColorShirt.blue[1];
                     }
                     if (mario_shoulders) {
-                        r = sparkColorShoulders[1];
-                        g = sparkColorShoulders[3];
-                        b = sparkColorShoulders[5];
+                        r = sparkColorShoulders.red[1];
+                        g = sparkColorShoulders.green[1];
+                        b = sparkColorShoulders.blue[1];
                     }
                     if (mario_arms) {
-                        r = sparkColorArms[1];
-                        g = sparkColorArms[3];
-                        b = sparkColorArms[5];
+                        r = sparkColorArms.red[1];
+                        g = sparkColorArms.green[1];
+                        b = sparkColorArms.blue[1];
                     }
                     if (mario_overalls_bottom) {
-                        r = sparkColorOverallsBottom[1];
-                        g = sparkColorOverallsBottom[3];
-                        b = sparkColorOverallsBottom[5];
+                        r = sparkColorOverallsBottom.red[1];
+                        g = sparkColorOverallsBottom.green[1];
+                        b = sparkColorOverallsBottom.blue[1];
                     }
                     if (mario_legtop) {
-                        r = sparkColorLegTop[1];
-                        g = sparkColorLegTop[3];
-                        b = sparkColorLegTop[5];
+                        r = sparkColorLegTop.red[1];
+                        g = sparkColorLegTop.green[1];
+                        b = sparkColorLegTop.blue[1];
                     }
                     if (mario_legbottom) {
-                        r = sparkColorLegBottom[1];
-                        g = sparkColorLegBottom[3];
-                        b = sparkColorLegBottom[5];
+                        r = sparkColorLegBottom.red[1];
+                        g = sparkColorLegBottom.green[1];
+                        b = sparkColorLegBottom.blue[1];
                     }
                 }
                 if (chroma_floor) {
-                    r = chromaColor[1];
-                    g = chromaColor[3];
-                    b = chromaColor[5];
+                    r = chromaColor.red[1];
+                    g = chromaColor.green[1];
+                    b = chromaColor.blue[1];
                 }
             }
             
@@ -906,69 +906,69 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                     // Override these too
                     if (cc_model_support || chroma_floor) {
                         if (mario_hat) {
-                            r += intensity * defaultColorHat[0];
-                            g += intensity * defaultColorHat[2];
-                            b += intensity * defaultColorHat[4];
+                            r += intensity * defaultColorHat.red[0];
+                            g += intensity * defaultColorHat.green[0];
+                            b += intensity * defaultColorHat.blue[0];
                         }
                         else if (mario_overalls) {
-                            r += intensity * defaultColorOveralls[0];
-                            g += intensity * defaultColorOveralls[2];
-                            b += intensity * defaultColorOveralls[4];
+                            r += intensity * defaultColorOveralls.red[0];
+                            g += intensity * defaultColorOveralls.green[0];
+                            b += intensity * defaultColorOveralls.blue[0];
                         }
                         else if (mario_gloves) {
-                            r += intensity * defaultColorGloves[0];
-                            g += intensity * defaultColorGloves[2];
-                            b += intensity * defaultColorGloves[4];
+                            r += intensity * defaultColorGloves.red[0];
+                            g += intensity * defaultColorGloves.green[0];
+                            b += intensity * defaultColorGloves.blue[0];
                         }
                         else if (mario_shoes) {
-                            r += intensity * defaultColorShoes[0];
-                            g += intensity * defaultColorShoes[2];
-                            b += intensity * defaultColorShoes[4];
+                            r += intensity * defaultColorShoes.red[0];
+                            g += intensity * defaultColorShoes.green[0];
+                            b += intensity * defaultColorShoes.blue[0];
                         }
                         else if (mario_skin) {
-                            r += intensity * defaultColorSkin[0];
-                            g += intensity * defaultColorSkin[2];
-                            b += intensity * defaultColorSkin[4];
+                            r += intensity * defaultColorSkin.red[0];
+                            g += intensity * defaultColorSkin.green[0];
+                            b += intensity * defaultColorSkin.blue[0];
                         }
                         else if (mario_hair) {
-                            r += intensity * defaultColorHair[0];
-                            g += intensity * defaultColorHair[2];
-                            b += intensity * defaultColorHair[4];
+                            r += intensity * defaultColorHair.red[0];
+                            g += intensity * defaultColorHair.green[0];
+                            b += intensity * defaultColorHair.blue[0];
                         }
                         else if (mario_shirt) {
-                            r += intensity * sparkColorShirt[0];
-                            g += intensity * sparkColorShirt[2];
-                            b += intensity * sparkColorShirt[4];
+                            r += intensity * sparkColorShirt.red[0];
+                            g += intensity * sparkColorShirt.green[0];
+                            b += intensity * sparkColorShirt.blue[0];
                         }
                         else if (mario_shoulders) {
-                            r += intensity * sparkColorShoulders[0];
-                            g += intensity * sparkColorShoulders[2];
-                            b += intensity * sparkColorShoulders[4];
+                            r += intensity * sparkColorShoulders.red[0];
+                            g += intensity * sparkColorShoulders.green[0];
+                            b += intensity * sparkColorShoulders.blue[0];
                         }
                         else if (mario_arms) {
-                            r += intensity * sparkColorArms[0];
-                            g += intensity * sparkColorArms[2];
-                            b += intensity * sparkColorArms[4];
+                            r += intensity * sparkColorArms.red[0];
+                            g += intensity * sparkColorArms.green[0];
+                            b += intensity * sparkColorArms.blue[0];
                         }
                         else if (mario_overalls_bottom) {
-                            r += intensity * sparkColorOverallsBottom[0];
-                            g += intensity * sparkColorOverallsBottom[2];
-                            b += intensity * sparkColorOverallsBottom[4];
+                            r += intensity * sparkColorOverallsBottom.red[0];
+                            g += intensity * sparkColorOverallsBottom.green[0];
+                            b += intensity * sparkColorOverallsBottom.blue[0];
                         }
                         else if (mario_legtop) {
-                            r += intensity * sparkColorLegTop[0];
-                            g += intensity * sparkColorLegTop[2];
-                            b += intensity * sparkColorLegTop[4];
+                            r += intensity * sparkColorLegTop.red[0];
+                            g += intensity * sparkColorLegTop.green[0];
+                            b += intensity * sparkColorLegTop.blue[0];
                         }
                         else if (mario_legbottom) {
-                            r += intensity * sparkColorLegBottom[0];
-                            g += intensity * sparkColorLegBottom[2];
-                            b += intensity * sparkColorLegBottom[4];
+                            r += intensity * sparkColorLegBottom.red[0];
+                            g += intensity * sparkColorLegBottom.green[0];
+                            b += intensity * sparkColorLegBottom.blue[0];
                         }
                         else if (chroma_floor) {
-                            r += intensity * chromaColor[0];
-                            g += intensity * chromaColor[2];
-                            b += intensity * chromaColor[4];
+                            r += intensity * chromaColor.red[0];
+                            g += intensity * chromaColor.green[0];
+                            b += intensity * chromaColor.blue[0];
                         }
                         else {
                             r += intensity * lightr;
