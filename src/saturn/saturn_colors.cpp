@@ -28,100 +28,38 @@ using namespace std;
 #include <fstream>
 #include <assert.h>
 #include <stdlib.h>
+#include <array>
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-unsigned int defaultColorHatRLight = 255;
-unsigned int defaultColorHatRDark = 127;
-unsigned int defaultColorHatGLight = 0;
-unsigned int defaultColorHatGDark = 0;
-unsigned int defaultColorHatBLight = 0;
-unsigned int defaultColorHatBDark = 0;
+// Struct definition:
+/*    
+    struct ColorTemplate {
+        unsigned int red[2];
+        unsigned int green[2];
+        unsigned int blue[2];
+    };
+*/
+// [0] for light
+// [1] for dark
 
-unsigned int defaultColorOverallsRLight = 0;
-unsigned int defaultColorOverallsRDark = 0;
-unsigned int defaultColorOverallsGLight = 0;
-unsigned int defaultColorOverallsGDark = 0;
-unsigned int defaultColorOverallsBLight = 255;
-unsigned int defaultColorOverallsBDark = 127;
-
-unsigned int defaultColorGlovesRLight = 255;
-unsigned int defaultColorGlovesRDark = 127;
-unsigned int defaultColorGlovesGLight = 255;
-unsigned int defaultColorGlovesGDark = 127;
-unsigned int defaultColorGlovesBLight = 255;
-unsigned int defaultColorGlovesBDark = 127;
-
-unsigned int defaultColorShoesRLight = 114;
-unsigned int defaultColorShoesRDark = 57;
-unsigned int defaultColorShoesGLight = 28;
-unsigned int defaultColorShoesGDark = 14;
-unsigned int defaultColorShoesBLight = 14;
-unsigned int defaultColorShoesBDark = 7;
-
-unsigned int defaultColorSkinRLight = 254;
-unsigned int defaultColorSkinRDark = 127;
-unsigned int defaultColorSkinGLight = 193;
-unsigned int defaultColorSkinGDark = 96;
-unsigned int defaultColorSkinBLight = 121;
-unsigned int defaultColorSkinBDark = 60;
-
-unsigned int defaultColorHairRLight = 115;
-unsigned int defaultColorHairRDark = 57;
-unsigned int defaultColorHairGLight = 6;
-unsigned int defaultColorHairGDark = 3;
-unsigned int defaultColorHairBLight = 0;
-unsigned int defaultColorHairBDark = 0;
+// Default
+ColorTemplate defaultColorHat               {255, 127, 0,   0,   0,   0  };
+ColorTemplate defaultColorOveralls          {0,   0,   0,   0,   255, 127};
+ColorTemplate defaultColorGloves            {255, 127, 255, 127, 255, 127};
+ColorTemplate defaultColorShoes             {114, 57,  28,  14,  14,  7  };
+ColorTemplate defaultColorSkin              {254, 127, 193, 96,  121, 60 };
+ColorTemplate defaultColorHair              {115, 57,  6,   3,   0,   0  };
 
 // CometSPARK
-unsigned int sparkColorShirtRLight = 255;
-unsigned int sparkColorShirtRDark = 127;
-unsigned int sparkColorShirtGLight = 255;
-unsigned int sparkColorShirtGDark = 127;
-unsigned int sparkColorShirtBLight = 0;
-unsigned int sparkColorShirtBDark = 0;
+ColorTemplate sparkColorShirt               {255, 127, 255, 127, 0,   0  };
+ColorTemplate sparkColorShoulders           {0,   0,   255, 127, 255, 127};
+ColorTemplate sparkColorArms                {0,   0,   255, 127, 127, 64 };
+ColorTemplate sparkColorOverallsBottom      {255, 127, 0,   0,   255, 127}; 
+ColorTemplate sparkColorLegTop              {255, 127, 0,   0,   127, 64 };
+ColorTemplate sparkColorLegBottom           {127, 64,  0,   0,   255, 127};
 
-unsigned int sparkColorShouldersRLight = 0;
-unsigned int sparkColorShouldersRDark = 0;
-unsigned int sparkColorShouldersGLight = 255;
-unsigned int sparkColorShouldersGDark = 127;
-unsigned int sparkColorShouldersBLight = 255;
-unsigned int sparkColorShouldersBDark = 127;
-
-unsigned int sparkColorArmsRLight = 0;
-unsigned int sparkColorArmsRDark = 0;
-unsigned int sparkColorArmsGLight = 255;
-unsigned int sparkColorArmsGDark = 127;
-unsigned int sparkColorArmsBLight = 127;
-unsigned int sparkColorArmsBDark = 64;
-
-unsigned int sparkColorOverallsBottomRLight = 255;
-unsigned int sparkColorOverallsBottomRDark = 127;
-unsigned int sparkColorOverallsBottomGLight = 0;
-unsigned int sparkColorOverallsBottomGDark = 0;
-unsigned int sparkColorOverallsBottomBLight = 255;
-unsigned int sparkColorOverallsBottomBDark = 127;
-
-unsigned int sparkColorLegTopRLight = 255;
-unsigned int sparkColorLegTopRDark = 127;
-unsigned int sparkColorLegTopGLight = 0;
-unsigned int sparkColorLegTopGDark = 0;
-unsigned int sparkColorLegTopBLight = 127;
-unsigned int sparkColorLegTopBDark = 64;
-
-unsigned int sparkColorLegBottomRLight = 127;
-unsigned int sparkColorLegBottomRDark = 64;
-unsigned int sparkColorLegBottomGLight = 0;
-unsigned int sparkColorLegBottomGDark = 0;
-unsigned int sparkColorLegBottomBLight = 255;
-unsigned int sparkColorLegBottomBDark = 127;
-
-unsigned int chromaColorRLight = 0;
-unsigned int chromaColorRDark = 0;
-unsigned int chromaColorGLight = 255;
-unsigned int chromaColorGDark = 127;
-unsigned int chromaColorBLight = 0;
-unsigned int chromaColorBDark = 0;
+ColorTemplate chromaColor                   {0,   0,   255, 127, 0,   0  };
 
 // Color Codes
 
@@ -136,162 +74,114 @@ bool modelCcLoaded;
 std::vector<string> model_cc_array;
 string modelColorCodeDir;
 
+std::string formatColour(ColorTemplate &colorBodyPart) {
+    char colour[64];
+    ImFormatString(colour, IM_ARRAYSIZE(colour), "%02X%02X%02X%02X%02X%02X"
+            , ImClamp((int)colorBodyPart.red[0], 0, 255)
+            , ImClamp((int)colorBodyPart.green[0], 0, 255)
+            , ImClamp((int)colorBodyPart.blue[0], 0, 255)
+            , ImClamp((int)colorBodyPart.red[1], 0, 255)
+            , ImClamp((int)colorBodyPart.green[1], 0, 255)
+            , ImClamp((int)colorBodyPart.blue[1], 0, 255));
+    std::string col = colour;
+
+    return col;
+} // this should help remove a lot of the repetition,
+  // however it's still very repetitive and should be worked on further
+
 /*
     The currently active GameShark code in string format.
 */
 std::string global_gs_code() {
     std::string gameshark;
 
-    char col1char[64];
-    ImFormatString(col1char, IM_ARRAYSIZE(col1char), "%02X%02X%02X", ImClamp((int)defaultColorHatRLight, 0, 255), ImClamp((int)defaultColorHatGLight, 0, 255), ImClamp((int)defaultColorHatBLight, 0, 255));
-    std::string col1 = col1char;
-    char col2char[64];
-    ImFormatString(col2char, IM_ARRAYSIZE(col2char), "%02X%02X%02X", ImClamp((int)defaultColorHatRDark, 0, 255), ImClamp((int)defaultColorHatGDark, 0, 255), ImClamp((int)defaultColorHatBDark, 0, 255));
-    std::string col2 = col2char;
-    char col3char[64];
-    ImFormatString(col3char, IM_ARRAYSIZE(col3char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRLight, 0, 255), ImClamp((int)defaultColorOverallsGLight, 0, 255), ImClamp((int)defaultColorOverallsBLight, 0, 255));
-    std::string col3 = col3char;
-    char col4char[64];
-    ImFormatString(col4char, IM_ARRAYSIZE(col4char), "%02X%02X%02X", ImClamp((int)defaultColorOverallsRDark, 0, 255), ImClamp((int)defaultColorOverallsGDark, 0, 255), ImClamp((int)defaultColorOverallsBDark, 0, 255));
-    std::string col4 = col4char;
-    char col5char[64];
-    ImFormatString(col5char, IM_ARRAYSIZE(col5char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRLight, 0, 255), ImClamp((int)defaultColorGlovesGLight, 0, 255), ImClamp((int)defaultColorGlovesBLight, 0, 255));
-    std::string col5 = col5char;
-    char col6char[64];
-    ImFormatString(col6char, IM_ARRAYSIZE(col6char), "%02X%02X%02X", ImClamp((int)defaultColorGlovesRDark, 0, 255), ImClamp((int)defaultColorGlovesGDark, 0, 255), ImClamp((int)defaultColorGlovesBDark, 0, 255));
-    std::string col6 = col6char;
-    char col7char[64];
-    ImFormatString(col7char, IM_ARRAYSIZE(col7char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRLight, 0, 255), ImClamp((int)defaultColorShoesGLight, 0, 255), ImClamp((int)defaultColorShoesBLight, 0, 255));
-    std::string col7 = col7char;
-    char col8char[64];
-    ImFormatString(col8char, IM_ARRAYSIZE(col8char), "%02X%02X%02X", ImClamp((int)defaultColorShoesRDark, 0, 255), ImClamp((int)defaultColorShoesGDark, 0, 255), ImClamp((int)defaultColorShoesBDark, 0, 255));
-    std::string col8 = col8char;
-    char col9char[64];
-    ImFormatString(col9char, IM_ARRAYSIZE(col9char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRLight, 0, 255), ImClamp((int)defaultColorSkinGLight, 0, 255), ImClamp((int)defaultColorSkinBLight, 0, 255));
-    std::string col9 = col9char;
-    char col10char[64];
-    ImFormatString(col10char, IM_ARRAYSIZE(col10char), "%02X%02X%02X", ImClamp((int)defaultColorSkinRDark, 0, 255), ImClamp((int)defaultColorSkinGDark, 0, 255), ImClamp((int)defaultColorSkinBDark, 0, 255));
-    std::string col10 = col10char;
-    char col11char[64];
-    ImFormatString(col11char, IM_ARRAYSIZE(col11char), "%02X%02X%02X", ImClamp((int)defaultColorHairRLight, 0, 255), ImClamp((int)defaultColorHairGLight, 0, 255), ImClamp((int)defaultColorHairBLight, 0, 255));
-    std::string col11 = col11char;
-    char col12char[64];
-    ImFormatString(col12char, IM_ARRAYSIZE(col12char), "%02X%02X%02X", ImClamp((int)defaultColorHairRDark, 0, 255), ImClamp((int)defaultColorHairGDark, 0, 255), ImClamp((int)defaultColorHairBDark, 0, 255));
-    std::string col12 = col12char;
+    // TODO: Clean this code up, I dont think it needs 36 similar blocks of code lol
 
-    gameshark += "8107EC40 " + col1.substr(0, 2) + col1.substr(2, 2) + "\n";
+    std::string col1 = formatColour(defaultColorHat);
+    std::string col2 = formatColour(defaultColorOveralls);
+    std::string col3 = formatColour(defaultColorGloves);
+    std::string col4 = formatColour(defaultColorShoes);
+    std::string col5 = formatColour(defaultColorSkin);
+    std::string col6 = formatColour(defaultColorHair);
+
+    gameshark += "8107EC40 " + col1.substr(0, 4) + "\n";
     gameshark += "8107EC42 " + col1.substr(4, 2) + "00\n";
-    gameshark += "8107EC38 " + col2.substr(0, 2) + col2.substr(2, 2) + "\n";
-    gameshark += "8107EC3A " + col2.substr(4, 2) + "00\n";
-    gameshark += "8107EC28 " + col3.substr(0, 2) + col3.substr(2, 2) + "\n";
-    gameshark += "8107EC2A " + col3.substr(4, 2) + "00\n";
-    gameshark += "8107EC20 " + col4.substr(0, 2) + col4.substr(2, 2) + "\n";
-    gameshark += "8107EC22 " + col4.substr(4, 2) + "00\n";
-    gameshark += "8107EC58 " + col5.substr(0, 2) + col5.substr(2, 2) + "\n";
-    gameshark += "8107EC5A " + col5.substr(4, 2) + "00\n";
-    gameshark += "8107EC50 " + col6.substr(0, 2) + col6.substr(2, 2) + "\n";
-    gameshark += "8107EC52 " + col6.substr(4, 2) + "00\n";
-    gameshark += "8107EC70 " + col7.substr(0, 2) + col7.substr(2, 2) + "\n";
-    gameshark += "8107EC72 " + col7.substr(4, 2) + "00\n";
-    gameshark += "8107EC68 " + col8.substr(0, 2) + col8.substr(2, 2) + "\n";
-    gameshark += "8107EC6A " + col8.substr(4, 2) + "00\n";
-    gameshark += "8107EC88 " + col9.substr(0, 2) + col9.substr(2, 2) + "\n";
-    gameshark += "8107EC8A " + col9.substr(4, 2) + "00\n";
-    gameshark += "8107EC80 " + col10.substr(0, 2) + col10.substr(2, 2) + "\n";
-    gameshark += "8107EC82 " + col10.substr(4, 2) + "00\n";
-    gameshark += "8107ECA0 " + col11.substr(0, 2) + col11.substr(2, 2) + "\n";
-    gameshark += "8107ECA2 " + col11.substr(4, 2) + "00\n";
-    gameshark += "8107EC98 " + col12.substr(0, 2) + col12.substr(2, 2) + "\n";
-    if (!cc_spark_support) {
-        gameshark += "8107EC9A " + col12.substr(4, 2) + "00";
-    } else {
-        gameshark += "8107EC9A " + col12.substr(4, 2) + "00\n";
+    gameshark += "8107EC38 " + col1.substr(6, 4) + "\n";
+    gameshark += "8107EC3A " + col1.substr(10, 2) + "00\n";
+    gameshark += "8107EC28 " + col2.substr(0, 4) + "\n";
+    gameshark += "8107EC2A " + col2.substr(4, 2) + "00\n";
+    gameshark += "8107EC20 " + col2.substr(6, 4) + "\n";
+    gameshark += "8107EC22 " + col2.substr(10, 2) + "00\n";
+    gameshark += "8107EC58 " + col3.substr(0, 4) + "\n";
+    gameshark += "8107EC5A " + col3.substr(4, 2) + "00\n";
+    gameshark += "8107EC50 " + col3.substr(6, 4) + "\n";
+    gameshark += "8107EC52 " + col3.substr(10, 2) + "00\n";
+    gameshark += "8107EC70 " + col4.substr(0, 4) + "\n";
+    gameshark += "8107EC72 " + col4.substr(4, 2) + "00\n";
+    gameshark += "8107EC68 " + col4.substr(6, 4) + "\n";
+    gameshark += "8107EC6A " + col4.substr(10, 2) + "00\n";
+    gameshark += "8107EC88 " + col5.substr(0, 4) + "\n";
+    gameshark += "8107EC8A " + col5.substr(4, 2) + "00\n";
+    gameshark += "8107EC80 " + col5.substr(6, 4) + "\n";
+    gameshark += "8107EC82 " + col5.substr(10, 2) + "00\n";
+    gameshark += "8107ECA0 " + col6.substr(0, 4)+ "\n";
+    gameshark += "8107ECA2 " + col6.substr(4, 2) + "00\n";
+    gameshark += "8107EC98 " + col6.substr(6, 4)+ "\n";
+    gameshark += "8107EC9A " + col6.substr(10, 2) + "00";
 
-        char col13char[64];
-        ImFormatString(col13char, IM_ARRAYSIZE(col13char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRLight, 0, 255), ImClamp((int)sparkColorShirtGLight, 0, 255), ImClamp((int)sparkColorShirtBLight, 0, 255));
-        std::string col13 = col13char;
-        char col14char[64];
-        ImFormatString(col14char, IM_ARRAYSIZE(col14char), "%02X%02X%02X", ImClamp((int)sparkColorShirtRDark, 0, 255), ImClamp((int)sparkColorShirtGDark, 0, 255), ImClamp((int)sparkColorShirtBDark, 0, 255));
-        std::string col14 = col14char;
-        char col15char[64];
-        ImFormatString(col15char, IM_ARRAYSIZE(col15char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRLight, 0, 255), ImClamp((int)sparkColorShouldersGLight, 0, 255), ImClamp((int)sparkColorShouldersBLight, 0, 255));
-        std::string col15 = col15char;
-        char col16char[64];
-        ImFormatString(col16char, IM_ARRAYSIZE(col16char), "%02X%02X%02X", ImClamp((int)sparkColorShouldersRDark, 0, 255), ImClamp((int)sparkColorShouldersGDark, 0, 255), ImClamp((int)sparkColorShouldersBDark, 0, 255));
-        std::string col16 = col16char;
-        char col17char[64];
-        ImFormatString(col17char, IM_ARRAYSIZE(col17char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRLight, 0, 255), ImClamp((int)sparkColorArmsGLight, 0, 255), ImClamp((int)sparkColorArmsBLight, 0, 255));
-        std::string col17 = col17char;
-        char col18char[64];
-        ImFormatString(col18char, IM_ARRAYSIZE(col18char), "%02X%02X%02X", ImClamp((int)sparkColorArmsRDark, 0, 255), ImClamp((int)sparkColorArmsGDark, 0, 255), ImClamp((int)sparkColorArmsBDark, 0, 255));
-        std::string col18 = col18char;
-        char col19char[64];
-        ImFormatString(col19char, IM_ARRAYSIZE(col19char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRLight, 0, 255), ImClamp((int)sparkColorOverallsBottomGLight, 0, 255), ImClamp((int)sparkColorOverallsBottomBLight, 0, 255));
-        std::string col19 = col19char;
-        char col20char[64];
-        ImFormatString(col20char, IM_ARRAYSIZE(col20char), "%02X%02X%02X", ImClamp((int)sparkColorOverallsBottomRDark, 0, 255), ImClamp((int)sparkColorOverallsBottomGDark, 0, 255), ImClamp((int)sparkColorOverallsBottomBDark, 0, 255));
-        std::string col20 = col20char;
-        char col21char[64];
-        ImFormatString(col21char, IM_ARRAYSIZE(col21char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRLight, 0, 255), ImClamp((int)sparkColorLegTopGLight, 0, 255), ImClamp((int)sparkColorLegTopBLight, 0, 255));
-        std::string col21 = col21char;
-        char col22char[64];
-        ImFormatString(col22char, IM_ARRAYSIZE(col22char), "%02X%02X%02X", ImClamp((int)sparkColorLegTopRDark, 0, 255), ImClamp((int)sparkColorLegTopGDark, 0, 255), ImClamp((int)sparkColorLegTopBDark, 0, 255));
-        std::string col22 = col22char;
-        char col23char[64];
-        ImFormatString(col23char, IM_ARRAYSIZE(col23char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRLight, 0, 255), ImClamp((int)sparkColorLegBottomGLight, 0, 255), ImClamp((int)sparkColorLegBottomBLight, 0, 255));
-        std::string col23 = col23char;
-        char col24char[64];
-        ImFormatString(col24char, IM_ARRAYSIZE(col24char), "%02X%02X%02X", ImClamp((int)sparkColorLegBottomRDark, 0, 255), ImClamp((int)sparkColorLegBottomGDark, 0, 255), ImClamp((int)sparkColorLegBottomBDark, 0, 255));
-        std::string col24 = col24char;
+    if (cc_spark_support) {
+        gameshark += "\n";
 
-        gameshark += "8107ECB8 " + col13.substr(0, 2) + col13.substr(2, 2) + "\n";
-        gameshark += "8107ECBA " + col13.substr(4, 2) + "00\n";
-        gameshark += "8107ECB0 " + col14.substr(0, 2) + col14.substr(2, 2) + "\n";
-        gameshark += "8107ECB2 " + col14.substr(4, 2) + "00\n";
-        gameshark += "8107ECD0 " + col15.substr(0, 2) + col15.substr(2, 2) + "\n";
-        gameshark += "8107ECD2 " + col15.substr(4, 2) + "00\n";
-        gameshark += "8107ECC8 " + col16.substr(0, 2) + col16.substr(2, 2) + "\n";
-        gameshark += "8107ECCA " + col16.substr(4, 2) + "00\n";
-        gameshark += "8107ECE8 " + col17.substr(0, 2) + col17.substr(2, 2) + "\n";
-        gameshark += "8107ECEA " + col17.substr(4, 2) + "00\n";
-        gameshark += "8107ECE0 " + col18.substr(0, 2) + col18.substr(2, 2) + "\n";
-        gameshark += "8107ECE2 " + col18.substr(4, 2) + "00\n";
-        gameshark += "8107ED00 " + col19.substr(0, 2) + col19.substr(2, 2) + "\n";
-        gameshark += "8107ED02 " + col19.substr(4, 2) + "00\n";
-        gameshark += "8107ECF8 " + col20.substr(0, 2) + col20.substr(2, 2) + "\n";
-        gameshark += "8107ECFA " + col20.substr(4, 2) + "00\n";
-        gameshark += "8107ED18 " + col21.substr(0, 2) + col21.substr(2, 2) + "\n";
-        gameshark += "8107ED1A " + col21.substr(4, 2) + "00\n";
-        gameshark += "8107ED10 " + col22.substr(0, 2) + col22.substr(2, 2) + "\n";
-        gameshark += "8107ED12 " + col22.substr(4, 2) + "00\n";
-        gameshark += "8107ED30 " + col23.substr(0, 2) + col23.substr(2, 2) + "\n";
-        gameshark += "8107ED32 " + col23.substr(4, 2) + "00\n";
-        gameshark += "8107ED28 " + col24.substr(0, 2) + col24.substr(2, 2) + "\n";
-        gameshark += "8107ED2A " + col24.substr(4, 2) + "00";
+        std::string col7 = formatColour(sparkColorShirt);
+        std::string col8 = formatColour(sparkColorShoulders);
+        std::string col9 = formatColour(sparkColorArms);
+        std::string col10 = formatColour(sparkColorOverallsBottom);
+        std::string col11 = formatColour(sparkColorLegTop);
+        std::string col12 = formatColour(sparkColorLegBottom);
+
+        gameshark += "8107ECB8 " + col7.substr(0, 4) + "\n";
+        gameshark += "8107ECBA " + col7.substr(4, 2) + "00\n";
+        gameshark += "8107ECB0 " + col7.substr(6, 4) + "\n";
+        gameshark += "8107ECB2 " + col7.substr(10, 2) + "00\n";
+        gameshark += "8107ECD0 " + col8.substr(0, 4) + "\n";
+        gameshark += "8107ECD2 " + col8.substr(4, 2) + "00\n";
+        gameshark += "8107ECC8 " + col8.substr(6, 4) + "\n";
+        gameshark += "8107ECCA " + col8.substr(10, 2) + "00\n";
+        gameshark += "8107ECE8 " + col9.substr(0, 4) + "\n";
+        gameshark += "8107ECEA " + col9.substr(4, 2) + "00\n";
+        gameshark += "8107ECE0 " + col9.substr(6, 4) + "\n";
+        gameshark += "8107ECE2 " + col9.substr(10, 2) + "00\n";
+        gameshark += "8107ED00 " + col10.substr(0, 4) + "\n";
+        gameshark += "8107ED02 " + col10.substr(4, 2) + "00\n";
+        gameshark += "8107ECF8 " + col10.substr(6, 4) + "\n";
+        gameshark += "8107ECFA " + col10.substr(10, 2) + "00\n";
+        gameshark += "8107ED18 " + col11.substr(0, 4) + "\n";
+        gameshark += "8107ED1A " + col11.substr(4, 2) + "00\n";
+        gameshark += "8107ED10 " + col11.substr(6, 4) + "\n";
+        gameshark += "8107ED12 " + col11.substr(10, 2) + "00\n";
+        gameshark += "8107ED30 " + col12.substr(0, 4) + "\n";
+        gameshark += "8107ED32 " + col12.substr(4, 2) + "00\n";
+        gameshark += "8107ED28 " + col12.substr(6, 4) + "\n";
+        gameshark += "8107ED2A " + col12.substr(10, 2) + "00";
     }
 
     return gameshark;
-}
+} // :(
 
 /*
     Returns true if a defined address is for the CometSPARK format.
 */
-bool is_spark_address(string address) {
+bool is_spark_address(int address) {
     if (!current_model_data.spark_support)
         return false;;
-
+        
     // The unholy address table
-    if (address == "07ECB8" || address == "07ECBA" || address == "07ECB0" || address == "07ECB2")
-        return true;
-    if (address == "07ECD0" || address == "07ECD2" || address == "07ECC8" || address == "07ECCA")
-        return true;
-    if (address == "07ECE8" || address == "07ECEA" || address == "07ECE0" || address == "07ECE2")
-        return true;
-    if (address == "07ED00" || address == "07ED02" || address == "07ECF8"|| address == "07ECFA")
-        return true;
-    if (address == "07ED18" || address == "07ED1A" || address == "07ED10" || address == "07ED12")
-        return true;
-    if (address == "07ED30" || address == "07ED32" || address == "07ED28" || address == "07ED2A")
+    if (address == 0x07ECB8 || address == 0x07ECBA || address == 0x07ECB0 || address == 0x07ECB2
+     || address == 0x07ECD0 || address == 0x07ECD2 || address == 0x07ECC8 || address == 0x07ECCA
+     || address == 0x07ECE8 || address == 0x07ECEA || address == 0x07ECE0 || address == 0x07ECE2
+     || address == 0x07ED00 || address == 0x07ED02 || address == 0x07ECF8 || address == 0x07ECFA
+     || address == 0x07ED18 || address == 0x07ED1A || address == 0x07ED10 || address == 0x07ED12
+     || address == 0x07ED30 || address == 0x07ED32 || address == 0x07ED28 || address == 0x07ED2A)
         return true;
 
     // Nope
@@ -333,101 +223,106 @@ void saturn_load_cc_directory() {
 /*
     Preferably used in a while loop, sets a global color with a defined address and value.
 */
-void run_cc_replacement(string address, int value1, int value2) {
-    // Hat
-    if (address == "07EC40") {
-        defaultColorHatRLight = value1;
-        defaultColorHatGLight = value2;
-    }
-    if (address == "07EC42") {
-        defaultColorHatBLight = value1;
-    }
-    if (address == "07EC38") {
-        defaultColorHatRDark = value1;
-        defaultColorHatGDark = value2;
-    }
-    if (address == "07EC3A") {
-        defaultColorHatBDark = value1;
-    }
 
-    // Overalls
-    if (address == "07EC28") {
-        defaultColorOverallsRLight = value1;
-        defaultColorOverallsGLight = value2;
-    }
-    if (address == "07EC2A") {
-        defaultColorOverallsBLight = value1;
-    }
-    if (address == "07EC20") {
-        defaultColorOverallsRDark = value1;
-        defaultColorOverallsGDark = value2;
-    }
-    if (address == "07EC22") {
-        defaultColorOverallsBDark = value1;
-    }
+void run_cc_replacement(int address, int value1, int value2) {
+    // NOTE: There are better ways to do this, please optimize further! 
+    
+    switch(address) {
+            //Hat
+        case 0x07EC40:  
+            defaultColorHat.red[0] = value1;
+            defaultColorHat.green[0] = value2;
+            break;
+        case 0x07EC42:
+            defaultColorHat.blue[0] = value1;
+            break;
+        case 0x07EC38:
+            defaultColorHat.red[1] = value1;
+            defaultColorHat.green[1] = value2;
+            break;
+        case 0x07EC3A:
+            defaultColorHat.blue[1] = value1;
+            break;
 
-    // Gloves
-    if (address == "07EC58") {
-        defaultColorGlovesRLight = value1;
-        defaultColorGlovesGLight = value2;
-    }
-    if (address == "07EC5A") {
-        defaultColorGlovesBLight = value1;
-    }
-    if (address == "07EC50") {
-        defaultColorGlovesRDark = value1;
-        defaultColorGlovesGDark = value2;
-    }
-    if (address == "07EC52") {
-        defaultColorGlovesBDark = value1;
-    }
+            //Overalls
+        case 0x07EC28:
+            defaultColorOveralls.red[0] = value1;
+            defaultColorOveralls.green[0] = value2;
+            break;
+        case 0x07EC2A:
+            defaultColorOveralls.blue[0] = value1;
+            break;
+        case 0x07EC20:
+            defaultColorOveralls.red[1] = value1;
+            defaultColorOveralls.green[1] = value2;
+            break;
+        case 0x07EC22:
+            defaultColorOveralls.blue[1] = value1;
+            break;
 
-    // Shoes
-    if (address == "07EC70") {
-        defaultColorShoesRLight = value1;
-        defaultColorShoesGLight = value2;
-    }
-    if (address == "07EC72") {
-        defaultColorShoesBLight = value1;
-    }
-    if (address == "07EC68") {
-        defaultColorShoesRDark = value1;
-        defaultColorShoesGDark = value2;
-    }
-    if (address == "07EC6A") {
-        defaultColorShoesBDark = value1;
-    }
+            //Gloves
+        case 0x07EC58:
+            defaultColorGloves.red[0] = value1;
+            defaultColorGloves.green[0] = value2;
+            break;
+        case 0x07EC5A:
+            defaultColorGloves.blue[0] = value1;
+            break;
+        case 0x07EC50:
+            defaultColorGloves.red[1] = value1;
+            defaultColorGloves.green[1] = value2;
+            break;
+        case 0x07EC52:
+            defaultColorGloves.blue[1] = value1;
+            break;
 
-    // Skin
-    if (address == "07EC88") {
-        defaultColorSkinRLight = value1;
-        defaultColorSkinGLight = value2;
-    }
-    if (address == "07EC8A") {
-        defaultColorSkinBLight = value1;
-    }
-    if (address == "07EC80") {
-        defaultColorSkinRDark = value1;
-        defaultColorSkinGDark = value2;
-    }
-    if (address == "07EC82") {
-        defaultColorSkinBDark = value1;
-    }
+            //Shoes
+        case 0x07EC70:
+            defaultColorShoes.red[0] = value1;
+            defaultColorShoes.green[0] = value2;
+            break;
+        case 0x07EC72:
+            defaultColorShoes.blue[0] = value1;
+            break;
+        case 0x07EC68:
+            defaultColorShoes.red[1] = value1;
+            defaultColorShoes.green[1] = value2;
+            break;
+        case 0x07EC6A:
+            defaultColorShoes.blue[1] = value1;
+            break;
 
-    // Hair
-    if (address == "07ECA0") {
-        defaultColorHairRLight = value1;
-        defaultColorHairGLight = value2;
-    }
-    if (address == "07ECA2") {
-        defaultColorHairBLight = value1;
-    }
-    if (address == "07EC98") {
-        defaultColorHairRDark = value1;
-        defaultColorHairGDark = value2;
-    }
-    if (address == "07EC9A") {
-        defaultColorHairBDark = value1;
+            //Skin
+        case 0x07EC88:
+            defaultColorSkin.red[0] = value1;
+            defaultColorSkin.green[0] = value2;
+            break;
+        case 0x07EC8A:
+            defaultColorSkin.blue[0] = value1;
+            break;
+        case 0x07EC80:
+            defaultColorSkin.red[1] = value1;
+            defaultColorSkin.green[1] = value2;
+            break;
+        case 0x07EC82:
+            defaultColorSkin.blue[1] = value1;
+            break;
+
+            //Hair
+        case 0x07ECA0:
+            defaultColorHair.red[0] = value1;
+            defaultColorHair.green[0] = value2;
+            break;
+        case 0x07ECA2:
+            defaultColorHair.blue[0] = value1;
+            break;
+        case 0x07EC98:
+            defaultColorHair.red[1] = value1;
+            defaultColorHair.green[1] = value2;
+            break;
+        case 0x07EC9A:
+            defaultColorHair.blue[1] = value1;
+            break;
     }
 
     // --------
@@ -440,196 +335,210 @@ void run_cc_replacement(string address, int value1, int value2) {
     if (!cc_spark_support)
         return;
 
-    // Shirt
-    if (address == "07ECB8") {
-        sparkColorShirtRLight = value1;
-        sparkColorShirtGLight = value2;
-    }
-    if (address == "07ECBA") {
-        sparkColorShirtBLight = value1;
-    }
-    if (address == "07ECB0") {
-        sparkColorShirtRDark = value1;
-        sparkColorShirtGDark = value2;
-    }
-    if (address == "07ECB2") {
-        sparkColorShirtBDark = value1;
-    }
+    switch(address) {
+        //Shirt
+        case 0x07ECB8:  
+            sparkColorShirt.red[0] = value1;
+            sparkColorShirt.green[0] = value2;
+            break;
+        case 0x07ECBA:
+            sparkColorShirt.blue[0] = value1;
+            break;
+        case 0x07ECB0:
+            sparkColorShirt.red[1] = value1;
+            sparkColorShirt.green[1] = value2;
+            break;
+        case 0x07ECB2:
+            sparkColorShirt.blue[1] = value1;
+            break;
 
-    // Shoulders
-    if (address == "07ECD0") {
-        sparkColorShouldersRLight = value1;
-        sparkColorShouldersGLight = value2;
-    }
-    if (address == "07ECD2") {
-        sparkColorShouldersBLight = value1;
-    }
-    if (address == "07ECC8") {
-        sparkColorShouldersRDark = value1;
-        sparkColorShouldersGDark = value2;
-    }
-    if (address == "07ECCA") {
-        sparkColorShouldersBDark = value1;
-    }
+            //Shoulders
+        case 0x07ECD0:
+            sparkColorShoulders.red[0] = value1;
+            sparkColorShoulders.green[0] = value2;
+            break;
+        case 0x07ECD2:
+            sparkColorShoulders.blue[0] = value1;
+            break;
+        case 0x07ECC8:
+            sparkColorShoulders.red[1] = value1;
+            sparkColorShoulders.green[1] = value2;
+            break;
+        case 0x07ECCA:
+            sparkColorShoulders.blue[1] = value1;
+            break;
 
-    // Arms
-    if (address == "07ECE8") {
-        sparkColorArmsRLight = value1;
-        sparkColorArmsGLight = value2;
-    }
-    if (address == "07ECEA") {
-        sparkColorArmsBLight = value1;
-    }
-    if (address == "07ECE0") {
-        sparkColorArmsRDark = value1;
-        sparkColorArmsGDark = value2;
-    }
-    if (address == "07ECE2") {
-        sparkColorArmsBDark = value1;
-    }
+            //Arms
+        case 0x07ECE8:
+            sparkColorArms.red[0] = value1;
+            sparkColorArms.green[0] = value2;
+            break;
+        case 0x07ECEA:
+            sparkColorArms.blue[0] = value1;
+            break;
+        case 0x07ECE0:
+            sparkColorArms.red[1] = value1;
+            sparkColorArms.green[1] = value2;
+            break;
+        case 0x08ECE2:
+            sparkColorArms.blue[1] = value1;
+            break;
 
-    // OverallsBottom
-    if (address == "07ED00") {
-        sparkColorOverallsBottomRLight = value1;
-        sparkColorOverallsBottomGLight = value2;
-    }
-    if (address == "07ED02") {
-        sparkColorOverallsBottomBLight = value1;
-    }
-    if (address == "07ECF8") {
-        sparkColorOverallsBottomRDark = value1;
-        sparkColorOverallsBottomGDark = value2;
-    }
-    if (address == "07ECFA") {
-        sparkColorOverallsBottomBDark = value1;
-    }
+            //OverallsBottom
+        case 0x07ED00:
+            sparkColorOverallsBottom.red[0] = value1;
+            sparkColorOverallsBottom.green[0] = value2;
+            break;
+        case 0x07ED02:
+            sparkColorOverallsBottom.blue[0] = value1;
+            break;
+        case 0x07ECF8:
+            sparkColorOverallsBottom.red[1] = value1;
+            sparkColorOverallsBottom.green[1] = value2;
+            break;
+        case 0x07ECFA:
+            sparkColorOverallsBottom.blue[1] = value1;
+            break;
 
-    // LegTop
-    if (address == "07ED18") {
-        sparkColorLegTopRLight = value1;
-        sparkColorLegTopGLight = value2;
-    }
-    if (address == "07ED1A") {
-        sparkColorLegTopBLight = value1;
-    }
-    if (address == "07ED10") {
-        sparkColorLegTopRDark = value1;
-        sparkColorLegTopGDark = value2;
-    }
-    if (address == "07ED12") {
-        sparkColorLegTopBDark = value1;
-    }
+            //LegTop
+        case 0x07ED18:
+            sparkColorLegTop.red[0] = value1;
+            sparkColorLegTop.green[0] = value2;
+            break;
+        case 0x07ED1A:
+            sparkColorLegTop.blue[0] = value1;
+            break;
+        case 0x07ED10:
+            sparkColorLegTop.red[1] = value1;
+            sparkColorLegTop.green[1] = value2;
+            break;
+        case 0x07ED12:
+            sparkColorLegTop.blue[1] = value1;
+            break;
 
-    // LegBottom
-    if (address == "07ED30") {
-        sparkColorLegBottomRLight = value1;
-        sparkColorLegBottomGLight = value2;
-    }
-    if (address == "07ED32") {
-        sparkColorLegBottomBLight = value1;
-    }
-    if (address == "07ED28") {
-        sparkColorLegBottomRDark = value1;
-        sparkColorLegBottomGDark = value2;
-    }
-    if (address == "07ED2A") {
-        sparkColorLegBottomBDark = value1;
+            //LegBottom
+        case 0x07ED30:
+            sparkColorLegBottom.red[0] = value1;
+            sparkColorLegBottom.green[0] = value2;
+            break;
+        case 0x07ED32:
+            sparkColorLegBottom.blue[0] = value1;
+            break;
+        case 0x07ED28:
+            sparkColorLegBottom.red[1] = value1;
+            sparkColorLegBottom.green[1] = value2;
+            break;
+        case 0x07ED2A:
+            sparkColorLegBottom.blue[1] = value1;
+            break;
     }
 }
 
 /*
     Resets Mario's colors to default.
 */
+void reset_colors(ColorTemplate &ccColor, int val1, int val2, int val3, int val4, int val5, int val6) {
+    ccColor.red[0] = val1;  // R
+    ccColor.red[1] = val2;
+
+    ccColor.green[0] = val3;  // G
+    ccColor.green[1] = val4;
+
+    ccColor.blue[0] = val5;  // B
+    ccColor.blue[1] = val6;
+}
+// Please save me
+
 void reset_cc_colors() {
-    defaultColorHatRLight = 255;
-    defaultColorHatRDark = 127;
-    defaultColorHatGLight = 0;
-    defaultColorHatGDark = 0;
-    defaultColorHatBLight = 0;
-    defaultColorHatBDark = 0;
-
-    defaultColorOverallsRLight = 0;
-    defaultColorOverallsRDark = 0;
-    defaultColorOverallsGLight = 0;
-    defaultColorOverallsGDark = 0;
-    defaultColorOverallsBLight = 255;
-    defaultColorOverallsBDark = 127;
-
-    defaultColorGlovesRLight = 255;
-    defaultColorGlovesRDark = 127;
-    defaultColorGlovesGLight = 255;
-    defaultColorGlovesGDark = 127;
-    defaultColorGlovesBLight = 255;
-    defaultColorGlovesBDark = 127;
-
-    defaultColorShoesRLight = 114;
-    defaultColorShoesRDark = 57;
-    defaultColorShoesGLight = 28;
-    defaultColorShoesGDark = 14;
-    defaultColorShoesBLight = 14;
-    defaultColorShoesBDark = 7;
-
-    defaultColorSkinRLight = 254;
-    defaultColorSkinRDark = 127;
-    defaultColorSkinGLight = 193;
-    defaultColorSkinGDark = 96;
-    defaultColorSkinBLight = 121;
-    defaultColorSkinBDark = 60;
-
-    defaultColorHairRLight = 115;
-    defaultColorHairRDark = 57;
-    defaultColorHairGLight = 6;
-    defaultColorHairGDark = 3;
-    defaultColorHairBLight = 0;
-    defaultColorHairBDark = 0;
+    reset_colors(defaultColorHat, 255, 127, 0, 0, 0, 0);
+    reset_colors(defaultColorOveralls, 0, 0, 0, 0, 255, 127);
+    reset_colors(defaultColorGloves, 255, 127, 255, 127, 255, 127);
+    reset_colors(defaultColorShoes, 114, 57, 28, 14, 14, 7);
+    reset_colors(defaultColorSkin, 254, 127, 193, 96, 121, 60);
+    reset_colors(defaultColorHair, 115, 57, 6, 3, 0, 0);
 
     // CometSPARK
-    sparkColorShirtRLight = 255;
-    sparkColorShirtRDark = 127;
-    sparkColorShirtGLight = 255;
-    sparkColorShirtGDark = 127;
-    sparkColorShirtBLight = 0;
-    sparkColorShirtBDark = 0;
-
-    sparkColorShouldersRLight = 0;
-    sparkColorShouldersRDark = 0;
-    sparkColorShouldersGLight = 255;
-    sparkColorShouldersGDark = 127;
-    sparkColorShouldersBLight = 255;
-    sparkColorShouldersBDark = 127;
-
-    sparkColorArmsRLight = 0;
-    sparkColorArmsRDark = 0;
-    sparkColorArmsGLight = 255;
-    sparkColorArmsGDark = 127;
-    sparkColorArmsBLight = 127;
-    sparkColorArmsBDark = 64;
-
-    sparkColorOverallsBottomRLight = 255;
-    sparkColorOverallsBottomRDark = 127;
-    sparkColorOverallsBottomGLight = 0;
-    sparkColorOverallsBottomGDark = 0;
-    sparkColorOverallsBottomBLight = 255;
-    sparkColorOverallsBottomBDark = 127;
-
-    sparkColorLegTopRLight = 255;
-    sparkColorLegTopRDark = 127;
-    sparkColorLegTopGLight = 0;
-    sparkColorLegTopGDark = 0;
-    sparkColorLegTopBLight = 127;
-    sparkColorLegTopBDark = 64;
-
-    sparkColorLegBottomRLight = 127;
-    sparkColorLegBottomRDark = 64;
-    sparkColorLegBottomGLight = 0;
-    sparkColorLegBottomGDark = 0;
-    sparkColorLegBottomBLight = 255;
-    sparkColorLegBottomBDark = 127;
+    reset_colors(sparkColorShirt, 255, 127, 255, 127, 0, 0);
+    reset_colors(sparkColorShoulders, 0, 0, 255, 127, 255, 127);
+    reset_colors(sparkColorArms, 0, 0, 255, 127, 127, 64);
+    reset_colors(sparkColorOverallsBottom, 255, 127, 0, 0, 255, 127);
+    reset_colors(sparkColorLegTop, 255, 127, 0, 0, 127, 64);
+    reset_colors(sparkColorLegBottom, 127, 64, 0, 0, 255, 127);
 }
 
 bool is_default_cc(string gameshark) {
-    std::string default_cc =    "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000";
-    std::string default_spark_cc =  "8107EC40 FF00\n8107EC42 0000\n8107EC38 7F00\n8107EC3A 0000\n8107EC28 0000\n8107EC2A FF00\n8107EC20 0000\n8107EC22 7F00\n8107EC58 FFFF\n8107EC5A FF00\n8107EC50 7F7F\n8107EC52 7F00\n8107EC70 721C\n8107EC72 0E00\n8107EC68 390E\n8107EC6A 0700\n8107EC88 FEC1\n8107EC8A 7900\n8107EC80 7F60\n8107EC82 3C00\n8107ECA0 7306\n8107ECA2 0000\n8107EC98 3903\n8107EC9A 0000\n8107ECB8 FFFF\n8107ECBA 0000\n8107ECB0 7F7F\n8107ECB2 0000\n8107ECD0 00FF\n8107ECD2 FF00\n8107ECC8 007F\n8107ECCA 7F00\n8107ECE8 00FF\n8107ECEA 7F00\n8107ECE0 007F\n8107ECE2 4000\n8107ED00 FF00\n8107ED02 FF00\n8107ECF8 7F00\n8107ECFA 7F00\n8107ED18 FF00\n8107ED1A 7F00\n8107ED10 7F00\n8107ED12 4000\n8107ED30 7F00\n8107ED32 FF00\n8107ED28 4000\n8107ED2A 7F00";
+    std::string default_cc =    "8107EC40 FF00\n"
+                                "8107EC42 0000\n"
+                                "8107EC38 7F00\n"
+                                "8107EC3A 0000\n"
+                                "8107EC28 0000\n"
+                                "8107EC2A FF00\n"
+                                "8107EC20 0000\n"
+                                "8107EC22 7F00\n"
+                                "8107EC58 FFFF\n"
+                                "8107EC5A FF00\n"
+                                "8107EC50 7F7F\n"
+                                "8107EC52 7F00\n"
+                                "8107EC70 721C\n"
+                                "8107EC72 0E00\n"
+                                "8107EC68 390E\n"
+                                "8107EC6A 0700\n"
+                                "8107EC88 FEC1\n"
+                                "8107EC8A 7900\n"
+                                "8107EC80 7F60\n"
+                                "8107EC82 3C00\n"
+                                "8107ECA0 7306\n"
+                                "8107ECA2 0000\n"
+                                "8107EC98 3903\n"
+                                "8107EC9A 0000";
+    std::string default_spark_cc =  "8107EC40 FF00\n"
+                                    "8107EC42 0000\n"
+                                    "8107EC38 7F00\n"
+                                    "8107EC3A 0000\n"
+                                    "8107EC28 0000\n"
+                                    "8107EC2A FF00\n"
+                                    "8107EC20 0000\n"
+                                    "8107EC22 7F00\n"
+                                    "8107EC58 FFFF\n"
+                                    "8107EC5A FF00\n"
+                                    "8107EC50 7F7F\n"
+                                    "8107EC52 7F00\n"
+                                    "8107EC70 721C\n"
+                                    "8107EC72 0E00\n"
+                                    "8107EC68 390E\n"
+                                    "8107EC6A 0700\n"
+                                    "8107EC88 FEC1\n"
+                                    "8107EC8A 7900\n"
+                                    "8107EC80 7F60\n"
+                                    "8107EC82 3C00\n"
+                                    "8107ECA0 7306\n"
+                                    "8107ECA2 0000\n"
+                                    "8107EC98 3903\n"
+                                    "8107EC9A 0000\n"
+                                    "8107ECB8 FFFF\n"
+                                    "8107ECBA 0000\n"
+                                    "8107ECB0 7F7F\n"
+                                    "8107ECB2 0000\n"
+                                    "8107ECD0 00FF\n"
+                                    "8107ECD2 FF00\n"
+                                    "8107ECC8 007F\n"
+                                    "8107ECCA 7F00\n"
+                                    "8107ECE8 00FF\n"
+                                    "8107ECEA 7F00\n"
+                                    "8107ECE0 007F\n"
+                                    "8107ECE2 4000\n"
+                                    "8107ED00 FF00\n"
+                                    "8107ED02 FF00\n"
+                                    "8107ECF8 7F00\n"
+                                    "8107ECFA 7F00\n"
+                                    "8107ED18 FF00\n"
+                                    "8107ED1A 7F00\n"
+                                    "8107ED10 7F00\n"
+                                    "8107ED12 4000\n"
+                                    "8107ED30 7F00\n"
+                                    "8107ED32 FF00\n"
+                                    "8107ED28 4000\n"
+                                    "8107ED2A 7F00";
 
     if (gameshark == default_cc || gameshark == default_spark_cc || gameshark == last_model_cc_address)
         return true;
@@ -646,7 +555,7 @@ void paste_gs_code(string content) {
         
     while (std::getline(f, line)) {
         if (line.rfind("81", 0) == 0) {
-            std::string address = line.substr(2, 6);
+            int address = std::stoi(line.substr(2, 6), 0, 16);
             int value1 = std::stoi(line.substr(9, 2), 0, 16);
             int value2 = std::stoi(line.substr(11, 2), 0, 16);
 
@@ -789,7 +698,7 @@ void set_cc_from_model(std::string ccPath) {
     std::string line;
         
     while (std::getline(f, line)) {
-        std::string address = line.substr(2, 6);
+        int address = std::stoi(line.substr(2, 6), 0, 16);
         int value1 = std::stoi(line.substr(9, 2), 0, 16);
         int value2 = std::stoi(line.substr(11, 2), 0, 16);
 

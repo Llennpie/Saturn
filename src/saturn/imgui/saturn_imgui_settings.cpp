@@ -232,6 +232,10 @@ void ssettings_imgui_update() {
         ImGui::PopItemWidth();
     }
     if (ImGui::CollapsingHeader("Controls")) {
+        if (ImGui::Checkbox("Unfocused gamepad input", &configWindowState))
+            SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
+
+        imgui_bundled_tooltip("Allows controller inputs to be processed while the window is not focused.");
         if (ImGui::BeginTabBar("###controls_tabbar", ImGuiTabBarFlags_None)) {
             if (ImGui::BeginTabItem("Game")) {
                 ImGui::Text("Movement");

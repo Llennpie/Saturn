@@ -208,6 +208,8 @@ void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
     sdynos_imgui_init();
     smachinima_imgui_init();
     ssettings_imgui_init();
+
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {

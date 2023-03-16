@@ -4,97 +4,27 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-extern unsigned int defaultColorHatRLight;
-extern unsigned int defaultColorHatRDark;
-extern unsigned int defaultColorHatGLight;
-extern unsigned int defaultColorHatGDark;
-extern unsigned int defaultColorHatBLight;
-extern unsigned int defaultColorHatBDark;
+struct ColorTemplate {
+    unsigned int red[2];
+    unsigned int green[2];
+    unsigned int blue[2];
+};
 
-extern unsigned int defaultColorOverallsRLight;
-extern unsigned int defaultColorOverallsRDark;
-extern unsigned int defaultColorOverallsGLight;
-extern unsigned int defaultColorOverallsGDark;
-extern unsigned int defaultColorOverallsBLight;
-extern unsigned int defaultColorOverallsBDark;
+extern struct ColorTemplate defaultColorHat;
+extern struct ColorTemplate defaultColorOveralls;
+extern struct ColorTemplate defaultColorGloves;
+extern struct ColorTemplate defaultColorShoes;
+extern struct ColorTemplate defaultColorSkin;
+extern struct ColorTemplate defaultColorHair;
 
-extern unsigned int defaultColorGlovesRLight;
-extern unsigned int defaultColorGlovesRDark;
-extern unsigned int defaultColorGlovesGLight;
-extern unsigned int defaultColorGlovesGDark;
-extern unsigned int defaultColorGlovesBLight;
-extern unsigned int defaultColorGlovesBDark;
+extern struct ColorTemplate sparkColorShirt;
+extern struct ColorTemplate sparkColorShoulders;
+extern struct ColorTemplate sparkColorArms;
+extern struct ColorTemplate sparkColorOverallsBottom; 
+extern struct ColorTemplate sparkColorLegTop;
+extern struct ColorTemplate sparkColorLegBottom;
 
-extern unsigned int defaultColorShoesRLight;
-extern unsigned int defaultColorShoesRDark;
-extern unsigned int defaultColorShoesGLight;
-extern unsigned int defaultColorShoesGDark;
-extern unsigned int defaultColorShoesBLight;
-extern unsigned int defaultColorShoesBDark;
-
-extern unsigned int defaultColorSkinRLight;
-extern unsigned int defaultColorSkinRDark;
-extern unsigned int defaultColorSkinGLight;
-extern unsigned int defaultColorSkinGDark;
-extern unsigned int defaultColorSkinBLight;
-extern unsigned int defaultColorSkinBDark;
-
-extern unsigned int defaultColorHairRLight;
-extern unsigned int defaultColorHairRDark;
-extern unsigned int defaultColorHairGLight;
-extern unsigned int defaultColorHairGDark;
-extern unsigned int defaultColorHairBLight;
-extern unsigned int defaultColorHairBDark;
-
-// CometSPARK
-extern unsigned int sparkColorShirtRLight;
-extern unsigned int sparkColorShirtRDark;
-extern unsigned int sparkColorShirtGLight;
-extern unsigned int sparkColorShirtGDark;
-extern unsigned int sparkColorShirtBLight;
-extern unsigned int sparkColorShirtBDark;
-
-extern unsigned int sparkColorShouldersRLight;
-extern unsigned int sparkColorShouldersRDark;
-extern unsigned int sparkColorShouldersGLight;
-extern unsigned int sparkColorShouldersGDark;
-extern unsigned int sparkColorShouldersBLight;
-extern unsigned int sparkColorShouldersBDark;
-
-extern unsigned int sparkColorArmsRLight;
-extern unsigned int sparkColorArmsRDark;
-extern unsigned int sparkColorArmsGLight;
-extern unsigned int sparkColorArmsGDark;
-extern unsigned int sparkColorArmsBLight;
-extern unsigned int sparkColorArmsBDark;
-
-extern unsigned int sparkColorOverallsBottomRLight;
-extern unsigned int sparkColorOverallsBottomRDark;
-extern unsigned int sparkColorOverallsBottomGLight;
-extern unsigned int sparkColorOverallsBottomGDark;
-extern unsigned int sparkColorOverallsBottomBLight;
-extern unsigned int sparkColorOverallsBottomBDark;
-
-extern unsigned int sparkColorLegTopRLight;
-extern unsigned int sparkColorLegTopRDark;
-extern unsigned int sparkColorLegTopGLight;
-extern unsigned int sparkColorLegTopGDark;
-extern unsigned int sparkColorLegTopBLight;
-extern unsigned int sparkColorLegTopBDark;
-
-extern unsigned int sparkColorLegBottomRLight;
-extern unsigned int sparkColorLegBottomRDark;
-extern unsigned int sparkColorLegBottomGLight;
-extern unsigned int sparkColorLegBottomGDark;
-extern unsigned int sparkColorLegBottomBLight;
-extern unsigned int sparkColorLegBottomBDark;
-
-extern unsigned int chromaColorRLight;
-extern unsigned int chromaColorRDark;
-extern unsigned int chromaColorGLight;
-extern unsigned int chromaColorGDark;
-extern unsigned int chromaColorBLight;
-extern unsigned int chromaColorBDark;
+extern struct ColorTemplate chromaColor;
 
 extern bool cc_model_support;
 extern bool cc_spark_support;
