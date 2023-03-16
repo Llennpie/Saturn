@@ -253,6 +253,7 @@ void run_cc_replacement(int address, int value1, int value2) {
             defaultColorOveralls.blue[0] = value1;
             break;
         case 0x07EC20:
+            defaultColorOveralls.red[1] = value1;
             defaultColorOveralls.green[1] = value2;
             break;
         case 0x07EC22:
@@ -271,7 +272,7 @@ void run_cc_replacement(int address, int value1, int value2) {
             defaultColorGloves.red[1] = value1;
             defaultColorGloves.green[1] = value2;
             break;
-        case 0x08EC52:
+        case 0x07EC52:
             defaultColorGloves.blue[1] = value1;
             break;
 
@@ -348,8 +349,7 @@ void run_cc_replacement(int address, int value1, int value2) {
             sparkColorShirt.green[1] = value2;
             break;
         case 0x07ECB2:
-            sparkColorShirt.red[1] = value1;
-            sparkColorShirt.green[1] = value2;
+            sparkColorShirt.blue[1] = value1;
             break;
 
             //Shoulders
@@ -361,6 +361,7 @@ void run_cc_replacement(int address, int value1, int value2) {
             sparkColorShoulders.blue[0] = value1;
             break;
         case 0x07ECC8:
+            sparkColorShoulders.red[1] = value1;
             sparkColorShoulders.green[1] = value2;
             break;
         case 0x07ECCA:
