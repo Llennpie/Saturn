@@ -36,6 +36,10 @@ int windowWidth, windowHeight;
 bool waitingForKeyPress;
 int fpsChoice;
 
+static void controller_active_unfocused() {
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
+}
+
 const char* translate_bind_to_name(int bind) {
     static char name[11] = { 0 };
     sprintf(name, "%04X", bind);
@@ -143,6 +147,7 @@ void ssettings_imgui_init() {
 }
 
 void ssettings_imgui_update() {
+    controller_active_unfocused();
     const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
     ImGui::PushItemWidth(150);
     ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
@@ -289,6 +294,8 @@ void ssettings_imgui_update() {
         //ImGui::PopItemWidth();
         ImGui::Checkbox("Unlock Doors", &configUnlockDoors);
         imgui_bundled_tooltip("Unlocks all areas in the castle, regardless of save file.");
+        ImGui::Checkbox("Read inputs while unfocused", &configWindowState);
+        imgui_bundled_tooltip("Reads controller inputs while the window is not focused.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);

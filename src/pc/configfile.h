@@ -66,6 +66,7 @@ extern bool         configEditorExpressionPreviews;
 extern unsigned int configFakeStarCount;
 extern bool         configUnlockDoors;
 extern bool         configEditorAlwaysChroma;
+extern bool         configWindowState;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
 extern unsigned int configCameraYSens;
