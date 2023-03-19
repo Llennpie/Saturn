@@ -380,7 +380,7 @@ void run_cc_replacement(int address, int value1, int value2) {
             sparkColorArms.red[1] = value1;
             sparkColorArms.green[1] = value2;
             break;
-        case 0x08ECE2:
+        case 0x07ECE2:
             sparkColorArms.blue[1] = value1;
             break;
 
