@@ -100,6 +100,7 @@ bool         configEditorExpressionPreviews = false;
 unsigned int configFakeStarCount    = 0;
 bool         configUnlockDoors = true;
 bool         configWindowState = false;
+float        camera_fov = 50.0f;
 #ifdef BETTERCAMERA
 // BetterCamera settings
 unsigned int configCameraXSens   = 50;
@@ -172,6 +173,7 @@ static const struct ConfigOption options[] = {
     {.name = "fake_star_count", .type = CONFIG_TYPE_UINT, .uintValue = &configFakeStarCount},
     {.name = "fake_unlock_doors", .type = CONFIG_TYPE_BOOL, .uintValue = &configUnlockDoors},
     {.name = "controller_works_unfocus", .type = CONFIG_TYPE_BOOL, .uintValue = &configWindowState},
+    {.name = "default_fov", .type = CONFIG_TYPE_FLOAT, .floatValue = &camera_fov},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
     {.name = "bettercam_analog",     .type = CONFIG_TYPE_BOOL, .boolValue = &configCameraAnalog},

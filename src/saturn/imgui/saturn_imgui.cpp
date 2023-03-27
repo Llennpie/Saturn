@@ -287,6 +287,7 @@ void saturn_imgui_update() {
                 ImGui::PushItemWidth(100);
                 ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
                 if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) { camera_fov = 50.f; }
+                imgui_bundled_tooltip("Controls the FOV of the in-game camera; Default is 50, or 40 in Project64.");
                 saturn_keyframe_popout(&camera_fov, "FOV", "k_fov");
                 ImGui::SameLine(200); ImGui::TextDisabled("N/M");
                 ImGui::PopItemWidth();
