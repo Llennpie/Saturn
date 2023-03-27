@@ -807,7 +807,7 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             bool mario_hat = (r == 0x7f && g == 0x00 && b == 0x00) | (r == 0x7E && g == 0x00 && b == 0x00);
             bool mario_overalls = (r == 0x00 && g == 0x00 && b == 0x7f) | (r == 0x00 && g == 0x00 && b == 0x7E);
             bool mario_gloves = (r == 0x00 && g == 0x7f && b == 0x00) | (r == 0x00 && g == 0x7E && b == 0x00);
-            bool mario_shoes = (r == 0x39 && g == 0x0e && b == 0x07) | (r == 0x39 && g == 0xD && b == 0x7);
+            bool mario_shoes = (r == 0x39 && g == 0x0e && b == 0x07) | (r == 0x39 && g == 0xD && b == 0x7) | (r == 0x38 && g == 0xD && b == 0x7);
             bool mario_skin = (r == 0x7f && g == 0x60 && b == 0x3c) | (r == 0x7E && g == 0x60 && b == 0x3C);
             bool mario_hair = (r == 0x39 && g == 0x03 && b == 0x00) | (r == 0x39 && g == 0x2 && b == 0x00);
             // Spark
