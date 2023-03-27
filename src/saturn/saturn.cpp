@@ -10,12 +10,12 @@
 #include "saturn/imgui/saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "libs/sdl2_scancode_to_dinput.h"
+#include "pc/configfile.h"
 
 bool mario_exists;
 
 bool camera_frozen;
 float camera_speed = 0.0f;
-float camera_fov = 50.0f;
 float camera_focus = 1.f;
 bool camera_fov_smooth = false;
 
@@ -30,6 +30,7 @@ bool enable_head_rotations = false;
 bool enable_shadows = false;
 bool enable_dust_particles = false;
 bool enable_torso_rotation = true;
+float run_speed = 127.0f;
 bool can_fall_asleep = false;
 int saturnModelState = 0;
 bool linkMarioScale = true;

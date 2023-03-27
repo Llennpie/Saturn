@@ -9,6 +9,7 @@
 
 #include "../configfile.h"
 #include "controller_keyboard.h"
+#include "saturn/saturn.h"
 
 bool accept_text_input = true;
 
@@ -101,13 +102,22 @@ static void keyboard_read(OSContPad *pad) {
     const u32 xstick = keyboard_buttons_down & STICK_XMASK;
     const u32 ystick = keyboard_buttons_down & STICK_YMASK;
     if (xstick == STICK_LEFT)
-        pad->stick_x = -128;
+        pad->stick_x = -run_speed;
     else if (xstick == STICK_RIGHT)
-        pad->stick_x = 127;
+        pad->stick_x = run_speed;
     if (ystick == STICK_DOWN)
-        pad->stick_y = -128;
+        pad->stick_y = -run_speed;
     else if (ystick == STICK_UP)
-        pad->stick_y = 127;
+        pad->stick_y = run_speed;
+
+    if (run_speed < 100) {
+        if (xstick & STICK_LEFT || xstick & STICK_RIGHT) {
+            if (ystick & STICK_DOWN || ystick & STICK_UP) {
+                pad->stick_x = pad->stick_x / 1.25f;
+                pad->stick_y = pad->stick_y / 1.25f;
+            }
+        }
+    }
 }
 
 static u32 keyboard_rawkey(void) {

@@ -11,7 +11,6 @@ extern bool mario_exists;
 
 extern bool camera_frozen;
 extern float camera_speed;
-extern float camera_fov;
 extern float camera_focus;
 extern bool camera_fov_smooth;
 
@@ -28,6 +27,7 @@ extern bool enable_head_rotations;
 extern bool enable_shadows;
 extern bool enable_dust_particles;
 extern bool enable_torso_rotation;
+extern float run_speed;
 extern bool can_fall_asleep;
 extern int saturnModelState;
 extern bool linkMarioScale;

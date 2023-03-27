@@ -19,6 +19,7 @@
 #include "../fs/fs.h"
 
 #include "game/level_update.h"
+#include "saturn/saturn.h"
 
 // mouse buttons are also in the controller namespace (why), just offset 0x100
 #define VK_OFS_SDL_MOUSE 0x0100
@@ -265,6 +266,10 @@ static void controller_sdl_read(OSContPad *pad) {
         int stick_y = -righty / 0x100;
         pad->ext_stick_y = stick_y == 128 ? 127 : stick_y;
     }
+
+    float newVal = (run_speed / 127.f);
+    pad->stick_x = pad->stick_x * newVal;
+    pad->stick_y = pad->stick_y * newVal;
 }
 
 static void controller_sdl_rumble_play(f32 strength, f32 length) {
