@@ -33,27 +33,38 @@ namespace fs = std::filesystem;
 #include <json/json.h>
 
 std::vector<string> canim_array;
-std::string canim_directory;
+std::string current_anim_dir_path;
 std::string chainer_name;
 
 extern "C" {
 #include "game/mario.h"
 }
 
-void saturn_fetch_animations() {
+void saturn_load_anim_folder(string path, int* index) {
     canim_array.clear();
 
-#ifdef __MINGW32__
-    // windows moment
-    canim_directory = "dynos\\anims\\";
-#else
-    canim_directory = "dynos/anims/";
-#endif
-
-    if (!fs::exists(canim_directory))
+    // if eye folder is missing
+    if (!fs::exists("dynos/anims/"))
         return;
 
-    for (const auto & entry : fs::directory_iterator(canim_directory)) {
+    // reset dir if we last used models or returned to root
+    if (path == "../" || path == "") {
+        path = "";
+        current_anim_dir_path = "dynos/anims/";
+    }
+
+    // only update current path if folder exists
+    if (fs::is_directory(current_anim_dir_path + path)) {
+        current_anim_dir_path = current_anim_dir_path + path;
+    }
+
+    std::cout << current_anim_dir_path << std::endl;
+
+    if (current_anim_dir_path != "dynos/anims/") {
+        canim_array.push_back("../");
+    }
+
+    for (const auto & entry : fs::directory_iterator(current_anim_dir_path)) {
         fs::path path = entry.path();
 
         if (path.extension().u8string() == ".json") {
@@ -63,6 +74,16 @@ void saturn_fetch_animations() {
             } else {
                 canim_array.push_back(path.filename().u8string());
             }
+        }
+        if (fs::is_directory(entry.path())) {
+            canim_array.push_back(entry.path().stem().u8string() + "/");
+        }
+    }
+
+    for (int j = 0; j < canim_array.size(); j++) {
+        if (canim_array[j].find("/") == string::npos) {
+            *index = j;
+            break;
         }
     }
 }
@@ -104,14 +125,14 @@ void run_hex_array(Json::Value root, string type) {
 
 void saturn_read_mcomp_animation(string json_path) {
     // Load the json file
-    std::ifstream file("dynos/anims/" + json_path + ".json");
+    std::ifstream file(current_anim_dir_path + json_path + ".json");
     if (!file.good()) { return; }
 
     // Check if we should enable chainer
     // This is only the case if we have a followup animation
     // i.e. specialist.json, specialist_1.json
     if (!using_chainer) {
-        std::ifstream file_c("dynos/anims/" + json_path + "_1.json");
+        std::ifstream file_c(current_anim_dir_path + json_path + "_1.json");
         if (file_c.good() && chainer_index == 0) {
             using_chainer = true;
             chainer_name = json_path;
@@ -120,7 +141,7 @@ void saturn_read_mcomp_animation(string json_path) {
         }
     } else {
         // Check if we're at the end of our chain
-        std::ifstream file_c("dynos/anims/" + chainer_name + "_" + std::to_string(chainer_index) + ".json");
+        std::ifstream file_c(current_anim_dir_path + chainer_name + "_" + std::to_string(chainer_index) + ".json");
         if (!file_c.good()) {
             //if (is_anim_looped) {
                 // Looping restarts from the beginning

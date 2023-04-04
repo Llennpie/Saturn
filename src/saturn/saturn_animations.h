@@ -19,10 +19,10 @@ extern std::vector<s16> current_canim_values;
 extern std::vector<u16> current_canim_indices;
 
 extern std::vector<std::string> canim_array;
-extern std::string canim_directory;
+extern std::string current_anim_dir_path;
 
 extern void saturn_read_mcomp_animation(std::string);
-extern void saturn_fetch_animations();
+extern void saturn_load_anim_folder(std::string, int*);
 extern void saturn_play_custom_animation();
 extern void saturn_run_chainer();
 

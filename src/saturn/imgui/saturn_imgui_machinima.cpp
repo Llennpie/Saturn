@@ -38,14 +38,14 @@ extern "C" {
 
 using namespace std;
 
-int custom_anim_index;
+int custom_anim_index = -1;
 int current_sanim_index = 7;
 std::string current_sanim_name = "RUNNING";
 int current_sanim_id = MARIO_ANIM_RUNNING;
 std::map<std::pair<int, std::string>, int> current_anim_map = sanim_movement;
 std::string anim_preview_name = "RUNNING";
 int current_sanim_group_index = 0;
-int current_slevel_index;
+int current_slevel_index = 1;
 
 int current_level_sel = 0;
 void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
@@ -53,7 +53,7 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
         return;
 
     if (destLevel == gCurrLevelNum) {
-        if (current_slevel_index < 2)
+        if (current_slevel_index < 4)
             return;
             
         DynOS_Warp_ToLevel(gCurrLevelNum, gCurrAreaIndex, gCurrActNum);
@@ -104,7 +104,7 @@ void smachinima_imgui_init() {
     Cheats.EnableCheats = true;
     Cheats.GodMode = true;
     Cheats.ExitAnywhere = true;
-    saturn_fetch_animations();
+    saturn_load_anim_folder("", &custom_anim_index);
 }
 
 void smachinima_imgui_update() {
@@ -178,7 +178,7 @@ void imgui_machinima_quick_options() {
         ImGui::Separator();
 
         s16 levelList[] = { 
-            LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_SA, LEVEL_BOB, 
+            LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
             LEVEL_WF, LEVEL_PSS, LEVEL_TOTWC, LEVEL_JRB, LEVEL_CCM,
             LEVEL_BITDW, LEVEL_BBH, LEVEL_HMC, LEVEL_COTMC, LEVEL_LLL,
             LEVEL_SSL, LEVEL_VCUTM, LEVEL_DDD, LEVEL_BITFS, 
@@ -204,18 +204,21 @@ void imgui_machinima_quick_options() {
             is_anim_playing = false;
             is_anim_paused = false;
 
-            if (current_slevel_index != 2) enable_shadows = true;
+            if (current_slevel_index != 0) enable_shadows = true;
             else enable_shadows = false;
 
             switch (current_slevel_index) {
                 case 0:
-                    warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
+                    DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, 0);
                     break;
                 case 1:
-                    warp_to(LEVEL_CASTLE, 0x01, 0x01);
+                    warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
                     break;
                 case 2:
-                    DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, gCurrActNum);
+                    warp_to(LEVEL_CASTLE, 0x01, 0x01);
+                    break;
+                case 3:
+                    warp_to(LEVEL_CASTLE_COURTYARD, 0x01, 0x0B);
                     break;
                 default:
                     warp_to(levelList[current_slevel_index]);
@@ -283,12 +286,13 @@ void imgui_machinima_animation_player() {
                     anim_preview_name = current_sanim_name;
                 } else {
                     is_custom_anim = true;
-                    current_sanim_index = 0;
-                    current_sanim_name = canim_array[0];
                     current_sanim_id = MARIO_ANIM_A_POSE;
-                    saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+
+                    current_sanim_name = canim_array[custom_anim_index];
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                    saturn_read_mcomp_animation(anim_preview_name);
+                    is_anim_looped = current_canim_looping;
                 }
             }
 
@@ -338,6 +342,9 @@ void imgui_machinima_animation_player() {
     } else {
         for (int i = 0; i < canim_array.size(); i++) {
             current_sanim_name = canim_array[i];
+            if (canim_array[i].find("/") != string::npos)
+                current_sanim_name = ICON_FK_FOLDER_O " " + canim_array[i];
+
             const bool is_selected = (custom_anim_index == i);
 
             // If we're searching, only include anims with the search keyword in the name
@@ -358,8 +365,18 @@ void imgui_machinima_animation_player() {
                 anim_preview_name = current_sanim_name;
                 is_anim_looped = current_canim_looping;
                 // Remove .json extension
-                anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
-                saturn_read_mcomp_animation(anim_preview_name);
+                if (canim_array[i].find(".json") != string::npos) {
+                    anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                    saturn_read_mcomp_animation(anim_preview_name);
+                    is_anim_looped = current_canim_looping;
+                } else if (canim_array[i].find("/") != string::npos) {
+                    saturn_load_anim_folder(anim_preview_name, &custom_anim_index);
+                    current_sanim_name = canim_array[custom_anim_index];
+                    anim_preview_name = current_sanim_name;
+                    anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                    saturn_read_mcomp_animation(anim_preview_name);
+                    is_anim_looped = current_canim_looping;
+                }
                 // Stop anim
                 is_anim_playing = false;
                 is_anim_paused = false;
@@ -369,18 +386,16 @@ void imgui_machinima_animation_player() {
 
             if (ImGui::BeginPopupContextItem()) {
                 ImGui::Text(canim_array[i].c_str());
-                imgui_bundled_tooltip(("/dynos/anims/" + canim_array[i]).c_str());
+                imgui_bundled_tooltip((current_anim_dir_path + canim_array[i]).c_str());
                 ImGui::Separator();
                 ImGui::TextDisabled("%i MComp+ animation(s)", canim_array.size());
                 if (ImGui::Button("Refresh###refresh_canim")) {
-                    saturn_fetch_animations();
-                    custom_anim_index = 0;
-                    current_sanim_index = 0;
-                    current_sanim_name = canim_array[0];
-                    current_sanim_id = MARIO_ANIM_A_POSE;
-                    saturn_read_mcomp_animation(canim_array[0].substr(0, canim_array[0].size() - 5));
+                    saturn_load_anim_folder(current_anim_dir_path, &custom_anim_index);
+                    current_sanim_name = canim_array[custom_anim_index];
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+                    saturn_read_mcomp_animation(anim_preview_name);
+                    is_anim_looped = current_canim_looping;
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -399,7 +414,7 @@ void imgui_machinima_animation_player() {
     ImGui::Separator();
 
     // Metadata
-    if (is_custom_anim) {
+    if (is_custom_anim && custom_anim_index != -1) {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("###anim_metadata", ImVec2(290, 45), true, ImGuiWindowFlags_NoScrollbar);
         ImGui::Text(current_canim_name.c_str());
