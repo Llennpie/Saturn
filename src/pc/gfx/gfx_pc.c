@@ -31,6 +31,8 @@
 
 #include "saturn/imgui/saturn_imgui.h"
 
+#include "src/engine/geo_layout.h"
+
 #define SUPPORT_CHECK(x) assert(x)
 
 // SCALE_M_N: upscale/downscale M-bit integer to N-bit
@@ -818,7 +820,7 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             bool mario_legtop = (r == 0x7f && g == 0x00 && b == 0x40) | (r == 0x7F && g == 0x00 && b == 0x3F);
             bool mario_legbottom = (r == 0x40 && g == 0x00 && b == 0x7f) | (r == 0x3F && g == 0x00 && b == 0x7F);
 
-            bool chroma_floor = (r == 0x3f && g == 0x31 && b == 0x19);
+            bool chroma_floor = (r == 0x3f && g == 0x31 && b == 0x19 && use_color_background || r == 0x3f && g == 0x32 && b == 0x19 && use_color_background);
 
             // Override them lazily
             if (cc_model_support || chroma_floor) {
@@ -966,9 +968,10 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                             b += intensity * sparkColorLegBottom.blue[0];
                         }
                         else if (chroma_floor) {
-                            r += intensity * chromaColor.red[0];
-                            g += intensity * chromaColor.green[0];
-                            b += intensity * chromaColor.blue[0];
+                            // No shading
+                            r += 0;
+                            g += 0;
+                            b += 0;
                         }
                         else {
                             r += intensity * lightr;
