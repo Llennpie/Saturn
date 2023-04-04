@@ -1438,11 +1438,16 @@ void update_mario_inputs(struct MarioState *m) {
     debug_print_speed_action_normal(m);
     
     /* Moonjump cheat */
-    while (Cheats.MoonJump == true && Cheats.EnableCheats == true && m->controller->buttonDown & L_TRIG ){
-        m->vel[1] = 40;
-        break;   // TODO: Unneeded break?
+    if (Cheats.MoonJump == true) {
+        if (gPlayer1Controller->buttonDown & L_TRIG) {
+            m->vel[1] = 40.f;
+            float velFloat = m->vel[1];
+            uint8_t velByte = *((uint8_t *)&velFloat + 2);
+            if (velByte == 0x20) {
+                m->action = ACT_JUMP;
+            }
+        }
     }
-    /*End of moonjump cheat */
 
     if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
         if (m->action & ACT_FLAG_ALLOW_FIRST_PERSON) {
