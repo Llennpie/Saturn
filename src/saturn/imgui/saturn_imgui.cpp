@@ -238,12 +238,13 @@ void saturn_imgui_update() {
             if (ImGui::BeginMenu("Menu")) {
                 windowCcEditor = false;
 
-                if (ImGui::MenuItem(ICON_FK_WINDOW_MAXIMIZE " Show UI",      translate_bind_to_name(configKeyShowMenu[0]), showMenu)) showMenu = !showMenu;
+                if (ImGui::MenuItem(ICON_FK_WINDOW_MAXIMIZE " Show UI",      translate_bind_to_name(configKeyShowMenu[0]), showMenu)) {
+                    showMenu = !showMenu;
+                    if (!showMenu) accept_text_input = true;
+                }
                 if (ImGui::MenuItem(ICON_FK_WINDOW_MINIMIZE " Show Status Bars",  NULL, showStatusBars)) showStatusBars = !showStatusBars;
                 ImGui::Separator();
-                if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) {
-                    windowStats = !windowStats;
-                }
+                if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_COG " Settings",     NULL, windowSettings == true)) {
                     windowSettings = !windowSettings;
                     k_popout_open = false;
@@ -431,7 +432,8 @@ uint32_t startFrame = 0;
 uint32_t endFrame = 60;
 int endFrameText = 60;
 
-void saturn_keyframe_popout(float* edit_value, string value_name, string id) {
+template <typename T>
+void saturn_keyframe_popout(const T &edit_value, string value_name, string id) {
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
     string windowLabel = "Timeline###kw_" + id;
 

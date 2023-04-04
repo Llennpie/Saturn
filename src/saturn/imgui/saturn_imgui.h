@@ -11,7 +11,8 @@ extern void imgui_update_theme();
 extern void imgui_bundled_tooltip(const char*);
 extern void imgui_bundled_help_marker(const char*);
 extern void imgui_bundled_space(float, const char*, const char*);
-extern void saturn_keyframe_popout(float*, std::string, std::string);
+template <typename T>
+extern void saturn_keyframe_popout(const T &edit_value, std::string, std::string);
 
 extern bool showMenu;
 extern int currentMenu;

@@ -143,29 +143,33 @@ void saturn_update() {
 
     // Keybinds
 
-    if (accept_text_input && mario_exists) {
-        if (gPlayer1Controller->buttonPressed & U_JPAD) camera_frozen = !camera_frozen;
-        if (gPlayer1Controller->buttonPressed & D_JPAD) showMenu = !showMenu;
-        if (gPlayer1Controller->buttonPressed & L_JPAD) {
-            if (!is_anim_playing) {
-                anim_play_button();
-            } else {
-                is_anim_paused = !is_anim_paused;
-            }
+    if (mario_exists) {
+        if (gPlayer1Controller->buttonPressed & D_JPAD) {
+            showMenu = !showMenu;
+            if (!showMenu) accept_text_input = true;
         }
-        if (gPlayer1Controller->buttonPressed & R_JPAD) {
-            is_anim_looped = !is_anim_looped;
-        }
-
         if (keyResetter == 6) {
-            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F2] & accept_text_input) {
+            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F2]) {
                 if (gMarioState->action == ACT_IDLE) set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
                 else set_mario_action(gMarioState, ACT_IDLE, 0);
                 keyResetter = 0;
             }
-            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F3] & accept_text_input) {
+            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F3]) {
                 saturn_play_keyframe(active_key_value);
                 keyResetter = 0;
+            }
+        }
+        if (accept_text_input) {
+            if (gPlayer1Controller->buttonPressed & U_JPAD) camera_frozen = !camera_frozen;
+            if (gPlayer1Controller->buttonPressed & L_JPAD) {
+                if (!is_anim_playing) {
+                    anim_play_button();
+                } else {
+                    is_anim_paused = !is_anim_paused;
+                }
+            }
+            if (gPlayer1Controller->buttonPressed & R_JPAD) {
+                is_anim_looped = !is_anim_looped;
             }
         }
     }
