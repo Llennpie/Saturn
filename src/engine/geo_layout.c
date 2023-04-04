@@ -723,19 +723,19 @@ bool use_color_background = true;
 void geo_layout_cmd_dynamic_background(void) {
     struct GraphNodeBackground *graphNode;
 
-    if (use_color_background) {
+    /*if (use_color_background) {
         graphNode = init_graph_node_background(
             gGraphNodePool, NULL,
             gChromaKeyColor, // Chroma key stage color
             NULL,
             0);
-    } else {
+    } else {*/
         graphNode = init_graph_node_background(
             gGraphNodePool, NULL,
             gChromaKeyBackground, // background ID, or RGBA5551 color if asm function is null
             (GraphNodeFunc) cur_geo_cmd_ptr(0x04),
             0);
-    }
+    //}
 
     register_scene_graph_node(&graphNode->fnNode.node);
 
