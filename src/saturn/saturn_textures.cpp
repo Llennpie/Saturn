@@ -8,6 +8,7 @@
 #include "saturn/saturn.h"
 #include "saturn/saturn_colors.h"
 #include "saturn/imgui/saturn_imgui.h"
+#include "saturn/imgui/saturn_imgui_chroma.h"
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -173,17 +174,24 @@ const void* saturn_bind_texture(const void* input) {
             texName == "actors/mario/mario_eyes_left_unused.rgba16" ||
             texName == "actors/mario/mario_eyes_right_unused.rgba16" ||
             texName == "actors/mario/mario_eyes_up_unused.rgba16" ||
-            texName == "actors/mario/mario_eyes_down_unused.rgba16" ||
-            texName == "actors/mario/mario_eyes_dead.rgba16") {
-            outputTexture = current_eye.c_str();
-            const void* output = static_cast<const void*>(outputTexture);
-            return output;
+            texName == "actors/mario/mario_eyes_down_unused.rgba16") {
+                outputTexture = current_eye.c_str();
+                const void* output = static_cast<const void*>(outputTexture);
+                return output;
         }
     }
 
     if (show_vmario_emblem) {
         if (texName == "actors/mario/no_m.rgba16") {
             outputTexture = string("actors/mario/mario_logo.rgba16").c_str();
+            const void* output = static_cast<const void*>(outputTexture);
+            return output;
+        }
+    }
+
+    if (gCurrLevelNum == LEVEL_SA && use_color_background) {
+        if (texName.find("textures/skybox_tiles/") != string::npos) {
+            outputTexture = string("textures/saturn/white.rgba16").c_str();
             const void* output = static_cast<const void*>(outputTexture);
             return output;
         }
