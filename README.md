@@ -5,7 +5,8 @@
 - *In order to compile the editor, a prior copy of the game is required. This is to avoid including any copyrighted material.*
 - If you want to learn more about Saturn, I suggest you go here: https://github.com/Llennpie/Saturn
 
-![image](https://user-images.githubusercontent.com/44985633/224411160-315ee99b-9eb2-45f8-93e5-06a7b9d48d28.png)
+![image](https://user-images.githubusercontent.com/107904394/229952262-d0fdebc2-a11b-4f1f-bc6b-6f271601677a.png)
+
 
 ### Features
 
