@@ -489,7 +489,7 @@ const char* saturn_get_stage_name(int courseNum) {
         case LEVEL_BBH: return "Big Boo's Haunt"; break;
         case LEVEL_HMC: return "Hazy Maze Cave"; break;
         case LEVEL_COTMC: return "Cavern of the Metal Cap"; break;
-        case LEVEL_LLL: return "Lethal Lava Land"; break;
+        case LEVEL_LLL: return "Barn"; break;
         case LEVEL_SSL: return "Shifting Sand Land"; break;
         case LEVEL_VCUTM: return "Vanish Cap Under the Moat"; break;
         case LEVEL_DDD: return "Dire, Dire Docks"; break;
