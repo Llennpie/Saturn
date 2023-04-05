@@ -1,28 +1,19 @@
-# Saturn
+# Saturn: Custom Maps Edition
 
+- This fork of Saturn makes it so you can use maps from Project64 in Saturn.
 - **Saturn** is an all-in-one machinima studio for *Super Mario 64*, based on [sm64pc/sm64ex](https://github.com/sm64pc/sm64ex).
 - *In order to compile the editor, a prior copy of the game is required. This is to avoid including any copyrighted material.*
+- If you want to learn more about Saturn, I suggest you go here: https://github.com/Llennpie/Saturn
 
-![image](https://user-images.githubusercontent.com/44985633/224411160-315ee99b-9eb2-45f8-93e5-06a7b9d48d28.png)
+![image](https://user-images.githubusercontent.com/107904394/229955483-7d75e96a-76f6-4100-8477-7ad4e4374f3b.png)
+
+
 
 ### Features
 
 ```
-- Machinima camera system
-- Extensive color code editor
-- Custom model library
-  - Create, share, and download custom playermodels. No reloading required!
-  - Works with color codes
-  - Thousands of completely customizable expressions
-- CHROMA KEY STAGE
-- Keyframe editor
-  - Animate almost anything!
-- Completely rebindable controls
-  - Supports most modern controllers
-- Dynamic window size/resolution
-- Interpolated 60 fps
-  
-...and more!
+- ...It's just Saturn but replacing the original maps with custom maps
+- That's it
 ```
 
 - For installation instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).
@@ -32,6 +23,6 @@
 
 ![image](https://user-images.githubusercontent.com/44985633/224412720-4abf4f73-1bde-4ac6-8002-4d5c004d8b49.png)
 
-*In case you feel this project deserves some extra love, I have a Ko-fi below.*
+*In case you feel Saturn deserves some extra love, Here is sm64rises Ko-fi below.*
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J05B5WR)
