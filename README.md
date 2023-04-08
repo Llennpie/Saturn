@@ -9,11 +9,15 @@
 
 
 
-### Features
+### Maps (So far)
 
 ```
-- ...It's just Saturn but replacing the original maps with custom maps
-- That's it
+- Glowshire
+- Snowy Town
+- Mario's House (both Exterior and Interior)
+- Collebello/Huge Town
+- Barn
+- Churchester
 ```
 
 - For installation instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).
