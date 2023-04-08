@@ -18,4 +18,7 @@ extern const MacroObject totwc_seg7_macro_objs[];
 // script
 extern const LevelScript level_totwc_entry[];
 
+
+#include "levels/totwc/header.inc.h"
+
 #endif

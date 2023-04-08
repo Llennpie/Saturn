@@ -484,7 +484,7 @@ const char* saturn_get_stage_name(int courseNum) {
         case LEVEL_WF: return "Mario's House (Exterior)"; break;
         case LEVEL_JRB: return "Jolly Roger Bay"; break;
         case LEVEL_PSS: return "Mario's House (Interior)"; break;
-        case LEVEL_TOTWC: return "Tower of the Wing Cap"; break;
+        case LEVEL_TOTWC: return "Collebello Town"; break;
         case LEVEL_BITDW: return "Bowser in the Dark World"; break;
         case LEVEL_BBH: return "Big Boo's Haunt"; break;
         case LEVEL_HMC: return "Hazy Maze Cave"; break;
