@@ -20,4 +20,7 @@ extern const MacroObject pss_seg7_macro_objs[];
 // script
 extern const LevelScript level_pss_entry[];
 
+
+#include "levels/pss/header.inc.h"
+
 #endif
