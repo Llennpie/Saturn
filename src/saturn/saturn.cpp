@@ -479,8 +479,8 @@ const char* saturn_get_stage_name(int courseNum) {
         case LEVEL_CASTLE: return "Peach's Castle"; break;
         case LEVEL_CASTLE_GROUNDS: return "Castle Grounds"; break;
         case LEVEL_CASTLE_COURTYARD: return "Castle Courtyard"; break;
-        case LEVEL_BOB: return "Bob-omb Battlefield"; break;
-        case LEVEL_CCM: return "Cool, Cool Mountain"; break;
+        case LEVEL_BOB: return "Glowshire"; break;
+        case LEVEL_CCM: return "Snowy Town"; break;
         case LEVEL_WF: return "Mario's House (Exterior)"; break;
         case LEVEL_JRB: return "Jolly Roger Bay"; break;
         case LEVEL_PSS: return "Mario's House (Interior)"; break;
@@ -497,9 +497,9 @@ const char* saturn_get_stage_name(int courseNum) {
         case LEVEL_SL: return "Snowman's Land"; break;
         case LEVEL_WDW: return "Wet-Dry World"; break;
         case LEVEL_TTM: return "Tall, Tall Mountain"; break;
-        case LEVEL_THI: return "Tiny, Huge Island"; break;
+        case LEVEL_THI: return "Churchester"; break;
         case LEVEL_TTC: return "Tick Tock Clock"; break;
-        case LEVEL_WMOTR: return "Wing Mario Over the Rainbow"; break;
+        case LEVEL_WMOTR: return "Machinima Castle"; break;
         case LEVEL_RR: return "Rainbow Ride"; break;
         case LEVEL_BITS: return "Bowser in the Sky"; break;
 

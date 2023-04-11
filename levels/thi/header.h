@@ -39,4 +39,7 @@ extern const struct MovtexQuadCollection thi_movtex_area2_water[];
 // script
 extern const LevelScript level_thi_entry[];
 
+
+#include "levels/thi/header.inc.h"
+
 #endif

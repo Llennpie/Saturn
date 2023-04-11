@@ -12,10 +12,10 @@ const GeoLayout lll_area_1_geo[] = {
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_125_30AEFFB5_c_bmp_mesh_layer_1),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_atena_mesh_layer_1),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_barn_mesh_layer_1),
+		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_fence_mesh_layer_1),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_grass_mesh_layer_1),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_roof_mesh_layer_1),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_sand_mesh_layer_1),
-		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 199, 0, -267, 90, 0, 0, lll_dl_shell_mesh_layer_1),
 	GEO_CLOSE_NODE(),
 	GEO_RETURN(),
 };
