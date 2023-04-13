@@ -38,14 +38,9 @@ u8 wf_dl_custom_5954CDAB_c_rgba16[] = {
 	#include "levels/wf/custom_5954CDAB_c.rgba16.inc.c"
 };
 
-Gfx wf_dl_custom_68419A52_c_ci4_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_custom_68419A52_c_ci4[] = {
-	#include "levels/wf/custom_68419A52_c.ci4.inc.c"
-};
-
-Gfx wf_dl_custom_68419A52_c_ci4_pal_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_custom_68419A52_c_ci4_pal_rgba16[] = {
-	#include "levels/wf/custom_68419A52_c.ci4.pal"
+Gfx wf_dl_custom_68419A52_c_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 wf_dl_custom_68419A52_c_rgba16[] = {
+	#include "levels/wf/custom_68419A52_c.rgba16.inc.c"
 };
 
 Gfx wf_dl_custom_738E2C32_c_rgba16_aligner[] = {gsSPEndDisplayList()};
@@ -138,11 +133,6 @@ u8 wf_dl_custom_516C9C20_c_rgba16[] = {
 	#include "levels/wf/custom_516C9C20_c.rgba16.inc.c"
 };
 
-Gfx wf_dl_wood_3_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_wood_3_rgba16[] = {
-	#include "levels/wf/wood_3.rgba16.inc.c"
-};
-
 Gfx wf_dl_custom_5E180028_c_rgba16_aligner[] = {gsSPEndDisplayList()};
 u8 wf_dl_custom_5E180028_c_rgba16[] = {
 	#include "levels/wf/custom_5E180028_c.rgba16.inc.c"
@@ -198,14 +188,9 @@ u8 wf_dl_custom_56EFFDBE_c_rgba16[] = {
 	#include "levels/wf/custom_56EFFDBE_c.rgba16.inc.c"
 };
 
-Gfx wf_dl_custom_61C937AC_c_ci8_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_custom_61C937AC_c_ci8[] = {
-	#include "levels/wf/custom_61C937AC_c.ci8.inc.c"
-};
-
-Gfx wf_dl_custom_61C937AC_c_ci8_pal_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_custom_61C937AC_c_ci8_pal_rgba16[] = {
-	#include "levels/wf/custom_61C937AC_c.ci8.pal"
+Gfx wf_dl_custom_61C937AC_c_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 wf_dl_custom_61C937AC_c_rgba16[] = {
+	#include "levels/wf/custom_61C937AC_c.rgba16.inc.c"
 };
 
 Gfx wf_dl_custom_1DE29C14_c_rgba16_aligner[] = {gsSPEndDisplayList()};
@@ -223,29 +208,14 @@ u8 wf_dl_custom_222D0826_c_rgba16[] = {
 	#include "levels/wf/custom_222D0826_c.rgba16.inc.c"
 };
 
-Gfx wf_dl_custom_149A167B_c_ci8_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_custom_149A167B_c_ci8[] = {
-	#include "levels/wf/custom_149A167B_c.ci8.inc.c"
-};
-
-Gfx wf_dl_custom_149A167B_c_ci8_pal_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_custom_149A167B_c_ci8_pal_rgba16[] = {
-	#include "levels/wf/custom_149A167B_c.ci8.pal"
+Gfx wf_dl_custom_149A167B_c_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 wf_dl_custom_149A167B_c_rgba16[] = {
+	#include "levels/wf/custom_149A167B_c.rgba16.inc.c"
 };
 
 Gfx wf_dl_custom_31A1CDA1_c_rgba16_aligner[] = {gsSPEndDisplayList()};
 u8 wf_dl_custom_31A1CDA1_c_rgba16[] = {
 	#include "levels/wf/custom_31A1CDA1_c.rgba16.inc.c"
-};
-
-Gfx wf_dl_custom_68419A52_c_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl_custom_68419A52_c_rgba16[] = {
-	#include "levels/wf/custom_68419A52_c.rgba16.inc.c"
-};
-
-Gfx wf_dl__450A51_c_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 wf_dl__450A51_c_rgba16[] = {
-	#include "levels/wf/_450A51_c.rgba16.inc.c"
 };
 
 Gfx wf_dl_custom_pipe_rgba16_aligner[] = {gsSPEndDisplayList()};

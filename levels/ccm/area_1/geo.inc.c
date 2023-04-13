@@ -7,7 +7,6 @@ const GeoLayout ccm_area_1_geo[] = {
 		GEO_OPEN_NODE(),
 			GEO_DISPLAY_LIST(LAYER_TRANSPARENT, ccm_dl_gr_004_mesh_layer_5),
 		GEO_CLOSE_NODE(),
-		GEO_ROTATION_NODE_WITH_DL(LAYER_OPAQUE, 90, 0, 16, ccm_dl_gr_005_mesh_layer_1),
 	GEO_CLOSE_NODE(),
 	GEO_RETURN(),
 };
