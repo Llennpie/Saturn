@@ -182,19 +182,13 @@ const void* saturn_bind_texture(const void* input) {
     }
 
     if (show_vmario_emblem) {
-        if (texName == "actors/mario/no_m.rgba16") {
-            outputTexture = string("actors/mario/mario_logo.rgba16").c_str();
-            const void* output = static_cast<const void*>(outputTexture);
-            return output;
-        }
+        if (texName == "actors/mario/no_m.rgba16")
+            return "actors/mario/mario_logo.rgba16";
     }
 
     if (gCurrLevelNum == LEVEL_SA && use_color_background) {
-        if (texName.find("textures/skybox_tiles/") != string::npos) {
-            outputTexture = string("textures/saturn/white.rgba16").c_str();
-            const void* output = static_cast<const void*>(outputTexture);
-            return output;
-        }
+        if (texName.find("textures/skybox_tiles/") != string::npos)
+            return "textures/saturn/white.rgba16";
     }
 
     return input;
