@@ -21,7 +21,7 @@
 - Churchester
 ```
 
-- For installation instructions, please refer to the [wiki](https://github.com/Llennpie/Saturn/wiki).
+- For installation instructions, please refer to the [Saturn wiki](https://github.com/Llennpie/Saturn/wiki).
 - *Written guides, including custom model creation can be found there as well.*
 
 ---
