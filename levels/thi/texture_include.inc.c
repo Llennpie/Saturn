@@ -128,8 +128,8 @@ u8 thi_dl_custom_3737DFE1_c_rgba16[] = {
 	#include "levels/thi/custom_3737DFE1_c.rgba16.inc.c"
 };
 
-Gfx thi_dl__02014AB8_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 thi_dl__02014AB8_rgba16[] = {
-	#include "levels/thi/_02014AB8.rgba16.inc.c"
+Gfx thi_dl_custom_water_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 thi_dl_custom_water_rgba16[] = {
+	#include "levels/thi/custom_water.rgba16.inc.c"
 };
 

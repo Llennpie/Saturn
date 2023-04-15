@@ -15,7 +15,6 @@ const GeoLayout totwc_area_1_geo[] = {
 		GEO_CLOSE_NODE(),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_OPAQUE, 0, 378, 0, 90, 0, 0, totwc_dl_colle_003_mesh_layer_1),
 		GEO_OPEN_NODE(),
-			GEO_DISPLAY_LIST(LAYER_TRANSPARENT, totwc_dl_colle_003_mesh_layer_5),
 			GEO_DISPLAY_LIST(LAYER_ALPHA, totwc_dl_colle_003_mesh_layer_4),
 		GEO_CLOSE_NODE(),
 		GEO_TRANSLATE_ROTATE_WITH_DL(LAYER_TRANSPARENT, 0, 378, 0, 90, 0, 0, totwc_dl_colle_004_mesh_layer_5),

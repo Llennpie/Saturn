@@ -58,7 +58,7 @@ extern u8 thi_dl_custom_5632258C_c_rgba16[];
 extern u8 thi_dl_custom_22EE210D_c_rgba16[];
 extern u8 thi_dl_custom_57500458_c_rgba16[];
 extern u8 thi_dl_custom_3737DFE1_c_rgba16[];
-extern u8 thi_dl__02014AB8_rgba16[];
+extern u8 thi_dl_custom_water_rgba16[];
 extern Vtx thi_dl_church_mesh_layer_1_vtx_cull[8];
 extern Vtx thi_dl_church_mesh_layer_1_vtx_0[88];
 extern Gfx thi_dl_church_mesh_layer_1_tri_0[];

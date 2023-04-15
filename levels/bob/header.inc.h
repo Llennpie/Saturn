@@ -57,7 +57,7 @@ extern u8 bob_dl_custom_190B252B_c_rgba16[];
 extern u8 bob_dl_custom_1EF080BB_c_rgba16[];
 extern u8 bob_dl_custom_6F3A95AB_c_rgba16[];
 extern u8 bob_dl_custom_31FA4086_c_rgba16[];
-extern u8 bob_dl__02014AB8_rgba16[];
+extern u8 bob_dl_custom_water_rgba16[];
 extern Vtx bob_dl_glowshire_mesh_layer_1_vtx_cull[8];
 extern Vtx bob_dl_glowshire_mesh_layer_1_vtx_0[1355];
 extern Gfx bob_dl_glowshire_mesh_layer_1_tri_0[];

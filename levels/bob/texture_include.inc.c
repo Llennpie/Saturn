@@ -128,8 +128,8 @@ u8 bob_dl_custom_31FA4086_c_rgba16[] = {
 	#include "levels/bob/custom_31FA4086_c.rgba16.inc.c"
 };
 
-Gfx bob_dl__02014AB8_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 bob_dl__02014AB8_rgba16[] = {
-	#include "levels/bob/_02014AB8.rgba16.inc.c"
+Gfx bob_dl_custom_water_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 bob_dl_custom_water_rgba16[] = {
+	#include "levels/bob/custom_water.rgba16.inc.c"
 };
 
