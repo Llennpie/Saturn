@@ -83,9 +83,9 @@ u8 totwc_dl_custom_balcony_ex_wall_rgba16[] = {
 	#include "levels/totwc/custom_balcony_ex_wall.rgba16.inc.c"
 };
 
-Gfx totwc_dl_balcony_in_wall_rgba16_aligner[] = {gsSPEndDisplayList()};
-u8 totwc_dl_balcony_in_wall_rgba16[] = {
-	#include "levels/totwc/balcony_in_wall.rgba16.inc.c"
+Gfx totwc_dl_custom_balcony_in_wall_rgba16_aligner[] = {gsSPEndDisplayList()};
+u8 totwc_dl_custom_balcony_in_wall_rgba16[] = {
+	#include "levels/totwc/custom_balcony_in_wall.rgba16.inc.c"
 };
 
 Gfx totwc_dl_custom_condo_stairs_rgba16_aligner[] = {gsSPEndDisplayList()};

@@ -95,7 +95,7 @@ extern u8 totwc_dl_custom_condo_roof_rgba16[];
 extern u8 totwc_dl_custom_condo_roof_edge_rgba16[];
 extern u8 totwc_dl_custom_balcony_window_rgba16[];
 extern u8 totwc_dl_custom_balcony_ex_wall_rgba16[];
-extern u8 totwc_dl_balcony_in_wall_rgba16[];
+extern u8 totwc_dl_custom_balcony_in_wall_rgba16[];
 extern u8 totwc_dl_custom_condo_stairs_rgba16[];
 extern u8 totwc_dl_custom_balcony_floor_rgba16[];
 extern u8 totwc_dl_custom_condo_rail_rgba16[];
