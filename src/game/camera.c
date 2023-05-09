@@ -3057,6 +3057,10 @@ Vec3f mCameraKeyFoc;
 s16 mCameraKeyYaw;
 s16 mCameraKeyPitch;
 
+u8 machinimaCopying;
+Vec3f stored_camera_pos;
+Vec3f stored_camera_focus;
+
 /**
  * The main camera update function.
  * Gets controller input, checks for cutscenes, handles mode changes, and moves the camera
@@ -3146,7 +3150,7 @@ void update_camera(struct Camera *c) {
         sYawSpeed = 0x400;
 
         if (machinimaMode) {
-            if (!machinimaKeyframing) {
+            if (!machinimaKeyframing && !machinimaCopying) {
                 if (configMCameraMode == 0) {
                     // Better Keyboard Controls
 
@@ -3340,10 +3344,20 @@ void update_camera(struct Camera *c) {
                 c->focus[1] += camVelY;
                 camVelY = approach_f32_symmetric(camVelY, 0.f, 2.f);
                 camVelY = approach_f32_asymptotic(camVelY, 0.f, 0.1f);
+            } else if (machinimaCopying) {
+                if (!machinimaKeyframing) {
+                    f32 dist;
+                    s16 pitch, yaw;
+                    vec3f_get_dist_and_angle(stored_camera_pos, stored_camera_focus, &dist, &pitch, &yaw);
+
+                    vec3f_copy(c->pos, stored_camera_pos);
+                    vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
+                }
+                machinimaCopying = 0;
             } else {
                 f32 dist;
                 s16 pitch, yaw;
-                vec3f_get_dist_and_angle(c->pos, mCameraKeyFoc, &dist, &pitch, &yaw);
+                vec3f_get_dist_and_angle(mCameraKeyPos, mCameraKeyFoc, &dist, &pitch, &yaw);
 
                 vec3f_copy(c->pos, mCameraKeyPos);
                 //vec3f_copy(c->focus, mCameraKeyFoc);

@@ -779,6 +779,10 @@ Gfx *geo_camera_fov(s32 callContext, struct GraphNode *g, UNUSED void *context);
 
 extern u8 machinimaMode;
 extern u8 machinimaKeyframing;
+extern u8 machinimaCopying;
+extern Vec3f stored_camera_pos;
+extern Vec3f stored_camera_focus;
+
 extern f32 camVelSpeed;
 extern f32 camVelRSpeed;
 
