@@ -851,6 +851,9 @@ u32 interact_bbh_entrance(struct MarioState *m, UNUSED u32 interactType, struct 
 }
 
 u32 interact_warp(struct MarioState *m, UNUSED u32 interactType, struct Object *o) {
+    if (machinimaMode) {
+        return FALSE;
+    }
     u32 action;
 
     if (o->oInteractionSubtype & INT_SUBTYPE_FADING_WARP) {
@@ -1844,6 +1847,7 @@ void mario_handle_special_floors(struct MarioState *m) {
 
         switch (floorType) {
             case SURFACE_DEATH_PLANE:
+                if (enable_immunity) return;
             case SURFACE_VERTICAL_WIND:
                 if (enable_immunity) return;
                 check_death_barrier(m);
