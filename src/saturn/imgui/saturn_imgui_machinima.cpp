@@ -229,8 +229,10 @@ void imgui_machinima_quick_options() {
     ImGui::Separator();
     ImGui::Checkbox("HUD", &configHUD);
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
+    saturn_keyframe_bool_popout(&configHUD, "HUD", "k_hud");
     ImGui::Checkbox("Shadows", &enable_shadows);
     imgui_bundled_tooltip("Displays the shadows of various objects.");
+    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
     ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
     imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
     ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);

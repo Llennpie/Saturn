@@ -60,13 +60,19 @@ bool is_chroma_keying = false;
 bool prev_quicks[3];
 int lastCourseNum = -1;
 
-float* active_key_value = &camera_fov;
+float* active_key_float_value = &camera_fov;
+bool* active_key_bool_value;
+
+s32 active_data_type = KEY_FLOAT;
 bool keyframe_playing;
 bool k_popout_open;
 int mcam_timer = 0;
 int k_current_frame = 0;
+
 std::vector<uint32_t> k_frame_keys = {0};
-std::vector<float> k_value_keys = {0.f};
+std::vector<float> k_v_float_keys = {0.f};
+std::vector<bool> k_v_bool_keys = {false};
+
 int k_last_passed_index = 0;
 int k_distance_between;
 int k_current_distance;
@@ -155,7 +161,7 @@ void saturn_update() {
                 keyResetter = 0;
             }
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F3]) {
-                saturn_play_keyframe(active_key_value);
+                saturn_play_keyframe(active_data_type);
                 keyResetter = 0;
             }
         }
@@ -180,7 +186,7 @@ void saturn_update() {
     // Machinima
 
     machinimaMode = (camera_frozen) ? 1 : 0;
-    machinimaKeyframing = (keyframe_playing && *active_key_value == gCamera->pos[0]);
+    machinimaKeyframing = (keyframe_playing && active_data_type == KEY_CAMERA);
 
     if (camera_frozen) {
         if (configMCameraMode == 2) {
@@ -215,7 +221,7 @@ void saturn_update() {
         }
     }
 
-    if (!keyframe_playing) {
+    if (!keyframe_playing && !camera_frozen) {
         gLakituState.focHSpeed = camera_focus * 0.8f;
         gLakituState.focVSpeed = camera_focus * 0.3f;
         gLakituState.posHSpeed = camera_focus * 0.3f;
@@ -311,16 +317,18 @@ void saturn_update() {
         if (it1 != k_frame_keys.end()) {
             // Runs when current frame is on a keyframe
             k_last_passed_index = (it1 - k_frame_keys.begin());
-            if (k_value_keys.size() - 1 == k_last_passed_index) {
+            if (active_data_type == KEY_BOOL)           *active_key_bool_value = k_v_bool_keys.at(k_last_passed_index);
+            if (k_frame_keys.size() - 1 == k_last_passed_index) {
                 // Sequencer reached the last keyframe
                 if (k_loop) {
                     k_last_passed_index = 0;
                     mcam_timer = 0;
                     k_current_frame = 0;
 
-                    if (*active_key_value == gCamera->pos[0]) {
-                        *active_key_value = k_value_keys[0];
-                        mCameraKeyPos[0] = k_value_keys[0];
+                    if (active_data_type == KEY_FLOAT)      *active_key_float_value = k_v_float_keys[0];
+                    if (active_data_type == KEY_CAMERA) {
+                        *active_key_float_value = k_v_float_keys[0];
+                        mCameraKeyPos[0] = k_v_float_keys[0];
                         mCameraKeyPos[1] = k_c_pos1_keys[0];
                         mCameraKeyPos[2] = k_c_pos2_keys[0];
                         mCameraKeyFoc[0] = k_c_foc0_keys[0];
@@ -331,15 +339,15 @@ void saturn_update() {
                     }
                 } else {
                     keyframe_playing = false;
-                    if (*active_key_value != gCamera->pos[0]) {
-                        *active_key_value = k_value_keys.at(k_last_passed_index);
-                    }
+
+                    if (active_data_type == KEY_FLOAT)      *active_key_float_value = k_v_float_keys.at(k_last_passed_index);
+                    if (active_data_type == KEY_BOOL)       *active_key_bool_value = k_v_bool_keys.at(k_last_passed_index);
                 }
             } else {
                 k_current_distance = 0;
                 k_distance_between = k_frame_keys.at(k_last_passed_index + 1) - k_current_frame;
-                k_static_increase_value = key_increase_val(k_value_keys);
-                if (*active_key_value == gCamera->pos[0]) {
+                if (active_data_type == KEY_FLOAT)          k_static_increase_value = key_increase_val(k_v_float_keys);
+                if (active_data_type == KEY_CAMERA) {
                     k_c_pos1_incr = key_increase_val(k_c_pos1_keys);
                     k_c_pos2_incr = key_increase_val(k_c_pos2_keys);
                     k_c_foc0_incr = key_increase_val(k_c_foc0_keys);
@@ -355,7 +363,7 @@ void saturn_update() {
             k_current_distance = k_frame_keys.at(k_last_passed_index + 1) - k_current_frame;
         }
 
-        if (*active_key_value == gCamera->pos[0]) {
+        if (active_data_type == KEY_CAMERA) {
             mCameraKeyPos[0] += k_static_increase_value / 10;
             mCameraKeyPos[1] += k_c_pos1_incr / 10;
             mCameraKeyPos[2] += k_c_pos2_incr / 10;
@@ -366,13 +374,13 @@ void saturn_update() {
             mCameraKeyPitch += k_c_rot1_incr / 10;
         } else {
             // Set the variable
-            *active_key_value += k_static_increase_value / 10;
+            if (active_data_type == KEY_FLOAT)              *active_key_float_value += k_static_increase_value / 10;
         }
     }
 
     if (camera_frozen && k_current_frame == 0 && k_popout_open) {
-        if (*active_key_value == gCamera->pos[0]) {
-            k_value_keys[0] = gCamera->pos[0];
+        if (active_data_type == KEY_CAMERA) {
+            k_v_float_keys[0] = gCamera->pos[0];
             k_c_pos1_keys[0] = gCamera->pos[1];
             k_c_pos2_keys[0] = gCamera->pos[2];
             k_c_foc0_keys[0] = gCamera->focus[0];
@@ -423,14 +431,11 @@ void saturn_play_animation(MarioAnimID anim) {
     is_anim_playing = true;
 }
 
-void saturn_play_keyframe(float* edit_value) {
-    if (active_key_value == NULL)
-        return;
-
+void saturn_play_keyframe(s32 data_type) {
     if (!keyframe_playing) {
-        if (*edit_value == gCamera->pos[0]) {
-            *edit_value = k_value_keys[0];
-            mCameraKeyPos[0] = k_value_keys[0];
+        if (data_type == KEY_CAMERA) {
+            *active_key_float_value = k_v_float_keys[0];
+            mCameraKeyPos[0] = k_v_float_keys[0];
             mCameraKeyPos[1] = k_c_pos1_keys[0];
             mCameraKeyPos[2] = k_c_pos2_keys[0];
             mCameraKeyFoc[0] = k_c_foc0_keys[0];
@@ -439,7 +444,8 @@ void saturn_play_keyframe(float* edit_value) {
             mCameraKeyYaw = k_c_rot0_keys[0];
             mCameraKeyPitch = k_c_rot1_keys[0];
         } else {
-            k_value_keys[0] = *edit_value;
+            if (data_type == KEY_FLOAT)      k_v_float_keys[0] = *active_key_float_value;
+            if (data_type == KEY_BOOL)       k_v_bool_keys[0] = *active_key_bool_value;
         }
         k_last_passed_index = 0;
         k_distance_between = 0;
@@ -449,6 +455,66 @@ void saturn_play_keyframe(float* edit_value) {
         if (k_current_frame > 0)
             keyframe_playing = false;
     }
+}
+
+// Copy
+
+void saturn_copy_object(Vec3f from, Vec3f to) {
+    vec3f_copy(from, to);
+    vec3s_set(gMarioState->marioObj->header.gfx.angle, 0, gMarioState->faceAngle[1], 0);
+}
+
+Vec3f stored_mario_pos;
+Vec3s stored_mario_angle;
+
+void saturn_copy_mario() {
+    vec3f_copy(stored_mario_pos, gMarioState->pos);
+    vec3s_copy(stored_mario_angle, gMarioState->faceAngle);
+
+    vec3f_copy(stored_camera_pos, gCamera->pos);
+    vec3f_copy(stored_camera_focus, gCamera->focus);
+}
+
+void saturn_paste_mario() {
+    if (machinimaCopying == 0) {
+        vec3f_copy(gMarioState->pos, stored_mario_pos);
+        vec3f_copy(gMarioState->marioObj->header.gfx.pos, stored_mario_pos);
+        vec3s_copy(gMarioState->faceAngle, stored_mario_angle);
+        vec3s_set(gMarioState->marioObj->header.gfx.angle, 0, stored_mario_angle[1], 0);
+    }
+    machinimaCopying = 1;
+}
+
+Vec3f pos_relative;
+Vec3s foc_relative;
+bool was_relative;
+
+void saturn_copy_camera(bool relative) {
+    if (relative) {
+        pos_relative[0] = gCamera->pos[0] - gMarioState->pos[0];
+        pos_relative[1] = gCamera->pos[1] - gMarioState->pos[1];
+        pos_relative[2] = gCamera->pos[2] - gMarioState->pos[2];
+
+        foc_relative[0] = gCamera->focus[0] - gMarioState->pos[0];
+        foc_relative[1] = gCamera->focus[1] - gMarioState->pos[1];
+        foc_relative[2] = gCamera->focus[2] - gMarioState->pos[2];
+    } else {
+        vec3f_copy(stored_camera_pos, gCamera->pos);
+        vec3f_copy(stored_camera_focus, gCamera->focus);
+    }
+    was_relative = relative;
+}
+
+void saturn_paste_camera() {
+    if (was_relative) {
+        stored_camera_pos[0] = gMarioState->pos[0] + pos_relative[0];
+        stored_camera_pos[1] = gMarioState->pos[1] + pos_relative[1];
+        stored_camera_pos[2] = gMarioState->pos[2] + pos_relative[2];
+        stored_camera_focus[0] = gMarioState->pos[0] + foc_relative[0];
+        stored_camera_focus[1] = gMarioState->pos[1] + foc_relative[1];
+        stored_camera_focus[2] = gMarioState->pos[2] + foc_relative[2];
+    }
+    machinimaCopying = 1;
 }
 
 // Debug

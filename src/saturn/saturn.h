@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <mario_animation_ids.h>
 #include <SDL2/SDL.h>
+#include "types.h"
 
 extern bool mario_exists;
 
@@ -65,10 +66,15 @@ extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 #include <vector>
 extern bool k_popout_open;
 extern bool keyframe_playing;
-extern float* active_key_value;
+extern float* active_key_float_value;
+extern bool* active_key_bool_value;
+extern s32 active_data_type;
 extern int k_current_frame;
+
 extern std::vector<uint32_t> k_frame_keys;
-extern std::vector<float> k_value_keys;
+extern std::vector<float> k_v_float_keys;
+extern std::vector<bool> k_v_bool_keys;
+
 extern int k_last_passed_index;
 extern int k_distance_between;
 extern int k_current_distance;
@@ -89,11 +95,16 @@ extern std::string model_details;
 extern std::string cc_details;
 extern bool is_cc_editing;
 
+extern Vec3f stored_mario_pos;
+extern Vec3s stored_mario_angle;
+extern void saturn_copy_camera(bool);
+extern void saturn_paste_camera(void);
+
 extern "C" {
 #endif
     void saturn_update(void);
     void saturn_play_animation(MarioAnimID);
-    void saturn_play_keyframe(float*);
+    void saturn_play_keyframe(s32);
     void saturn_print(const char*);
     const char* saturn_get_stage_name(int);
 #ifdef __cplusplus

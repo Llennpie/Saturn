@@ -92,6 +92,8 @@ static int current_mcc_id = 0;
 
 float this_face_angle;
 
+bool has_copy_mario;
+
 /*
 Sets Mario's global colors from the CC editor color values.
 */
@@ -768,6 +770,25 @@ void sdynos_imgui_menu() {
 
     if (ImGui::BeginMenu("Misc.###menu_misc")) {
 
+        if (mario_exists) {
+            ImGui::Text("Position");
+            if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_mario")) {
+                vec3f_copy(stored_mario_pos, gMarioState->pos);
+                vec3s_copy(stored_mario_angle, gMarioState->faceAngle);
+                has_copy_mario = true;
+            } ImGui::SameLine();
+            if (!has_copy_mario) ImGui::BeginDisabled();
+            if (ImGui::Button(ICON_FK_CLIPBOARD " Paste###paste_mario")) {
+                if (has_copy_mario) {
+                    vec3f_copy(gMarioState->pos, stored_mario_pos);
+                    vec3f_copy(gMarioState->marioObj->header.gfx.pos, stored_mario_pos);
+                    vec3s_copy(gMarioState->faceAngle, stored_mario_angle);
+                    vec3s_set(gMarioState->marioObj->header.gfx.angle, 0, stored_mario_angle[1], 0);
+                }
+            }
+            if (!has_copy_mario) ImGui::EndDisabled();
+        }
+
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("Misc.###misc_child", ImVec2(225, 150), true, ImGuiWindowFlags_None);
         if (ImGui::BeginTabBar("###misc_tabbar", ImGuiTabBarFlags_None)) {
@@ -790,13 +811,13 @@ void sdynos_imgui_menu() {
             }
             if (ImGui::BeginTabItem("Shading###tab_shading")) {
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
-                saturn_keyframe_popout(&world_light_dir1, "Mario Shade X", "k_shade_x");
+                saturn_keyframe_float_popout(&world_light_dir1, "Mario Shade X", "k_shade_x");
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
-                saturn_keyframe_popout(&world_light_dir2, "Mario Shade Y", "k_shade_y");
+                saturn_keyframe_float_popout(&world_light_dir2, "Mario Shade Y", "k_shade_y");
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
-                saturn_keyframe_popout(&world_light_dir3, "Mario Shade Z", "k_shade_z");
+                saturn_keyframe_float_popout(&world_light_dir3, "Mario Shade Z", "k_shade_z");
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
-                saturn_keyframe_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
+                saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
 
                 if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine();
@@ -812,14 +833,14 @@ void sdynos_imgui_menu() {
             if (ImGui::BeginTabItem("Scale###tab_scale")) {
                 if (linkMarioScale) {
                     ImGui::Dummy(ImVec2(8, 0)); ImGui::SameLine(); ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
-                    saturn_keyframe_popout(&marioScaleSizeX, "Mario Scale", "k_scale");
+                    saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale", "k_scale");
                 } else {
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###mscale_x", &marioScaleSizeX, -2.f, 2.f);
-                    saturn_keyframe_popout(&marioScaleSizeX, "Mario Scale X", "k_scale_x");
+                    saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale X", "k_scale_x");
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###mscale_y", &marioScaleSizeY, -2.f, 2.f);
-                    saturn_keyframe_popout(&marioScaleSizeY, "Mario Scale Y", "k_scale_y");
+                    saturn_keyframe_float_popout(&marioScaleSizeY, "Mario Scale Y", "k_scale_y");
                     ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###mscale_z", &marioScaleSizeZ, -2.f, 2.f);
-                    saturn_keyframe_popout(&marioScaleSizeZ, "Mario Scale Z", "k_scale_z");
+                    saturn_keyframe_float_popout(&marioScaleSizeZ, "Mario Scale Z", "k_scale_z");
                 }
                 ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::Checkbox("Link###link_mario_scale", &linkMarioScale);
                 if (marioScaleSizeX != 1.f || marioScaleSizeY != 1.f || marioScaleSizeZ != 1.f) {
@@ -842,6 +863,7 @@ void sdynos_imgui_menu() {
             ImGui::TableSetColumnIndex(0);
             ImGui::Checkbox("Head Rotations", &enable_head_rotations);
             imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+            saturn_keyframe_bool_popout(&enable_head_rotations, "Head Rotations", "k_head_rot");
             ImGui::Checkbox("Dust Particles", &enable_dust_particles);
             imgui_bundled_tooltip("Displays dust particles when Mario moves.");
             ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
@@ -855,6 +877,7 @@ void sdynos_imgui_menu() {
             if (!any_packs_selected) {
                 ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
                 imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
+                saturn_keyframe_bool_popout(&show_vmario_emblem, "M Cap Emblem", "k_v_cap_emblem");
             }
 
             ImGui::TableSetColumnIndex(1);
@@ -864,6 +887,7 @@ void sdynos_imgui_menu() {
                 } else {
                     this_face_angle = (float)gMarioState->faceAngle[1] / 182.04;
                 }
+                saturn_keyframe_float_popout((float*)&gMarioState->faceAngle[1], "Mario Angle", "k_angle");
             }
 
             ImGui::Checkbox("Spin###spin_angle", &is_spinning);
