@@ -95,6 +95,7 @@ int current_canim_length;
 int current_canim_nodes;
 std::vector<s16> current_canim_values;
 std::vector<u16> current_canim_indices;
+bool current_canim_has_extra;
 
 void run_hex_array(Json::Value root, string type) {
     int i;
@@ -165,6 +166,10 @@ void saturn_read_mcomp_animation(string json_path) {
 
     current_canim_name = root["name"].asString();
     current_canim_author = root["author"].asString();
+    if (root.isMember("extra_bone")) {
+        if (root["extra_bone"].asString() == "true") current_canim_has_extra = true;
+        if (root["extra_bone"].asString() == "false") current_canim_has_extra = false;
+    } else { current_canim_has_extra = false; }
     // A mess
     if (root["looping"].asString() == "true") current_canim_looping = true;
     if (root["looping"].asString() == "false") current_canim_looping = false;

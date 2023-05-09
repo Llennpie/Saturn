@@ -28,4 +28,6 @@ extern void saturn_run_chainer();
 
 #endif
 
+extern bool current_canim_has_extra;
+
 #endif
