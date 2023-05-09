@@ -820,6 +820,9 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             bool mario_legtop = (r == 0x7f && g == 0x00 && b == 0x40) | (r == 0x7F && g == 0x00 && b == 0x3F);
             bool mario_legbottom = (r == 0x40 && g == 0x00 && b == 0x7f) | (r == 0x3F && g == 0x00 && b == 0x7F);
 
+            // Extras
+            bool creator_mario_sideburn = (r == 0x73 && g == 0x06 && b == 0x00) | (r == 0x73 && g == 0x05 && b == 0x00);
+
             bool chroma_floor = (r == 0x3f && g == 0x31 && b == 0x19 && use_color_background || r == 0x3f && g == 0x32 && b == 0x19 && use_color_background);
 
             // Override them lazily
@@ -885,6 +888,11 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                         g = sparkColorLegBottom.green[1];
                         b = sparkColorLegBottom.blue[1];
                     }
+                }
+                if (creator_mario_sideburn) {
+                    r = defaultColorHair.red[0];
+                    g = defaultColorHair.green[0];
+                    b = defaultColorHair.blue[0];
                 }
                 if (chroma_floor) {
                     r = chromaColor.red[1];
@@ -966,6 +974,11 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                             r += intensity * sparkColorLegBottom.red[0];
                             g += intensity * sparkColorLegBottom.green[0];
                             b += intensity * sparkColorLegBottom.blue[0];
+                        }
+                        else if (creator_mario_sideburn) {
+                            r += intensity * 0;
+                            g += intensity * 0;
+                            b += intensity * 0;
                         }
                         else if (chroma_floor) {
                             // No shading
