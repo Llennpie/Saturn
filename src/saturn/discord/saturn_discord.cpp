@@ -100,22 +100,26 @@ void sdiscord_update() {
 
         case LEVEL_CASTLE_GROUNDS:
             strcpy(gCurActivity.assets.large_image, "lvl-castle");
-            strcpy(gCurActivity.assets.small_image, "play-icon-bg");
+            if (autoChroma) strcpy(gCurActivity.assets.small_image, "green");
+            else strcpy(gCurActivity.assets.small_image, "play-icon-bg");
             break;
 
         case LEVEL_CASTLE:
             strcpy(gCurActivity.assets.large_image, "lvl-castle-inside");
-            strcpy(gCurActivity.assets.small_image, "play-icon-bg");
+            if (autoChroma) strcpy(gCurActivity.assets.small_image, "green");
+            else strcpy(gCurActivity.assets.small_image, "play-icon-bg");
             break;
 
         case LEVEL_CASTLE_COURTYARD:
             strcpy(gCurActivity.assets.large_image, "lvl-castle");
-            strcpy(gCurActivity.assets.small_image, "play-icon-bg");
+            if (autoChroma) strcpy(gCurActivity.assets.small_image, "green");
+            else strcpy(gCurActivity.assets.small_image, "play-icon-bg");
             break;
 
         default:
             strcpy(gCurActivity.assets.large_image, "play-icon-bg");
-            strcpy(gCurActivity.assets.small_image, "circle-512");
+            if (autoChroma) strcpy(gCurActivity.assets.small_image, "green");
+            else strcpy(gCurActivity.assets.small_image, "circle-512");
             break;
     }
     strcpy(gCurActivity.assets.large_text, saturn_get_stage_name(gCurrLevelNum));

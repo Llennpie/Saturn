@@ -1027,6 +1027,7 @@ s32 play_mode_paused(void) {
     } else if (gPauseScreenMode == 2) {
         // Exit level
         enable_shadows = true;
+        autoChroma = false;
         if (gDebugLevelSelect) {
             fade_into_special_warp(-9, 1);
         } else {

@@ -9,6 +9,7 @@
 #include "save_file.h"
 #include "segment2.h"
 #include "sm64.h"
+#include "src/saturn/saturn.h"
 #include "src/saturn/saturn_colors.h"
 
 
@@ -298,14 +299,14 @@ Gfx *create_skybox_facing_camera(s8 player, s8 background, f32 fov,
     f32 cameraFaceZ = focZ - posZ;
     s8 colorIndex = 1;
 
-    // If the first star is collected in JRB, make the sky darker and slightly green
-    if (background == 8 && !(save_file_get_star_flags(gCurrSaveFileNum - 1, COURSE_JRB - 1) & 1)) {
-        colorIndex = 0;
-    } else if (gCurrLevelNum == LEVEL_SA && use_color_background && colorIndex == 1) {
+    if ((gCurrLevelNum == LEVEL_SA && colorIndex == 1 || autoChroma) && use_color_background) {
         sSkyboxColors[colorIndex][0] = chromaColor.red[0];
         sSkyboxColors[colorIndex][1] = chromaColor.green[0];
         sSkyboxColors[colorIndex][2] = chromaColor.blue[0];
-    } else {
+    } else if (background == 8 && !(save_file_get_star_flags(gCurrSaveFileNum - 1, COURSE_JRB - 1) & 1) && !autoChroma) {
+        // If the first star is collected in JRB, make the sky darker and slightly green
+        colorIndex = 0;
+    } else  {
         sSkyboxColors[colorIndex][0] = 255;
         sSkyboxColors[colorIndex][1] = 255;
         sSkyboxColors[colorIndex][2] = 255;

@@ -9,6 +9,7 @@
 #include "game/save_file.h"
 #include "pc/configfile.h"
 #include "discordrpc.h"
+#include "saturn/saturn.h"
 
 #define DISCORDLIBFILE "libdiscord-rpc"
 
@@ -228,7 +229,7 @@ void set_logo(void) {
     discordRichPresence.smallImageText = "Legacy";
 #endif
     discordRichPresence.largeImageText = "https://github.com/Llennpie/Saturn";
-    if (gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma) {
+    if (gCurrLevelNum == LEVEL_SA || autoChroma) {
         discordRichPresence.smallImageKey = "green";
     } else {
         discordRichPresence.smallImageKey = "circle-512";
