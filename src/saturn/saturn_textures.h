@@ -64,8 +64,15 @@ extern std::string current_folder_name;
 extern std::string saturn_load_search(std::string folder_name);
 void saturn_load_model_data(std::string folder_name);
 void saturn_set_model_texture(int expIndex, std::string path);
+void saturn_set_model_blink_eye(int, int, std::string);
 void saturn_load_expression_number(char number);
 extern int current_exp_index[8];
+extern int blink_eye_1_index;
+extern int blink_eye_2_index;
+extern int blink_eye_3_index;
+extern std::string blink_eye_1;
+extern std::string blink_eye_2;
+extern std::string blink_eye_3;
 void saturn_copy_file(std::string from, std::string to);
 void saturn_delete_file(std::string file);
 std::size_t number_of_files_in_directory(std::filesystem::path path);
@@ -79,6 +86,8 @@ extern "C" {
 
     const void* saturn_bind_texture(const void*);
     void saturn_set_eye_texture(int);
+    extern bool force_blink;
+    extern bool enable_blink_cycle;
 #ifdef __cplusplus
 }
 #endif

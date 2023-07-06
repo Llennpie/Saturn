@@ -59,6 +59,16 @@ int current_exp_index[8];
 
 bool show_vmario_emblem;
 
+int blink_eye_1_index = -1;
+int blink_eye_2_index = -1;
+int blink_eye_3_index = -1;
+string blink_eye_1;
+string blink_eye_2;
+string blink_eye_3;
+
+bool force_blink;
+bool enable_blink_cycle = false;
+
 // Eye Folders, Non-Model
 
 void saturn_load_eye_folder(std::string path) {
@@ -120,6 +130,10 @@ std::string last_folder_name;
 void saturn_set_eye_texture(int index) {
     if (eye_array[index].find(".png") == string::npos) {
         current_eye_index = -1;
+        // Reset blink cycle (if it exists)
+        blink_eye_2_index = -1; blink_eye_2 = "";
+        blink_eye_3_index = -1; blink_eye_3 = "";
+        force_blink = false;
         //current_eye = "actors/mario/mario_eyes_left_unused.rgba16";
         
         // Attempt to select the first actual PNG
@@ -135,6 +149,7 @@ void saturn_set_eye_texture(int index) {
         current_eye_index = index;
         current_eye = current_eye_pre_path + eye_array[index];
         current_eye = current_eye.substr(0, current_eye.size() - 4);
+        saturn_set_model_blink_eye(index, 1, current_eye.substr(6, current_eye.size()));
     }
 }
 
@@ -159,6 +174,22 @@ const void* saturn_bind_texture(const void* input) {
             string pos_name1 = "saturn_" + current_model_data.expressions[i].name;
             string pos_name2 = pos_name1.substr(0, pos_name1.size() - 1);
 
+            if (force_blink && eye_array.size() > 0 && is_replacing_eyes) {
+                if (texName.find("saturn_1eye") != string::npos) {
+                    outputTexture = blink_eye_1.c_str();
+                    const void* output = static_cast<const void*>(outputTexture);
+                    return output;
+                } else if (texName.find("saturn_2eye") != string::npos) {
+                    outputTexture = blink_eye_2.c_str();
+                    const void* output = static_cast<const void*>(outputTexture);
+                    return output;
+                } else if (texName.find("saturn_3eye") != string::npos) {
+                    outputTexture = blink_eye_3.c_str();
+                    const void* output = static_cast<const void*>(outputTexture);
+                    return output;
+                }
+            }
+
             if (texName.find(pos_name1) != string::npos || texName.find(pos_name2) != string::npos) {
                 outputTexture = current_model_exp_tex[i].c_str();
                 //std::cout << current_model_exp_tex[i] << std::endl;
@@ -181,14 +212,54 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
+    if (force_blink && eye_array.size() > 0 && is_replacing_eyes) {
+        if (texName == "actors/mario/mario_eyes_center.rgba16" && blink_eye_1 != "") {
+            outputTexture = blink_eye_1.c_str();
+            const void* output = static_cast<const void*>(outputTexture);
+            return output;
+        } else if (texName == "actors/mario/mario_eyes_half_closed.rgba16" && blink_eye_2 != "") {
+            outputTexture = blink_eye_2.c_str();
+            const void* output = static_cast<const void*>(outputTexture);
+            return output;
+        } else if (texName == "actors/mario/mario_eyes_closed.rgba16" && blink_eye_3 != "") {
+            outputTexture = blink_eye_3.c_str();
+            const void* output = static_cast<const void*>(outputTexture);
+            return output;
+        }
+    }
+
+    /*cycle_blink_disabled = true;
+    if (texName.find("saturn_1eye") != string::npos || texName == "actors/mario/mario_eyes_center.rgba16"
+        || texName.find("saturn_2eye") != string::npos || texName == "actors/mario/mario_eyes_half_closed.rgba16"
+        || texName.find("saturn_3eye") != string::npos || texName == "actors/mario/mario_eyes_closed.rgba16") {
+        cycle_blink_disabled = false;
+    }*/
+
     if (show_vmario_emblem) {
         if (texName == "actors/mario/no_m.rgba16")
             return "actors/mario/mario_logo.rgba16";
     }
 
-    if (gCurrLevelNum == LEVEL_SA && use_color_background) {
+    if ((gCurrLevelNum == LEVEL_SA || autoChroma == true) && use_color_background) {
         if (texName.find("textures/skybox_tiles/") != string::npos)
             return "textures/saturn/white.rgba16";
+    }
+
+    if (autoChroma == true) {
+        if (texName.find("saturn") == string::npos &&
+            texName.find("dynos") == string::npos &&
+            texName.find("mario_") == string::npos &&
+            texName.find("mario/") == string::npos &&
+            texName.find("skybox") == string::npos &&
+            texName.find("shadow_quarter_circle.ia8") == string::npos &&
+            texName.find("shadow_quarter_square.ia8") == string::npos) {
+                return "textures/saturn/mario_logo.rgba16";
+        }
+        /*if (texName.find("segment2.11C58.rgba16") != string::npos ||
+            texName.find("segment2.12C58.rgba16") != string::npos ||
+            texName.find("segment2.13C58.rgba16") != string::npos) {
+                return "textures/saturn/mario_logo.rgba16";
+        }*/
     }
 
     return input;
@@ -199,7 +270,23 @@ struct ModelData current_model_data;
 void saturn_set_model_texture(int expIndex, string path) {
     current_model_exp_tex[expIndex] = "../../" + path;
     current_model_exp_tex[expIndex] = current_model_exp_tex[expIndex].substr(0, current_model_exp_tex[expIndex].size() - 4);
-    //std::cout << current_model_exp_tex[expIndex] << std::endl;
+}
+
+void saturn_set_model_blink_eye(int index, int blink_index, string path) {
+    if (blink_index == 1) { blink_eye_1 = "../../" + path;
+                            if (blink_eye_1.find(".png") != string::npos) blink_eye_1 = blink_eye_1.substr(0, blink_eye_1.size() - 4);
+                            blink_eye_1_index = index;
+                            // Reset blink cycle (if it exists)
+                            blink_eye_2_index = -1;
+                            blink_eye_3_index = -1; }
+    if (blink_index == 2) { blink_eye_2 = "../../" + path;
+                            if (blink_eye_2.find(".png") != string::npos) blink_eye_2 = blink_eye_2.substr(0, blink_eye_2.size() - 4);
+                            blink_eye_2_index = index; }
+    if (blink_index == 3) { blink_eye_3 = "../../" + path;
+                            if (blink_eye_3.find(".png") != string::npos) blink_eye_3 = blink_eye_3.substr(0, blink_eye_3.size() - 4);
+                            blink_eye_3_index = index; }
+
+    force_blink = (blink_eye_2_index != -1 && blink_eye_3_index != -1) ? 1 : 0;
 }
 
 void saturn_load_model_expression_entry(string folder_name, string expression_name) {
@@ -359,6 +446,13 @@ void saturn_load_model_data(std::string folder_name) {
         current_model_data.eye_support = true;
         if (root.isMember("eye_support")) {
             current_model_data.eye_support = root["eye_support"].asBool();
+        }
+
+        // EXPERIMENTAL: Custom blink cycle (optional)
+        // Disabled by default, authors need to opt in for now until it becomes standard
+        enable_blink_cycle = false;
+        if (root.isMember("custom_blink_cycle")) {
+            enable_blink_cycle = root["custom_blink_cycle"].asBool();
         }
     }
 

@@ -23,6 +23,7 @@
 #include "save_file.h"
 #include "skybox.h"
 #include "sound_init.h"
+#include "saturn/saturn_textures.h"
 
 #define TOAD_STAR_1_REQUIREMENT 12
 #define TOAD_STAR_2_REQUIREMENT 25
@@ -361,7 +362,7 @@ Gfx *geo_switch_mario_eyes(s32 callContext, struct GraphNode *node, UNUSED Mat4 
     s16 blinkFrame;
 
     if (callContext == GEO_CONTEXT_RENDER) {
-        if (bodyState->eyeState == 0) {
+        if (bodyState->eyeState == 0 || force_blink == true) {
             blinkFrame = ((switchCase->numCases * 32 + gAreaUpdateCounter) >> 1) & 0x1F;
             if (blinkFrame < 7) {
                 switchCase->selectedCase = gMarioBlinkAnimation[blinkFrame];

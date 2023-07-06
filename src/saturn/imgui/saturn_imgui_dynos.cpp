@@ -94,6 +94,8 @@ float this_face_angle;
 
 bool has_copy_mario;
 
+bool last_model_had_model_eyes;
+
 /*
 Sets Mario's global colors from the CC editor color values.
 */
@@ -274,6 +276,32 @@ void expression_preview(const char* filename) {
     //}
 }
 
+void blink_cycle_preview(std::string label, int index, std::string eye_path, int eye_index) {
+    string preview_path;
+    if (index == 1) preview_path = blink_eye_1;
+    else if (index == 2) preview_path = blink_eye_2;
+    else if (index == 3) preview_path = blink_eye_3;
+    if (preview_path != "") preview_path = preview_path.substr(6, preview_path.size()) + ".png";
+    
+    if (ImGui::SmallButton(label.c_str())) {
+        saturn_set_model_blink_eye(eye_index, index, eye_path);
+    }
+
+    if (ImGui::IsItemHovered() && preview_path != "") {
+        ImGui::BeginTooltip();
+        // ImageTest
+        if (last_preview_name != preview_path) {
+            expression_preview(preview_path.c_str());
+            last_preview_name = preview_path;
+        } else {
+            ImGui::Image((void*)(intptr_t)global_expression_preview, ImVec2(global_sample_ratio * 37, 37));
+            ImGui::SameLine();
+        }
+
+        ImGui::EndTooltip();
+    }
+}
+
 void handle_cc_box(const char* name, const char* mainName, const char* shadeName, ImVec4* colorValue, ImVec4* shadeColorValue, string id) {
     string nameStr = name;
     if (nameStr != "") {
@@ -387,80 +415,86 @@ void sdynos_imgui_menu() {
         std::transform(ccSearchLower.begin(), ccSearchLower.end(), ccSearchLower.begin(),
             [](unsigned char c){ return std::tolower(c); });
 
-        ImGui::BeginChild("###menu_cc_selector", ImVec2(208, 100), true);
-        if (model_cc_array.size() > 0 && current_model_data.cc_support && !has_open_any_model_cc) {
-            ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-            if (ImGui::TreeNode((ui_mfolder_name + "###model_cc_header").c_str())) {
-                for (int n = 0; n < model_cc_array.size(); n++) {
-                    const bool is_selected = (current_mcc_id == n);
-                    cc_name = model_cc_array[n].substr(0, model_cc_array[n].size() - 3);
+        ImGui::BeginChild("###menu_cc_selector", ImVec2(-FLT_MIN, 100), true);
+        if (any_packs_selected) {
+            if (model_cc_array.size() > 0 && current_model_data.cc_support && !has_open_any_model_cc) {
+                ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+                if (ImGui::TreeNode((ui_mfolder_name + "###model_cc_header").c_str())) {
+                    for (int n = 0; n < model_cc_array.size(); n++) {
+                        const bool is_selected = (current_mcc_id == n);
+                        cc_name = model_cc_array[n].substr(0, model_cc_array[n].size() - 3);
 
-                    // If we're searching, only include CCs with the search keyword in the name
-                    // Also convert to lowercase
-                    if (ccSearchLower != "") {
-                        string nameLower = cc_name;
-                        std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(),
-                            [](unsigned char c1){ return std::tolower(c1); });
+                        // If we're searching, only include CCs with the search keyword in the name
+                        // Also convert to lowercase
+                        if (ccSearchLower != "") {
+                            string nameLower = cc_name;
+                            std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(),
+                                [](unsigned char c1){ return std::tolower(c1); });
 
-                        if (nameLower.find(ccSearchLower) == string::npos) {
-                            continue;
+                            if (nameLower.find(ccSearchLower) == string::npos) {
+                                continue;
+                            }
                         }
-                    }
 
-                    string label = cc_name;
-                    if (model_cc_array[n] == "../default.gs")
-                        label = ui_mfolder_name;
+                        string label = cc_name;
+                        if (model_cc_array[n] == "../default.gs")
+                            label = ui_mfolder_name;
 
-                    if (ImGui::Selectable((ICON_FK_USER " " + cc_name).c_str(), is_selected)) {
-                        current_mcc_id = n;
-                        current_cc_id = -1;
-                        set_cc_from_model(ui_mfolder_path + "/colorcodes/" + cc_name + ".gs");
-                        set_editor_from_global_cc(label);
-                    }
-
-                    if (ImGui::BeginPopupContextItem()) {
-                        ImGui::Text("%s.gs", cc_name.c_str());
-                        imgui_bundled_tooltip(("/dynos/packs/" + label + "/colorcodes/" + cc_name + ".gs").c_str());
-                        if (cc_name != "../default") {
-                            if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
-                                delete_model_cc_file(cc_name, label);
-                                ImGui::CloseCurrentPopup();
-                            } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                        if (ImGui::Selectable((ICON_FK_USER " " + cc_name).c_str(), is_selected)) {
+                            current_mcc_id = n;
+                            current_cc_id = -1;
+                            set_cc_from_model(ui_mfolder_path + "/colorcodes/" + cc_name + ".gs");
+                            set_editor_from_global_cc(label);
+                            ui_model_gameshark = ui_gameshark;
+                            last_model_cc_address = ui_model_gameshark;
                         }
-                        ImGui::Separator();
-                        if (cc_spark_support) {
-                            if (ImGui::Button("SPARKILIZE###cc_context_sparkilize")) {
-                                current_mcc_id = n;
-                                current_cc_id = -1;
-                                set_cc_from_model(ui_mfolder_path + "/colorcodes/" + cc_name + ".gs");
-                                set_editor_from_global_cc(label);
 
-                                uiShirtColor = uiHatColor;
-                                uiShirtShadeColor = uiHatShadeColor;
-                                uiShouldersColor= uiHatColor;
-                                uiShouldersShadeColor = uiShirtShadeColor;
-                                uiArmsColor = uiHatColor;
-                                uiArmsShadeColor = uiShirtShadeColor;
-                                uiOverallsBottomColor = uiOverallsColor;
-                                uiOverallsBottomShadeColor = uiOverallsShadeColor;
-                                uiLegTopColor = uiOverallsColor;
-                                uiLegTopShadeColor = uiOverallsShadeColor;
-                                uiLegBottomColor = uiOverallsColor;
-                                uiLegBottomShadeColor = uiOverallsShadeColor;
-                                apply_cc_from_editor();
-                            } ImGui::SameLine(); imgui_bundled_help_marker("Automatically converts a regular CC to a SPARK CC; WARNING: This will overwrite your active color code.");
-
+                        if (ImGui::BeginPopupContextItem()) {
+                            ImGui::Text("%s.gs", cc_name.c_str());
+                            imgui_bundled_tooltip(("/dynos/packs/" + label + "/colorcodes/" + cc_name + ".gs").c_str());
+                            if (cc_name != "../default") {
+                                if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
+                                    delete_model_cc_file(cc_name, label);
+                                    ImGui::CloseCurrentPopup();
+                                } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                            }
                             ImGui::Separator();
+                            if (cc_spark_support) {
+                                if (ImGui::Button("SPARKILIZE###cc_context_sparkilize")) {
+                                    current_mcc_id = n;
+                                    current_cc_id = -1;
+                                    set_cc_from_model(ui_mfolder_path + "/colorcodes/" + cc_name + ".gs");
+                                    set_editor_from_global_cc(label);
+                                    ui_model_gameshark = ui_gameshark;
+                                    last_model_cc_address = ui_model_gameshark;
+
+                                    uiShirtColor = uiHatColor;
+                                    uiShirtShadeColor = uiHatShadeColor;
+                                    uiShouldersColor= uiHatColor;
+                                    uiShouldersShadeColor = uiShirtShadeColor;
+                                    uiArmsColor = uiHatColor;
+                                    uiArmsShadeColor = uiShirtShadeColor;
+                                    uiOverallsBottomColor = uiOverallsColor;
+                                    uiOverallsBottomShadeColor = uiOverallsShadeColor;
+                                    uiLegTopColor = uiOverallsColor;
+                                    uiLegTopShadeColor = uiOverallsShadeColor;
+                                    uiLegBottomColor = uiOverallsColor;
+                                    uiLegBottomShadeColor = uiOverallsShadeColor;
+                                    apply_cc_from_editor();
+                                } ImGui::SameLine(); imgui_bundled_help_marker("Automatically converts a regular CC to a SPARK CC; WARNING: This will overwrite your active color code.");
+
+                                ImGui::Separator();
+                            }
+                            ImGui::TextDisabled("%i model color code(s)", model_cc_array.size());
+                            if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
+                                get_ccs_from_model(ui_mfolder_path);
+                                ImGui::CloseCurrentPopup();
+                            }
+                            ImGui::EndPopup();
                         }
-                        ImGui::TextDisabled("%i model color code(s)", model_cc_array.size());
-                        if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
-                            get_ccs_from_model(ui_mfolder_path);
-                            ImGui::CloseCurrentPopup();
-                        }
-                        ImGui::EndPopup();
                     }
+                    ImGui::TreePop();
                 }
-                ImGui::TreePop();
             }
         }
         for (int n = 0; n < cc_array.size(); n++) {
@@ -564,7 +598,7 @@ void sdynos_imgui_menu() {
         if (sDynosPacks.Count() <= 0) {
             ImGui::TextDisabled("No model packs found.\nPlace model folders in\n/dynos/packs/.");
         } else {
-            ImGui::BeginChild("###menu_model_selector", ImVec2(208, 125), true);
+            ImGui::BeginChild("###menu_model_selector", ImVec2(-FLT_MIN, 125), true);
             for (int i = 0; i < sDynosPacks.Count(); i++) {
                 u64 _DirSep1 = sDynosPacks[i]->mPath.find_last_of('\\');
                 u64 _DirSep2 = sDynosPacks[i]->mPath.find_last_of('/');
@@ -605,8 +639,10 @@ void sdynos_imgui_menu() {
                         current_exp_index[i] = 0;
                     }
 
-                    if (is_selected)
+                    if (is_selected && current_model_data.name != "")
                         std::cout << "Loaded " << current_model_data.name << " by " << current_model_data.author << std::endl;
+
+                    // Load model CCs
 
                     get_ccs_from_model(sDynosPacks[i]->mPath);
                     current_mcc_id = -1;
@@ -626,6 +662,16 @@ void sdynos_imgui_menu() {
                         }
                     }
 
+                    // Reset blink cycle (if it exists)
+                    if (using_model_eyes || last_model_had_model_eyes) {
+                        if (last_model_had_model_eyes) last_model_had_model_eyes = false;
+                        else if (!last_model_had_model_eyes && using_model_eyes) last_model_had_model_eyes = true;
+                        //blink_eye_1_index = -1; blink_eye_1 = "";
+                        blink_eye_2_index = -1; blink_eye_2 = "";
+                        blink_eye_3_index = -1; blink_eye_3 = "";
+                        force_blink = false;
+                    }
+
                     one_pack_selectable = false;
                     for (int k = 0; k < sDynosPacks.Count(); k++) {
                         if (DynOS_Opt_GetValue(String("dynos_pack_%d", k)))
@@ -640,6 +686,8 @@ void sdynos_imgui_menu() {
                             load_cc_file((char*)cc_array[current_cc_id].c_str());
                             set_editor_from_global_cc("Sample");
                         }
+
+                        // Reset model data
 
                         ModelData blank;
                         current_model_data = blank;
@@ -668,6 +716,8 @@ void sdynos_imgui_menu() {
                             }
                             set_cc_from_model(sDynosPacks[i]->mPath + "/colorcodes/" + cc_name + ".gs");
                             set_editor_from_global_cc("Sample");
+                            ui_model_gameshark = ui_gameshark;
+                            last_model_cc_address = ui_model_gameshark;
                         }
 
                         if (ImGui::BeginPopupContextItem()) {
@@ -688,6 +738,8 @@ void sdynos_imgui_menu() {
                                     }
                                     set_cc_from_model(sDynosPacks[i]->mPath + "/colorcodes/" + cc_name + ".gs");
                                     set_editor_from_global_cc("Sample");
+                                    ui_model_gameshark = ui_gameshark;
+                                    last_model_cc_address = ui_model_gameshark;
 
                                     uiShirtColor = uiHatColor;
                                     uiShirtShadeColor = uiHatShadeColor;
@@ -772,6 +824,7 @@ void sdynos_imgui_menu() {
 
         if (mario_exists) {
             ImGui::Text("Position");
+            ImGui::InputFloat3("###mario_set_pos", (float*)&gMarioState->pos);
             if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_mario")) {
                 vec3f_copy(stored_mario_pos, gMarioState->pos);
                 vec3s_copy(stored_mario_angle, gMarioState->faceAngle);
@@ -945,6 +998,7 @@ void sdynos_imgui_menu() {
         }
     } else {
         using_custom_eyes = false;
+        force_blink = false;
     }
 
     if (using_custom_eyes) {
@@ -956,7 +1010,7 @@ void sdynos_imgui_menu() {
             if (eye_array.size() > 0 && using_custom_eyes) {
                 ImGui::BeginChild("###menu_custom_eye_selector", ImVec2(-FLT_MIN, 150), true);
                 for (int n = 0; n < eye_array.size(); n++) {
-                    const bool is_eye_selected = (current_eye_index == n);
+                    const bool is_eye_selected = (current_eye_index == n || blink_eye_2_index == n || blink_eye_3_index == n);
                     string entry_name = eye_array[n];
                     string preview_name = entry_name;
                     if (eye_array[n].find("/") != string::npos)
@@ -997,6 +1051,31 @@ void sdynos_imgui_menu() {
                             }
                             ImGui::Separator();
                         }
+
+                        if (enable_blink_cycle || current_model_data.name == "") {
+                            ImGui::Separator();
+                            ImGui::Text(ICON_FK_EYE_SLASH " Add to Blink Cycle");
+                            blink_cycle_preview("1###blink_1", 1, current_eye_dir_path + entry_name, n); ImGui::SameLine();
+                            blink_cycle_preview("2###blink_2", 2, current_eye_dir_path + entry_name, n); ImGui::SameLine();
+                            blink_cycle_preview("3###blink_3", 3, current_eye_dir_path + entry_name, n);
+
+                            if (force_blink) {
+                                if (ImGui::Button(ICON_FK_ERASER " Reset###reset_blink")) {
+                                    // Reset blink cycle (if it exists)
+                                    blink_eye_2_index = -1; blink_eye_2 = "";
+                                    blink_eye_3_index = -1; blink_eye_3 = "";
+                                    force_blink = false;
+                                }
+                            }
+
+                            /*if (cycle_blink_disabled && force_blink) {
+                                ImGui::BeginDisabled();
+                                ImGui::TextWrapped("ERROR: It appears this model does not support custom blink cycles.\nIf you are a model author, please refer to the GitHub wiki for setup instructions.");
+                                ImGui::EndDisabled();
+                            }*/
+                        }
+
+                        ImGui::Separator();
                         ImGui::TextDisabled("%i eye texture(s)", eye_array.size());
                         if (ImGui::Button(ICON_FK_UNDO " Refresh###refresh_v_eyes")) {
                             saturn_load_eye_folder(current_eye_dir_path);
@@ -1024,6 +1103,7 @@ void sdynos_imgui_menu() {
             if (current_model_data.expressions.size() >= 1) ImGui::Separator();
         }
     } else {
+        force_blink = false;
         if (current_model_data.expressions.size() >= 1) ImGui::Separator();
     }
 
@@ -1049,12 +1129,13 @@ void sdynos_imgui_menu() {
                 ImGui::BeginChild(("###menu_custom_%s", expression.name.c_str()), ImVec2(-FLT_MIN, 75), true);
                 for (int n = 0; n < expression.textures.size(); n++) {
                     string entry_name = expression.textures[n];
-                    bool is_selected = (current_exp_index[i] == n);
+                    bool is_selected = (current_exp_index[i] == n || blink_eye_2_index == n || blink_eye_3_index == n);
 
                     if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
                         gfx_precache_textures();
                         current_exp_index[i] = n;
                         saturn_set_model_texture(i, expression.path + expression.textures[n]);
+                        saturn_set_model_blink_eye(i, 1, expression.path + expression.textures[n]);
                     }
                     if (entry_name.find(".png") != string::npos && configEditorExpressionPreviews) {
                         if (ImGui::IsItemHovered()) {
@@ -1083,11 +1164,30 @@ void sdynos_imgui_menu() {
                                 for (int i = 0; i < 8; i++) {
                                     current_exp_index[i] = 0;
                                 }
+                                // Reset blink cycle (if it exists)
+                                blink_eye_2_index = -1; blink_eye_2 = "";
+                                blink_eye_3_index = -1; blink_eye_3 = "";
+                                force_blink = false;
                                 ImGui::CloseCurrentPopup();
                             } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
                         }
-                        ImGui::Separator();
 
+                        ImGui::Separator();
+                        ImGui::Text(ICON_FK_EYE_SLASH " Add to Blink Cycle");
+                        blink_cycle_preview("1###blink_1", 1, expression.path + expression.textures[n], n); ImGui::SameLine();
+                        blink_cycle_preview("2###blink_2", 2, expression.path + expression.textures[n], n); ImGui::SameLine();
+                        blink_cycle_preview("3###blink_3", 3, expression.path + expression.textures[n], n);
+
+                        if (force_blink) {
+                            if (ImGui::Button(ICON_FK_ERASER " Reset###reset_blink")) {
+                                // Reset blink cycle (if it exists)
+                                blink_eye_2_index = -1; blink_eye_2 = "";
+                                blink_eye_3_index = -1; blink_eye_3 = "";
+                                force_blink = false;
+                            }
+                        }
+
+                        ImGui::Separator();
                         ImGui::TextDisabled("%i eye texture(s)", expression.textures.size());
                         if (ImGui::Button(ICON_FK_UNDO " Refresh###refresh_m_eyes")) {
                             saturn_load_model_data(current_folder_name);
