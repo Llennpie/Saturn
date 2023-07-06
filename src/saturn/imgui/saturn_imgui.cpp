@@ -61,7 +61,9 @@ extern "C" {
 #include "game/mario.h"
 #include "game/game_init.h"
 #include "game/camera.h"
+#include "game/level_update.h"
 #include "engine/level_script.h"
+#include "game/object_list_processor.h"
 }
 
 using namespace std;
@@ -172,13 +174,20 @@ ImGuiWindowFlags imgui_bundled_window_corner(int corner, int width, int height, 
 
 void imgui_update_theme() {
     ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->AddFontDefault();
+    ImGuiStyle* style = &ImGui::GetStyle();
 
-    ImFontConfig config;
-    config.MergeMode = true;
-    config.GlyphMinAdvanceX = 13.0f; // Use if you want to make the icon monospaced
+    float SCALE = 1.f;
+
+    ImFontConfig defaultConfig;
+    defaultConfig.SizePixels = 13.0f * SCALE;
+    io.Fonts->AddFontDefault(&defaultConfig);
+
+    ImFontConfig symbolConfig;
+    symbolConfig.MergeMode = true;
+    symbolConfig.SizePixels = 13.0f * SCALE;
+    symbolConfig.GlyphMinAdvanceX = 13.0f * SCALE; // Use if you want to make the icon monospaced
     static const ImWchar icon_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
-    io.Fonts->AddFontFromFileTTF("fonts/forkawesome-webfont.ttf", 13.0f, &config, icon_ranges);
+    io.Fonts->AddFontFromFileTTF("fonts/forkawesome-webfont.ttf", symbolConfig.SizePixels, &symbolConfig, icon_ranges);
 
     if (configEditorTheme == 0) {
         ImGui::StyleColorsDark();
@@ -191,6 +200,8 @@ void imgui_update_theme() {
     } else if (configEditorTheme == 4) {
         ImGui::StyleColorsClassic();
     }
+
+    style->ScaleAllSizes(SCALE);
 }
 
 // Set up ImGui
@@ -225,6 +236,10 @@ void saturn_imgui_handle_events(SDL_Event * event) {
                 limit_fps = !limit_fps;
                 configWindow.fps_changed = true;
             }
+
+            if(event->key.keysym.sym == SDLK_F5) {
+                imgui_update_theme();
+            }
         
         break;
     }
@@ -237,6 +252,8 @@ void saturn_imgui_update() {
     ImGui::NewFrame();
     
     windowStartHeight = (showStatusBars) ? 48 : 30;
+
+    camera_savestate_mult = 1.f;
 
     if (showMenu) {
         if (ImGui::BeginMainMenuBar()) {
@@ -258,6 +275,7 @@ void saturn_imgui_update() {
 
                 ImGui::EndMenu();
             }
+
             if (ImGui::BeginMenu("Camera")) {
                 windowCcEditor = false;
 
@@ -267,8 +285,32 @@ void saturn_imgui_update() {
                     ImGui::SameLine(200); ImGui::TextDisabled(translate_bind_to_name(configKeyFreeze[0]));
 
                     if (ImGui::BeginMenu("Options###camera_options")) {
+                        camera_savestate_mult = 0.f;
+                        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                        ImGui::BeginChild("###model_metadata", ImVec2(200, 90), true, ImGuiWindowFlags_NoScrollbar);
+                        ImGui::TextDisabled("pos %.f, %.f, %.f", gCamera->pos[0], gCamera->pos[1], gCamera->pos[2]);
+                        ImGui::TextDisabled("foc %.f, %.f, %.f", gCamera->focus[0], gCamera->focus[1], gCamera->focus[2]);
+                        if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_camera")) {
+                            saturn_copy_camera(copy_relative);
+                            if (copy_relative) saturn_paste_camera();
+                            has_copy_camera = 1;
+                        } ImGui::SameLine();
+                        if (!has_copy_camera) ImGui::BeginDisabled();
+                        if (ImGui::Button(ICON_FK_CLIPBOARD " Paste###paste_camera")) {
+                            if (has_copy_camera) saturn_paste_camera();
+                        }
+                        /*ImGui::Checkbox("Loop###camera_paste_forever", &paste_forever);
+                        if (paste_forever) {
+                            saturn_paste_camera();
+                        }*/
+                        if (!has_copy_camera) ImGui::EndDisabled();
+                        ImGui::Checkbox("Relative to Mario###camera_copy_relative", &copy_relative);
+
+                        ImGui::EndChild();
+                        ImGui::PopStyleVar();
+
                         ImGui::Text(ICON_FK_VIDEO_CAMERA " Speed");
-                        ImGui::PushItemWidth(100);
+                        ImGui::PushItemWidth(150);
                         ImGui::SliderFloat("Move", &camVelSpeed, 0.0f, 2.0f);
                         if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) { camVelSpeed = 1.f; }
                         ImGui::SliderFloat("Rotate", &camVelRSpeed, 0.0f, 2.0f);
@@ -276,7 +318,7 @@ void saturn_imgui_update() {
                         ImGui::PopItemWidth();
                         ImGui::Text(ICON_FK_KEYBOARD_O " Control Mode");
                         const char* mCameraSettings[] = { "Keyboard", "Keyboard/Gamepad (Old)", "Mouse (Experimental)" };
-                        ImGui::PushItemWidth(150);
+                        ImGui::PushItemWidth(200);
                         ImGui::Combo("###camera_mode", (int*)&configMCameraMode, mCameraSettings, IM_ARRAYSIZE(mCameraSettings));
                         ImGui::PopItemWidth();
                         if (configMCameraMode == 2) {
@@ -305,27 +347,9 @@ void saturn_imgui_update() {
                 if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) { camera_focus = 1.f; }
                 saturn_keyframe_float_popout(&camera_focus, "Follow", "k_focus");
                 ImGui::PopItemWidth();
-
-                ImGui::Separator();
-                ImGui::Text("Position");
-                if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_camera")) {
-                    saturn_copy_camera(copy_relative);
-                    if (copy_relative) saturn_paste_camera();
-                    has_copy_camera = 1;
-                } ImGui::SameLine();
-                if (!has_copy_camera) ImGui::BeginDisabled();
-                if (ImGui::Button(ICON_FK_CLIPBOARD " Paste###paste_camera")) {
-                    if (has_copy_camera) saturn_paste_camera();
-                }
-                ImGui::Checkbox("Loop###camera_paste_forever", &paste_forever);
-                if (paste_forever) {
-                    saturn_paste_camera();
-                }
-                if (!has_copy_camera) ImGui::EndDisabled();
-                ImGui::Checkbox("Relative###camera_copy_relative", &copy_relative);
-
                 ImGui::EndMenu();
             }
+
             if (ImGui::BeginMenu("Appearance")) {
                 sdynos_imgui_menu();
                 ImGui::EndMenu();
@@ -334,12 +358,18 @@ void saturn_imgui_update() {
                 imgui_machinima_quick_options();
                 ImGui::EndMenu();
             }
-            if ((gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma)) {
-                if (ImGui::MenuItem(ICON_FK_EYEDROPPER " CHROMA KEY", NULL, windowChromaKey)) {
-                    schroma_imgui_init();
-                    windowChromaKey = !windowChromaKey;
-                    windowCcEditor = false;
-                    windowAnimPlayer = false;
+
+            if (ImGui::MenuItem(ICON_FK_EYEDROPPER " CHROMA KEY", NULL, autoChroma)) {
+                schroma_imgui_init();
+                autoChroma = !autoChroma;
+                windowCcEditor = false;
+                windowAnimPlayer = false;
+
+                // Auto-chroma
+                // Allows any level to become a customizable chroma key stage
+                for (int i = 0; i < 960; i++) {
+                    if (!autoChroma) gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
+                    else gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
                 }
             }
             ImGui::EndMainMenuBar();
@@ -384,7 +414,9 @@ void saturn_imgui_update() {
                 if (gCurUser.username == NULL || gCurUser.username == "") {
                     ImGui::Text(ICON_FK_DISCORD " Loading...");
                 } else {
-                    ImGui::Text(ICON_FK_DISCORD " %s#%s", gCurUser.username, gCurUser.discriminator);
+                    std::string disc = gCurUser.discriminator;
+                    if (disc == "0") ImGui::Text(ICON_FK_DISCORD " @%s", gCurUser.username);
+                    else ImGui::Text(ICON_FK_DISCORD " %s#%s", gCurUser.username, gCurUser.discriminator);
                 }
                 ImGui::Separator();
             }
@@ -398,7 +430,7 @@ void saturn_imgui_update() {
         }
         if (windowCcEditor) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            ImGuiWindowFlags cce_flags = imgui_bundled_window_corner(0, 225, 0, 1.f);
+            ImGuiWindowFlags cce_flags = imgui_bundled_window_corner(0, 0, 0, 1.f);
             ImGui::Begin("Color Code Editor", &windowCcEditor, cce_flags);
             imgui_dynos_cc_editor();
             ImGui::End();
@@ -410,7 +442,7 @@ void saturn_imgui_update() {
         }
         if (windowAnimPlayer && mario_exists) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            ImGuiWindowFlags anim_flags = imgui_bundled_window_corner(0, 300, 0, 1.f);
+            ImGuiWindowFlags anim_flags = imgui_bundled_window_corner(0, 0, 0, 1.f);
             ImGui::Begin("Animation Mixtape", &windowAnimPlayer, anim_flags);
             imgui_machinima_animation_player();
             ImGui::End();
@@ -424,19 +456,15 @@ void saturn_imgui_update() {
             ImGui::End();
             ImGui::PopStyleColor();
         }
-        if (windowChromaKey && mario_exists && (gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma)) {
+        if (autoChroma && mario_exists) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGuiWindowFlags chroma_flags = imgui_bundled_window_corner(0, 0, 0, 1.f);
             if (chromaRequireReload) chroma_flags |= ImGuiWindowFlags_UnsavedDocument;
-            ImGui::Begin("Chroma Key Settings", &windowChromaKey, chroma_flags);
+            ImGui::Begin("Chroma Key Settings", &autoChroma, chroma_flags);
             schroma_imgui_update();
             ImGui::End();
             ImGui::PopStyleColor();
         }
-
-        // Disable chroma menu if the level is exited
-        if ((gCurrLevelNum == LEVEL_SA || configEditorAlwaysChroma) == false)
-            windowChromaKey = false;
 
         //ImGui::ShowDemoWindow();
     }
@@ -550,21 +578,21 @@ void saturn_keyframe_window(string value_name, string id) {
                         
                     } else {
                         k_frame_keys.push_back(k_current_frame);
-                        if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) k_v_float_keys.push_back(*active_key_float_value);
+                        if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) k_v_float_keys.push_back(floor(*active_key_float_value));
                         if (active_data_type == KEY_BOOL) k_v_bool_keys.push_back(*active_key_bool_value);
 
                         if (active_data_type == KEY_CAMERA) {
                             f32 dist;
                             s16 pitch, yaw;
                             vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
-                            k_c_pos1_keys.push_back(gCamera->pos[1]);
-                            k_c_pos2_keys.push_back(gCamera->pos[2]);
-                            k_c_foc0_keys.push_back(gCamera->focus[0]);
-                            k_c_foc1_keys.push_back(gCamera->focus[1]);
-                            k_c_foc2_keys.push_back(gCamera->focus[2]);
-                            k_c_rot0_keys.push_back(yaw);
-                            k_c_rot1_keys.push_back(pitch);
-                            std::cout << pitch << std::endl;
+                            k_c_pos1_keys.push_back(floor(gCamera->pos[1]));
+                            k_c_pos2_keys.push_back(floor(gCamera->pos[2]));
+                            k_c_foc0_keys.push_back(floor(gCamera->focus[0]));
+                            k_c_foc1_keys.push_back(floor(gCamera->focus[1]));
+                            k_c_foc2_keys.push_back(floor(gCamera->focus[2]));
+                            k_c_rot0_keys.push_back(floor(yaw));
+                            k_c_rot1_keys.push_back(floor(pitch));
+                            //std::cout << pitch << std::endl;
                         }
                         k_last_placed_frame = k_current_frame;
                     }
@@ -606,6 +634,7 @@ void saturn_keyframe_float_popout(float* edit_value, string value_name, string i
         active_key_float_value = edit_value;
         active_data_type = KEY_FLOAT;
     }
+    imgui_bundled_tooltip("Animate");
 
     if (active_key_float_value == edit_value && active_data_type == KEY_FLOAT) {
         if (k_popout_open) saturn_keyframe_window(value_name, id);
@@ -627,6 +656,7 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
         active_key_bool_value = edit_value;
         active_data_type = KEY_BOOL;
     }
+    imgui_bundled_tooltip("Animate");
 
     if (active_key_bool_value == edit_value && active_data_type == KEY_BOOL) {
         if (k_popout_open) saturn_keyframe_window(value_name, id);
@@ -649,6 +679,7 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         active_key_float_value = edit_value;
         active_data_type = KEY_CAMERA;
     }
+    imgui_bundled_tooltip("Animate");
 
     if (active_key_float_value == edit_value && active_data_type == KEY_CAMERA) {
         if (k_popout_open) saturn_keyframe_window(value_name, id);
