@@ -15,7 +15,7 @@ const GeoLayout bitfs_geo_0007A0[] = {
          GEO_OPEN_NODE(),
             GEO_CAMERA(14, 0, 2000, 6000, 0, -4500, -8000, geo_camera_main),
             GEO_OPEN_NODE(),
-               GEO_DISPLAY_LIST(LAYER_ALPHA, bitfs_seg7_dl_07002118),
+               GEO_LEVEL_DISPLAY_LIST(LAYER_ALPHA, bitfs_seg7_dl_07002118),
                GEO_ASM(   0, geo_movtex_pause_control),
                GEO_ASM(0x1901, geo_movtex_draw_nocolor),
                GEO_ASM(0x1902, geo_movtex_draw_nocolor),

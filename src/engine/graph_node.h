@@ -36,6 +36,7 @@
 #define GRAPH_NODE_TYPE_OBJECT                0x018
 #define GRAPH_NODE_TYPE_ANIMATED_PART         0x019
 #define GRAPH_NODE_TYPE_MCOMP_EXTRA           0x022
+#define GRAPH_NODE_TYPE_LEVEL_DISPLAY_LIST    0x023
 #define GRAPH_NODE_TYPE_BILLBOARD             0x01A
 #define GRAPH_NODE_TYPE_DISPLAY_LIST          0x01B
 #define GRAPH_NODE_TYPE_SCALE                 0x01C
@@ -423,6 +424,10 @@ struct GraphNodeBackground *init_graph_node_background(struct AllocOnlyPool *poo
 struct GraphNodeHeldObject *init_graph_node_held_object(struct AllocOnlyPool *pool, struct GraphNodeHeldObject *sp1c,
                                                         struct Object *objNode, Vec3s translation,
                                                         GraphNodeFunc nodeFunc, s32 playerIndex);
+
+struct GraphNodeDisplayList *init_graph_node_level_display_list(struct AllocOnlyPool *pool, struct GraphNodeDisplayList *graphNode,
+    s32 drawingLayer, void *displayList);
+    
 struct GraphNode *geo_add_child(struct GraphNode *parent, struct GraphNode *childNode);
 struct GraphNode *geo_remove_child(struct GraphNode *graphNode);
 struct GraphNode *geo_make_first_child(struct GraphNode *newFirstChild);

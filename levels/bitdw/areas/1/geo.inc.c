@@ -15,7 +15,7 @@ const GeoLayout geo_bitdw_000618[] = {
          GEO_OPEN_NODE(),
             GEO_CAMERA(14, 0, 2000, 6000, 0, 0, 0, geo_camera_main),
             GEO_OPEN_NODE(),
-               GEO_DISPLAY_LIST(LAYER_ALPHA, bitdw_seg7_dl_070020C8),
+               GEO_LEVEL_DISPLAY_LIST(LAYER_ALPHA, bitdw_seg7_dl_070020C8),
                GEO_RENDER_OBJ(),
                GEO_ASM(0, geo_envfx_main),
             GEO_CLOSE_NODE(),

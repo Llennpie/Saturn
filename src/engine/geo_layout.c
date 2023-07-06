@@ -47,6 +47,7 @@ GeoLayoutCommandProc GeoLayoutJumpTable[] = {
     geo_layout_cmd_node_culling_radius,
     geo_layout_cmd_dynamic_background,
     geo_layout_cmd_node_mcomp_extra,
+    geo_layout_cmd_node_level_display_list,
 };
 
 struct GraphNode gObjParentGraphNode;
@@ -263,14 +264,13 @@ void geo_layout_cmd_node_perspective(void) {
     GraphNodeFunc frustumFunc = NULL;
     s16 fov = cur_geo_cmd_s16(0x02);
     s16 near = cur_geo_cmd_s16(0x04);
+    s16 far = cur_geo_cmd_s16(0x06);
 
     // Near clipping
     // This is a double edged sword:
     // It allows Mario to get super close to the camera, but messes with the fog
     if (configEditorNearClipping || gCurrLevelNum == LEVEL_SA)
         near = 1;
-
-    s16 far = cur_geo_cmd_s16(0x06);
 
     if (cur_geo_cmd_u8(0x01) != 0) {
         // optional asm function
@@ -765,6 +765,23 @@ void geo_layout_cmd_node_mcomp_extra(void) {
     register_scene_graph_node(&graphNode->node);
 
     gGeoLayoutCommand += 0x0C << CMD_SIZE_SHIFT;
+}
+
+/*
+  0x23: Create level display list scene graph node
+   cmd+0x01: u8 drawingLayer
+   cmd+0x04: void *displayList
+*/
+void geo_layout_cmd_node_level_display_list(void) {
+    struct GraphNodeDisplayList *graphNode;
+    s32 drawingLayer = cur_geo_cmd_u8(0x01);
+    void *displayList = cur_geo_cmd_ptr(0x04);
+
+    graphNode = init_graph_node_level_display_list(gGraphNodePool, NULL, drawingLayer, displayList);
+
+    register_scene_graph_node(&graphNode->node);
+
+    gGeoLayoutCommand += 0x08 << CMD_SIZE_SHIFT;
 }
 
 // 0x1A: No operation

@@ -427,6 +427,25 @@ struct GraphNodeDisplayList *init_graph_node_display_list(struct AllocOnlyPool *
 }
 
 /**
+ * Allocates and returns a newly created level displaylist node
+ */
+struct GraphNodeDisplayList *init_graph_node_level_display_list(struct AllocOnlyPool *pool,
+                                                          struct GraphNodeDisplayList *graphNode,
+                                                          s32 drawingLayer, void *displayList) {
+    if (pool != NULL) {
+        graphNode = alloc_only_pool_alloc(pool, sizeof(struct GraphNodeDisplayList));
+    }
+
+    if (graphNode != NULL) {
+        init_scene_graph_node_links(&graphNode->node, GRAPH_NODE_TYPE_LEVEL_DISPLAY_LIST);
+        graphNode->node.flags = (drawingLayer << 8) | (graphNode->node.flags & 0xFF);
+        graphNode->displayList = displayList;
+    }
+
+    return graphNode;
+}
+
+/**
  * Allocates and returns a newly created shadow node
  */
 struct GraphNodeShadow *init_graph_node_shadow(struct AllocOnlyPool *pool,

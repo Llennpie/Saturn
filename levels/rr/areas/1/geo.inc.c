@@ -16,7 +16,7 @@ const GeoLayout rr_geo_0009D0[] = {
             GEO_CAMERA(14, 0, 2000, 6000, 0, 0, -8000, geo_camera_main),
             GEO_OPEN_NODE(),
                GEO_ASM(0, geo_exec_flying_carpet_timer_update),
-               GEO_DISPLAY_LIST(LAYER_ALPHA, dl_cruiser_metal_holes),
+               GEO_LEVEL_DISPLAY_LIST(LAYER_ALPHA, dl_cruiser_metal_holes),
                GEO_RENDER_OBJ(),
                GEO_ASM(0, geo_envfx_main),
             GEO_CLOSE_NODE(),

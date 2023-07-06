@@ -378,6 +378,16 @@
     CMD_PTR(displayList)
 
 /**
+ * 0x23: Create level display list that can be toggled
+ *   0x01: u8 drawingLayer
+ *   0x02-0x03: unused
+ *   0x04: u32 displayList: display list segmented address
+ */
+#define GEO_LEVEL_DISPLAY_LIST(layer, displayList) \
+    CMD_BBH(0x23, layer, 0x0000), \
+    CMD_PTR(displayList)
+
+/**
  * 0x1A: No operation
  */
 #define GEO_NOP_1A() \

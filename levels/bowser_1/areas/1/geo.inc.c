@@ -15,7 +15,7 @@ const GeoLayout bowser_1_geo_0000D0[] = {
          GEO_OPEN_NODE(),
             GEO_CAMERA(11, 0, 2000, 6000, 0, 0, 0, geo_camera_main),
             GEO_OPEN_NODE(),
-               GEO_DISPLAY_LIST(LAYER_OPAQUE, bowser_1_seg7_dl_07002768),
+               GEO_LEVEL_DISPLAY_LIST(LAYER_OPAQUE, bowser_1_seg7_dl_07002768),
                GEO_RENDER_OBJ(),
                GEO_ASM(0, geo_envfx_main),
             GEO_CLOSE_NODE(),

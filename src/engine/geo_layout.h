@@ -79,6 +79,7 @@ void geo_layout_cmd_node_generated(void);
 void geo_layout_cmd_node_background(void);
 void geo_layout_cmd_dynamic_background(void);
 void geo_layout_cmd_node_mcomp_extra(void);
+void geo_layout_cmd_node_level_display_list(void);
 void geo_layout_cmd_nop(void);
 void geo_layout_cmd_copy_view(void);
 void geo_layout_cmd_node_held_obj(void);

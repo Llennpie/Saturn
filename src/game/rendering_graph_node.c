@@ -709,7 +709,8 @@ static void geo_process_background(struct GraphNodeBackground *node) {
 
         gDPPipeSync(gfx++);
         gDPSetCycleType(gfx++, G_CYC_FILL);
-        gDPSetFillColor(gfx++, node->background);
+        if (autoChroma && gCurrLevelNum != LEVEL_SA) gDPSetFillColor(gfx++, gChromaKeyColor)
+        else gDPSetFillColor(gfx++, node->background);
         gDPFillRectangle(gfx++, GFX_DIMENSIONS_RECT_FROM_LEFT_EDGE(0), BORDER_HEIGHT,
         GFX_DIMENSIONS_RECT_FROM_RIGHT_EDGE(0) - 1, SCREEN_HEIGHT - BORDER_HEIGHT - 1);
         gDPPipeSync(gfx++);
@@ -826,6 +827,22 @@ static void geo_process_mcomp_extra(struct GraphNodeAnimatedPart *node) {
         if (node->node.children != NULL) {
             geo_process_node_and_siblings(node->node.children);
         }
+    }
+}
+
+/**
+ * Process a display list node. It draws a display list without first pushing
+ * a transformation on the stack, so all transformations are inherited from the
+ * parent node. It processes its children if it has them.
+ */
+static void geo_process_level_display_list(struct GraphNodeDisplayList *node) {
+    if (autoChroma) return;
+
+    if (node->displayList != NULL) {
+        geo_append_display_list(node->displayList, node->node.flags >> 8);
+    }
+    if (node->node.children != NULL) {
+        geo_process_node_and_siblings(node->node.children);
     }
 }
 
@@ -1384,6 +1401,9 @@ void geo_process_node_and_siblings(struct GraphNode *firstNode) {
                         break;
                     case GRAPH_NODE_TYPE_MCOMP_EXTRA:
                         geo_process_mcomp_extra((struct GraphNodeAnimatedPart *) curGraphNode);
+                        break;
+                    case GRAPH_NODE_TYPE_LEVEL_DISPLAY_LIST:
+                        geo_process_level_display_list((struct GraphNodeDisplayList *) curGraphNode);
                         break;
                     case GRAPH_NODE_TYPE_BILLBOARD:
                         geo_process_billboard((struct GraphNodeBillboard *) curGraphNode);
