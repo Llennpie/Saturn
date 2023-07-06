@@ -17,6 +17,7 @@ bool mario_exists;
 bool camera_frozen;
 float camera_speed = 0.0f;
 float camera_focus = 1.f;
+float camera_savestate_mult = 1.f;
 bool camera_fov_smooth = false;
 
 bool camera_view_enabled;
@@ -102,6 +103,8 @@ bool has_set_initial_k_frames;
 std::string model_details;
 std::string cc_details;
 bool is_cc_editing;
+
+bool autoChroma;
 
 extern "C" {
 #include "game/camera.h"
@@ -222,17 +225,17 @@ void saturn_update() {
     }
 
     if (!keyframe_playing && !camera_frozen) {
-        gLakituState.focHSpeed = camera_focus * 0.8f;
-        gLakituState.focVSpeed = camera_focus * 0.3f;
-        gLakituState.posHSpeed = camera_focus * 0.3f;
-        gLakituState.posVSpeed = camera_focus * 0.3f;
+        gLakituState.focHSpeed = camera_focus * camera_savestate_mult * 0.8f;
+        gLakituState.focVSpeed = camera_focus * camera_savestate_mult * 0.3f;
+        gLakituState.posHSpeed = camera_focus * camera_savestate_mult * 0.3f;
+        gLakituState.posVSpeed = camera_focus * camera_savestate_mult * 0.3f;
     }
 
     camera_default_fov = camera_fov + 5.0f;
 
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
-    if (configEditorAlwaysChroma || gCurrLevelNum == LEVEL_SA) {
+    if (gCurrLevelNum == LEVEL_SA || autoChroma) {
         if (!is_chroma_keying) is_chroma_keying = true;
     }
 
@@ -246,7 +249,7 @@ void saturn_update() {
         //enable_dust_particles = false;
         //configHUD = false;
     //}
-    if (gCurrLevelNum != LEVEL_SA && !configEditorAlwaysChroma) {
+    if (gCurrLevelNum != LEVEL_SA && !autoChroma) {
         if (!is_chroma_keying) is_chroma_keying = false;
         // Called once when exiting Chroma Key Stage
         //enable_shadows = prev_quicks[0];
@@ -308,10 +311,10 @@ void saturn_update() {
         k_current_frame = (uint32_t)(mcam_timer / 10);
 
         // Prevents smoothing for sharper, more consistent panning
-        gLakituState.focHSpeed = 10.f * camera_focus * 0.8f;
-        gLakituState.focVSpeed = 10.f * camera_focus * 0.3f;
-        gLakituState.posHSpeed = 10.f * camera_focus * 0.3f;
-        gLakituState.posVSpeed = 10.f * camera_focus * 0.3f;
+        gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
+        gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
+        gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
+        gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
 
         auto it1 = std::find(k_frame_keys.begin(), k_frame_keys.end(), k_current_frame);
         if (it1 != k_frame_keys.end()) {
@@ -348,6 +351,7 @@ void saturn_update() {
                 k_distance_between = k_frame_keys.at(k_last_passed_index + 1) - k_current_frame;
                 if (active_data_type == KEY_FLOAT)          k_static_increase_value = key_increase_val(k_v_float_keys);
                 if (active_data_type == KEY_CAMERA) {
+                    k_static_increase_value = key_increase_val(k_v_float_keys);
                     k_c_pos1_incr = key_increase_val(k_c_pos1_keys);
                     k_c_pos2_incr = key_increase_val(k_c_pos2_keys);
                     k_c_foc0_incr = key_increase_val(k_c_foc0_keys);
@@ -355,7 +359,7 @@ void saturn_update() {
                     k_c_foc2_incr = key_increase_val(k_c_foc2_keys);
                     k_c_rot0_incr = key_increase_val(k_c_rot0_keys);
                     k_c_rot1_incr = key_increase_val(k_c_rot1_keys);
-                    std::cout << "camera working" << std::endl;
+                    //std::cout << "camera working" << std::endl;
                 }
             }
         } else {
@@ -378,14 +382,14 @@ void saturn_update() {
         }
     }
 
-    if (camera_frozen && k_current_frame == 0 && k_popout_open) {
+    if (camera_frozen && k_current_frame == 0 && k_popout_open && !keyframe_playing) {
         if (active_data_type == KEY_CAMERA) {
-            k_v_float_keys[0] = gCamera->pos[0];
-            k_c_pos1_keys[0] = gCamera->pos[1];
-            k_c_pos2_keys[0] = gCamera->pos[2];
-            k_c_foc0_keys[0] = gCamera->focus[0];
-            k_c_foc1_keys[0] = gCamera->focus[1];
-            k_c_foc2_keys[0] = gCamera->focus[2];
+            k_v_float_keys[0] = floor(gCamera->pos[0]);
+            k_c_pos1_keys[0] = floor(gCamera->pos[1]);
+            k_c_pos2_keys[0] = floor(gCamera->pos[2]);
+            k_c_foc0_keys[0] = floor(gCamera->focus[0]);
+            k_c_foc1_keys[0] = floor(gCamera->focus[1]);
+            k_c_foc2_keys[0] = floor(gCamera->focus[2]);
         }
     }
 
@@ -491,13 +495,13 @@ bool was_relative;
 
 void saturn_copy_camera(bool relative) {
     if (relative) {
-        pos_relative[0] = gCamera->pos[0] - gMarioState->pos[0];
-        pos_relative[1] = gCamera->pos[1] - gMarioState->pos[1];
-        pos_relative[2] = gCamera->pos[2] - gMarioState->pos[2];
+        pos_relative[0] = floor(gCamera->pos[0] - gMarioState->pos[0]);
+        pos_relative[1] = floor(gCamera->pos[1] - gMarioState->pos[1]);
+        pos_relative[2] = floor(gCamera->pos[2] - gMarioState->pos[2]);
 
-        foc_relative[0] = gCamera->focus[0] - gMarioState->pos[0];
-        foc_relative[1] = gCamera->focus[1] - gMarioState->pos[1];
-        foc_relative[2] = gCamera->focus[2] - gMarioState->pos[2];
+        foc_relative[0] = floor(gCamera->focus[0] - gMarioState->pos[0]);
+        foc_relative[1] = floor(gCamera->focus[1] - gMarioState->pos[1]);
+        foc_relative[2] = floor(gCamera->focus[2] - gMarioState->pos[2]);
     } else {
         vec3f_copy(stored_camera_pos, gCamera->pos);
         vec3f_copy(stored_camera_focus, gCamera->focus);
@@ -507,12 +511,12 @@ void saturn_copy_camera(bool relative) {
 
 void saturn_paste_camera() {
     if (was_relative) {
-        stored_camera_pos[0] = gMarioState->pos[0] + pos_relative[0];
-        stored_camera_pos[1] = gMarioState->pos[1] + pos_relative[1];
-        stored_camera_pos[2] = gMarioState->pos[2] + pos_relative[2];
-        stored_camera_focus[0] = gMarioState->pos[0] + foc_relative[0];
-        stored_camera_focus[1] = gMarioState->pos[1] + foc_relative[1];
-        stored_camera_focus[2] = gMarioState->pos[2] + foc_relative[2];
+        stored_camera_pos[0] = floor(gMarioState->pos[0] + pos_relative[0]);
+        stored_camera_pos[1] = floor(gMarioState->pos[1] + pos_relative[1]);
+        stored_camera_pos[2] = floor(gMarioState->pos[2] + pos_relative[2]);
+        stored_camera_focus[0] = floor(gMarioState->pos[0] + foc_relative[0]);
+        stored_camera_focus[1] = floor(gMarioState->pos[1] + foc_relative[1]);
+        stored_camera_focus[2] = floor(gMarioState->pos[2] + foc_relative[2]);
     }
     machinimaCopying = 1;
 }

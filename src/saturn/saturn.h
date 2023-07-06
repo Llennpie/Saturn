@@ -13,6 +13,7 @@ extern bool mario_exists;
 extern bool camera_frozen;
 extern float camera_speed;
 extern float camera_focus;
+extern float camera_savestate_mult;
 extern bool camera_fov_smooth;
 
 extern bool camera_view_enabled;
@@ -60,6 +61,8 @@ extern u16 gChromaKeyBackground;
 extern int mcam_timer;
 
 extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
+
+extern bool autoChroma;
 
 #ifdef __cplusplus
 #include <string>
