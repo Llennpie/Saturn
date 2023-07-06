@@ -207,6 +207,8 @@ void imgui_machinima_quick_options() {
             if (current_slevel_index != 0) enable_shadows = true;
             else enable_shadows = false;
 
+            autoChroma = false;
+
             switch (current_slevel_index) {
                 case 0:
                     DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, 0);
@@ -418,7 +420,7 @@ void imgui_machinima_animation_player() {
     // Metadata
     if (is_custom_anim && custom_anim_index != -1) {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-        ImGui::BeginChild("###anim_metadata", ImVec2(290, 45), true, ImGuiWindowFlags_NoScrollbar);
+        ImGui::BeginChild("###anim_metadata", ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 3), true, ImGuiWindowFlags_NoScrollbar);
         ImGui::Text(current_canim_name.c_str());
         ImGui::TextDisabled(("@ " + current_canim_author).c_str());
         ImGui::EndChild();

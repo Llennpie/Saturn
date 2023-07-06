@@ -346,7 +346,9 @@ static s32 act_water_idle(struct MarioState *m) {
         val = 0x30000;
     }
 
-    common_idle_step(m, MARIO_ANIM_WATER_IDLE, val);
+    if (!is_anim_playing)
+        common_idle_step(m, MARIO_ANIM_WATER_IDLE, val);
+        
     return FALSE;
 }
 

@@ -59,7 +59,7 @@ ColorTemplate sparkColorOverallsBottom      {255, 127, 0,   0,   255, 127};
 ColorTemplate sparkColorLegTop              {255, 127, 0,   0,   127, 64 };
 ColorTemplate sparkColorLegBottom           {127, 64,  0,   0,   255, 127};
 
-ColorTemplate chromaColor                   {0,   0,   255, 127, 0,   0  };
+ColorTemplate chromaColor                   {0,   0,   255, 255, 0,   0  };
 
 // Color Codes
 
