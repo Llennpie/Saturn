@@ -303,7 +303,7 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
         //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
         //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
-        ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);
-        imgui_bundled_tooltip("Allows the usage of CHROMA KEY features outside of the paired stage; Useful only for models and custom-compiled levels.");
+        //ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);
+        //imgui_bundled_tooltip("Allows the usage of CHROMA KEY features outside of the paired stage; Useful only for models and custom-compiled levels.");
     }
 }
