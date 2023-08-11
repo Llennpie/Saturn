@@ -13,6 +13,7 @@
 #include "saturn/saturn_textures.h"
 #include "saturn/saturn_animation_ids.h"
 #include "saturn/saturn_animations.h"
+#include "saturn/saturn_obj_def.h"
 #include "saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
 #include "pc/controller/controller_keyboard.h"
@@ -34,6 +35,8 @@ extern "C" {
 #include "game/game_init.h"
 #include "src/game/envfx_snow.h"
 #include "src/game/interaction.h"
+#include "include/behavior_data.h"
+#include "game/object_helpers.h"
 }
 
 using namespace std;
@@ -46,6 +49,11 @@ std::map<std::pair<int, std::string>, int> current_anim_map = sanim_movement;
 std::string anim_preview_name = "RUNNING";
 int current_sanim_group_index = 0;
 int current_slevel_index = 1;
+Vec3f obj_pos;
+int obj_rot[3];
+int obj_beh_params[4];
+int obj_model;
+int obj_beh;
 
 int current_level_sel = 0;
 void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
@@ -226,6 +234,59 @@ void imgui_machinima_quick_options() {
                     warp_to(levelList[current_slevel_index]);
                     break;
             }
+        }
+    }
+    if (mario_exists) {
+        ImGui::Separator();
+        if (ImGui::BeginMenu("Spawn Object")) {
+            ImGui::Text("Position");
+            ImGui::SameLine();
+            ImGui::InputFloat3("###obj_set_pos", (float*)&obj_pos);
+            ImGui::Text("Rotation");
+            ImGui::SameLine();
+            ImGui::InputInt3("###obj_set_rot", (int*)&obj_rot);
+            if (ImGui::Button("Copy Mario")) {
+                vec3f_copy(obj_pos, gMarioState->pos);
+                obj_rot[0] = gMarioState->faceAngle[0];
+                obj_rot[1] = gMarioState->faceAngle[1];
+                obj_rot[2] = gMarioState->faceAngle[2];
+            }
+            ImGui::Separator();
+            ImGui::Text("Model");
+            if (ImGui::BeginCombo("###obj_model", obj_models[obj_model].first.c_str())) {
+                for (int i = 0; i < IM_ARRAYSIZE(obj_models); i++) {
+                    bool selected = obj_model == i;
+                    if (ImGui::Selectable(obj_models[i].first.c_str())) obj_model = i;
+                    if (selected) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::Text("Behavior");
+            if (ImGui::BeginCombo("###obj_beh", obj_behaviors[obj_beh].first.c_str())) {
+                for (int i = 0; i < IM_ARRAYSIZE(obj_behaviors); i++) {
+                    bool selected = obj_beh == i;
+                    if (ImGui::Selectable(obj_behaviors[i].first.c_str())) obj_beh = i;
+                    if (selected) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::Text("Behavior Parameters");
+            ImGui::InputInt4("###obj_beh_params", obj_beh_params);
+            ImGui::Separator();
+            if (ImGui::Button("Spawn Object")) {
+                Object* obj = spawn_object(gMarioState->marioObj, obj_models[obj_model].second, obj_behaviors[obj_beh].second);
+                obj->oPosX = obj_pos[0];
+                obj->oPosY = obj_pos[1];
+                obj->oPosZ = obj_pos[2];
+                obj->oHomeX = obj_pos[0];
+                obj->oHomeY = obj_pos[1];
+                obj->oHomeZ = obj_pos[2];
+                obj->oFaceAnglePitch = obj_rot[0];
+                obj->oFaceAngleYaw = obj_rot[1];
+                obj->oFaceAngleRoll = obj_rot[2];
+                obj->oBehParams = ((obj_beh_params[0] & 0xFF) << 24) | ((obj_beh_params[1] & 0xFF) << 16) | ((obj_beh_params[2] & 0xFF) << 8) | (obj_beh_params[3] & 0xFF);
+            }
+            ImGui::EndMenu();
         }
     }
     ImGui::Separator();
