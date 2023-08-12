@@ -73,7 +73,7 @@ namespace ImGui {
 
 	static float getKeyframePositionX(uint32_t frame, ImGuiNeoSequencerInternalData& context) {
 		const auto perFrameWidth = getPerFrameWidth(context);
-		return (float)(frame - context.OffsetFrame) * perFrameWidth;
+		return (float)(frame - context.StartFrame) * perFrameWidth;
 	}
 
 	static float getWorkTimelineWidth(ImGuiNeoSequencerInternalData& context) {
@@ -109,8 +109,7 @@ namespace ImGui {
 				timelineXmin + context.Size.x - context.ValuesWidth
 		};
 
-		if (!ItemAdd(pointerRect, 0))
-			return;
+		ItemAdd(pointerRect, 0);
 
 		context.CurrentFrameColor = GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_FramePointer);
 
@@ -144,7 +143,10 @@ namespace ImGui {
 			}
 		}
 
-		if (IsItemClicked() && !context.HoldingCurrentFrame) {
+        ImRect topBarArea = {context.TopBarStartCursor + ImVec2{ GetStyle().FramePadding.x + context.ValuesWidth, GetStyle().FramePadding.y }, context.TopBarStartCursor + context.TopBarSize };
+		ImVec2 mousePos = GetMousePos();
+
+		if (IsMouseDown(ImGuiMouseButton_Left) && mousePos.x >= topBarArea.Min.x && mousePos.y >= topBarArea.Min.y && mousePos.x < topBarArea.Max.x && mousePos.y < topBarArea.Max.y && !context.HoldingCurrentFrame) {
 			context.HoldingCurrentFrame = true;
 			context.CurrentFrameColor = GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_FramePointerPressed);
 		}

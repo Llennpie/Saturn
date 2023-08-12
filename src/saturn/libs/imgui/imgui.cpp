@@ -4188,6 +4188,16 @@ void ImGui::UpdateMouseWheel()
     }
 }
 
+float ImGui::GetMouseScrollX() {
+    ImGuiContext& g = *GImGui;
+    return g.IO.MouseWheelH;
+}
+
+float ImGui::GetMouseScrollY() {
+    ImGuiContext& g = *GImGui;
+    return g.IO.MouseWheel;
+}
+
 // The reason this is exposed in imgui_internal.h is: on touch-based system that don't have hovering, we want to dispatch inputs to the right target (imgui vs imgui+app)
 void ImGui::UpdateHoveredWindowAndCaptureFlags()
 {

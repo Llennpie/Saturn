@@ -69,10 +69,12 @@ bool keyframe_playing;
 bool k_popout_open;
 int mcam_timer = 0;
 int k_current_frame = 0;
+int k_curr_curve_type = 0;
 
 std::vector<uint32_t> k_frame_keys = {0};
 std::vector<float> k_v_float_keys = {0.f};
 std::vector<bool> k_v_bool_keys = {false};
+std::vector<InterpolationCurve> k_t_curve_keys = {InterpolationCurve::LINEAR};
 
 int k_last_passed_index = 0;
 int k_distance_between;
@@ -300,96 +302,59 @@ void saturn_update() {
     // Keyframes
 
     if (keyframe_playing) {
-        if (mcam_timer < (60 * 10)) {
-            mcam_timer++;
-        } else {
-            mcam_timer = 0;
-        }
-    }
-
-    if (keyframe_playing) {
-        k_current_frame = (uint32_t)(mcam_timer / 10);
+        mcam_timer++;
+        k_current_frame = (uint32_t)mcam_timer;
 
         // Prevents smoothing for sharper, more consistent panning
         gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
         gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
         gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
         gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
-
-        auto it1 = std::find(k_frame_keys.begin(), k_frame_keys.end(), k_current_frame);
-        if (it1 != k_frame_keys.end()) {
-            // Runs when current frame is on a keyframe
-            k_last_passed_index = (it1 - k_frame_keys.begin());
-            if (active_data_type == KEY_BOOL)           *active_key_bool_value = k_v_bool_keys.at(k_last_passed_index);
-            if (k_frame_keys.size() - 1 == k_last_passed_index) {
-                // Sequencer reached the last keyframe
-                if (k_loop) {
-                    k_last_passed_index = 0;
-                    mcam_timer = 0;
-                    k_current_frame = 0;
-
-                    if (active_data_type == KEY_FLOAT)      *active_key_float_value = k_v_float_keys[0];
-                    if (active_data_type == KEY_CAMERA) {
-                        *active_key_float_value = k_v_float_keys[0];
-                        mCameraKeyPos[0] = k_v_float_keys[0];
-                        mCameraKeyPos[1] = k_c_pos1_keys[0];
-                        mCameraKeyPos[2] = k_c_pos2_keys[0];
-                        mCameraKeyFoc[0] = k_c_foc0_keys[0];
-                        mCameraKeyFoc[1] = k_c_foc1_keys[0];
-                        mCameraKeyFoc[2] = k_c_foc2_keys[0];
-                        mCameraKeyYaw = k_c_rot0_keys[0];
-                        mCameraKeyPitch = k_c_rot1_keys[0];
-                    }
-                } else {
-                    keyframe_playing = false;
-
-                    if (active_data_type == KEY_FLOAT)      *active_key_float_value = k_v_float_keys.at(k_last_passed_index);
-                    if (active_data_type == KEY_BOOL)       *active_key_bool_value = k_v_bool_keys.at(k_last_passed_index);
-                }
-            } else {
-                k_current_distance = 0;
-                k_distance_between = k_frame_keys.at(k_last_passed_index + 1) - k_current_frame;
-                if (active_data_type == KEY_FLOAT)          k_static_increase_value = key_increase_val(k_v_float_keys);
-                if (active_data_type == KEY_CAMERA) {
-                    k_static_increase_value = key_increase_val(k_v_float_keys);
-                    k_c_pos1_incr = key_increase_val(k_c_pos1_keys);
-                    k_c_pos2_incr = key_increase_val(k_c_pos2_keys);
-                    k_c_foc0_incr = key_increase_val(k_c_foc0_keys);
-                    k_c_foc1_incr = key_increase_val(k_c_foc1_keys);
-                    k_c_foc2_incr = key_increase_val(k_c_foc2_keys);
-                    k_c_rot0_incr = key_increase_val(k_c_rot0_keys);
-                    k_c_rot1_incr = key_increase_val(k_c_rot1_keys);
-                    //std::cout << "camera working" << std::endl;
-                }
-            }
-        } else {
-            // Runs when we are between keyframes
-            k_current_distance = k_frame_keys.at(k_last_passed_index + 1) - k_current_frame;
+        
+        // Get the keyframe to interpolate from
+        int keyframe = 0;
+        for (int i = 0; i < k_frame_keys.size(); i++) {
+            if (k_current_frame < k_frame_keys[i]) break;
+            keyframe = i;
         }
 
+        // Stop/loop if reached the end
+        bool last = keyframe + 1 == k_frame_keys.size();
+        if (last) {
+            if (k_loop) mcam_timer = 0;
+            else keyframe_playing = false;
+            keyframe--; // Assign values from final keyframe
+        }
+
+        // Interpolate, formulas from easings.net
+        float x = (mcam_timer - k_frame_keys[keyframe]) / (float)(k_frame_keys[keyframe + 1] - k_frame_keys[keyframe]);
+        if (last) x = 1;
+        else if (k_t_curve_keys[keyframe] == InterpolationCurve::SINE) x = -(cosf(3.141592f * x) - 1) / 2;
+        else if (k_t_curve_keys[keyframe] == InterpolationCurve::QUADRATIC) x = x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
+        else if (k_t_curve_keys[keyframe] == InterpolationCurve::CUBIC) x = x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
+
+        if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) *active_key_float_value = (k_v_float_keys[keyframe + 1] - k_v_float_keys[keyframe]) * x + k_v_float_keys[keyframe];
+        if (active_data_type == KEY_BOOL) *active_key_bool_value = x == 1 ? k_v_bool_keys[keyframe + 1] : k_v_bool_keys[keyframe];
         if (active_data_type == KEY_CAMERA) {
-            mCameraKeyPos[0] += k_static_increase_value / 10;
-            mCameraKeyPos[1] += k_c_pos1_incr / 10;
-            mCameraKeyPos[2] += k_c_pos2_incr / 10;
-            mCameraKeyFoc[0] += k_c_foc0_incr / 10;
-            mCameraKeyFoc[1] += k_c_foc1_incr / 10;
-            mCameraKeyFoc[2] += k_c_foc2_incr / 10;
-            mCameraKeyYaw += k_c_rot0_incr / 10;
-            mCameraKeyPitch += k_c_rot1_incr / 10;
-        } else {
-            // Set the variable
-            if (active_data_type == KEY_FLOAT)              *active_key_float_value += k_static_increase_value / 10;
+            mCameraKeyPos[0] = *active_key_float_value;
+            mCameraKeyPos[1] = (k_c_pos1_keys[keyframe + 1] - k_c_pos1_keys[keyframe]) * x + k_c_pos1_keys[keyframe];
+            mCameraKeyPos[2] = (k_c_pos2_keys[keyframe + 1] - k_c_pos2_keys[keyframe]) * x + k_c_pos2_keys[keyframe];
+            mCameraKeyFoc[0] = (k_c_foc0_keys[keyframe + 1] - k_c_foc0_keys[keyframe]) * x + k_c_foc0_keys[keyframe];
+            mCameraKeyFoc[1] = (k_c_foc1_keys[keyframe + 1] - k_c_foc1_keys[keyframe]) * x + k_c_foc1_keys[keyframe];
+            mCameraKeyFoc[2] = (k_c_foc2_keys[keyframe + 1] - k_c_foc2_keys[keyframe]) * x + k_c_foc2_keys[keyframe];
+            mCameraKeyYaw = (k_c_rot0_keys[keyframe + 1] - k_c_rot0_keys[keyframe]) * x + k_c_rot0_keys[keyframe];
+            mCameraKeyPitch = (k_c_rot1_keys[keyframe + 1] - k_c_rot1_keys[keyframe]) * x + k_c_rot1_keys[keyframe];
         }
     }
 
     if (camera_frozen && k_current_frame == 0 && k_popout_open && !keyframe_playing) {
         if (active_data_type == KEY_CAMERA) {
-            k_v_float_keys[0] = floor(gCamera->pos[0]);
-            k_c_pos1_keys[0] = floor(gCamera->pos[1]);
-            k_c_pos2_keys[0] = floor(gCamera->pos[2]);
-            k_c_foc0_keys[0] = floor(gCamera->focus[0]);
-            k_c_foc1_keys[0] = floor(gCamera->focus[1]);
-            k_c_foc2_keys[0] = floor(gCamera->focus[2]);
+            k_v_float_keys[0] = gCamera->pos[0];
+            k_c_pos1_keys[0] = gCamera->pos[1];
+            k_c_pos2_keys[0] = gCamera->pos[2];
+            k_c_foc0_keys[0] = gCamera->focus[0];
+            k_c_foc1_keys[0] = gCamera->focus[1];
+            k_c_foc2_keys[0] = gCamera->focus[2];
         }
     }
 
