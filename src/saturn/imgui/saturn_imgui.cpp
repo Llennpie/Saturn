@@ -94,6 +94,8 @@ bool copy_relative = true;
 
 bool paste_forever;
 
+int copiedKeyframeIndex = -1;
+
 // Bundled Components
 
 void imgui_bundled_tooltip(const char* text) {
@@ -269,7 +271,6 @@ void saturn_imgui_update() {
                 if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_COG " Settings",     NULL, windowSettings == true)) {
                     windowSettings = !windowSettings;
-                    k_popout_open = false;
                 }
                 //if (windowStats) imgui_bundled_window_reset("Stats", 250, 125, 10, windowStartHeight);
 
@@ -526,6 +527,10 @@ void saturn_keyframe_window(string value_name, string id) {
 
     ImGui::Separator();
 
+    auto it = std::find(k_frame_keys.begin(), k_frame_keys.end(), k_current_frame);
+    int key_index = -1;
+    if (it != k_frame_keys.end()) key_index = it - k_frame_keys.begin();
+
     ImGui::PushItemWidth(35);
     if (ImGui::InputInt("Frames", &endFrameText, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue)) {
         if (endFrameText >= 60) {
@@ -534,71 +539,130 @@ void saturn_keyframe_window(string value_name, string id) {
             endFrame = 60;
             endFrameText = 60;
         }
-    }
+    };
     ImGui::PopItemWidth();
+    ImGui::SameLine(180);
+    if (key_index == -1) ImGui::BeginDisabled();
+    if (ImGui::Button("Copy")) {
+        copiedKeyframeIndex = key_index;
+    }
+    if (key_index == -1) ImGui::EndDisabled();
+    ImGui::SameLine();
+    bool disabled = copiedKeyframeIndex == -1;
+    if (disabled) ImGui::BeginDisabled();
+    if (ImGui::Button("Clear")) {
+        copiedKeyframeIndex = -1;
+    }
+    if (disabled) ImGui::EndDisabled();
             
-    // Popout
-    if (ImGui::BeginNeoSequencer("Sequencer###k_sequencer", (uint32_t*)&k_current_frame, &startFrame, &endFrame, ImVec2(endFrame * 6, 0), ImGuiNeoSequencerFlags_HideZoom)) {
+    // Scrolling
+    int scroll = keyframe_playing ? (k_current_frame - startFrame) == 30 ? 1 : 0 : (int)(ImGui::GetMouseScrollY() * -2);
+    if (scroll >= 60) scroll = 59;
+    startFrame += scroll;
+    if (startFrame + 60 > endFrame) startFrame = endFrame - 60;
+    if (startFrame > endFrame) startFrame = 0;
+    uint32_t end = min(60, endFrame - startFrame) + startFrame;
+
+    // Sequencer
+    if (ImGui::BeginNeoSequencer("Sequencer###k_sequencer", (uint32_t*)&k_current_frame, &startFrame, &end, ImVec2((end - startFrame) * 6, 0), ImGuiNeoSequencerFlags_HideZoom)) {
         if (ImGui::BeginNeoTimeline(value_name.c_str(), k_frame_keys)) { ImGui::EndNeoTimeLine(); }
         if (active_data_type == KEY_CAMERA) if(ImGui::BeginNeoTimeline("Rotation", k_frame_keys)) { ImGui::EndNeoTimeLine(); }
+
         ImGui::EndNeoSequencer();
     }
 
     // UI Controls
     if (!keyframe_playing) {
-        if (k_current_frame != 0) {
-            if (std::find(k_frame_keys.begin(), k_frame_keys.end(), k_current_frame) != k_frame_keys.end()) {
-                // We are hovering over a keyframe
-                auto it = std::find(k_frame_keys.begin(), k_frame_keys.end(), k_current_frame);
-                if (it != k_frame_keys.end()) {
-                    int key_index = it - k_frame_keys.begin();
-                    if (ImGui::Button(ICON_FK_MINUS_SQUARE " Delete Keyframe###k_d_frame")) {
-                        // Delete Keyframe
-                        k_frame_keys.erase(k_frame_keys.begin() + key_index);
-                        if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) k_v_float_keys.erase(k_v_float_keys.begin() + key_index);
-                        if (active_data_type == KEY_BOOL) k_v_bool_keys.erase(k_v_bool_keys.begin() + key_index);
+        if (k_current_frame == 0) ImGui::BeginDisabled();
+        if (key_index != -1) {
+            // We are hovering over a keyframe
+            k_curr_curve_type = k_t_curve_keys[key_index];
+            if (ImGui::Button(ICON_FK_MINUS_SQUARE " Delete Keyframe###k_d_frame")) {
+                // Delete Keyframe
+                if (key_index == copiedKeyframeIndex) copiedKeyframeIndex = -1;
+                k_frame_keys.erase(k_frame_keys.begin() + key_index);
+                k_t_curve_keys.erase(k_t_curve_keys.begin() + key_index);
+                if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) k_v_float_keys.erase(k_v_float_keys.begin() + key_index);
+                if (active_data_type == KEY_BOOL) k_v_bool_keys.erase(k_v_bool_keys.begin() + key_index);
 
-                        if (active_data_type == KEY_CAMERA) {
-                            k_c_pos1_keys.erase(k_c_pos1_keys.begin() + key_index);
-                            k_c_pos2_keys.erase(k_c_pos2_keys.begin() + key_index);
-                            k_c_foc0_keys.erase(k_c_foc0_keys.begin() + key_index);
-                            k_c_foc1_keys.erase(k_c_foc1_keys.begin() + key_index);
-                            k_c_foc2_keys.erase(k_c_foc2_keys.begin() + key_index);
-                            k_c_rot0_keys.erase(k_c_rot0_keys.begin() + key_index);
-                            k_c_rot1_keys.erase(k_c_rot1_keys.begin() + key_index);
-                        }
-
-                        k_last_placed_frame = k_frame_keys[k_frame_keys.size() - 1];
-                    } ImGui::SameLine(); ImGui::Text("at %i", (int)k_current_frame);
+                if (active_data_type == KEY_CAMERA) {
+                    k_c_pos1_keys.erase(k_c_pos1_keys.begin() + key_index);
+                    k_c_pos2_keys.erase(k_c_pos2_keys.begin() + key_index);
+                    k_c_foc0_keys.erase(k_c_foc0_keys.begin() + key_index);
+                    k_c_foc1_keys.erase(k_c_foc1_keys.begin() + key_index);
+                    k_c_foc2_keys.erase(k_c_foc2_keys.begin() + key_index);
+                    k_c_rot0_keys.erase(k_c_rot0_keys.begin() + key_index);
+                    k_c_rot1_keys.erase(k_c_rot1_keys.begin() + key_index);
                 }
-            } else {
-                // No keyframe here
-                if (ImGui::Button(ICON_FK_PLUS_SQUARE " Create Keyframe###k_c_frame")) {
-                    if (k_last_placed_frame > k_current_frame) {
-                        
-                    } else {
-                        k_frame_keys.push_back(k_current_frame);
-                        if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) k_v_float_keys.push_back(floor(*active_key_float_value));
-                        if (active_data_type == KEY_BOOL) k_v_bool_keys.push_back(*active_key_bool_value);
 
-                        if (active_data_type == KEY_CAMERA) {
-                            f32 dist;
-                            s16 pitch, yaw;
-                            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
-                            k_c_pos1_keys.push_back(floor(gCamera->pos[1]));
-                            k_c_pos2_keys.push_back(floor(gCamera->pos[2]));
-                            k_c_foc0_keys.push_back(floor(gCamera->focus[0]));
-                            k_c_foc1_keys.push_back(floor(gCamera->focus[1]));
-                            k_c_foc2_keys.push_back(floor(gCamera->focus[2]));
-                            k_c_rot0_keys.push_back(floor(yaw));
-                            k_c_rot1_keys.push_back(floor(pitch));
-                            //std::cout << pitch << std::endl;
-                        }
-                        k_last_placed_frame = k_current_frame;
-                    }
-                } ImGui::SameLine(); ImGui::Text("at %i", (int)k_current_frame);
-            }
+                k_last_placed_frame = k_frame_keys[k_frame_keys.size() - 1];
+            } ImGui::SameLine(); ImGui::Text("at %i", (int)k_current_frame);
         } else {
+            // No keyframe here
+            if (ImGui::Button(copiedKeyframeIndex == -1 ? (ICON_FK_PLUS_SQUARE " Create Keyframe###k_c_frame") : (ICON_FK_PLUS_SQUARE " Paste Keyframe###k_c_frame"))) {
+                bool beforeCopiedKeyframe = copiedKeyframeIndex == -1 ? false : k_current_frame < k_frame_keys[copiedKeyframeIndex];
+                k_frame_keys.push_back(k_current_frame);
+                k_t_curve_keys.push_back(copiedKeyframeIndex == -1 ? InterpolationCurve(k_curr_curve_type) : k_t_curve_keys[copiedKeyframeIndex]);
+                if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) k_v_float_keys.push_back(copiedKeyframeIndex == -1 ? floor(*active_key_float_value) : k_v_float_keys[copiedKeyframeIndex]);
+                if (active_data_type == KEY_BOOL) k_v_bool_keys.push_back(copiedKeyframeIndex == -1 ? *active_key_bool_value : k_v_bool_keys[copiedKeyframeIndex]);
+
+                if (active_data_type == KEY_CAMERA) {
+                    f32 dist;
+                    s16 pitch, yaw;
+                    vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+                    k_c_pos1_keys.push_back(copiedKeyframeIndex == -1 ? floor(gCamera->pos[1]) : k_c_pos1_keys[copiedKeyframeIndex]);
+                    k_c_pos2_keys.push_back(copiedKeyframeIndex == -1 ? floor(gCamera->pos[2]) : k_c_pos2_keys[copiedKeyframeIndex]);
+                    k_c_foc0_keys.push_back(copiedKeyframeIndex == -1 ? floor(gCamera->focus[0]) : k_c_foc0_keys[copiedKeyframeIndex]);
+                    k_c_foc1_keys.push_back(copiedKeyframeIndex == -1 ? floor(gCamera->focus[1]) : k_c_foc1_keys[copiedKeyframeIndex]);
+                    k_c_foc2_keys.push_back(copiedKeyframeIndex == -1 ? floor(gCamera->focus[2]) : k_c_foc2_keys[copiedKeyframeIndex]);
+                    k_c_rot0_keys.push_back(copiedKeyframeIndex == -1 ? floor(yaw) : k_c_rot0_keys[copiedKeyframeIndex]);
+                    k_c_rot1_keys.push_back(copiedKeyframeIndex == -1 ? floor(pitch) : k_c_rot1_keys[copiedKeyframeIndex]);
+                    //std::cout << pitch << std::endl;
+                }
+                k_last_placed_frame = k_current_frame;
+
+                if (beforeCopiedKeyframe) copiedKeyframeIndex++;
+
+                // Sort keyframes
+                for (int i = 0; i < k_frame_keys.size(); i++) {
+                    for (int j = i + 1; j < k_frame_keys.size(); j++) {
+                        if (k_frame_keys[i] < k_frame_keys[j]) continue;
+                        std::swap(k_frame_keys[i], k_frame_keys[j]);
+                        std::swap(k_t_curve_keys[i], k_t_curve_keys[j]);
+                        if (active_data_type == KEY_FLOAT || active_data_type == KEY_CAMERA) std::swap(k_v_float_keys[i], k_v_float_keys[j]);
+                        if (active_data_type == KEY_BOOL) {
+                            bool temp = k_v_bool_keys[i];
+                            k_v_bool_keys[i] = k_v_bool_keys[j];
+                            k_v_bool_keys[j] = temp;
+                        }
+                        if (active_data_type == KEY_CAMERA) {
+                            std::swap(k_c_pos1_keys[i], k_c_pos1_keys[j]);
+                            std::swap(k_c_pos2_keys[i], k_c_pos2_keys[j]);
+                            std::swap(k_c_foc0_keys[i], k_c_foc0_keys[j]);
+                            std::swap(k_c_foc1_keys[i], k_c_foc1_keys[j]);
+                            std::swap(k_c_foc2_keys[i], k_c_foc2_keys[j]);
+                            std::swap(k_c_rot0_keys[i], k_c_rot0_keys[j]);
+                            std::swap(k_c_rot1_keys[i], k_c_rot1_keys[j]);
+                        }
+                    }
+                }
+
+
+            } ImGui::SameLine(); ImGui::Text("at %i", (int)k_current_frame);
+        }
+        if (k_current_frame == 0) ImGui::EndDisabled();
+        if (ImGui::BeginCombo("###interp_type", curveNames[k_curr_curve_type].c_str())) {
+            for (int i = 0; i < IM_ARRAYSIZE(curveNames); i++) {
+                bool selected = k_curr_curve_type == i;
+                if (ImGui::Selectable(curveNames[i].c_str())) {
+                    k_curr_curve_type = i;
+                    if (key_index >= 0) k_t_curve_keys[key_index] = InterpolationCurve(i);
+                }
+                if (selected) ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+        if (k_current_frame == 0) {
             // On frame 0
             if (active_data_type == KEY_CAMERA)
                 ImGui::Text("(Setting initial value)");

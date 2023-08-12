@@ -67,16 +67,33 @@ extern bool autoChroma;
 #ifdef __cplusplus
 #include <string>
 #include <vector>
+#include <map>
+
+enum InterpolationCurve {
+    LINEAR,
+    SINE,
+    QUADRATIC,
+    CUBIC
+};
+inline std::string curveNames[] = {
+    "Linear",
+    "Sine",
+    "Quadratic",
+    "Cubic"
+};
+
 extern bool k_popout_open;
 extern bool keyframe_playing;
 extern float* active_key_float_value;
 extern bool* active_key_bool_value;
 extern s32 active_data_type;
 extern int k_current_frame;
+extern int k_curr_curve_type;
 
 extern std::vector<uint32_t> k_frame_keys;
 extern std::vector<float> k_v_float_keys;
 extern std::vector<bool> k_v_bool_keys;
+extern std::vector<InterpolationCurve> k_t_curve_keys;
 
 extern int k_last_passed_index;
 extern int k_distance_between;
