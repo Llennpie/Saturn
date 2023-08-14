@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include <vector>
 #include <cstdint>
+#include "saturn/saturn.h"
 
 typedef int ImGuiNeoSequencerFlags;
 typedef int ImGuiNeoSequencerCol;
@@ -53,6 +54,11 @@ enum ImGuiNeoSequencerCol_
     ImGuiNeoSequencerCol_Keyframe,
     ImGuiNeoSequencerCol_KeyframeHovered,
     ImGuiNeoSequencerCol_KeyframePressed,
+    ImGuiNeoSequencerCol_KeyframeLinear,
+    ImGuiNeoSequencerCol_KeyframeSine,
+    ImGuiNeoSequencerCol_KeyframeQuadratic,
+    ImGuiNeoSequencerCol_KeyframeCubic,
+    ImGuiNeoSequencerCol_KeyframeWait,
     ImGuiNeoSequencerCol_FramePointerLine,
 
     ImGuiNeoSequencerCol_ZoomBarBg,
@@ -95,7 +101,7 @@ namespace ImGui {
     IMGUI_API bool BeginNeoGroup(const char* label, bool* open = nullptr);
     IMGUI_API void EndNeoGroup();
 
-    IMGUI_API bool BeginNeoTimeline(const char* label,uint32_t ** keyframes, uint32_t keyframeCount, bool * open = nullptr, ImGuiNeoTimelineFlags flags = ImGuiNeoTimelineFlags_None);
+    IMGUI_API bool BeginNeoTimeline(const char* label,Keyframe ** keyframes, uint32_t keyframeCount, bool * open = nullptr, ImGuiNeoTimelineFlags flags = ImGuiNeoTimelineFlags_None);
     IMGUI_API void EndNeoTimeLine(); //Call only when BeginNeoTimeline() returns true!!
 
     // Sets currently selected timeline inside BeginNeoSequencer scope
@@ -109,7 +115,7 @@ namespace ImGui {
 
 #ifdef __cplusplus
     // C++ helper
-    IMGUI_API bool BeginNeoTimeline(const char* label,std::vector<uint32_t> & keyframes ,bool * open = nullptr);
+    IMGUI_API bool BeginNeoTimeline(const char* label,std::vector<Keyframe> keyframes ,bool * open = nullptr);
 #endif
 }
 

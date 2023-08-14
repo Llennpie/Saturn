@@ -73,13 +73,36 @@ enum InterpolationCurve {
     LINEAR,
     SINE,
     QUADRATIC,
-    CUBIC
+    CUBIC,
+    WAIT
 };
 inline std::string curveNames[] = {
     "Linear",
     "Sine",
     "Quadratic",
-    "Cubic"
+    "Cubic",
+    "Wait"
+};
+
+class Keyframe {
+    public:
+    float value;
+    InterpolationCurve curve;
+    int position;
+    std::string timelineID;
+    Keyframe(int _position, InterpolationCurve _curve) {
+        position = _position;
+        curve = _curve;
+    }
+};
+
+class KeyframeTimeline {
+    public:
+    float* fdest = nullptr;
+    bool* bdest = nullptr;
+    std::string name;
+    bool disabled;
+    bool round;
 };
 
 extern bool k_popout_open;
@@ -88,12 +111,10 @@ extern float* active_key_float_value;
 extern bool* active_key_bool_value;
 extern s32 active_data_type;
 extern int k_current_frame;
+extern int k_previous_frame;
 extern int k_curr_curve_type;
 
-extern std::vector<uint32_t> k_frame_keys;
-extern std::vector<float> k_v_float_keys;
-extern std::vector<bool> k_v_bool_keys;
-extern std::vector<InterpolationCurve> k_t_curve_keys;
+extern std::map<std::string, std::pair<KeyframeTimeline, std::vector<Keyframe>>> k_frame_keys;
 
 extern int k_last_passed_index;
 extern int k_distance_between;
@@ -102,14 +123,6 @@ extern float k_static_increase_value;
 extern int k_last_placed_frame;
 extern bool k_loop;
 extern bool k_animating_camera;
-extern std::vector<float> k_c_pos1_keys;
-extern std::vector<float> k_c_pos2_keys;
-extern std::vector<float> k_c_foc0_keys;
-extern std::vector<float> k_c_foc1_keys;
-extern std::vector<float> k_c_foc2_keys;
-extern std::vector<float> k_c_rot0_keys;
-extern std::vector<float> k_c_rot1_keys;
-extern std::vector<float> k_c_rot2_keys;
 
 extern std::string model_details;
 extern std::string cc_details;
@@ -119,12 +132,17 @@ extern Vec3f stored_mario_pos;
 extern Vec3s stored_mario_angle;
 extern void saturn_copy_camera(bool);
 extern void saturn_paste_camera(void);
+extern bool saturn_keyframe_apply(std::string, int);
+extern bool saturn_keyframe_matches(std::string, int);
+
+extern double saturn_expression_encode();
+extern void saturn_expression_decode(double);
 
 extern "C" {
 #endif
     void saturn_update(void);
     void saturn_play_animation(MarioAnimID);
-    void saturn_play_keyframe(s32);
+    void saturn_play_keyframe();
     void saturn_print(const char*);
     const char* saturn_get_stage_name(int);
 #ifdef __cplusplus
