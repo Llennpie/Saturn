@@ -410,7 +410,9 @@ bool saturn_keyframe_matches(std::string id, int frame) {
         if (*timeline.bdest != value >= 1) return false;
     }
     if (timeline.fdest != nullptr) {
-        if ((timeline.round ? round(*timeline.fdest) : *timeline.fdest) != value) return false;
+        float destValue = (timeline.round ? round(*timeline.fdest) : *timeline.fdest);
+        float distance = abs(destValue - value);
+        if (distance > 0.01) return false;
     }
 
     return true;

@@ -612,6 +612,7 @@ void saturn_imgui_update() {
                 for (int i = 0; i < IM_ARRAYSIZE(curveNames); i++) {
                     if (ImGui::MenuItem(curveNames[i].c_str(), NULL, k_context_popout_keyframe.curve == InterpolationCurve(i))) {
                         (*keyframes)[index].curve = InterpolationCurve(i);
+                        k_previous_frame = -1;
                         k_context_popout_open = false;
                     }
                 }

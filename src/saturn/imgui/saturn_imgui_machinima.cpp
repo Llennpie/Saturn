@@ -288,10 +288,6 @@ void imgui_machinima_quick_options() {
             }
             ImGui::EndMenu();
         }
-        ImGui::Separator();
-        if (ImGui::BeginMenu("Dummy Players")) {
-            ImGui::EndMenu();
-        }
     }
     ImGui::Separator();
     ImGui::Checkbox("HUD", &configHUD);
