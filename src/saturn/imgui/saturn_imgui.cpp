@@ -246,6 +246,10 @@ void saturn_imgui_handle_events(SDL_Event * event) {
             if(event->key.keysym.sym == SDLK_F5) {
                 imgui_update_theme();
             }
+
+            if(event->key.keysym.sym == SDLK_F6) {
+                k_popout_open = !k_popout_open;
+            }
         
         break;
     }
