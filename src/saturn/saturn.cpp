@@ -351,13 +351,6 @@ float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyfra
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    // If there's only 1 keyframe, return its value
-    if (keyframes.size() == 1) {
-        *keyframe = 0;
-        *last = true;
-        return keyframes[0].value;
-    }
-
     // Get the keyframe to interpolate from
     for (int i = 0; i < keyframes.size(); i++) {
         if (frame < keyframes[i].position) break;
@@ -386,11 +379,15 @@ bool saturn_keyframe_apply(std::string id, int frame) {
 
     if (timeline.disabled) return true;
 
-    int keyframe = 0;
-    bool last = false;
-    float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-
-    float value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+    float value;
+    bool last = true;
+    if (keyframes.size() == 0) value = keyframes[0].value;
+    else {
+        int keyframe = 0;
+        last = false;
+        float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
+        value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+    }
     if (timeline.bdest != nullptr) *timeline.bdest = value >= 1;
     if (timeline.fdest != nullptr) *timeline.fdest = value;
 
@@ -402,11 +399,15 @@ bool saturn_keyframe_matches(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    int keyframe = 0;
-    bool last = false;
-    float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
+    float value;
+    if (keyframes.size() == 0) value = keyframes[0].value;
+    else {
+        int keyframe = 0;
+        bool last = false;
+        float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
 
-    float value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+    }
     if (timeline.bdest != nullptr) {
         if (*timeline.bdest != value >= 1) return false;
     }
