@@ -459,9 +459,8 @@ void saturn_imgui_update() {
                         k_frame_keys.erase("k_c_camera_pos0");
                         k_frame_keys.erase("k_c_camera_pos1");
                         k_frame_keys.erase("k_c_camera_pos2");
-                        k_frame_keys.erase("k_c_camera_foc0");
-                        k_frame_keys.erase("k_c_camera_foc1");
-                        k_frame_keys.erase("k_c_camera_foc2");
+                        k_frame_keys.erase("k_c_camera_yaw");
+                        k_frame_keys.erase("k_c_camera_pitch");
                     }
                 }
                 ImGui::Separator();
