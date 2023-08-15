@@ -64,7 +64,7 @@ extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 
 extern bool autoChroma;
 
-extern bool keyframe_playing;
+extern bool should_update_cam_from_keyframes;
 
 #ifdef __cplusplus
 #include <string>
@@ -114,6 +114,7 @@ extern s32 active_data_type;
 extern int k_current_frame;
 extern int k_previous_frame;
 extern int k_curr_curve_type;
+extern bool keyframe_playing;
 
 extern std::map<std::string, std::pair<KeyframeTimeline, std::vector<Keyframe>>> k_frame_keys;
 

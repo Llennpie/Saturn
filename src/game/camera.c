@@ -3391,7 +3391,8 @@ void update_camera(struct Camera *c) {
             //gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
 
             if (camera_frozen) {
-                if (keyframe_playing) {
+                if (should_update_cam_from_keyframes) {
+                    should_update_cam_from_keyframes = false;
                     vec3f_copy(c->pos, freezecamPos);
                     vec3f_set_dist_and_angle(c->pos, c->focus, 100, freezecamYaw, freezecamPitch);
                 }

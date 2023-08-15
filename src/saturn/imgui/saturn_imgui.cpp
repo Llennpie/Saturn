@@ -361,6 +361,7 @@ void saturn_keyframe_window() {
         ImGui::SetWindowFocus(windowLabel.c_str());
     }
 
+    should_update_cam_from_keyframes = should_update_cam_from_keyframes || keyframe_playing || k_current_frame != k_previous_frame;
     k_previous_frame = k_current_frame;
 }
 
@@ -744,12 +745,12 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         };
         k_popout_open = true;
         if (contains) {
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
                 k_frame_keys.erase(id + "_" + values[i].first.first);
             }
         }
         else { // Add the timeline
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
                 KeyframeTimeline timeline = KeyframeTimeline();
                 timeline.fdest = values[i].second;
                 timeline.name = value_name + " " + values[i].first.second;

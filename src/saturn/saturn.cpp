@@ -72,6 +72,8 @@ int k_current_frame = 0;
 int k_previous_frame = 0;
 int k_curr_curve_type = 0;
 
+bool should_update_cam_from_keyframes = false;
+
 std::map<std::string, std::pair<KeyframeTimeline, std::vector<Keyframe>>> k_frame_keys = {};
 
 int k_last_passed_index = 0;
