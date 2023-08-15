@@ -339,13 +339,13 @@ void saturn_keyframe_window() {
                 if ((*keyframes)[keyframeIndex].position == k_current_frame) {
                     Keyframe* keyframe = &(*keyframes)[keyframeIndex];
                     if (timeline.bdest != nullptr) (*keyframe).value = *timeline.bdest ? 1 : 0;
-                    if (timeline.fdest != nullptr) (*keyframe).value = timeline.round ? round(*timeline.fdest) : *timeline.fdest;
+                    if (timeline.fdest != nullptr) (*keyframe).value = *timeline.fdest;
                 }
                 else {
                     Keyframe keyframe = Keyframe(k_current_frame, (*keyframes)[keyframeIndex].curve);
                     keyframe.timelineID = entry.first;
                     if (timeline.bdest != nullptr) keyframe.value = *timeline.bdest ? 1 : 0;
-                    if (timeline.fdest != nullptr) keyframe.value = timeline.round ? round(*timeline.fdest) : *timeline.fdest;
+                    if (timeline.fdest != nullptr) keyframe.value = *timeline.fdest;
                     keyframes->push_back(keyframe);
                 }
                 
@@ -694,7 +694,7 @@ void saturn_keyframe_float_popout(float* edit_value, string value_name, string i
             KeyframeTimeline timeline = KeyframeTimeline();
             timeline.fdest = edit_value;
             timeline.name = value_name;
-            timeline.round = false;
+            timeline.precision = -2; // .01
             Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
             keyframe.value = *edit_value;
             keyframe.timelineID = id;
@@ -718,7 +718,7 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
             KeyframeTimeline timeline = KeyframeTimeline();
             timeline.bdest = edit_value;
             timeline.name = value_name;
-            timeline.round = false;
+            timeline.precision = -2; // .01
             Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
             keyframe.value = *edit_value ? 1 : 0;
             keyframe.timelineID = id;
@@ -736,12 +736,13 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
 
     ImGui::SameLine();
     if (ImGui::Button(buttonLabel.c_str())) {
-        std::pair<std::pair<std::string, std::string>, float*> values[] = {
-            std::make_pair(std::make_pair("pos0", "Pos X"), &freezecamPos[0]),
-            std::make_pair(std::make_pair("pos1", "Pos Y"), &freezecamPos[1]),
-            std::make_pair(std::make_pair("pos2", "Pos Z"), &freezecamPos[2]),
-            std::make_pair(std::make_pair("foc0", "Yaw"), &freezecamYaw),
-            std::make_pair(std::make_pair("foc1", "Pitch"), &freezecamPitch)
+        // ((id, name), (precision, value_ptr))
+        std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
+            std::make_pair(std::make_pair("pos0", "Pos X"), std::make_pair(0, &freezecamPos[0])),
+            std::make_pair(std::make_pair("pos1", "Pos Y"), std::make_pair(0, &freezecamPos[1])),
+            std::make_pair(std::make_pair("pos2", "Pos Z"), std::make_pair(0, &freezecamPos[2])),
+            std::make_pair(std::make_pair("yaw", "Yaw"), std::make_pair(2, &freezecamYaw)),
+            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(2, &freezecamPitch))
         };
         k_popout_open = true;
         if (contains) {
@@ -752,11 +753,11 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         else { // Add the timeline
             for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
                 KeyframeTimeline timeline = KeyframeTimeline();
-                timeline.fdest = values[i].second;
+                timeline.fdest = values[i].second.second;
                 timeline.name = value_name + " " + values[i].first.second;
-                timeline.round = true;
+                timeline.precision = values[i].second.first;
                 Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
-                keyframe.value = *values[i].second ? 1 : 0;
+                keyframe.value = *values[i].second.second;
                 keyframe.timelineID = id + "_" + values[i].first.first;
                 k_frame_keys.insert({ id + "_" + values[i].first.first, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
                 k_current_frame = 0;

@@ -384,7 +384,6 @@ bool saturn_keyframe_apply(std::string id, int frame) {
     float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
 
     float value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
-    if (timeline.round) value = round(value);
     if (timeline.bdest != nullptr) *timeline.bdest = value >= 1;
     if (timeline.fdest != nullptr) *timeline.fdest = value;
 
@@ -407,14 +406,12 @@ bool saturn_keyframe_matches(std::string id, int frame) {
     float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
 
     float value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
-    if (timeline.round) value = round(value);
     if (timeline.bdest != nullptr) {
         if (*timeline.bdest != value >= 1) return false;
     }
     if (timeline.fdest != nullptr) {
-        float destValue = (timeline.round ? round(*timeline.fdest) : *timeline.fdest);
-        float distance = abs(destValue - value);
-        if (distance > 0.01) return false;
+        float distance = abs(*timeline.fdest - value);
+        if (distance > pow(10, timeline.precision)) return false;
     }
 
     return true;

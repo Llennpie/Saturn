@@ -3394,14 +3394,14 @@ void update_camera(struct Camera *c) {
                 if (should_update_cam_from_keyframes) {
                     should_update_cam_from_keyframes = false;
                     vec3f_copy(c->pos, freezecamPos);
-                    vec3f_set_dist_and_angle(c->pos, c->focus, 100, freezecamYaw, freezecamPitch);
+                    vec3f_set_dist_and_angle(c->pos, c->focus, 100, freezecamPitch, freezecamYaw);
                 }
                 else {
                     float dist;
                     s16 yaw;
                     s16 pitch;
                     vec3f_copy(freezecamPos, c->pos);
-                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &yaw, &pitch);
+                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
                     freezecamYaw = yaw;
                     freezecamPitch = pitch;
                 }
