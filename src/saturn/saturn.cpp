@@ -387,12 +387,6 @@ bool saturn_keyframe_apply(std::string id, int frame) {
     if (timeline.bdest != nullptr) *timeline.bdest = value >= 1;
     if (timeline.fdest != nullptr) *timeline.fdest = value;
 
-    // Apply to camera
-    float dist = 0;
-    vec3f_copy(mCameraKeyPos, gCamera->pos);
-    vec3f_copy(mCameraKeyFoc, gCamera->focus);
-    vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &mCameraKeyPitch, &mCameraKeyYaw);
-
     return last;
 }
 
