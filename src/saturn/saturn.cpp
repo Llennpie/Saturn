@@ -351,6 +351,13 @@ float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyfra
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
+    // If there's only 1 keyframe, return its value
+    if (keyframes.size() == 1) {
+        *keyframe = 0;
+        *last = true;
+        return keyframes[0].value;
+    }
+
     // Get the keyframe to interpolate from
     for (int i = 0; i < keyframes.size(); i++) {
         if (frame < keyframes[i].position) break;

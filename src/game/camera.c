@@ -3409,9 +3409,6 @@ void update_camera(struct Camera *c) {
                     float dist;
                     s16 yaw;
                     s16 pitch;
-                    for (int i = 0; i < 3; i++) {
-                        freezecamPos[i] = floor(c->pos[i]);
-                    }
                     vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &yaw, &pitch);
                     freezecamYaw = yaw;
                     freezecamPitch = pitch;
