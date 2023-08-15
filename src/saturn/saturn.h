@@ -64,6 +64,8 @@ extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 
 extern bool autoChroma;
 
+extern bool keyframe_playing;
+
 #ifdef __cplusplus
 #include <string>
 #include <vector>
@@ -106,7 +108,6 @@ class KeyframeTimeline {
 };
 
 extern bool k_popout_open;
-extern bool keyframe_playing;
 extern float* active_key_float_value;
 extern bool* active_key_bool_value;
 extern s32 active_data_type;

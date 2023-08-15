@@ -736,12 +736,11 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
     ImGui::SameLine();
     if (ImGui::Button(buttonLabel.c_str())) {
         std::pair<std::pair<std::string, std::string>, float*> values[] = {
-            std::make_pair(std::make_pair("pos0", "Pos X"), &gCamera->pos[0]),
-            std::make_pair(std::make_pair("pos1", "Pos Y"), &gCamera->pos[1]),
-            std::make_pair(std::make_pair("pos2", "Pos Z"), &gCamera->pos[2]),
-            std::make_pair(std::make_pair("foc0", "Focus X"), &gCamera->focus[0]),
-            std::make_pair(std::make_pair("foc1", "Focus Y"), &gCamera->focus[1]),
-            std::make_pair(std::make_pair("foc2", "Focus Z"), &gCamera->focus[2])
+            std::make_pair(std::make_pair("pos0", "Pos X"), &freezecamPos[0]),
+            std::make_pair(std::make_pair("pos1", "Pos Y"), &freezecamPos[1]),
+            std::make_pair(std::make_pair("pos2", "Pos Z"), &freezecamPos[2]),
+            std::make_pair(std::make_pair("foc0", "Yaw"), &freezecamYaw),
+            std::make_pair(std::make_pair("foc1", "Pitch"), &freezecamPitch)
         };
         k_popout_open = true;
         if (contains) {

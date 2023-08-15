@@ -173,6 +173,10 @@ extern s32 gObjCutsceneDone;
 extern u32 gCutsceneObjSpawn;
 extern struct Camera *gCamera;
 
+Vec3f freezecamPos = { 0, 0, 0 };
+s16 freezecamYaw = 0;
+s16 freezecamPitch = 0;
+
 /**
  * Lakitu's position and focus.
  * @see LakituState
@@ -3106,10 +3110,8 @@ void update_camera(struct Camera *c) {
 
     find_mario_floor_and_ceil(&sMarioGeometry);
     gCheckingSurfaceCollisionsForCamera = TRUE;
-    if (!camera_frozen) {
-        vec3f_copy(c->pos, gLakituState.goalPos);
-        vec3f_copy(c->focus, gLakituState.goalFocus);
-    }
+    vec3f_copy(c->pos, gLakituState.goalPos);
+    vec3f_copy(c->focus, gLakituState.goalFocus);
 
     c->yaw = gLakituState.yaw;
     c->nextYaw = gLakituState.nextYaw;
@@ -3387,6 +3389,18 @@ void update_camera(struct Camera *c) {
             c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
             c->yaw = gCamera->nextYaw;
             //gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
+
+            if (camera_frozen) {
+                if (keyframe_playing) {
+                    vec3f_copy(c->pos, freezecamPos);
+                    vec3f_set_dist_and_angle(c->pos, c->focus, 100, freezecamYaw, freezecamPitch);
+                }
+                else {
+                    float dist;
+                    vec3f_copy(freezecamPos, c->pos);
+                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &freezecamPitch, &freezecamYaw);
+                }
+            }
         }
         else if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
             switch (c->mode) {
