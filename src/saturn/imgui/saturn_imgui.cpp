@@ -448,6 +448,17 @@ void saturn_imgui_update() {
                         ImGui::EndMenu();
                     }
                 }
+                else {
+                    bool contains = k_frame_keys.find("k_c_camera_pos0") != k_frame_keys.end();
+                    if (contains) {
+                        k_frame_keys.erase("k_c_camera_pos0");
+                        k_frame_keys.erase("k_c_camera_pos1");
+                        k_frame_keys.erase("k_c_camera_pos2");
+                        k_frame_keys.erase("k_c_camera_foc0");
+                        k_frame_keys.erase("k_c_camera_foc1");
+                        k_frame_keys.erase("k_c_camera_foc2");
+                    }
+                }
                 ImGui::Separator();
                 ImGui::PushItemWidth(100);
                 ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
@@ -687,6 +698,8 @@ void saturn_keyframe_float_popout(float* edit_value, string value_name, string i
             keyframe.value = *edit_value;
             keyframe.timelineID = id;
             k_frame_keys.insert({ id, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
+            k_current_frame = 0;
+            startFrame = 0;
         }
     }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
@@ -709,6 +722,8 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
             keyframe.value = *edit_value ? 1 : 0;
             keyframe.timelineID = id;
             k_frame_keys.insert({ id, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
+            k_current_frame = 0;
+            startFrame = 0;
         }
     }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
@@ -744,6 +759,8 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
                 keyframe.value = *values[i].second ? 1 : 0;
                 keyframe.timelineID = id + "_" + values[i].first.first;
                 k_frame_keys.insert({ id + "_" + values[i].first.first, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
+                k_current_frame = 0;
+                startFrame = 0;
             }
         }
     }
