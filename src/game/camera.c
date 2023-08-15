@@ -174,8 +174,8 @@ extern u32 gCutsceneObjSpawn;
 extern struct Camera *gCamera;
 
 Vec3f freezecamPos = { 0, 0, 0 };
-s16 freezecamYaw = 0;
-s16 freezecamPitch = 0;
+float freezecamYaw = 0;
+float freezecamPitch = 0;
 
 /**
  * Lakitu's position and focus.
@@ -3397,8 +3397,12 @@ void update_camera(struct Camera *c) {
                 }
                 else {
                     float dist;
+                    s16 yaw;
+                    s16 pitch;
                     vec3f_copy(freezecamPos, c->pos);
-                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &freezecamPitch, &freezecamYaw);
+                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &yaw, &pitch);
+                    freezecamYaw = yaw;
+                    freezecamPitch = pitch;
                 }
             }
         }
