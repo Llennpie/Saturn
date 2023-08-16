@@ -240,6 +240,9 @@ void saturn_imgui_handle_events(SDL_Event * event) {
     ImGui_ImplSDL2_ProcessEvent(event);
     switch (event->type){
         case SDL_KEYDOWN:
+            if(event->key.keysym.sym == SDLK_F3) {
+                saturn_play_keyframe();
+            }
             if(event->key.keysym.sym == SDLK_F4) {
                 limit_fps = !limit_fps;
                 configWindow.fps_changed = true;
@@ -364,31 +367,6 @@ void saturn_keyframe_window() {
     if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None) && accept_text_input == false) {
         ImGui::SetWindowFocus(windowLabel.c_str());
     }
-
-    if (camera_frozen) {
-        if (keyframe_playing || k_current_frame != k_previous_frame) {
-            should_update_cam_from_keyframes = false;
-            vec3f_copy(gCamera->pos, freezecamPos);
-            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
-        }
-        else {
-            float dist;
-            s16 yaw;
-            s16 pitch;
-            vec3f_copy(freezecamPos, gCamera->pos);
-            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
-            freezecamYaw = (float)yaw;
-            freezecamPitch = (float)pitch;
-        }
-        vec3f_copy(gLakituState.pos, gCamera->pos);
-        vec3f_copy(gLakituState.focus, gCamera->focus);
-        vec3f_copy(gLakituState.goalPos, gCamera->pos);
-        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
-        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
-        gLakituState.yaw = gCamera->yaw;
-    }
-
-    k_previous_frame = k_current_frame;
 }
 
 void saturn_imgui_update() {
@@ -677,6 +655,31 @@ void saturn_imgui_update() {
 
         //ImGui::ShowDemoWindow();
     }
+
+    if (camera_frozen) {
+        if (keyframe_playing || k_current_frame != k_previous_frame) {
+            should_update_cam_from_keyframes = false;
+            vec3f_copy(gCamera->pos, freezecamPos);
+            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
+        }
+        else {
+            float dist;
+            s16 yaw;
+            s16 pitch;
+            vec3f_copy(freezecamPos, gCamera->pos);
+            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+            freezecamYaw = (float)yaw;
+            freezecamPitch = (float)pitch;
+        }
+        vec3f_copy(gLakituState.pos, gCamera->pos);
+        vec3f_copy(gLakituState.focus, gCamera->focus);
+        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+        gLakituState.yaw = gCamera->yaw;
+    }
+
+    k_previous_frame = k_current_frame;
 
     is_cc_editing = windowCcEditor;
 

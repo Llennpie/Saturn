@@ -158,10 +158,6 @@ void saturn_update() {
                 else set_mario_action(gMarioState, ACT_IDLE, 0);
                 keyResetter = 0;
             }
-            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F3]) {
-                saturn_play_keyframe();
-                keyResetter = 0;
-            }
         }
         if (accept_text_input) {
             if (gPlayer1Controller->buttonPressed & U_JPAD) camera_frozen = !camera_frozen;
@@ -432,6 +428,8 @@ void saturn_play_animation(MarioAnimID anim) {
 }
 
 void saturn_play_keyframe() {
+    if (k_frame_keys.size() <= 1) return;
+
     if (!keyframe_playing) {
         k_last_passed_index = 0;
         k_distance_between = 0;
