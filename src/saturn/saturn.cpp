@@ -19,6 +19,7 @@ float camera_speed = 0.0f;
 float camera_focus = 1.f;
 float camera_savestate_mult = 1.f;
 bool camera_fov_smooth = false;
+bool is_camera_moving;
 
 bool camera_view_enabled;
 bool camera_view_moving;
@@ -413,7 +414,10 @@ bool saturn_keyframe_matches(std::string id, int frame) {
     }
     if (timeline.fdest != nullptr) {
         float distance = abs(*timeline.fdest - value);
-        if (distance > pow(10, timeline.precision)) return false;
+        if (distance > pow(10, timeline.precision)) {
+            if (id.find("cam") != string::npos) return !is_camera_moving;
+            else return false;
+        }
     }
 
     return true;

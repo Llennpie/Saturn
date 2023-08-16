@@ -308,19 +308,6 @@ void saturn_keyframe_window() {
         }
     };
     ImGui::PopItemWidth();
-
-    // Camera keyframe treatment (fuck you windows and sm64 camera system)
-    bool forceCreate = false;
-    bool show = false;
-    for (auto& entry : k_frame_keys) {
-        if (!entry.second.first.autoCreation) {
-            show = true;
-            break;
-        }
-    }
-    if (show) {
-        if (ImGui::Button(ICON_FK_PLUS_SQUARE " Create/Edit Camera Keyframe")) forceCreate = true;
-    }
             
     // Scrolling
     int scroll = keyframe_playing ? (k_current_frame - startFrame) == 30 ? 1 : 0 : (int)(ImGui::GetMouseScrollY() * -2);
@@ -347,7 +334,7 @@ void saturn_keyframe_window() {
             KeyframeTimeline timeline = entry.second.first;
             std::vector<Keyframe>* keyframes = &entry.second.second;
 
-            if ((k_previous_frame == k_current_frame && !saturn_keyframe_matches(entry.first, k_current_frame) && entry.second.first.autoCreation) || forceCreate) {
+            if (k_previous_frame == k_current_frame && !saturn_keyframe_matches(entry.first, k_current_frame)) {
                 // We create a keyframe here
                 int keyframeIndex = 0;
                 for (int i = 0; i < keyframes->size(); i++) {
@@ -371,7 +358,6 @@ void saturn_keyframe_window() {
             else saturn_keyframe_apply(entry.first, k_current_frame);
         }
     }
-
     ImGui::End();
 
     // Auto focus (use controls without clicking window first)
@@ -734,7 +720,6 @@ void saturn_keyframe_float_popout(float* edit_value, string value_name, string i
             timeline.fdest = edit_value;
             timeline.name = value_name;
             timeline.precision = -2; // .01
-            timeline.autoCreation = true;
             Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
             keyframe.value = *edit_value;
             keyframe.timelineID = id;
@@ -759,7 +744,6 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
             timeline.bdest = edit_value;
             timeline.name = value_name;
             timeline.precision = -2; // .01
-            timeline.autoCreation = true;
             Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
             keyframe.value = *edit_value ? 1 : 0;
             keyframe.timelineID = id;
@@ -771,19 +755,25 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
 void saturn_keyframe_camera_popout(string value_name, string id) {
-    bool contains = k_frame_keys.find(id + "_pos0") != k_frame_keys.end();
+    bool contains = k_frame_keys.find(id + "_cam_pos0") != k_frame_keys.end();
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
     ImGui::SameLine();
     if (ImGui::Button(buttonLabel.c_str())) {
+        float dist;
+        s16 pitch, yaw;
+        vec3f_copy(freezecamPos, gCamera->pos);
+        vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+        freezecamYaw = yaw;
+        freezecamPitch = pitch;
         // ((id, name), (precision, value_ptr))
         std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
-            std::make_pair(std::make_pair("pos0", "Pos X"), std::make_pair(0, &freezecamPos[0])),
-            std::make_pair(std::make_pair("pos1", "Pos Y"), std::make_pair(0, &freezecamPos[1])),
-            std::make_pair(std::make_pair("pos2", "Pos Z"), std::make_pair(0, &freezecamPos[2])),
-            std::make_pair(std::make_pair("yaw", "Yaw"), std::make_pair(2, &freezecamYaw)),
-            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(2, &freezecamPitch))
+            std::make_pair(std::make_pair("cam_pos0", "Pos X"), std::make_pair(0, &freezecamPos[0])),
+            std::make_pair(std::make_pair("cam_pos1", "Pos Y"), std::make_pair(0, &freezecamPos[1])),
+            std::make_pair(std::make_pair("cam_pos2", "Pos Z"), std::make_pair(0, &freezecamPos[2])),
+            std::make_pair(std::make_pair("cam_yaw", "Yaw"), std::make_pair(2, &freezecamYaw)),
+            std::make_pair(std::make_pair("cam_pitch", "Pitch"), std::make_pair(2, &freezecamPitch))
         };
         k_popout_open = true;
         if (contains) {
@@ -797,7 +787,6 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
                 timeline.fdest = values[i].second.second;
                 timeline.name = value_name + " " + values[i].first.second;
                 timeline.precision = values[i].second.first;
-                timeline.autoCreation = false;
                 Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
                 keyframe.value = *values[i].second.second;
                 keyframe.timelineID = id + "_" + values[i].first.first;

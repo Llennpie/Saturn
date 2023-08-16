@@ -15,6 +15,7 @@ extern float camera_speed;
 extern float camera_focus;
 extern float camera_savestate_mult;
 extern bool camera_fov_smooth;
+extern bool is_camera_moving;
 
 extern bool camera_view_enabled;
 extern bool camera_view_moving;
