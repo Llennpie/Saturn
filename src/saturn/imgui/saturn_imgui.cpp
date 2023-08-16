@@ -100,6 +100,8 @@ bool k_context_popout_open = false;
 Keyframe k_context_popout_keyframe = Keyframe(0, InterpolationCurve::LINEAR);
 ImVec2 k_context_popout_pos = ImVec2(0, 0);
 
+bool was_camera_frozen = false;
+
 // Bundled Components
 
 void imgui_bundled_tooltip(const char* text) {
@@ -475,16 +477,6 @@ void saturn_imgui_update() {
                         ImGui::EndMenu();
                     }
                 }
-                else {
-                    bool contains = k_frame_keys.find("k_c_camera_pos0") != k_frame_keys.end();
-                    if (contains) {
-                        k_frame_keys.erase("k_c_camera_pos0");
-                        k_frame_keys.erase("k_c_camera_pos1");
-                        k_frame_keys.erase("k_c_camera_pos2");
-                        k_frame_keys.erase("k_c_camera_yaw");
-                        k_frame_keys.erase("k_c_camera_pitch");
-                    }
-                }
                 ImGui::Separator();
                 ImGui::PushItemWidth(100);
                 ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
@@ -691,6 +683,15 @@ void saturn_imgui_update() {
     glUseProgram(0);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glUseProgram(last_program);
+
+    if (was_camera_frozen && !camera_frozen && k_frame_keys.find("k_c_camera_pos0") != k_frame_keys.end()) {
+        k_frame_keys.erase("k_c_camera_pos0");
+        k_frame_keys.erase("k_c_camera_pos1");
+        k_frame_keys.erase("k_c_camera_pos2");
+        k_frame_keys.erase("k_c_camera_yaw");
+        k_frame_keys.erase("k_c_camera_pitch");
+    }
+    was_camera_frozen = camera_frozen;
 }
 
 /*
@@ -769,11 +770,11 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         freezecamPitch = (float)pitch;
         // ((id, name), (precision, value_ptr))
         std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
-            std::make_pair(std::make_pair("cam_pos0", "Pos X"), std::make_pair(0, &freezecamPos[0])),
-            std::make_pair(std::make_pair("cam_pos1", "Pos Y"), std::make_pair(0, &freezecamPos[1])),
-            std::make_pair(std::make_pair("cam_pos2", "Pos Z"), std::make_pair(0, &freezecamPos[2])),
-            std::make_pair(std::make_pair("cam_yaw", "Yaw"), std::make_pair(2, &freezecamYaw)),
-            std::make_pair(std::make_pair("cam_pitch", "Pitch"), std::make_pair(2, &freezecamPitch))
+            std::make_pair(std::make_pair("pos0", "Pos X"), std::make_pair(0, &freezecamPos[0])),
+            std::make_pair(std::make_pair("pos1", "Pos Y"), std::make_pair(0, &freezecamPos[1])),
+            std::make_pair(std::make_pair("pos2", "Pos Z"), std::make_pair(0, &freezecamPos[2])),
+            std::make_pair(std::make_pair("yaw", "Yaw"), std::make_pair(2, &freezecamYaw)),
+            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(2, &freezecamPitch))
         };
         k_popout_open = true;
         if (contains) {
