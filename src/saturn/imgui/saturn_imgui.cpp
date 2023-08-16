@@ -279,7 +279,7 @@ void saturn_keyframe_window() {
 #endif
 
     std::string windowLabel = "Timeline###kf_timeline";
-    ImGuiWindowFlags timeline_flags = imgui_bundled_window_corner(3, 0, 0, 0.64f);
+    ImGuiWindowFlags timeline_flags = imgui_bundled_window_corner(1, 0, 0, 0.64f);
     ImGui::Begin(windowLabel.c_str(), &k_popout_open, timeline_flags);
     if (!keyframe_playing) {
         if (ImGui::Button(ICON_FK_PLAY " Play###k_t_play")) {
@@ -414,9 +414,11 @@ void saturn_imgui_update() {
                 if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_LINE_CHART " Timeline Editor", "F6", k_popout_open == true)) {
                     k_popout_open = !k_popout_open;
+                    windowSettings = false;
                 }
                 if (ImGui::MenuItem(ICON_FK_COG " Settings",     NULL, windowSettings == true)) {
                     windowSettings = !windowSettings;
+                    k_popout_open = false;
                 }
                 //if (windowStats) imgui_bundled_window_reset("Stats", 250, 125, 10, windowStartHeight);
 
