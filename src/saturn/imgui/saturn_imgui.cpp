@@ -761,7 +761,8 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
 
     ImGui::SameLine();
     if (ImGui::Button(buttonLabel.c_str())) {
-        float dist, yaw, pitch;
+        float dist;
+        s16 pitch, yaw;
         vec3f_copy(freezecamPos, gCamera->pos);
         vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
         freezecamYaw = yaw;
