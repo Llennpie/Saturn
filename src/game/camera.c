@@ -3390,6 +3390,13 @@ void update_camera(struct Camera *c) {
             c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
             c->yaw = gCamera->nextYaw;
             //gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
+
+            vec3f_copy(gLakituState.goalPos, c->pos);
+            vec3f_copy(gLakituState.goalFocus, c->focus);
+            vec3f_copy(gLakituState.pos, c->pos);
+            vec3f_copy(gLakituState.focus, c->focus);
+            gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+            gLakituState.yaw = gCamera->yaw;
         }
         else if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
             switch (c->mode) {
