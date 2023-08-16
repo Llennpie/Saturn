@@ -382,7 +382,7 @@ bool saturn_keyframe_apply(std::string id, int frame) {
 
     float value;
     bool last = true;
-    if (keyframes.size() == 0) value = keyframes[0].value;
+    if (keyframes.size() == 1) value = keyframes[0].value;
     else {
         int keyframe = 0;
         last = false;
@@ -401,7 +401,7 @@ bool saturn_keyframe_matches(std::string id, int frame) {
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
     float value;
-    if (keyframes.size() == 0) value = keyframes[0].value;
+    if (keyframes.size() == 1) value = keyframes[0].value;
     else {
         int keyframe = 0;
         bool last = false;

@@ -369,16 +369,16 @@ void saturn_keyframe_window() {
         if (keyframe_playing || k_current_frame != k_previous_frame) {
             should_update_cam_from_keyframes = false;
             vec3f_copy(gCamera->pos, freezecamPos);
-            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamYaw, freezecamPitch);
+            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
         }
         else {
             float dist;
             s16 yaw;
             s16 pitch;
             vec3f_copy(freezecamPos, gCamera->pos);
-            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &yaw, &pitch);
-            freezecamYaw = yaw;
-            freezecamPitch = pitch;
+            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+            freezecamYaw = (float)yaw;
+            freezecamPitch = (float)pitch;
         }
         vec3f_copy(gLakituState.pos, gCamera->pos);
         vec3f_copy(gLakituState.focus, gCamera->focus);
@@ -765,8 +765,8 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         s16 pitch, yaw;
         vec3f_copy(freezecamPos, gCamera->pos);
         vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
-        freezecamYaw = yaw;
-        freezecamPitch = pitch;
+        freezecamYaw = (float)yaw;
+        freezecamPitch = (float)pitch;
         // ((id, name), (precision, value_ptr))
         std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
             std::make_pair(std::make_pair("cam_pos0", "Pos X"), std::make_pair(0, &freezecamPos[0])),
