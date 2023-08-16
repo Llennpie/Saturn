@@ -105,6 +105,7 @@ class KeyframeTimeline {
     std::string name;
     bool disabled;
     int precision;
+    bool autoCreation;
 };
 
 extern bool k_popout_open;
