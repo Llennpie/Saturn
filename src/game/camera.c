@@ -2931,15 +2931,7 @@ void set_camera_mode(struct Camera *c, s16 mode, s16 frames) {
  * Updates Lakitu's position/focus and applies camera shakes.
  */
 void update_lakitu(struct Camera *c) {
-    if (camera_frozen) {
-        vec3f_copy(gLakituState.pos, c->pos);
-        vec3f_copy(gLakituState.focus, c->focus);
-        vec3f_copy(gLakituState.goalPos, c->pos);
-        vec3f_copy(gLakituState.goalFocus, c->focus);
-        c->yaw = calculate_yaw(c->focus, c->pos);
-        gLakituState.yaw = c->yaw;
-        return;
-    }
+    if (camera_frozen) return;
     struct Surface *floor = NULL;
     Vec3f newPos;
     Vec3f newFoc;
@@ -3398,23 +3390,6 @@ void update_camera(struct Camera *c) {
             c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
             c->yaw = gCamera->nextYaw;
             //gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
-
-            if (camera_frozen) {
-                if (should_update_cam_from_keyframes) {
-                    should_update_cam_from_keyframes = false;
-                    vec3f_copy(c->pos, freezecamPos);
-                    vec3f_set_dist_and_angle(c->pos, c->focus, 100, freezecamYaw, freezecamPitch);
-                }
-                else {
-                    float dist;
-                    s16 yaw;
-                    s16 pitch;
-                    vec3f_copy(freezecamPos, c->pos);
-                    vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &yaw, &pitch);
-                    freezecamYaw = yaw;
-                    freezecamPitch = pitch;
-                }
-            }
         }
         else if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
             switch (c->mode) {

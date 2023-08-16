@@ -365,7 +365,29 @@ void saturn_keyframe_window() {
         ImGui::SetWindowFocus(windowLabel.c_str());
     }
 
-    should_update_cam_from_keyframes = should_update_cam_from_keyframes || keyframe_playing || k_current_frame != k_previous_frame;
+    if (camera_frozen) {
+        if (keyframe_playing || k_current_frame != k_previous_frame) {
+            should_update_cam_from_keyframes = false;
+            vec3f_copy(gCamera->pos, freezecamPos);
+            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamYaw, freezecamPitch);
+        }
+        else {
+            float dist;
+            s16 yaw;
+            s16 pitch;
+            vec3f_copy(freezecamPos, gCamera->pos);
+            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &yaw, &pitch);
+            freezecamYaw = yaw;
+            freezecamPitch = pitch;
+        }
+        vec3f_copy(gLakituState.pos, gCamera->pos);
+        vec3f_copy(gLakituState.focus, gCamera->focus);
+        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+        gLakituState.yaw = gCamera->yaw;
+    }
+
     k_previous_frame = k_current_frame;
 }
 
