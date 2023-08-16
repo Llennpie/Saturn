@@ -315,8 +315,6 @@ void imgui_machinima_quick_options() {
         ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
         ImGui::PopItemWidth();
     }
-    ImGui::Separator();
-    ImGui::MenuItem("Timeline Editor###timeline_editor_open", "F6", &k_popout_open);
 }
 
 static char animSearchTerm[128];
