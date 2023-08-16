@@ -234,6 +234,9 @@ void imgui_machinima_quick_options() {
                     warp_to(levelList[current_slevel_index]);
                     break;
             }
+
+            // Erase existing timelines
+            k_frame_keys.clear();
         }
     }
     if (mario_exists) {

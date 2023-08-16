@@ -173,6 +173,10 @@ extern s32 gObjCutsceneDone;
 extern u32 gCutsceneObjSpawn;
 extern struct Camera *gCamera;
 
+Vec3f freezecamPos = { 0, 0, 0 };
+float freezecamYaw = 0;
+float freezecamPitch = 0;
+
 /**
  * Lakitu's position and focus.
  * @see LakituState
@@ -2927,6 +2931,7 @@ void set_camera_mode(struct Camera *c, s16 mode, s16 frames) {
  * Updates Lakitu's position/focus and applies camera shakes.
  */
 void update_lakitu(struct Camera *c) {
+    if (camera_frozen) return;
     struct Surface *floor = NULL;
     Vec3f newPos;
     Vec3f newFoc;
@@ -3149,36 +3154,44 @@ void update_camera(struct Camera *c) {
     if (c->cutscene == 0) {
         sYawSpeed = 0x400;
 
+        is_camera_moving = false;
+
         if (machinimaMode) {
             if (!machinimaKeyframing && !machinimaCopying) {
                 if (configMCameraMode == 0) {
                     // Better Keyboard Controls
 
                     if (cameraMoveForward) {
+                        is_camera_moving = true;
                         c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                     } else if (cameraMoveBackward) {
+                        is_camera_moving = true;
                         c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                     }
                     if (cameraMoveRight) {
+                        is_camera_moving = true;
                         c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                     } else if (cameraMoveLeft) {
+                        is_camera_moving = true;
                         c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         c->focus[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                     }
                     if (cameraMoveUp) {
+                        is_camera_moving = true;
                         camVelY += 5.f * camVelSpeed;
                     } else if (cameraMoveDown) {
+                        is_camera_moving = true;
                         camVelY -= 5.f * camVelSpeed;
                     }
 
@@ -3189,15 +3202,19 @@ void update_camera(struct Camera *c) {
                     vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
                     if (cameraRotateUp && pitch < 12000) {
                         pitch += (camVelRSpeed / 1.5f) * 512;
+                        is_camera_moving = true;
                     }
                     if (cameraRotateDown && pitch > -12000) {
                         pitch -= (camVelRSpeed / 1.5f) * 512;
+                        is_camera_moving = true;
                     }
                     if (cameraRotateRight) {
                         yaw -= (camVelRSpeed / 1.5f) * 512;
+                        is_camera_moving = true;
                     }
                     if (cameraRotateLeft) {
                         yaw += (camVelRSpeed / 1.5f) * 512;
+                        is_camera_moving = true;
                     }
                     vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
 
@@ -3230,47 +3247,57 @@ void update_camera(struct Camera *c) {
                             vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
                             if (gPlayer1Controller->buttonDown & U_CBUTTONS && pitch < 12000) {
                                 pitch += (camVelRSpeed / 1.5f) * 512;
+                                is_camera_moving = true;
                             }
                             if (gPlayer1Controller->buttonDown & D_CBUTTONS && pitch > -12000) {
                                 pitch -= (camVelRSpeed / 1.5f) * 512;
+                                is_camera_moving = true;
                             }
                             if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
                                 yaw -= (camVelRSpeed / 1.5f) * 512;
+                                is_camera_moving = true;
                             }
                             if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
                                 yaw += (camVelRSpeed / 1.5f) * 512;
+                                is_camera_moving = true;
                             }
                             vec3f_set_dist_and_angle(c->pos, c->focus, dist, pitch, yaw);
                         } else {
                             // Vertical
                             if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
                                 camVelY += 5.f * camVelSpeed;
+                                is_camera_moving = true;
                             }
                             if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
                                 camVelY -= 5.f * camVelSpeed;
+                                is_camera_moving = true;
                             }
                         }
                     } else if (gPlayer1Controller->buttonDown & R_TRIG) {
                         // Horizontal & Forward
                         if (gPlayer1Controller->buttonDown & U_CBUTTONS) {
+                            is_camera_moving = true;
                             c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                             c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                             c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                             c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         }
                         if (gPlayer1Controller->buttonDown & D_CBUTTONS) {
+                            is_camera_moving = true;
                             c->pos[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                             c->pos[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                             c->focus[0] -= sins(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                             c->focus[2] -= coss(c->yaw + atan2s(-127, 0)) * 16 * camVelSpeed;
                         }
                         if (gPlayer1Controller->buttonDown & R_CBUTTONS) {
+                            is_camera_moving = true;
                             c->pos[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                             c->pos[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                             c->focus[0] += sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                             c->focus[2] += coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                         }
                         if (gPlayer1Controller->buttonDown & L_CBUTTONS) {
+                            is_camera_moving = true;
                             c->pos[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                             c->pos[2] -= coss(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
                             c->focus[0] -= sins(c->yaw + atan2s(0, 127)) * 16 * camVelSpeed;
@@ -3299,17 +3326,20 @@ void update_camera(struct Camera *c) {
                     // Mouse Control
                     if (camera_view_enabled) {
                         if (camera_view_moving) {
+                            is_camera_moving = true;
                             c->pos[0] += sins(c->yaw + atan2s(0, 127)) * camera_view_move_x;
                             c->pos[2] += coss(c->yaw + atan2s(0, 127)) * camera_view_move_x;
                             c->focus[0] += sins(c->yaw + atan2s(0, 127)) * camera_view_move_x;
                             c->focus[2] += coss(c->yaw + atan2s(0, 127)) * camera_view_move_x;
                             camVelY -= camera_view_move_y;
                         } else if (camera_view_zooming) {
+                            is_camera_moving = true;
                             c->pos[0] += sins(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
                             c->pos[2] += coss(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
                             c->focus[0] += sins(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
                             c->focus[2] += coss(c->yaw + atan2s(-127, 0)) * -camera_view_move_y * 4;
                         } else if (camera_view_rotating) {
+                            is_camera_moving = true;
                             f32 dist;
                             s16 pitch, yaw;
                             vec3f_get_dist_and_angle(c->pos, c->focus, &dist, &pitch, &yaw);
@@ -3385,6 +3415,13 @@ void update_camera(struct Camera *c) {
             c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
             c->yaw = gCamera->nextYaw;
             //gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
+
+            vec3f_copy(gLakituState.goalPos, c->pos);
+            vec3f_copy(gLakituState.goalFocus, c->focus);
+            vec3f_copy(gLakituState.pos, c->pos);
+            vec3f_copy(gLakituState.focus, c->focus);
+            gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+            gLakituState.yaw = gCamera->yaw;
         }
         else if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
             switch (c->mode) {

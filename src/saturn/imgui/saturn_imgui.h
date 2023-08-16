@@ -7,6 +7,7 @@
 #ifdef __cplusplus
 
 #include <string>
+#include "saturn/saturn.h"
 
 extern void imgui_update_theme();
 extern void imgui_bundled_tooltip(const char*);
@@ -28,6 +29,8 @@ extern void saturn_keyframe_camera_popout(std::string value_name, std::string id
 
 template <typename T>
 extern void saturn_keyframe_popout(const T &edit_value, s32 data_type, std::string, std::string);
+
+extern void saturn_keyframe_context_popout(Keyframe keyframe);
 
 extern bool showMenu;
 extern int currentMenu;

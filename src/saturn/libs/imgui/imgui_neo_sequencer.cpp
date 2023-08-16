@@ -6,6 +6,8 @@
 #include "imgui_neo_sequencer.h"
 #include "imgui_internal.h"
 #include "imgui_neo_internal.h"
+#include "saturn/saturn.h"
+#include "saturn/imgui/saturn_imgui.h"
 
 #include <stack>
 #include <iostream>
@@ -160,11 +162,11 @@ namespace ImGui {
 		currentTimelineHeight = 0.0f;
 	}
 
-	static bool createKeyframe(uint32_t* frame) {
+	static bool createKeyframe(Keyframe frame) {
 		const auto& imStyle = GetStyle();
 		auto& context = sequencerData[currentSequencer];
 
-		const auto timelineOffset = getKeyframePositionX(*frame, context);
+		const auto timelineOffset = getKeyframePositionX(frame.position, context);
 
 		const auto pos = ImVec2{ context.StartValuesCursor.x + imStyle.FramePadding.x, context.ValuesCursor.y } +
 			ImVec2{ timelineOffset + context.ValuesWidth, 0 };
@@ -178,12 +180,18 @@ namespace ImGui {
 
 		const auto drawList = ImGui::GetWindowDrawList();
 
-		drawList->AddCircleFilled(pos + ImVec2{ 0, currentTimelineHeight / 2.f }, currentTimelineHeight / 3.0f,
-			IsItemHovered() ?
-			ColorConvertFloat4ToU32(
-				GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeHovered)) :
-			ColorConvertFloat4ToU32(GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_Keyframe)),
-			4);
+		ImVec4 color = frame.curve == 0 ? GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeLinear) :
+		               frame.curve == 1 ? GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeSine) :
+		               frame.curve == 2 ? GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeQuadratic) :
+		               frame.curve == 3 ? GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeCubic) :
+					   frame.curve == 4 ? GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_KeyframeWait) : ImVec4();
+		if (IsItemHovered()) color.w = 1.00f;
+
+		drawList->AddCircleFilled(pos + ImVec2{ 0, currentTimelineHeight / 2.f }, currentTimelineHeight / 3.0f, ColorConvertFloat4ToU32(color), 4);
+		
+		if (IsItemHovered() && IsMouseDown(ImGuiMouseButton_Right)) {
+			saturn_keyframe_context_popout(frame);
+		}
 
 		return true;
 	}
@@ -591,7 +599,7 @@ namespace ImGui {
 		return addGroupRes;
 	}
 
-	bool BeginNeoTimeline(const char* label, uint32_t** keyframes, uint32_t keyframeCount, bool* open,
+	bool BeginNeoTimeline(const char* label, Keyframe** keyframes, uint32_t keyframeCount, bool* open,
 		ImGuiNeoTimelineFlags flags) {
 		IM_ASSERT(inSequencer && "Not in active sequencer!");
 
@@ -644,7 +652,7 @@ namespace ImGui {
 		}
 
 		for (uint32_t i = 0; i < keyframeCount; i++) {
-			/*bool keyframeRes = */createKeyframe(keyframes[i]);
+			/*bool keyframeRes = */createKeyframe(*keyframes[i]);
 		}
 
 		context.ValuesCursor.x += imStyle.FramePadding.x + (float)currentTimelineDepth * style.DepthItemSpacing;
@@ -676,8 +684,8 @@ namespace ImGui {
 
 #ifdef __cplusplus
 
-	bool BeginNeoTimeline(const char* label, std::vector<uint32_t>& keyframes, bool* open) {
-		std::vector<uint32_t*> c_keyframes{ keyframes.size() };
+	bool BeginNeoTimeline(const char* label, std::vector<Keyframe> keyframes, bool* open) {
+		std::vector<Keyframe*> c_keyframes{ keyframes.size() };
 		for (uint32_t i = 0; i < keyframes.size(); i++)
 			c_keyframes[i] = &keyframes[i];
 
@@ -756,9 +764,15 @@ ImGuiNeoSequencerStyle::ImGuiNeoSequencerStyle() {
 	Colors[ImGuiNeoSequencerCol_FramePointerHovered] = ImVec4{ 0.98f, 0.15f, 0.15f, 1.00f };
 	Colors[ImGuiNeoSequencerCol_FramePointerPressed] = ImVec4{ 0.98f, 0.08f, 0.08f, 1.00f };
 
-	Colors[ImGuiNeoSequencerCol_Keyframe] = ImVec4{ 0.59f, 0.59f, 0.59f, 0.50f };
+	Colors[ImGuiNeoSequencerCol_Keyframe] = ImVec4{ 0.2f, 0.2f, 0.2f, 0.50f };
 	Colors[ImGuiNeoSequencerCol_KeyframeHovered] = ImVec4{ 0.98f, 0.39f, 0.36f, 1.00f };
 	Colors[ImGuiNeoSequencerCol_KeyframePressed] = ImVec4{ 0.98f, 0.39f, 0.36f, 1.00f };
+
+	Colors[ImGuiNeoSequencerCol_KeyframeLinear] = ImVec4{ 0.59f, 0.59f, 0.59f, 0.50f };
+	Colors[ImGuiNeoSequencerCol_KeyframeSine] = ImVec4{ 0.98f, 0.98f, 0.36f, 0.50f };
+	Colors[ImGuiNeoSequencerCol_KeyframeQuadratic] = ImVec4{ 0.36f, 0.39f, 0.98f, 0.50f };
+	Colors[ImGuiNeoSequencerCol_KeyframeCubic] = ImVec4{ 0.36f, 0.98f, 0.39f, 0.50f };
+	Colors[ImGuiNeoSequencerCol_KeyframeWait] = ImVec4{ 0.98f, 0.39f, 0.36f, 0.50f };
 
 	Colors[ImGuiNeoSequencerCol_FramePointerLine] = ImVec4{ 0.98f, 0.98f, 0.98f, 0.8f };
 

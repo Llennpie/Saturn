@@ -802,4 +802,8 @@ extern Vec3f mCameraKeyFoc;
 extern s16 mCameraKeyYaw;
 extern s16 mCameraKeyPitch;
 
+extern Vec3f freezecamPos;
+extern float freezecamYaw;
+extern float freezecamPitch;
+
 #endif // CAMERA_H
