@@ -777,6 +777,12 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
 
     ImGui::SameLine();
     if (ImGui::Button(buttonLabel.c_str())) {
+        float dist;
+        s16 pitch, yaw;
+        vec3f_copy(freezecamPos, gLakituState.pos);
+        vec3f_get_dist_and_angle(gLakituState.pos, gLakituState.focus, &dist, &pitch, &yaw);
+        freezecamYaw = yaw;
+        freezecamPitch = pitch;
         // ((id, name), (precision, value_ptr))
         std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
             std::make_pair(std::make_pair("pos0", "Pos X"), std::make_pair(0, &freezecamPos[0])),
