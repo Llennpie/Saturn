@@ -248,7 +248,7 @@ void saturn_imgui_handle_events(SDL_Event * event) {
                 configWindow.fps_changed = true;
             }
 
-            if(event->key.keysym.sym == SDLK_F5) {
+            if(event->key.keysym.sym == SDLK_F9) {
                 imgui_update_theme();
             }
 
