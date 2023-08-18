@@ -175,6 +175,8 @@ static const struct ConfigOption options[] = {
     {.name = "fake_star_count", .type = CONFIG_TYPE_UINT, .uintValue = &configFakeStarCount},
     {.name = "fake_unlock_doors", .type = CONFIG_TYPE_BOOL, .uintValue = &configUnlockDoors},
     {.name = "controller_works_unfocus", .type = CONFIG_TYPE_BOOL, .uintValue = &configWindowState},
+    {.name = "no_water_bomb", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoWaterBombs},
+    {.name = "no_cam_shake", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoCamShake},
     {.name = "default_fov", .type = CONFIG_TYPE_FLOAT, .floatValue = &camera_fov},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
