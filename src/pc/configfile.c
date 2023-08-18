@@ -100,6 +100,8 @@ bool         configEditorExpressionPreviews = false;
 unsigned int configFakeStarCount    = 0;
 bool         configUnlockDoors = true;
 bool         configWindowState = false;
+bool         configNoWaterBombs = true;
+bool         configNoCamShake = false;
 float        camera_fov = 50.0f;
 #ifdef BETTERCAMERA
 // BetterCamera settings

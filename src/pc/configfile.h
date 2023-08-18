@@ -67,6 +67,8 @@ extern unsigned int configFakeStarCount;
 extern bool         configUnlockDoors;
 extern bool         configEditorAlwaysChroma;
 extern bool         configWindowState;
+extern bool         configNoWaterBombs;
+extern bool         configNoCamShake;
 extern float        camera_fov;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;

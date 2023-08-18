@@ -293,6 +293,10 @@ void ssettings_imgui_update() {
         //ImGui::PopItemWidth();
         ImGui::Checkbox("Unlock Doors", &configUnlockDoors);
         imgui_bundled_tooltip("Unlocks all areas in the castle, regardless of save file.");
+        ImGui::Checkbox("Disable Water Bombs", &configNoWaterBombs);
+        imgui_bundled_tooltip("Removes Water Bombs from Bob-Omb Battlefield.");
+        ImGui::Checkbox("Disable Camera Shake", &configNoCamShake);
+        imgui_bundled_tooltip("Removes camera shakes.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);

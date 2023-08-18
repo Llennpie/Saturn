@@ -4958,6 +4958,7 @@ void rotate_in_yz(Vec3f dst, Vec3f src, s16 pitch) {
  * Start shaking the camera's pitch (up and down)
  */
 void set_camera_pitch_shake(s16 mag, s16 decay, s16 inc) {
+    if (configNoCamShake) return;
     if (gLakituState.shakeMagnitude[0] < mag) {
         gLakituState.shakeMagnitude[0] = mag;
         gLakituState.shakePitchDecay = decay;
@@ -4969,6 +4970,7 @@ void set_camera_pitch_shake(s16 mag, s16 decay, s16 inc) {
  * Start shaking the camera's yaw (side to side)
  */
 void set_camera_yaw_shake(s16 mag, s16 decay, s16 inc) {
+    if (configNoCamShake) return;
     if (ABS(mag) > ABS(gLakituState.shakeMagnitude[1])) {
         gLakituState.shakeMagnitude[1] = mag;
         gLakituState.shakeYawDecay = decay;
@@ -4980,6 +4982,7 @@ void set_camera_yaw_shake(s16 mag, s16 decay, s16 inc) {
  * Start shaking the camera's roll (rotate screen clockwise and counterclockwise)
  */
 void set_camera_roll_shake(s16 mag, s16 decay, s16 inc) {
+    if (configNoCamShake) return;
     if (gLakituState.shakeMagnitude[2] < mag) {
         gLakituState.shakeMagnitude[2] = mag;
         gLakituState.shakeRollDecay = decay;
