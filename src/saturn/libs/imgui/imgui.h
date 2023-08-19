@@ -316,6 +316,7 @@ namespace ImGui
     IMGUI_API void          StyleColorsWindows95(ImGuiStyle* dst = NULL);   // a style based on windows 95
     IMGUI_API void          StyleColorsTerminal(ImGuiStyle* dst = NULL);   // a style based on classic terminals
     IMGUI_API void          StyleColorsWarioWare(ImGuiStyle* dst = NULL);   // a style based on the franchise, wario-ware
+    IMGUI_API void          StyleColorsDiscord(ImGuiStyle* dst = NULL);   // a style based on the discord app
 
     // Windows
     // - Begin() = push window to the stack and start appending to it. End() = pop window from the stack.
