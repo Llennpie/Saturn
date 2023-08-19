@@ -631,7 +631,7 @@ void ImGui::StyleColorsWindows95(ImGuiStyle* dst)
     colors[ImGuiCol_TitleBg]                = ImVec4(0.01f, 0.02f, 0.98f, 1.00f);
     colors[ImGuiCol_TitleBgActive]          = ImVec4(0.01f, 0.02f, 0.98f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.50f, 0.50f, 0.50f, 0.51f);
-    colors[ImGuiCol_MenuBarBg]              = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+    colors[ImGuiCol_MenuBarBg]              = ImVec4(0.01f, 0.02f, 0.98f, 1.00f);
     colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.85f, 0.85f, 0.85f, 0.53f);
     colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.64f, 0.64f, 0.64f, 1.00f);
     colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
@@ -751,7 +751,7 @@ void ImGui::StyleColorsWarioWare(ImGuiStyle* dst)
     colors[ImGuiCol_TitleBg]                = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
     colors[ImGuiCol_TitleBgActive]          = ImVec4(0.16f, 0.29f, 0.48f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-    colors[ImGuiCol_MenuBarBg]              = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+    colors[ImGuiCol_MenuBarBg]              = ImVec4(0.04f, 0.00f, 1.00f, 1.00f);
     colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
     colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
     colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
