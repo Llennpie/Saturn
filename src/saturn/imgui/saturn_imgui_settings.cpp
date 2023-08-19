@@ -143,7 +143,7 @@ void ssettings_imgui_init() {
 }
 
 void ssettings_imgui_update() {
-    const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear", "Windows 95", "Terminal", "WarioWare" };
+    const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear", "Windows 95", "Terminal", "WarioWare", "Discord" };
     ImGui::PushItemWidth(150);
     ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
     ImGui::PopItemWidth();
