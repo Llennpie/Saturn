@@ -213,7 +213,7 @@ void imgui_update_theme() {
         ImGui::StyleColorsTerminal();
     } else if (configEditorTheme == 7) {
         ImGui::StyleColorsWarioWare();
-
+    }
     style->ScaleAllSizes(SCALE);
 }
 
