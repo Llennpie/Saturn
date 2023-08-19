@@ -207,7 +207,12 @@ void imgui_update_theme() {
         ImGui::StyleColorsM64MM();
     } else if (configEditorTheme == 4) {
         ImGui::StyleColorsClassic();
-    }
+    } else if (configEditorTheme == 5) {
+        ImGui::StyleColorsWindows95();
+    } else if (configEditorTheme == 6) {
+        ImGui::StyleColorsTerminal();
+    } else if (configEditorTheme == 7) {
+        ImGui::StyleColorsWarioWare();
 
     style->ScaleAllSizes(SCALE);
 }
