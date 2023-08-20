@@ -176,6 +176,7 @@ extern struct Camera *gCamera;
 Vec3f freezecamPos = { 0, 0, 0 };
 float freezecamYaw = 0;
 float freezecamPitch = 0;
+float freezecamRoll = 0;
 
 /**
  * Lakitu's position and focus.
@@ -3056,6 +3057,8 @@ u8 cameraRotateLeft;
 u8 cameraRotateRight;
 u8 cameraRotateUp;
 u8 cameraRotateDown;
+u8 cameraRollLeft;
+u8 cameraRollRight;
 
 Vec3f mCameraKeyPos;
 Vec3f mCameraKeyFoc;
@@ -3369,6 +3372,9 @@ void update_camera(struct Camera *c) {
                         }
                     }
                 }
+                if (cameraRollLeft) gLakituState.roll += camVelRSpeed * 512;
+                if (cameraRollRight) gLakituState.roll -= camVelRSpeed * 512;
+                if (cameraRollLeft || cameraRollRight) is_camera_moving = true;
 
                 c->pos[1] += camVelY;
                 c->focus[1] += camVelY;

@@ -11,6 +11,7 @@
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "libs/sdl2_scancode_to_dinput.h"
 #include "pc/configfile.h"
+#include "saturn_projectfile.h"
 
 bool mario_exists;
 
@@ -127,6 +128,8 @@ unsigned int chromaKeyColorR = 0;
 unsigned int chromaKeyColorG = 255;
 unsigned int chromaKeyColorB = 0;
 
+int autosaveDelay = -1;
+
 u16 gChromaKeyColor = 0x07C1;
 u16 gChromaKeyBackground = 0;
 
@@ -213,6 +216,8 @@ void saturn_update() {
             cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & accept_text_input;
             cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & accept_text_input;
         }
+        cameraRollLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_V];
+        cameraRollRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_B];
     }
 
     if (!keyframe_playing && !camera_frozen) {
@@ -342,6 +347,12 @@ void saturn_update() {
         marioScaleSizeY = marioScaleSizeX;
         marioScaleSizeZ = marioScaleSizeX;
     }
+
+    // Autosave
+
+    if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
+    autosaveDelay--;
+    if (autosaveDelay == 0) saturn_save_project("autosave.spj");
 }
 
 float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyframe, bool* last) {

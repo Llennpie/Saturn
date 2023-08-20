@@ -796,6 +796,8 @@ extern u8 cameraRotateLeft;
 extern u8 cameraRotateRight;
 extern u8 cameraRotateUp;
 extern u8 cameraRotateDown;
+extern u8 cameraRollLeft;
+extern u8 cameraRollRight;
 
 extern Vec3f mCameraKeyPos;
 extern Vec3f mCameraKeyFoc;
@@ -805,5 +807,6 @@ extern s16 mCameraKeyPitch;
 extern Vec3f freezecamPos;
 extern float freezecamYaw;
 extern float freezecamPitch;
+extern float freezecamRoll;
 
 #endif // CAMERA_H

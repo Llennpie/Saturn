@@ -55,6 +55,15 @@ int obj_beh_params[4];
 int obj_model;
 int obj_beh;
 
+s16 levelList[] = { 
+    LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
+    LEVEL_WF, LEVEL_PSS, LEVEL_TOTWC, LEVEL_JRB, LEVEL_CCM,
+    LEVEL_BITDW, LEVEL_BBH, LEVEL_HMC, LEVEL_COTMC, LEVEL_LLL,
+    LEVEL_SSL, LEVEL_VCUTM, LEVEL_DDD, LEVEL_BITFS, 
+    LEVEL_SL, LEVEL_WDW, LEVEL_TTM, LEVEL_THI,
+    LEVEL_TTC, LEVEL_WMOTR, LEVEL_RR, LEVEL_BITS
+};
+
 int current_level_sel = 0;
 void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
     if (!mario_exists)
@@ -105,6 +114,39 @@ void smachinima_imgui_controls(SDL_Event * event) {
             camera_view_move_y = event->motion.yrel;
         
         break;
+    }
+}
+
+void warp_to_level(int level, int area) {
+    is_anim_playing = false;
+    is_anim_paused = false;
+
+    if (level != 0) enable_shadows = true;
+    else enable_shadows = false;
+
+    switch (level) {
+        case 0:
+            warp_to(LEVEL_SA, area, 0);
+            break;
+        case 1:
+            warp_to(LEVEL_CASTLE_GROUNDS, area, 0x04);
+            break;
+        case 2:
+            warp_to(LEVEL_CASTLE, area, 0x01);
+            break;
+        case 3:
+            warp_to(LEVEL_CASTLE_COURTYARD, area, 0x0B);
+            break;
+        default:
+            warp_to(levelList[level], area, 0x0A);
+            break;
+    }
+}
+
+int get_saturn_level_id(int level) {
+    for (int i = 0; i < IM_ARRAYSIZE(levelList); i++) {
+        std::cout << levelList[i] << " " << level << std::endl;
+        if (levelList[i] == level) return i;
     }
 }
 
@@ -185,15 +227,6 @@ void imgui_machinima_quick_options() {
         }
         ImGui::Separator();
 
-        s16 levelList[] = { 
-            LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
-            LEVEL_WF, LEVEL_PSS, LEVEL_TOTWC, LEVEL_JRB, LEVEL_CCM,
-            LEVEL_BITDW, LEVEL_BBH, LEVEL_HMC, LEVEL_COTMC, LEVEL_LLL,
-            LEVEL_SSL, LEVEL_VCUTM, LEVEL_DDD, LEVEL_BITFS, 
-            LEVEL_SL, LEVEL_WDW, LEVEL_TTM, LEVEL_THI,
-            LEVEL_TTC, LEVEL_WMOTR, LEVEL_RR, LEVEL_BITS
-        };
-
         if (ImGui::BeginCombo("###warp_to_level", saturn_get_stage_name(levelList[current_slevel_index]), ImGuiComboFlags_None)) {
             for (int n = 0; n < IM_ARRAYSIZE(levelList); n++) {
                 const bool is_selected = (current_slevel_index == n);
@@ -209,31 +242,8 @@ void imgui_machinima_quick_options() {
         }
 
         if (ImGui::Button("Warp to Level")) {
-            is_anim_playing = false;
-            is_anim_paused = false;
-
-            if (current_slevel_index != 0) enable_shadows = true;
-            else enable_shadows = false;
-
             autoChroma = false;
-
-            switch (current_slevel_index) {
-                case 0:
-                    DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, 0);
-                    break;
-                case 1:
-                    warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
-                    break;
-                case 2:
-                    warp_to(LEVEL_CASTLE, 0x01, 0x01);
-                    break;
-                case 3:
-                    warp_to(LEVEL_CASTLE_COURTYARD, 0x01, 0x0B);
-                    break;
-                default:
-                    warp_to(levelList[current_slevel_index]);
-                    break;
-            }
+            warp_to_level(current_slevel_index, (s32)currentChromaArea);
 
             // Erase existing timelines
             k_frame_keys.clear();

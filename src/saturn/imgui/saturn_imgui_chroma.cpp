@@ -30,7 +30,7 @@ using namespace std;
 
 // Variables
 
-static ImVec4 uiChromaColor =              ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiChromaColor =              ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
 bool renderFloor = false;
 int currentChromaArea = 1;
 

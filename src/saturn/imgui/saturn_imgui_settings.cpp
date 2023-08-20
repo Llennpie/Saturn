@@ -305,6 +305,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Displays small image previews for expression and eye textures; May cause lag on low-end machines.");
         ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
         imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
+        ImGui::SliderInt("###autosave_delay_slider", (int*)&configAutosaveDelay, 10, 600, "Autosave Delay: %ds");
+        imgui_bundled_tooltip("Delay between each project autosave.");
         //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
         //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
         //ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);

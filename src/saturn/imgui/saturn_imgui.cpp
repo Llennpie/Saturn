@@ -21,6 +21,8 @@
 #include "pc/controller/controller_keyboard.h"
 #include "data/dynos.cpp.h"
 #include "icons/IconsForkAwesome.h"
+#include "icons/IconsFontAwesome5.h"
+#include "saturn/saturn_projectfile.h"
 
 #include <SDL2/SDL.h>
 
@@ -369,6 +371,8 @@ void saturn_keyframe_window() {
     }
 }
 
+char saturnProjectFilename[257] = "Project";
+
 void saturn_imgui_update() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(window);
@@ -380,6 +384,20 @@ void saturn_imgui_update() {
 
     if (showMenu) {
         if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("Project")) {
+                ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
+                if (ImGui::MenuItem(ICON_FA_FILE " Open")) {
+                    saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                }
+                if (ImGui::MenuItem(ICON_FA_SAVE " Save")) {
+                    saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                }
+                if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
+                    saturn_load_project("autosave.spj");
+                }
+                ImGui::Text("Next autosave: %ds", autosaveDelay / 30);
+                ImGui::EndMenu();
+            }
             if (ImGui::BeginMenu("Menu")) {
                 windowCcEditor = false;
 
@@ -661,6 +679,7 @@ void saturn_imgui_update() {
             should_update_cam_from_keyframes = false;
             vec3f_copy(gCamera->pos, freezecamPos);
             vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
+            gLakituState.roll = freezecamRoll;
         }
         else {
             float dist;
@@ -670,6 +689,7 @@ void saturn_imgui_update() {
             vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
             freezecamYaw = (float)yaw;
             freezecamPitch = (float)pitch;
+            freezecamRoll = (float)gLakituState.roll;
         }
         vec3f_copy(gLakituState.pos, gCamera->pos);
         vec3f_copy(gLakituState.focus, gCamera->focus);
@@ -696,6 +716,7 @@ void saturn_imgui_update() {
         k_frame_keys.erase("k_c_camera_pos2");
         k_frame_keys.erase("k_c_camera_yaw");
         k_frame_keys.erase("k_c_camera_pitch");
+        k_frame_keys.erase("k_c_camera_roll");
     }
     was_camera_frozen = camera_frozen;
 }
@@ -762,7 +783,7 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
 void saturn_keyframe_camera_popout(string value_name, string id) {
-    bool contains = k_frame_keys.find(id + "_cam_pos0") != k_frame_keys.end();
+    bool contains = k_frame_keys.find(id + "_pos0") != k_frame_keys.end();
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
@@ -780,7 +801,8 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
             std::make_pair(std::make_pair("pos1", "Pos Y"), std::make_pair(0, &freezecamPos[1])),
             std::make_pair(std::make_pair("pos2", "Pos Z"), std::make_pair(0, &freezecamPos[2])),
             std::make_pair(std::make_pair("yaw", "Yaw"), std::make_pair(2, &freezecamYaw)),
-            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(2, &freezecamPitch))
+            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(2, &freezecamPitch)),
+            std::make_pair(std::make_pair("roll", "Roll"), std::make_pair(2, &freezecamRoll)),
         };
         k_popout_open = true;
         if (contains) {

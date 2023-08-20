@@ -175,6 +175,12 @@ s16 unusedEULevelUpdateBss1;
 s8 sTimerRunning;
 s8 gShouldNotPlayCastleMusic;
 
+u8 override_mario_and_camera;
+s16 overriden_mario_angle;
+Vec3f overriden_mario_pos;
+Vec3f overriden_camera_pos;
+Vec3f overriden_camera_focus;
+
 struct MarioState *gMarioState = &gMarioStates[0];
 u8 unused1[4] = { 0 };
 s8 D_8032C9E0 = 0;
@@ -401,7 +407,7 @@ void init_mario_after_warp(void) {
     }
 
     if (gCurrentArea) {
-        reset_camera(gCurrentArea->camera);
+        if (!override_mario_and_camera) reset_camera(gCurrentArea->camera);
     }
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
@@ -1201,7 +1207,7 @@ s32 init_level(void) {
         }
 
         if (gCurrentArea != NULL) {
-            reset_camera(gCurrentArea->camera);
+            if (!override_mario_and_camera) reset_camera(gCurrentArea->camera);
 
             if (gCurrDemoInput != NULL) {
                 set_mario_action(gMarioState, ACT_IDLE, 0);
@@ -1234,6 +1240,12 @@ s32 init_level(void) {
 
     if (gMarioState->action == ACT_INTRO_CUTSCENE) {
         sound_banks_disable(2, 0x0330);
+    }
+
+    if (override_mario_and_camera) {
+        override_mario_and_camera = 0;
+        vec3f_copy(gMarioState->pos, overriden_mario_pos);
+        gMarioState->faceAngle[1] = overriden_mario_angle;
     }
 
     return 1;

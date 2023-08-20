@@ -121,6 +121,7 @@ bool         configHUD           = false;
 #ifdef DISCORDRPC
 bool         configDiscordRPC    = false;
 #endif
+unsigned int configAutosaveDelay = 60; // seconds
 
 static const struct ConfigOption options[] = {
     {.name = "fullscreen",           .type = CONFIG_TYPE_BOOL, .boolValue = &configWindow.fullscreen},
@@ -194,6 +195,7 @@ static const struct ConfigOption options[] = {
     #ifdef DISCORDRPC
     {.name = "discordrpc_enable",    .type = CONFIG_TYPE_BOOL, .boolValue = &configDiscordRPC},
     #endif 
+    {.name = "autosave_delay",       .type = CONFIG_TYPE_UINT, .uintValue = &configAutosaveDelay},
 };
 
 // Reads an entire line from a file (excluding the newline character) and returns an allocated string
