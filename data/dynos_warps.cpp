@@ -31,6 +31,8 @@ static s32 sDynosWarpActNum   = -1;
 static s32 sDynosExitLevelNum = -1;
 static s32 sDynosExitAreaNum  = -1;
 
+static u8 doneLoading = 0;
+
 //
 // Level Entry
 //
@@ -296,13 +298,15 @@ static void *DynOS_Warp_UpdateWarp(void *aCmd, bool aIsLevelInitDone) {
                 gCurrLevelNum == LEVEL_BOWSER_3) {
                 sound_banks_enable(0, 0xFFFF); // Bowser levels sound fix
             }
+        }
 
-            // Reset values
+        // Phase 4 - Override
+        if (doneLoading) {
+            doneLoading = 0;
             sDynosWarpTargetArea = -1;
             sDynosWarpLevelNum   = -1;
             sDynosWarpAreaNum    = -1;
             sDynosWarpActNum     = -1;
-
             if (dynos_override_mario_and_camera) {
                 dynos_override_mario_and_camera = 0;
                 vec3f_copy(gMarioState->pos, overriden_mario_pos);
@@ -311,6 +315,8 @@ static void *DynOS_Warp_UpdateWarp(void *aCmd, bool aIsLevelInitDone) {
                 vec3f_copy(gCamera->focus, overriden_camera_focus);
             }
         }
+
+        if (aIsLevelInitDone) doneLoading = 1;
     }
 
     return NULL;
