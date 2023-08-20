@@ -124,7 +124,7 @@ void imgui_bundled_help_marker(const char* desc) {
         return;
     }
 
-    ImGui::TextDisabled("(?)");
+    ImGui::TextDisabled(ICON_FA_QUESTION_CIRCLE);
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
