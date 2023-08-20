@@ -190,9 +190,13 @@ u32 hash(char* data, int length, int offset = 0) { // See Java's java.lang.Strin
     return hash;
 }
 
+std::string full_file_path(char* filename) {
+    return std::string("dynos/projects/") + filename;
+}
+
 void saturn_load_project(char* filename) {
     int pointer = 0;
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(full_file_path(filename).c_str(), std::ios::binary);
     if (!file.is_open()) return;
     char* headerData = (char*)malloc(SATURN_PROJECT_HEADER_SIZE);
     file.read(headerData, SATURN_PROJECT_HEADER_SIZE);
@@ -328,7 +332,7 @@ void saturn_load_project(char* filename) {
 void saturn_save_project(char* filename) {
     int headerPointer = 0;
     int contentPointer = 0;
-    std::ofstream file(filename, std::ios::binary);
+    std::ofstream file(full_file_path(filename).c_str(), std::ios::binary);
     if (!file.is_open()) return;
     char* header = (char*)malloc(SATURN_PROJECT_HEADER_SIZE);
     char* content = (char*)malloc(SATURN_PROJECT_MAX_CONTENT_SIZE);
@@ -448,4 +452,7 @@ void saturn_save_project(char* filename) {
     free(header);
     free(content);
     std::cout << "Saved project " << filename << std::endl;
+}
+std::vector<std::string> saturn_list_projects() {
+
 }

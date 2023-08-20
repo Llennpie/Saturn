@@ -384,20 +384,6 @@ void saturn_imgui_update() {
 
     if (showMenu) {
         if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("Project")) {
-                ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
-                if (ImGui::MenuItem(ICON_FA_FILE " Open")) {
-                    saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
-                }
-                if (ImGui::MenuItem(ICON_FA_SAVE " Save")) {
-                    saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
-                }
-                if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
-                    saturn_load_project("autosave.spj");
-                }
-                ImGui::Text("Next autosave: %ds", autosaveDelay / 30);
-                ImGui::EndMenu();
-            }
             if (ImGui::BeginMenu("Menu")) {
                 windowCcEditor = false;
 
@@ -406,6 +392,22 @@ void saturn_imgui_update() {
                     if (!showMenu) accept_text_input = true;
                 }
                 if (ImGui::MenuItem(ICON_FK_WINDOW_MINIMIZE " Show Status Bars",  NULL, showStatusBars)) showStatusBars = !showStatusBars;
+                ImGui::Separator();
+                ImGui::PushItemWidth(125);
+                ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
+                ImGui::PopItemWidth();
+                if (ImGui::Button(ICON_FA_FILE " Open###project_file_open")) {
+                    saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                }
+                ImGui::SameLine(70);
+                if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
+                    saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                }
+                ImGui::SameLine();
+                imgui_bundled_help_marker("Project files are basically save states for Saturn");
+                if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
+                    saturn_load_project("autosave.spj");
+                }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_LINE_CHART " Timeline Editor", "F6", k_popout_open == true)) {
@@ -543,6 +545,8 @@ void saturn_imgui_update() {
                     ImGui::TextDisabled(ICON_FK_GITHUB " " GIT_BRANCH " " GIT_HASH);
 #endif
 #endif
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 135);
+                    ImGui::Text("Autosaving in %ds", autosaveDelay / 30);
                     ImGui::EndMenuBar();
                 }
                 ImGui::End();
