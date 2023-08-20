@@ -14,6 +14,7 @@ extern "C" {
 #include "engine/geo_layout.h"
 #include "engine/math_util.h"
 #include "include/sm64.h"
+#include "include/types.h"
 #include "game/level_update.h"
 #include "game/interaction.h"
 #include "game/envfx_snow.h"
@@ -57,8 +58,6 @@ extern "C" {
 #define SATURN_PROJECT_ENV_BIT_2                 (1 << 7)
 #define SATURN_PROJECT_WALKPOINT_MASK            0x7F
 
-typedef unsigned char uchar;
-
 std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timelineDataTable = {
     { "k_skybox_mode", { { nullptr, &use_color_background }, "Skybox Mode" } },
     { "k_shadows", { { nullptr, &enable_shadows }, "Shadows" } },
@@ -84,21 +83,21 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     { "k_c_camera_roll", { { &freezecamRoll, nullptr }, "Camera Roll" } }
 };
 
-uchar get_int8(char* data, int*offset) {
+u8 get_int8(char* data, int*offset) {
     union {
         char x;
-        uchar y;
+        u8 y;
     } u;
     u.x = data[*offset];
     *offset += 1;
     return u.y;
 }
-uint get_int32(char* data, int* offset) {
-    uint value = (get_int8(data, offset) << 24) | (get_int8(data, offset) << 16) | (get_int8(data, offset) << 8) | get_int8(data, offset);
+u32 get_int32(char* data, int* offset) {
+    u32 value = (get_int8(data, offset) << 24) | (get_int8(data, offset) << 16) | (get_int8(data, offset) << 8) | get_int8(data, offset);
     return value;
 }
-ushort get_int16(char* data, int* offset) {
-    ushort value = (get_int8(data, offset) << 8) | get_int8(data, offset);
+u16 get_int16(char* data, int* offset) {
+    u16 value = (get_int8(data, offset) << 8) | get_int8(data, offset);
     return value;
 }
 void get_string(char* data, int* offset, char* dest, int length) {
@@ -113,7 +112,7 @@ void get_string(char* data, int* offset, char* dest, int length) {
 }
 float get_floating_point(char* data, int* offset) {
     union {
-        uint x;
+        u32 x;
         float y;
     } u;
     u.x = get_int32(data, offset);
@@ -128,19 +127,19 @@ void identifier(char* data, int* offset, char* identifier) {
     get_string(data, offset, identifier, SATURN_PROJECT_IDENTIFIER_LENGTH);
 }
 
-void put_int32(char* data, int* offset, uint value) {
+void put_int32(char* data, int* offset, u32 value) {
     data[*offset] = (value >> 24) & 0xFF;
     data[*offset + 1] = (value >> 16) & 0xFF;
     data[*offset + 2] = (value >> 8) & 0xFF;
     data[*offset + 3] = value & 0xFF;
     *offset += 4;
 }
-void put_int16(char* data, int* offset, ushort value) {
+void put_int16(char* data, int* offset, u16 value) {
     data[*offset] = (value >> 8) & 0xFF;
     data[*offset + 1] = value & 0xFF;
     *offset += 2;
 }
-void put_int8(char* data, int* offset, uchar value) {
+void put_int8(char* data, int* offset, u8 value) {
     data[*offset] = value;
     *offset += 1;
 }
@@ -156,7 +155,7 @@ void put_string(char* data, int* offset, char* string) {
 void put_floating_point(char* data, int* offset, float value) {
     union {
         float x;
-        uint y;
+        u32 y;
     } u;
     u.x = value;
     put_int32(data, offset, u.y);
@@ -183,10 +182,10 @@ void align(int* offset, int alignment) {
     *offset += alignment - *offset % alignment;
 }
 
-uint hash(char* data, int length, int offset = 0) { // See Java's java.lang.String#hashCode() method
-    uint hash = 0;
+u32 hash(char* data, int length, int offset = 0) { // See Java's java.lang.String#hashCode() method
+    u32 hash = 0;
     for (int i = 0; i < length; i++) {
-        hash += 31 * hash + (int)(uchar)(data[i + offset]);
+        hash += 31 * hash + (int)(u8)(data[i + offset]);
     }
     return hash;
 }
@@ -202,13 +201,13 @@ void saturn_load_project(char* filename) {
     if (std::strcmp(fileIdentifier, SATURN_PROJECT_IDENTIFIER) != 0) {
         std::cout << "Identifier doesn't match " SATURN_PROJECT_IDENTIFIER << ". Ignoring." << std::endl;
     }
-    uint blocks = get_int32(headerData, &pointer);
-    uint checksum = get_int32(headerData, &pointer);
-    uint version = get_int32(headerData, &pointer);
+    u32 blocks = get_int32(headerData, &pointer);
+    u32 checksum = get_int32(headerData, &pointer);
+    u32 version = get_int32(headerData, &pointer);
     char* data = (char*)malloc(SATURN_PROJECT_HEADER_SIZE + blocks * SATURN_PROJECT_BLOCK_SIZE);
     file.seekg(0);
     file.read(data, SATURN_PROJECT_HEADER_SIZE + blocks * SATURN_PROJECT_BLOCK_SIZE);
-    uint dataChecksum = hash(data, blocks * SATURN_PROJECT_BLOCK_SIZE, SATURN_PROJECT_HEADER_SIZE);
+    u32 dataChecksum = hash(data, blocks * SATURN_PROJECT_BLOCK_SIZE, SATURN_PROJECT_HEADER_SIZE);
     if (checksum != dataChecksum) {
         std::cout << "Checksum failed: should be " << checksum << " but is " << dataChecksum << ", corruptions or crash might happen!" << std::endl;
     }
@@ -217,12 +216,12 @@ void saturn_load_project(char* filename) {
         int beginning = pointer;
         char sectionIdentifier[5];
         identifier(data, &pointer, sectionIdentifier);
-        uint size = get_int32(data, &pointer);
+        u32 size = get_int32(data, &pointer);
         align(&pointer, SATURN_PROJECT_BLOCK_SIZE);
         if (std::strcmp(sectionIdentifier, SATURN_PROJECT_DONE_IDENTIFIER) == 0) break;
         if (std::strcmp(sectionIdentifier, SATURN_PROJECT_GAME_IDENTIFIER) == 0) {
-            ushort flags = get_int16(data, &pointer);
-            uchar walkpoint = get_int8(data, &pointer);
+            u16 flags = get_int16(data, &pointer);
+            u8 walkpoint = get_int8(data, &pointer);
             camera_frozen = flags & SATURN_PROJECT_FLAG_CAMERA_FROZEN;
             camera_fov_smooth = flags & SATURN_PROJECT_FLAG_CAMERA_SMOOTH;
             linkMarioScale = flags & SATURN_PROJECT_FLAG_SCALE_LINKED;
@@ -240,8 +239,10 @@ void saturn_load_project(char* filename) {
             k_loop = flags & SATURN_PROJECT_FLAG_LOOP_TIMELINE;
             gLevelEnv = ((flags & SATURN_PROJECT_ENV_BIT_1) << 1) | (((walkpoint & SATURN_PROJECT_ENV_BIT_2) >> 7) & 1);
             run_speed = walkpoint & SATURN_PROJECT_WALKPOINT_MASK;
-            uchar level = get_int8(data, &pointer);
-            warp_to_level((level >> 2) & 63, level & 3);
+            u8 level = get_int8(data, &pointer);
+            u8 lvlID = (level >> 2) & 63;
+            warp_to_level(lvlID, level & 3);
+            if (lvlID == 0) dynos_override_mario_and_camera = 1;
             override_mario_and_camera = 1;
             spin_mult = get_floating_point(data, &pointer);
             gCamera->pos[0] = get_floating_point(data, &pointer);
@@ -278,15 +279,15 @@ void saturn_load_project(char* filename) {
             k_current_frame = -1;
         }
         if (std::strcmp(sectionIdentifier, SATURN_PROJECT_CHROMAKEY_IDENTIFIER) == 0) {
-            uchar skybox = get_int8(data, &pointer);
+            u8 skybox = get_int8(data, &pointer);
             if (skybox == 0xFF || skybox == 0xFE) {
                 use_color_background = true;
                 renderFloor = skybox & 1;
             }
             else gChromaKeyBackground = skybox;
-            uchar r = get_int8(data, &pointer);
-            uchar g = get_int8(data, &pointer);
-            uchar b = get_int8(data, &pointer);
+            u8 r = get_int8(data, &pointer);
+            u8 g = get_int8(data, &pointer);
+            u8 b = get_int8(data, &pointer);
             uiChromaColor.x = r / 255.0f;
             uiChromaColor.y = g / 255.0f;
             uiChromaColor.z = b / 255.0f;
@@ -299,7 +300,6 @@ void saturn_load_project(char* filename) {
             timeline.autoCreation = get_int8(data, &pointer);
             char id[257];
             get_string(data, &pointer, id, 256);
-            std::cout << "\"" << id << "\"" << std::endl;
             auto timelineConfig = timelineDataTable[id];
             timeline.fdest = timelineConfig.first.first;
             timeline.bdest = timelineConfig.first.second;
@@ -308,7 +308,7 @@ void saturn_load_project(char* filename) {
         }
         if (std::strcmp(sectionIdentifier, SATURN_PROJECT_KEYFRAME_IDENTIFIER) == 0) {
             float value = get_floating_point(data, &pointer);
-            uint position = get_int32(data, &pointer);
+            u32 position = get_int32(data, &pointer);
             InterpolationCurve curve = InterpolationCurve(get_int8(data, &pointer));
             Keyframe keyframe = Keyframe((int)position, curve);
             keyframe.value = value;
@@ -323,6 +323,7 @@ void saturn_load_project(char* filename) {
     file.close();
     free(headerData);
     free(data);
+    std::cout << "Loaded project " << filename << std::endl;
 }
 void saturn_save_project(char* filename) {
     int headerPointer = 0;
@@ -335,7 +336,7 @@ void saturn_save_project(char* filename) {
         put_identifier(content, &contentPointer, SATURN_PROJECT_CHROMAKEY_IDENTIFIER);
         put_int32(content, &contentPointer, 2);
         pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-        uchar skybox = 0;
+        u8 skybox = 0;
         if (use_color_background) {
             if (renderFloor) skybox = 0xFF;
             else skybox = 0xFE;
@@ -350,8 +351,8 @@ void saturn_save_project(char* filename) {
     put_identifier(content, &contentPointer, SATURN_PROJECT_GAME_IDENTIFIER);
     put_int32(content, &contentPointer, 7);
     pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-    ushort flags = 0;
-    uchar walkpoint = run_speed;
+    u16 flags = 0;
+    u8 walkpoint = run_speed;
     if (camera_frozen) flags |= SATURN_PROJECT_FLAG_CAMERA_FROZEN;
     if (camera_fov_smooth) flags |= SATURN_PROJECT_FLAG_CAMERA_SMOOTH;
     if (linkMarioScale) flags |= SATURN_PROJECT_FLAG_SCALE_LINKED;
@@ -444,7 +445,7 @@ void saturn_save_project(char* filename) {
     file.write(header, SATURN_PROJECT_HEADER_SIZE);
     file.write(content, contentPointer);
     file.close();
-    std::cout << "Saved project " << filename << std::endl;
     free(header);
     free(content);
+    std::cout << "Saved project " << filename << std::endl;
 }

@@ -126,7 +126,7 @@ void warp_to_level(int level, int area) {
 
     switch (level) {
         case 0:
-            warp_to(LEVEL_SA, area, 0);
+            DynOS_Warp_ToLevel(LEVEL_SA, area, 0);
             break;
         case 1:
             warp_to(LEVEL_CASTLE_GROUNDS, area, 0x04);
@@ -145,7 +145,6 @@ void warp_to_level(int level, int area) {
 
 int get_saturn_level_id(int level) {
     for (int i = 0; i < IM_ARRAYSIZE(levelList); i++) {
-        std::cout << levelList[i] << " " << level << std::endl;
         if (levelList[i] == level) return i;
     }
 }

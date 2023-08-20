@@ -103,6 +103,7 @@ extern struct HudDisplay gHudDisplay;
 extern s8 gShouldNotPlayCastleMusic;
 
 extern u8 override_mario_and_camera;
+extern u8 dynos_override_mario_and_camera;
 extern s16 overriden_mario_angle;
 extern Vec3f overriden_mario_pos;
 extern Vec3f overriden_camera_pos;

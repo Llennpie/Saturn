@@ -176,6 +176,7 @@ s8 sTimerRunning;
 s8 gShouldNotPlayCastleMusic;
 
 u8 override_mario_and_camera;
+u8 dynos_override_mario_and_camera;
 s16 overriden_mario_angle;
 Vec3f overriden_mario_pos;
 Vec3f overriden_camera_pos;

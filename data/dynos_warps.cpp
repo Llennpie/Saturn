@@ -268,13 +268,13 @@ static void *DynOS_Warp_UpdateWarp(void *aCmd, bool aIsLevelInitDone) {
             gMarioSpawnInfo->startAngle[1] = _LevelEntryWarp[6];
             gMarioSpawnInfo->startAngle[2] = 0;
             gMarioSpawnInfo->areaIndex = gCurrAreaIndex;
-            init_mario();
+            if (!dynos_override_mario_and_camera) init_mario();
             set_mario_initial_action(gMarioState, sDynosWarpSpawnType, 0);
             DynOS_Warp_SetParam(gCurrLevelNum, DynOS_Opt_GetValue("dynos_warp_param"));
 
             // Init transition
-            reset_camera(gCurrentArea->camera);
-            init_camera(gCurrentArea->camera);
+            if (!dynos_override_mario_and_camera) reset_camera(gCurrentArea->camera);
+            if (!dynos_override_mario_and_camera) init_camera(gCurrentArea->camera);
             sDelayedWarpOp = WARP_OP_NONE;
             switch (sDynosWarpSpawnType) {
                 case MARIO_SPAWN_UNKNOWN_03:           play_transition(WARP_TRANSITION_FADE_FROM_STAR,   0x10, 0x00, 0x00, 0x00); break;
@@ -302,6 +302,14 @@ static void *DynOS_Warp_UpdateWarp(void *aCmd, bool aIsLevelInitDone) {
             sDynosWarpLevelNum   = -1;
             sDynosWarpAreaNum    = -1;
             sDynosWarpActNum     = -1;
+
+            if (dynos_override_mario_and_camera) {
+                dynos_override_mario_and_camera = 0;
+                vec3f_copy(gMarioState->pos, overriden_mario_pos);
+                gMarioState->faceAngle[1] = overriden_mario_angle;
+                vec3f_copy(gCamera->pos, overriden_camera_pos);
+                vec3f_copy(gCamera->focus, overriden_camera_focus);
+            }
         }
     }
 
