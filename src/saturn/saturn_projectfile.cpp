@@ -80,7 +80,10 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     { "k_c_camera_pos2", { { &freezecamPos[2], nullptr }, "Camera Pos Z" } },
     { "k_c_camera_yaw", { { &freezecamYaw, nullptr }, "Camera Yaw" } },
     { "k_c_camera_pitch", { { &freezecamPitch, nullptr }, "Camera Pitch" } },
-    { "k_c_camera_roll", { { &freezecamRoll, nullptr }, "Camera Roll" } }
+    { "k_c_camera_roll", { { &freezecamRoll, nullptr }, "Camera Roll" } },
+    { "k_color_r", { { &uiChromaColor.x, nullptr }, "Skybox Color R" } },
+    { "k_color_g", { { &uiChromaColor.y, nullptr }, "Skybox Color G" } },
+    { "k_color_b", { { &uiChromaColor.z, nullptr }, "Skybox Color B" } }
 };
 
 u8 get_int8(char* data, int*offset) {
@@ -196,8 +199,14 @@ std::string full_file_path(char* filename) {
 
 void saturn_load_project(char* filename) {
     int pointer = 0;
-    std::ifstream file(full_file_path(filename).c_str(), std::ios::binary);
-    if (!file.is_open()) return;
+    std::ifstream file = std::ifstream(full_file_path(filename).c_str(), std::ios::binary);
+    if (!file.is_open()) {
+        file = std::ifstream(filename, std::ios::binary);
+        if (!file.is_open()) {
+            std::cout << "Project not found: " << filename << std::endl;
+            return;
+        }
+    }
     char* headerData = (char*)malloc(SATURN_PROJECT_HEADER_SIZE);
     file.read(headerData, SATURN_PROJECT_HEADER_SIZE);
     char fileIdentifier[5];

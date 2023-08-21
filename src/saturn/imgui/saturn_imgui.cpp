@@ -831,6 +831,42 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
     }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
+void saturn_keyframe_color_popout(string value_name, string id) {
+    bool contains = k_frame_keys.find(id + "_r") != k_frame_keys.end();
+
+    string buttonLabel = ICON_FK_LINK "###kb_" + id;
+
+    ImGui::SameLine();
+    if (ImGui::Button(buttonLabel.c_str())) {
+        // ((id, name), (precision, value_ptr))
+        std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
+            std::make_pair(std::make_pair("r", "R"), std::make_pair(-3, &uiChromaColor.x)),
+            std::make_pair(std::make_pair("g", "G"), std::make_pair(-3, &uiChromaColor.y)),
+            std::make_pair(std::make_pair("b", "B"), std::make_pair(-3, &uiChromaColor.z)),
+        };
+        k_popout_open = true;
+        if (contains) {
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
+                k_frame_keys.erase(id + "_" + values[i].first.first);
+            }
+        }
+        else { // Add the timeline
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
+                KeyframeTimeline timeline = KeyframeTimeline();
+                timeline.fdest = values[i].second.second;
+                timeline.name = value_name + " " + values[i].first.second;
+                timeline.precision = values[i].second.first;
+                Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
+                keyframe.value = *values[i].second.second;
+                keyframe.timelineID = id + "_" + values[i].first.first;
+                k_frame_keys.insert({ id + "_" + values[i].first.first, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
+                k_current_frame = 0;
+                startFrame = 0;
+            }
+        }
+    }
+    imgui_bundled_tooltip(contains ? "Remove" : "Animate");
+}
 
 template <typename T>
 void saturn_keyframe_popout(const T &edit_value, s32 data_type, string value_name, string id) {
