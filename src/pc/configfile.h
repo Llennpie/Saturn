@@ -69,6 +69,7 @@ extern bool         configEditorAlwaysChroma;
 extern bool         configWindowState;
 extern bool         configNoWaterBombs;
 extern bool         configNoCamShake;
+extern bool         configNoButterflies;
 extern float        camera_fov;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;

@@ -297,6 +297,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Removes Water Bombs from Bob-Omb Battlefield.");
         ImGui::Checkbox("Disable Camera Shake", &configNoCamShake);
         imgui_bundled_tooltip("Removes camera shakes.");
+        ImGui::Checkbox("Butterflies Begone (TM)", &configNoButterflies);
+        imgui_bundled_tooltip("Hides butterflies.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);
