@@ -23,21 +23,23 @@ extern "C" {
 #include "pc/configfile.h"
 #include "pc/gfx/gfx_pc.h"
 #include "pc/cheats.h"
+#include "game/object_list_processor.h"
 }
 
-#define SATURN_PROJECT_VERSION           1
+#define SATURN_PROJECT_VERSION           2
 #define SATURN_PROJECT_BLOCK_SIZE        0x10
 #define SATURN_PROJECT_IDENTIFIER_LENGTH 0x04
 
 #define SATURN_PROJECT_HEADER_SIZE          0x10     // 16 bytes
 #define SATURN_PROJECT_MAX_CONTENT_SIZE     0x200000 // 2 MB, max 131072 blocks
 
-#define SATURN_PROJECT_IDENTIFIER             "STPJ"
-#define SATURN_PROJECT_GAME_IDENTIFIER        "GAME"
-#define SATURN_PROJECT_CHROMAKEY_IDENTIFIER   "CKEY"
-#define SATURN_PROJECT_TIMELINE_IDENTIFIER    "TMLN"
-#define SATURN_PROJECT_KEYFRAME_IDENTIFIER    "KEFR"
-#define SATURN_PROJECT_DONE_IDENTIFIER "DONE"
+#define SATURN_PROJECT_IDENTIFIER           "STPJ"
+#define SATURN_PROJECT_GAME_IDENTIFIER      "GAME"
+#define SATURN_PROJECT_CHROMAKEY_IDENTIFIER "CKEY"
+#define SATURN_PROJECT_TIMELINE_IDENTIFIER  "TMLN"
+#define SATURN_PROJECT_KEYFRAME_IDENTIFIER  "KEFR"
+#define SATURN_PROJECT_CAMERA_IDENTIFIER    "CMRA"
+#define SATURN_PROJECT_DONE_IDENTIFIER      "DONE"
 
 #define SATURN_PROJECT_FLAG_CAMERA_FROZEN        (1 << 15)
 #define SATURN_PROJECT_FLAG_CAMERA_SMOOTH        (1 << 14)
@@ -126,6 +128,10 @@ bool get_bool(char* data, int* offset) {
     *offset += 1;
     return value;
 }
+void get_any(char* data, int* offset, void* value, int length) {
+    memcpy(value, data + *offset, length);
+    *offset += length;
+}
 void identifier(char* data, int* offset, char* identifier) {
     get_string(data, offset, identifier, SATURN_PROJECT_IDENTIFIER_LENGTH);
 }
@@ -165,6 +171,10 @@ void put_floating_point(char* data, int* offset, float value) {
 }
 void put_bool(char* data, int* offset, bool value) {
     put_int8(data, offset, value ? 1 : 0);
+}
+void put_any(char* data, int* offset, void* value, int length) {
+    memcpy(data + *offset, value, length);
+    *offset += length;
 }
 void put_identifier(char* data, int* offset, char* identifier) {
     for (int i = 0; i < SATURN_PROJECT_IDENTIFIER_LENGTH; i++) {
@@ -253,19 +263,17 @@ void saturn_load_project(char* filename) {
             gLevelEnv = ((flags & SATURN_PROJECT_ENV_BIT_1) << 1) | (((walkpoint & SATURN_PROJECT_ENV_BIT_2) >> 7) & 1);
             run_speed = walkpoint & SATURN_PROJECT_WALKPOINT_MASK;
             u8 level = get_int8(data, &pointer);
-            u8 lvlID = (level >> 2) & 63;
-            warp_to_level(lvlID, level & 3);
-            if (lvlID == 0) dynos_override_mario_and_camera = 1;
-            override_mario_and_camera = 1;
             spin_mult = get_floating_point(data, &pointer);
-            gCamera->pos[0] = get_floating_point(data, &pointer);
-            gCamera->pos[1] = get_floating_point(data, &pointer);
-            gCamera->pos[2] = get_floating_point(data, &pointer);
-            float yaw = get_floating_point(data, &pointer);
-            float pitch = get_floating_point(data, &pointer);
-            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, (s16)pitch, (s16)yaw);
-            vec3f_copy(overriden_camera_pos, gCamera->pos);
-            vec3f_copy(overriden_camera_focus, gCamera->focus);
+            if (version == 1) {
+                gCamera->pos[0] = get_floating_point(data, &pointer);
+                gCamera->pos[1] = get_floating_point(data, &pointer);
+                gCamera->pos[2] = get_floating_point(data, &pointer);
+                float yaw = get_floating_point(data, &pointer);
+                float pitch = get_floating_point(data, &pointer);
+                vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, (s16)pitch, (s16)yaw);
+                vec3f_copy(overriden_camera_pos, gCamera->pos);
+                vec3f_copy(overriden_camera_focus, gCamera->focus);
+            }
             camVelSpeed = get_floating_point(data, &pointer);
             camVelRSpeed = get_floating_point(data, &pointer);
             camera_fov = get_floating_point(data, &pointer);
@@ -289,7 +297,23 @@ void saturn_load_project(char* filename) {
             marioScaleSizeZ = get_floating_point(data, &pointer);
             endFrame = get_int32(data, &pointer);
             endFrameText = endFrame;
-            k_current_frame = -1;
+            int act = 0;
+            if (version >= 2) {
+                k_current_frame = get_int32(data, &pointer);
+                gMarioState->action = get_int32(data, &pointer);
+                gMarioState->actionState = get_int32(data, &pointer);
+                gMarioState->actionTimer = get_int32(data, &pointer);
+                gMarioState->actionArg = get_int32(data, &pointer);
+                act = get_int8(data, &pointer);
+            }
+            k_previous_frame = -1;
+            u8 lvlID = (level >> 2) & 63;
+            if (lvlID != get_saturn_level_id(gCurrLevelNum) || (level & 3) != gCurrAreaIndex) {
+                warp_to_level(lvlID, level & 3, act);
+                if (lvlID == 0) dynos_override_mario_and_camera = 1;
+                override_mario_and_camera = 1;
+                do_override_camera = version == 1;
+            }
         }
         if (std::strcmp(sectionIdentifier, SATURN_PROJECT_CHROMAKEY_IDENTIFIER) == 0) {
             u8 skybox = get_int8(data, &pointer);
@@ -330,6 +354,10 @@ void saturn_load_project(char* filename) {
             keyframe.timelineID = id;
             k_frame_keys[id].second.push_back(keyframe);
         }
+        if (std::strcmp(sectionIdentifier, SATURN_PROJECT_CAMERA_IDENTIFIER) == 0 && version >= 2) {
+            get_any(data, &pointer, gCamera, sizeof(*gCamera));
+            get_any(data, &pointer, &gLakituState, sizeof(gLakituState));
+        }
         pointer = beginning;
         pointer += SATURN_PROJECT_BLOCK_SIZE * size;
     }
@@ -362,7 +390,7 @@ void saturn_save_project(char* filename) {
         pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
     }
     put_identifier(content, &contentPointer, SATURN_PROJECT_GAME_IDENTIFIER);
-    put_int32(content, &contentPointer, 7);
+    put_int32(content, &contentPointer, 8);
     pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
     u16 flags = 0;
     u8 walkpoint = run_speed;
@@ -389,6 +417,7 @@ void saturn_save_project(char* filename) {
     put_int8(content, &contentPointer, walkpoint);
     put_int8(content, &contentPointer, (get_saturn_level_id(gCurrLevelNum) << 2) | gCurrAreaIndex);
     put_floating_point(content, &contentPointer, spin_mult);
+    /* Version 1
     put_floating_point(content, &contentPointer, gLakituState.pos[0]);
     put_floating_point(content, &contentPointer, gLakituState.pos[1]);
     put_floating_point(content, &contentPointer, gLakituState.pos[2]);
@@ -398,6 +427,7 @@ void saturn_save_project(char* filename) {
     vec3f_get_dist_and_angle(gLakituState.pos, gLakituState.focus, &dist, &pitch, &yaw);
     put_floating_point(content, &contentPointer, (float)yaw);
     put_floating_point(content, &contentPointer, (float)pitch);
+    */
     put_floating_point(content, &contentPointer, camVelSpeed);
     put_floating_point(content, &contentPointer, camVelRSpeed);
     put_floating_point(content, &contentPointer, camera_fov);
@@ -418,6 +448,18 @@ void saturn_save_project(char* filename) {
     put_floating_point(content, &contentPointer, marioScaleSizeY);
     put_floating_point(content, &contentPointer, marioScaleSizeZ);
     put_int32(content, &contentPointer, endFrame);
+    put_int32(content, &contentPointer, k_current_frame);
+    put_int32(content, &contentPointer, gMarioState->action);
+    put_int32(content, &contentPointer, gMarioState->actionState);
+    put_int32(content, &contentPointer, gMarioState->actionTimer);
+    put_int32(content, &contentPointer, gMarioState->actionArg);
+    put_int8(content, &contentPointer, gCurrActNum);
+    pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
+    put_identifier(content, &contentPointer, SATURN_PROJECT_CAMERA_IDENTIFIER);
+    put_int32(content, &contentPointer, ceil((sizeof(*gCamera) + sizeof(gLakituState)) / 16.0f) + 1);
+    pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
+    put_any(content, &contentPointer, gCamera, sizeof(*gCamera));
+    put_any(content, &contentPointer, &gLakituState, sizeof(gLakituState));
     pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
     for (auto& entry : k_frame_keys) {
         int beginningPointer = contentPointer;

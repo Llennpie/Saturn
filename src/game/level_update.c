@@ -177,6 +177,7 @@ s8 gShouldNotPlayCastleMusic;
 
 u8 override_mario_and_camera;
 u8 dynos_override_mario_and_camera;
+u8 do_override_camera;
 s16 overriden_mario_angle;
 Vec3f overriden_mario_pos;
 Vec3f overriden_camera_pos;
@@ -401,14 +402,14 @@ void init_mario_after_warp(void) {
         }
 
         init_mario();
-        set_mario_initial_action(gMarioState, marioSpawnType, sWarpDest.arg);
+        if (!override_mario_and_camera && !dynos_override_mario_and_camera) set_mario_initial_action(gMarioState, marioSpawnType, sWarpDest.arg);
 
         gMarioState->interactObj = spawnNode->object;
         gMarioState->usedObj = spawnNode->object;
     }
 
     if (gCurrentArea) {
-        if (!override_mario_and_camera) reset_camera(gCurrentArea->camera);
+        if (!do_override_camera) reset_camera(gCurrentArea->camera);
     }
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
@@ -1208,7 +1209,7 @@ s32 init_level(void) {
         }
 
         if (gCurrentArea != NULL) {
-            if (!override_mario_and_camera) reset_camera(gCurrentArea->camera);
+            if (!do_override_camera) reset_camera(gCurrentArea->camera);
 
             if (gCurrDemoInput != NULL) {
                 set_mario_action(gMarioState, ACT_IDLE, 0);
@@ -1245,6 +1246,7 @@ s32 init_level(void) {
 
     if (override_mario_and_camera) {
         override_mario_and_camera = 0;
+        if (!dynos_override_mario_and_camera) do_override_camera = 0;
         vec3f_copy(gMarioState->pos, overriden_mario_pos);
         gMarioState->faceAngle[1] = overriden_mario_angle;
     }

@@ -69,7 +69,7 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
     if (!mario_exists)
         return;
 
-    if (destLevel == gCurrLevelNum) {
+    if (destLevel == gCurrLevelNum && destArea == gCurrAreaIndex) {
         if (current_slevel_index < 4)
             return;
             
@@ -117,30 +117,30 @@ void smachinima_imgui_controls(SDL_Event * event) {
     }
 }
 
-void warp_to_level(int level, int area) {
+void warp_to_level(int level, int area, int act = -1) {
     is_anim_playing = false;
     is_anim_paused = false;
 
     if (level != 0) enable_shadows = true;
     else enable_shadows = false;
 
+    s32 levelID = levelList[level];
+    s32 warpnode = 0x0A;
+
     switch (level) {
-        case 0:
-            DynOS_Warp_ToLevel(LEVEL_SA, area, 0);
-            break;
         case 1:
-            warp_to(LEVEL_CASTLE_GROUNDS, area, 0x04);
+            warpnode = 0x04;
             break;
         case 2:
-            warp_to(LEVEL_CASTLE, area, 0x01);
+            warpnode = 0x01;
             break;
         case 3:
-            warp_to(LEVEL_CASTLE_COURTYARD, area, 0x0B);
-            break;
-        default:
-            warp_to(levelList[level], area, 0x0A);
+            warpnode = 0x0B;
             break;
     }
+
+    if (act == -1) warp_to(levelID, area, warpnode);
+    else DynOS_Warp_ToWarpNode(levelID, area, act, warpnode);
 }
 
 int get_saturn_level_id(int level) {
@@ -242,7 +242,7 @@ void imgui_machinima_quick_options() {
 
         if (ImGui::Button("Warp to Level")) {
             autoChroma = false;
-            warp_to_level(current_slevel_index, (s32)currentChromaArea);
+            warp_to_level(current_slevel_index, (s32)currentChromaArea, -1);
 
             // Erase existing timelines
             k_frame_keys.clear();

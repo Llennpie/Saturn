@@ -8,7 +8,7 @@ extern void anim_play_button();
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void warp_to_level(int, int);
+    void warp_to_level(int, int, int);
     int get_saturn_level_id(int);
     void smachinima_imgui_init(void);
     void smachinima_imgui_update(void);
