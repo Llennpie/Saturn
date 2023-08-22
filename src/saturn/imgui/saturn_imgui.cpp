@@ -404,7 +404,7 @@ void saturn_imgui_update() {
                     saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
                 }
                 ImGui::SameLine();
-                imgui_bundled_help_marker("Project files are basically save states for Saturn");
+                imgui_bundled_help_marker("Project files are basically save states for Saturn\nEXPERIMENTAL - May crash");
                 if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
                     saturn_load_project("autosave.spj");
                 }

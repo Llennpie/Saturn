@@ -99,6 +99,8 @@ static const LevelScript script_func_local_2[] = {
     OBJECT(/*model*/ MODEL_CASTLE_STAR_DOOR_50_STARS, /*pos*/ -127, 2253, 4762, /*angle*/ 0, 180, 0, /*behParam*/ 0x32000000, /*beh*/ bhvStarDoor),
     OBJECT(/*model*/ MODEL_CASTLE_STAR_DOOR_70_STARS, /*pos*/ -281, 3174, 3772, /*angle*/ 0,   0, 0, /*behParam*/ 0x46000000, /*beh*/ bhvStarDoor),
     OBJECT(/*model*/ MODEL_CASTLE_STAR_DOOR_70_STARS, /*pos*/ -127, 3174, 3772, /*angle*/ 0, 180, 0, /*behParam*/ 0x46000000, /*beh*/ bhvStarDoor),
+    WARP_NODE(/*id*/ 0x10, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x02, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT), // saturn warpnode
+    OBJECT(/*model*/ MODEL_NONE, /*pos*/ -997, 1203, 877, /*angle*/ 0, 32768, 0, /*behParam*/ 0x00100000, /*beh*/ bhvInstantActiveWarp), // saturn warp
     PAINTING_WARP_NODE(/*id*/ 0x18, /*destLevel*/ LEVEL_WDW, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
     PAINTING_WARP_NODE(/*id*/ 0x19, /*destLevel*/ LEVEL_WDW, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
     PAINTING_WARP_NODE(/*id*/ 0x1A, /*destLevel*/ LEVEL_WDW, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
@@ -167,6 +169,8 @@ static const LevelScript script_func_local_3[] = {
     WARP_NODE(/*id*/ 0x02, /*destLevel*/ LEVEL_CASTLE_GROUNDS, /*destArea*/ 0x01, /*destNode*/ 0x02, /*flags*/ WARP_NO_CHECKPOINT),
     OBJECT(/*model*/ MODEL_CASTLE_STAR_DOOR_30_STARS, /*pos*/ 307, -1074, 2074, /*angle*/ 0,  90, 0, /*behParam*/ 0x1E000000, /*beh*/ bhvStarDoor),
     OBJECT(/*model*/ MODEL_CASTLE_STAR_DOOR_30_STARS, /*pos*/ 307, -1074, 1920, /*angle*/ 0, 270, 0, /*behParam*/ 0x1E000000, /*beh*/ bhvStarDoor),
+    WARP_NODE(/*id*/ 0x10, /*destLevel*/ LEVEL_CASTLE, /*destArea*/ 0x03, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT), // saturn warpnode
+    OBJECT(/*model*/ MODEL_NONE, /*pos*/ -946, -1074, 1222, /*angle*/ 0, 0, 0, /*behParam*/ 0x00100000, /*beh*/ bhvInstantActiveWarp), // saturn warp
     PAINTING_WARP_NODE(/*id*/ 0x0C, /*destLevel*/ LEVEL_LLL, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
     PAINTING_WARP_NODE(/*id*/ 0x0D, /*destLevel*/ LEVEL_LLL, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
     PAINTING_WARP_NODE(/*id*/ 0x0E, /*destLevel*/ LEVEL_LLL, /*destArea*/ 0x01, /*destNode*/ 0x0A, /*flags*/ WARP_NO_CHECKPOINT),
