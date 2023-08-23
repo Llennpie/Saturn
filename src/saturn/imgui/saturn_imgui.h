@@ -43,9 +43,12 @@ extern bool chromaRequireReload;
 
 extern SDL_Window* window;
 
+extern bool splash_finished;
+
 extern "C" {
 #endif
-    void saturn_imgui_init(SDL_Window *, SDL_GLContext);
+    void saturn_imgui_init_backend(SDL_Window *, SDL_GLContext);
+    void saturn_imgui_init();
     void saturn_imgui_handle_events(SDL_Event *);
     void saturn_imgui_update(void);
 

@@ -102,6 +102,8 @@ ImVec2 k_context_popout_pos = ImVec2(0, 0);
 
 bool was_camera_frozen = false;
 
+bool splash_finished = false;
+
 // Bundled Components
 
 void imgui_bundled_tooltip(const char* text) {
@@ -214,7 +216,7 @@ void imgui_update_theme() {
 
 // Set up ImGui
 
-void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
+void saturn_imgui_init_backend(SDL_Window * sdl_window, SDL_GLContext ctx) {
     window = sdl_window;
 
     const char* glsl_version = "#version 120";
@@ -229,11 +231,13 @@ void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
     ImGui_ImplSDL2_InitForOpenGL(window, ctx);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
+}
+
+void saturn_imgui_init() {
     sdynos_imgui_init();
     smachinima_imgui_init();
     ssettings_imgui_init();
-
-    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -370,6 +374,7 @@ void saturn_keyframe_window() {
 }
 
 void saturn_imgui_update() {
+    if (!splash_finished) return;
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(window);
     ImGui::NewFrame();

@@ -13,7 +13,7 @@
 #include "gfx_dimensions.h"
 
 // frame counts for the zoom in, hold, and zoom out of title model
-#define INTRO_STEPS_ZOOM_IN 20
+#define INTRO_STEPS_ZOOM_IN 30
 #define INTRO_STEPS_HOLD_1 75
 #define INTRO_STEPS_ZOOM_OUT 91
 
@@ -107,31 +107,15 @@ Gfx *geo_title_screen(s32 sp50, struct GraphNode *sp54, UNUSED void *context) {
         scaleMat = alloc_display_list(sizeof(*scaleMat));
         displayList = alloc_display_list(4 * sizeof(*displayList));
         displayListIter = displayList;
-        if (gTitleZoomCounter >= 0 && gTitleZoomCounter < INTRO_STEPS_ZOOM_IN) {
-            scaleX = scaleTable1[gTitleZoomCounter * 3];
-            scaleY = scaleTable1[gTitleZoomCounter * 3 + 1];
-            scaleZ = scaleTable1[gTitleZoomCounter * 3 + 2];
-        } else if (gTitleZoomCounter >= INTRO_STEPS_ZOOM_IN && gTitleZoomCounter < INTRO_STEPS_HOLD_1) {
-            scaleX = 1.0f;
-            scaleY = 1.0f;
-            scaleZ = 1.0f;
-        } else if (gTitleZoomCounter >= INTRO_STEPS_HOLD_1
-                   && gTitleZoomCounter < INTRO_STEPS_ZOOM_OUT) {
-            scaleX = scaleTable2[(gTitleZoomCounter - INTRO_STEPS_HOLD_1) * 3];
-            scaleY = scaleTable2[(gTitleZoomCounter - INTRO_STEPS_HOLD_1) * 3 + 1];
-            scaleZ = scaleTable2[(gTitleZoomCounter - INTRO_STEPS_HOLD_1) * 3 + 2];
-        } else {
-            scaleX = 0.0f;
-            scaleY = 0.0f;
-            scaleZ = 0.0f;
-        }
+        float interpolation = max(0, min(gTitleZoomCounter / (float)INTRO_STEPS_ZOOM_IN, 1));
+        scaleX = scaleY = scaleZ = 1 - (1 - interpolation) * (1 - interpolation);
         vec3f_set(scale, scaleX, scaleY, scaleZ);
         interpolate_vectors(scaleInterpolated, sIntroScale, scale);
         vec3f_set(sIntroScale, scaleX, scaleY, scaleZ);
         guScale(scaleMat, scaleInterpolated[0], scaleInterpolated[1], scaleInterpolated[2]);
         sIntroScalePos = displayListIter;
         gSPMatrix(displayListIter++, scaleMat, G_MTX_MODELVIEW | G_MTX_MUL | G_MTX_PUSH);
-        gSPDisplayList(displayListIter++, &intro_seg7_dl_0700B3A0);
+        gSPDisplayList(displayListIter++, &logo_SaturnSplash_mesh);
         gSPPopMatrix(displayListIter++, G_MTX_MODELVIEW);
         gSPEndDisplayList(displayListIter);
         gTitleZoomCounter++;

@@ -149,6 +149,8 @@ extern "C" {
     void saturn_play_keyframe();
     void saturn_print(const char*);
     const char* saturn_get_stage_name(int);
+    void saturn_do_load();
+    void saturn_on_splash_finish();
 #ifdef __cplusplus
 }
 #endif

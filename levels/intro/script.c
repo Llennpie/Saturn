@@ -18,6 +18,8 @@
 #include "make_const_nonconst.h"
 #include "levels/intro/header.h"
 
+#include "saturn/saturn.h"
+
 const LevelScript level_intro_entry_1[] = {
     INIT_LEVEL(),
     FIXED_LOAD(/*loadAddr*/ _goddardSegmentStart, /*romStart*/ _goddardSegmentRomStart, /*romEnd*/ _goddardSegmentRomEnd),
@@ -31,13 +33,14 @@ const LevelScript level_intro_entry_1[] = {
     FREE_LEVEL_POOL(),
     LOAD_AREA(/*area*/ 1),
     CALL(/*arg*/ 0, /*func*/ lvl_intro_update),
-    SLEEP(/*frames*/ 75),
-    TRANSITION(/*transType*/ WARP_TRANSITION_FADE_INTO_COLOR, /*time*/ 16, /*color*/ 0x00, 0x00, 0x00),
-    SLEEP(/*frames*/ 16),
+    SLEEP(/*frames*/ 0),
+    CALL(/*arg*/ 0, /*func*/ saturn_do_load),
+    TRANSITION(/*transType*/ WARP_TRANSITION_FADE_INTO_CIRCLE, /*time*/ 30, /*color*/ 0x00, 0x00, 0x00),
+    SLEEP(/*frames*/ 30),
     CMD2A(/*unk2*/ 1),
     CLEAR_LEVEL(),
-    SLEEP(/*frames*/ 2),
-    EXIT_AND_EXECUTE(/*seg*/ 0x14, _introSegmentRomStart, _introSegmentRomEnd, level_intro_entry_2),
+    CALL(/*arg*/ 0, /*func*/ saturn_on_splash_finish),
+    EXIT_AND_EXECUTE(/*seg*/ 0x14, _menuSegmentRomStart, _menuSegmentRomEnd, level_main_menu_entry_1),
 };
 
 const LevelScript level_intro_entry_2[] = {
@@ -120,7 +123,7 @@ const LevelScript script_intro_L1[] = {
     CLEAR_LEVEL(),
     SLEEP(/*frames*/ 2),
     SET_REG(/*value*/ 16),
-    EXIT_AND_EXECUTE(/*seg*/ 0x14, _menuSegmentRomStart, _menuSegmentRomEnd, level_main_menu_entry_1),
+    EXIT_AND_EXECUTE(/*seg*/ 0x14, _introSegmentRomStart, _introSegmentRomEnd, level_intro_entry_1),
 };
 
 const LevelScript script_intro_L2[] = {
