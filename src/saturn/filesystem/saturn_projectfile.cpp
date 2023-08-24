@@ -111,14 +111,20 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     u8 level = saturn_format_read_int8(stream);
     spin_mult = saturn_format_read_float(stream);
     if (version == 1) {
+        overriden_camera_struct = *gCamera;
+        overriden_lakitu_struct = gLakituState;
         gCamera->pos[0] = saturn_format_read_float(stream);
         gCamera->pos[1] = saturn_format_read_float(stream);
         gCamera->pos[2] = saturn_format_read_float(stream);
         float yaw = saturn_format_read_float(stream);
         float pitch = saturn_format_read_float(stream);
         vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, (s16)pitch, (s16)yaw);
-        vec3f_copy(overriden_camera_pos, gCamera->pos);
-        vec3f_copy(overriden_camera_focus, gCamera->focus);
+        vec3f_copy(overriden_camera_struct.pos, gCamera->pos);
+        vec3f_copy(overriden_camera_struct.focus, gCamera->focus);
+        vec3f_copy(overriden_lakitu_struct.goalPos, gCamera->pos);
+        vec3f_copy(overriden_lakitu_struct.goalFocus, gCamera->focus);
+        vec3f_copy(overriden_lakitu_struct.pos, gCamera->pos);
+        vec3f_copy(overriden_lakitu_struct.focus, gCamera->focus);
     }
     camVelSpeed = saturn_format_read_float(stream);
     camVelRSpeed = saturn_format_read_float(stream);
@@ -157,8 +163,7 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     if (lvlID != get_saturn_level_id(gCurrLevelNum) || (level & 3) != gCurrAreaIndex) {
         warp_to_level(lvlID, level & 3, act);
         if (lvlID == 0) dynos_override_mario_and_camera = 1;
-        override_mario_and_camera = 1;
-        do_override_camera = version == 1;
+        override_mario_and_camera = 3; // We override for 3 frames otherwise it breaks :/
     }
 }
 
@@ -207,8 +212,8 @@ void saturn_project_keyframe_handler(SaturnFormatStream* stream, int version) {
 }
 
 void saturn_project_camera_handler(SaturnFormatStream* stream, int version) {
-    saturn_format_read_any(stream, gCamera, sizeof(*gCamera));
-    saturn_format_read_any(stream, &gLakituState, sizeof(gLakituState));
+    saturn_format_read_any(stream, &overriden_camera_struct, sizeof(struct Camera));
+    saturn_format_read_any(stream, &overriden_lakitu_struct, sizeof(struct LakituState));
 }
 
 void saturn_load_project(char* filename) {

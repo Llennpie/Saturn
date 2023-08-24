@@ -177,11 +177,10 @@ s8 gShouldNotPlayCastleMusic;
 
 u8 override_mario_and_camera;
 u8 dynos_override_mario_and_camera;
-u8 do_override_camera;
 s16 overriden_mario_angle;
 Vec3f overriden_mario_pos;
-Vec3f overriden_camera_pos;
-Vec3f overriden_camera_focus;
+struct Camera overriden_camera_struct;
+struct LakituState overriden_lakitu_struct;
 
 struct MarioState *gMarioState = &gMarioStates[0];
 u8 unused1[4] = { 0 };
@@ -409,7 +408,7 @@ void init_mario_after_warp(void) {
     }
 
     if (gCurrentArea) {
-        if (!do_override_camera) reset_camera(gCurrentArea->camera);
+        if (!override_mario_and_camera) reset_camera(gCurrentArea->camera);
     }
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
@@ -1022,6 +1021,17 @@ s32 play_mode_normal(void) {
         }
     }
 
+    // Override Mario if loaded from project file
+    if (override_mario_and_camera) {
+        override_mario_and_camera--;
+        vec3f_copy(gMarioState->pos, overriden_mario_pos);
+        gMarioState->faceAngle[1] = overriden_mario_angle;
+        if (override_mario_and_camera) {
+            *gCamera = overriden_camera_struct;
+            gLakituState = overriden_lakitu_struct;
+        }
+    }
+
     return 0;
 }
 
@@ -1209,7 +1219,7 @@ s32 init_level(void) {
         }
 
         if (gCurrentArea != NULL) {
-            if (!do_override_camera) reset_camera(gCurrentArea->camera);
+            if (!override_mario_and_camera) reset_camera(gCurrentArea->camera);
 
             if (gCurrDemoInput != NULL) {
                 set_mario_action(gMarioState, ACT_IDLE, 0);
@@ -1242,13 +1252,6 @@ s32 init_level(void) {
 
     if (gMarioState->action == ACT_INTRO_CUTSCENE) {
         sound_banks_disable(2, 0x0330);
-    }
-
-    if (override_mario_and_camera) {
-        override_mario_and_camera = 0;
-        if (!dynos_override_mario_and_camera) do_override_camera = 0;
-        vec3f_copy(gMarioState->pos, overriden_mario_pos);
-        gMarioState->faceAngle[1] = overriden_mario_angle;
     }
 
     return 1;
