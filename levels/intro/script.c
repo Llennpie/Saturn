@@ -33,7 +33,7 @@ const LevelScript level_intro_entry_1[] = {
     FREE_LEVEL_POOL(),
     LOAD_AREA(/*area*/ 1),
     CALL(/*arg*/ 0, /*func*/ lvl_intro_update),
-    SLEEP(/*frames*/ 0),
+    SLEEP(/*frames*/ 30),
     CALL(/*arg*/ 0, /*func*/ saturn_do_load),
     TRANSITION(/*transType*/ WARP_TRANSITION_FADE_INTO_CIRCLE, /*time*/ 30, /*color*/ 0x00, 0x00, 0x00),
     SLEEP(/*frames*/ 30),
