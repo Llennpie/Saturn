@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include "saturn_format.h"
 #include "saturn.h"
 #include "saturn_colors.h"
 #include "saturn_textures.h"
@@ -26,12 +27,7 @@ extern "C" {
 #include "game/object_list_processor.h"
 }
 
-#define SATURN_PROJECT_VERSION           2
-#define SATURN_PROJECT_BLOCK_SIZE        0x10
-#define SATURN_PROJECT_IDENTIFIER_LENGTH 0x04
-
-#define SATURN_PROJECT_HEADER_SIZE          0x10     // 16 bytes
-#define SATURN_PROJECT_MAX_CONTENT_SIZE     0x200000 // 2 MB, max 131072 blocks
+#define SATURN_PROJECT_VERSION 2
 
 #define SATURN_PROJECT_IDENTIFIER           "STPJ"
 #define SATURN_PROJECT_GAME_IDENTIFIER      "GAME"
@@ -88,310 +84,160 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     { "k_color_b", { { &uiChromaColor.z, nullptr }, "Skybox Color B" } }
 };
 
-u8 get_int8(char* data, int*offset) {
-    union {
-        char x;
-        u8 y;
-    } u;
-    u.x = data[*offset];
-    *offset += 1;
-    return u.y;
-}
-u32 get_int32(char* data, int* offset) {
-    u32 value = (get_int8(data, offset) << 24) | (get_int8(data, offset) << 16) | (get_int8(data, offset) << 8) | get_int8(data, offset);
-    return value;
-}
-u16 get_int16(char* data, int* offset) {
-    u16 value = (get_int8(data, offset) << 8) | get_int8(data, offset);
-    return value;
-}
-void get_string(char* data, int* offset, char* dest, int length) {
-    int i = 0;
-    do {
-        dest[i] = data[*offset + i];
-        i++;
-    }
-    while (data[*offset + i] != 0 && i < length);
-    dest[i] = 0;
-    *offset += i;
-}
-float get_floating_point(char* data, int* offset) {
-    union {
-        u32 x;
-        float y;
-    } u;
-    u.x = get_int32(data, offset);
-    return u.y;
-}
-bool get_bool(char* data, int* offset) {
-    bool value = data[*offset] != 0;
-    *offset += 1;
-    return value;
-}
-void get_any(char* data, int* offset, void* value, int length) {
-    memcpy(value, data + *offset, length);
-    *offset += length;
-}
-void identifier(char* data, int* offset, char* identifier) {
-    get_string(data, offset, identifier, SATURN_PROJECT_IDENTIFIER_LENGTH);
-}
-
-void put_int32(char* data, int* offset, u32 value) {
-    data[*offset] = (value >> 24) & 0xFF;
-    data[*offset + 1] = (value >> 16) & 0xFF;
-    data[*offset + 2] = (value >> 8) & 0xFF;
-    data[*offset + 3] = value & 0xFF;
-    *offset += 4;
-}
-void put_int16(char* data, int* offset, u16 value) {
-    data[*offset] = (value >> 8) & 0xFF;
-    data[*offset + 1] = value & 0xFF;
-    *offset += 2;
-}
-void put_int8(char* data, int* offset, u8 value) {
-    data[*offset] = value;
-    *offset += 1;
-}
-void put_string(char* data, int* offset, char* string) {
-    int i = 0;
-    do {
-        data[*offset + i] = string[i];
-        i++;
-    }
-    while (string[i] != 0);
-    *offset += i + 1;
-}
-void put_floating_point(char* data, int* offset, float value) {
-    union {
-        float x;
-        u32 y;
-    } u;
-    u.x = value;
-    put_int32(data, offset, u.y);
-}
-void put_bool(char* data, int* offset, bool value) {
-    put_int8(data, offset, value ? 1 : 0);
-}
-void put_any(char* data, int* offset, void* value, int length) {
-    memcpy(data + *offset, value, length);
-    *offset += length;
-}
-void put_identifier(char* data, int* offset, char* identifier) {
-    for (int i = 0; i < SATURN_PROJECT_IDENTIFIER_LENGTH; i++) {
-        data[*offset + i] = identifier[i];
-    }
-    *offset += SATURN_PROJECT_IDENTIFIER_LENGTH;
-}
-void pad(char* data, int* offset, int alignment) {
-    if (*offset % alignment == 0) return;
-    int padding = alignment - *offset % alignment;
-    for (int i = 0; i < padding; i++) {
-        put_int8(data, offset, rand() % 256);
-    }
-}
-
-void align(int* offset, int alignment) {
-    if (*offset % alignment == 0) return;
-    *offset += alignment - *offset % alignment;
-}
-
-u32 hash(char* data, int length, int offset = 0) { // See Java's java.lang.String#hashCode() method
-    u32 hash = 0;
-    for (int i = 0; i < length; i++) {
-        hash += 31 * hash + (int)(u8)(data[i + offset]);
-    }
-    return hash;
-}
-
 std::string full_file_path(char* filename) {
     return std::string("dynos/projects/") + filename;
 }
 
+void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
+    u16 flags = saturn_format_read_int16(stream);
+    u8 walkpoint = saturn_format_read_int8(stream);
+    camera_frozen = flags & SATURN_PROJECT_FLAG_CAMERA_FROZEN;
+    camera_fov_smooth = flags & SATURN_PROJECT_FLAG_CAMERA_SMOOTH;
+    linkMarioScale = flags & SATURN_PROJECT_FLAG_SCALE_LINKED;
+    enable_head_rotations = flags & SATURN_PROJECT_FLAG_MARIO_HEAD_ROTATIONS;
+    enable_dust_particles = flags & SATURN_PROJECT_FLAG_DUST_PARTICLES;
+    enable_torso_rotation = flags & SATURN_PROJECT_FLAG_TORSO_ROTATIONS;
+    show_vmario_emblem = flags & SATURN_PROJECT_FLAG_M_CAP_EMBLEM;
+    is_spinning = flags & SATURN_PROJECT_FLAG_MARIO_SPINNING;
+    gMarioState->action = (flags & SATURN_PROJECT_FLAG_FLY_MODE) ? ACT_DEBUG_FREE_MOVE : ACT_IDLE;
+    k_popout_open = flags & SATURN_PROJECT_FLAG_TIMELINE_SHOWN;
+    enable_shadows = flags & SATURN_PROJECT_FLAG_SHADOWS;
+    enable_immunity = flags & SATURN_PROJECT_FLAG_INVULNERABILITY;
+    enable_dialogue = flags & SATURN_PROJECT_FLAG_NPC_DIALOG;
+    is_anim_looped = flags & SATURN_PROJECT_FLAG_LOOP_ANIMATION;
+    k_loop = flags & SATURN_PROJECT_FLAG_LOOP_TIMELINE;
+    gLevelEnv = ((flags & SATURN_PROJECT_ENV_BIT_1) << 1) | (((walkpoint & SATURN_PROJECT_ENV_BIT_2) >> 7) & 1);
+    run_speed = walkpoint & SATURN_PROJECT_WALKPOINT_MASK;
+    u8 level = saturn_format_read_int8(stream);
+    spin_mult = saturn_format_read_float(stream);
+    if (version == 1) {
+        gCamera->pos[0] = saturn_format_read_float(stream);
+        gCamera->pos[1] = saturn_format_read_float(stream);
+        gCamera->pos[2] = saturn_format_read_float(stream);
+        float yaw = saturn_format_read_float(stream);
+        float pitch = saturn_format_read_float(stream);
+        vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, (s16)pitch, (s16)yaw);
+        vec3f_copy(overriden_camera_pos, gCamera->pos);
+        vec3f_copy(overriden_camera_focus, gCamera->focus);
+    }
+    camVelSpeed = saturn_format_read_float(stream);
+    camVelRSpeed = saturn_format_read_float(stream);
+    camera_fov = saturn_format_read_float(stream);
+    camera_focus = saturn_format_read_float(stream);
+    current_eye_state = saturn_format_read_int8(stream);
+    scrollHandState = saturn_format_read_int8(stream);
+    scrollCapState = saturn_format_read_int8(stream);
+    saturnModelState = saturn_format_read_int8(stream);
+    gMarioState->faceAngle[1] = saturn_format_read_float(stream);
+    gMarioState->pos[0] = saturn_format_read_float(stream);
+    gMarioState->pos[1] = saturn_format_read_float(stream);
+    gMarioState->pos[2] = saturn_format_read_float(stream);
+    vec3f_copy(overriden_mario_pos, gMarioState->pos);
+    overriden_mario_angle = gMarioState->faceAngle[1];
+    world_light_dir4 = saturn_format_read_float(stream);
+    world_light_dir1 = saturn_format_read_float(stream);
+    world_light_dir2 = saturn_format_read_float(stream);
+    world_light_dir3 = saturn_format_read_float(stream);
+    marioScaleSizeX = saturn_format_read_float(stream);
+    marioScaleSizeY = saturn_format_read_float(stream);
+    marioScaleSizeZ = saturn_format_read_float(stream);
+    endFrame = saturn_format_read_int32(stream);
+    endFrameText = endFrame;
+    int act = 0;
+    if (version >= 2) {
+        k_current_frame = saturn_format_read_int32(stream);
+        gMarioState->action = saturn_format_read_int32(stream);
+        gMarioState->actionState = saturn_format_read_int32(stream);
+        gMarioState->actionTimer = saturn_format_read_int32(stream);
+        gMarioState->actionArg = saturn_format_read_int32(stream);
+        act = saturn_format_read_int8(stream);
+    }
+    k_previous_frame = -1;
+    u8 lvlID = (level >> 2) & 63;
+    if (lvlID != get_saturn_level_id(gCurrLevelNum) || (level & 3) != gCurrAreaIndex) {
+        warp_to_level(lvlID, level & 3, act);
+        if (lvlID == 0) dynos_override_mario_and_camera = 1;
+        override_mario_and_camera = 1;
+        do_override_camera = version == 1;
+    }
+}
+
+void saturn_project_chromakey_handler(SaturnFormatStream* stream, int version) {
+    u8 skybox = saturn_format_read_int8(stream);
+    if (skybox == 0xFF || skybox == 0xFE) {
+        use_color_background = true;
+        renderFloor = skybox & 1;
+    }
+    else gChromaKeyBackground = skybox;
+    u8 r = saturn_format_read_int8(stream);
+    u8 g = saturn_format_read_int8(stream);
+    u8 b = saturn_format_read_int8(stream);
+    uiChromaColor.x = r / 255.0f;
+    uiChromaColor.y = g / 255.0f;
+    uiChromaColor.z = b / 255.0f;
+    uiChromaColor.w = 1.0f;
+    autoChroma = true;
+}
+
+void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
+    KeyframeTimeline timeline = KeyframeTimeline();
+    timeline.precision = (char)saturn_format_read_int8(stream);
+    timeline.autoCreation = saturn_format_read_int8(stream);
+    char id[257];
+    saturn_format_read_string(stream, id);
+    id[256] = 0;
+    auto timelineConfig = timelineDataTable[id];
+    timeline.fdest = timelineConfig.first.first;
+    timeline.bdest = timelineConfig.first.second;
+    timeline.name = timelineConfig.second;
+    k_frame_keys.insert({ std::string(id), { timeline, {} } });
+}
+
+void saturn_project_keyframe_handler(SaturnFormatStream* stream, int version) {
+    float value = saturn_format_read_float(stream);
+    u32 position = saturn_format_read_int8(stream);
+    InterpolationCurve curve = InterpolationCurve(saturn_format_read_int8(stream));
+    Keyframe keyframe = Keyframe((int)position, curve);
+    keyframe.value = value;
+    char id[257];
+    saturn_format_read_string(stream, id);
+    id[256] = 0;
+    keyframe.timelineID = id;
+    k_frame_keys[id].second.push_back(keyframe);
+}
+
+void saturn_project_camera_handler(SaturnFormatStream* stream, int version) {
+    saturn_format_read_any(stream, gCamera, sizeof(*gCamera));
+    saturn_format_read_any(stream, &gLakituState, sizeof(gLakituState));
+}
+
 void saturn_load_project(char* filename) {
-    int pointer = 0;
-    std::ifstream file = std::ifstream(full_file_path(filename).c_str(), std::ios::binary);
-    if (!file.is_open()) {
-        file = std::ifstream(filename, std::ios::binary);
-        if (!file.is_open()) {
-            std::cout << "Project not found: " << filename << std::endl;
-            return;
-        }
-    }
-    char* headerData = (char*)malloc(SATURN_PROJECT_HEADER_SIZE);
-    file.read(headerData, SATURN_PROJECT_HEADER_SIZE);
-    char fileIdentifier[5];
-    identifier(headerData, &pointer, fileIdentifier);
-    if (std::strcmp(fileIdentifier, SATURN_PROJECT_IDENTIFIER) != 0) {
-        std::cout << "Identifier doesn't match " SATURN_PROJECT_IDENTIFIER << ". Ignoring." << std::endl;
-    }
-    u32 blocks = get_int32(headerData, &pointer);
-    u32 checksum = get_int32(headerData, &pointer);
-    u32 version = get_int32(headerData, &pointer);
-    char* data = (char*)malloc(SATURN_PROJECT_HEADER_SIZE + blocks * SATURN_PROJECT_BLOCK_SIZE);
-    file.seekg(0);
-    file.read(data, SATURN_PROJECT_HEADER_SIZE + blocks * SATURN_PROJECT_BLOCK_SIZE);
-    u32 dataChecksum = hash(data, blocks * SATURN_PROJECT_BLOCK_SIZE, SATURN_PROJECT_HEADER_SIZE);
-    if (checksum != dataChecksum) {
-        std::cout << "Checksum failed: should be " << checksum << " but is " << dataChecksum << ", corruptions or crash might happen!" << std::endl;
-    }
     k_frame_keys.clear();
-    while (true) {
-        int beginning = pointer;
-        char sectionIdentifier[5];
-        identifier(data, &pointer, sectionIdentifier);
-        u32 size = get_int32(data, &pointer);
-        align(&pointer, SATURN_PROJECT_BLOCK_SIZE);
-        if (std::strcmp(sectionIdentifier, SATURN_PROJECT_DONE_IDENTIFIER) == 0) break;
-        if (std::strcmp(sectionIdentifier, SATURN_PROJECT_GAME_IDENTIFIER) == 0) {
-            u16 flags = get_int16(data, &pointer);
-            u8 walkpoint = get_int8(data, &pointer);
-            camera_frozen = flags & SATURN_PROJECT_FLAG_CAMERA_FROZEN;
-            camera_fov_smooth = flags & SATURN_PROJECT_FLAG_CAMERA_SMOOTH;
-            linkMarioScale = flags & SATURN_PROJECT_FLAG_SCALE_LINKED;
-            enable_head_rotations = flags & SATURN_PROJECT_FLAG_MARIO_HEAD_ROTATIONS;
-            enable_dust_particles = flags & SATURN_PROJECT_FLAG_DUST_PARTICLES;
-            enable_torso_rotation = flags & SATURN_PROJECT_FLAG_TORSO_ROTATIONS;
-            show_vmario_emblem = flags & SATURN_PROJECT_FLAG_M_CAP_EMBLEM;
-            is_spinning = flags & SATURN_PROJECT_FLAG_MARIO_SPINNING;
-            gMarioState->action = (flags & SATURN_PROJECT_FLAG_FLY_MODE) ? ACT_DEBUG_FREE_MOVE : ACT_IDLE;
-            k_popout_open = flags & SATURN_PROJECT_FLAG_TIMELINE_SHOWN;
-            enable_shadows = flags & SATURN_PROJECT_FLAG_SHADOWS;
-            enable_immunity = flags & SATURN_PROJECT_FLAG_INVULNERABILITY;
-            enable_dialogue = flags & SATURN_PROJECT_FLAG_NPC_DIALOG;
-            is_anim_looped = flags & SATURN_PROJECT_FLAG_LOOP_ANIMATION;
-            k_loop = flags & SATURN_PROJECT_FLAG_LOOP_TIMELINE;
-            gLevelEnv = ((flags & SATURN_PROJECT_ENV_BIT_1) << 1) | (((walkpoint & SATURN_PROJECT_ENV_BIT_2) >> 7) & 1);
-            run_speed = walkpoint & SATURN_PROJECT_WALKPOINT_MASK;
-            u8 level = get_int8(data, &pointer);
-            spin_mult = get_floating_point(data, &pointer);
-            if (version == 1) {
-                gCamera->pos[0] = get_floating_point(data, &pointer);
-                gCamera->pos[1] = get_floating_point(data, &pointer);
-                gCamera->pos[2] = get_floating_point(data, &pointer);
-                float yaw = get_floating_point(data, &pointer);
-                float pitch = get_floating_point(data, &pointer);
-                vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, (s16)pitch, (s16)yaw);
-                vec3f_copy(overriden_camera_pos, gCamera->pos);
-                vec3f_copy(overriden_camera_focus, gCamera->focus);
-            }
-            camVelSpeed = get_floating_point(data, &pointer);
-            camVelRSpeed = get_floating_point(data, &pointer);
-            camera_fov = get_floating_point(data, &pointer);
-            camera_focus = get_floating_point(data, &pointer);
-            current_eye_state = get_int8(data, &pointer);
-            scrollHandState = get_int8(data, &pointer);
-            scrollCapState = get_int8(data, &pointer);
-            saturnModelState = get_int8(data, &pointer);
-            gMarioState->faceAngle[1] = get_floating_point(data, &pointer);
-            gMarioState->pos[0] = get_floating_point(data, &pointer);
-            gMarioState->pos[1] = get_floating_point(data, &pointer);
-            gMarioState->pos[2] = get_floating_point(data, &pointer);
-            vec3f_copy(overriden_mario_pos, gMarioState->pos);
-            overriden_mario_angle = gMarioState->faceAngle[1];
-            world_light_dir4 = get_floating_point(data, &pointer);
-            world_light_dir1 = get_floating_point(data, &pointer);
-            world_light_dir2 = get_floating_point(data, &pointer);
-            world_light_dir3 = get_floating_point(data, &pointer);
-            marioScaleSizeX = get_floating_point(data, &pointer);
-            marioScaleSizeY = get_floating_point(data, &pointer);
-            marioScaleSizeZ = get_floating_point(data, &pointer);
-            endFrame = get_int32(data, &pointer);
-            endFrameText = endFrame;
-            int act = 0;
-            if (version >= 2) {
-                k_current_frame = get_int32(data, &pointer);
-                gMarioState->action = get_int32(data, &pointer);
-                gMarioState->actionState = get_int32(data, &pointer);
-                gMarioState->actionTimer = get_int32(data, &pointer);
-                gMarioState->actionArg = get_int32(data, &pointer);
-                act = get_int8(data, &pointer);
-            }
-            k_previous_frame = -1;
-            u8 lvlID = (level >> 2) & 63;
-            if (lvlID != get_saturn_level_id(gCurrLevelNum) || (level & 3) != gCurrAreaIndex) {
-                warp_to_level(lvlID, level & 3, act);
-                if (lvlID == 0) dynos_override_mario_and_camera = 1;
-                override_mario_and_camera = 1;
-                do_override_camera = version == 1;
-            }
-        }
-        if (std::strcmp(sectionIdentifier, SATURN_PROJECT_CHROMAKEY_IDENTIFIER) == 0) {
-            u8 skybox = get_int8(data, &pointer);
-            if (skybox == 0xFF || skybox == 0xFE) {
-                use_color_background = true;
-                renderFloor = skybox & 1;
-            }
-            else gChromaKeyBackground = skybox;
-            u8 r = get_int8(data, &pointer);
-            u8 g = get_int8(data, &pointer);
-            u8 b = get_int8(data, &pointer);
-            uiChromaColor.x = r / 255.0f;
-            uiChromaColor.y = g / 255.0f;
-            uiChromaColor.z = b / 255.0f;
-            uiChromaColor.w = 1.0f;
-            autoChroma = true;
-        }
-        if (std::strcmp(sectionIdentifier, SATURN_PROJECT_TIMELINE_IDENTIFIER) == 0) {
-            KeyframeTimeline timeline = KeyframeTimeline();
-            timeline.precision = (char)get_int8(data, &pointer);
-            timeline.autoCreation = get_int8(data, &pointer);
-            char id[257];
-            get_string(data, &pointer, id, 256);
-            auto timelineConfig = timelineDataTable[id];
-            timeline.fdest = timelineConfig.first.first;
-            timeline.bdest = timelineConfig.first.second;
-            timeline.name = timelineConfig.second;
-            k_frame_keys.insert({ std::string(id), { timeline, {} } });
-        }
-        if (std::strcmp(sectionIdentifier, SATURN_PROJECT_KEYFRAME_IDENTIFIER) == 0) {
-            float value = get_floating_point(data, &pointer);
-            u32 position = get_int32(data, &pointer);
-            InterpolationCurve curve = InterpolationCurve(get_int8(data, &pointer));
-            Keyframe keyframe = Keyframe((int)position, curve);
-            keyframe.value = value;
-            char id[257];
-            get_string(data, &pointer, id, 256);
-            keyframe.timelineID = id;
-            k_frame_keys[id].second.push_back(keyframe);
-        }
-        if (std::strcmp(sectionIdentifier, SATURN_PROJECT_CAMERA_IDENTIFIER) == 0 && version >= 2) {
-            get_any(data, &pointer, gCamera, sizeof(*gCamera));
-            get_any(data, &pointer, &gLakituState, sizeof(gLakituState));
-        }
-        pointer = beginning;
-        pointer += SATURN_PROJECT_BLOCK_SIZE * size;
-    }
-    file.close();
-    free(headerData);
-    free(data);
-    std::cout << "Loaded project " << filename << std::endl;
+    saturn_format_input((char*)full_file_path(filename).c_str(), SATURN_PROJECT_IDENTIFIER, {
+        { SATURN_PROJECT_GAME_IDENTIFIER, saturn_project_game_handler },
+        { SATURN_PROJECT_CHROMAKEY_IDENTIFIER, saturn_project_chromakey_handler },
+        { SATURN_PROJECT_TIMELINE_IDENTIFIER, saturn_project_timeline_handler },
+        { SATURN_PROJECT_KEYFRAME_IDENTIFIER, saturn_project_keyframe_handler },
+        { SATURN_PROJECT_CAMERA_IDENTIFIER, saturn_project_camera_handler },
+    });
 }
 void saturn_save_project(char* filename) {
-    int headerPointer = 0;
-    int contentPointer = 0;
-    std::ofstream file(full_file_path(filename).c_str(), std::ios::binary);
-    if (!file.is_open()) return;
-    char* header = (char*)malloc(SATURN_PROJECT_HEADER_SIZE);
-    char* content = (char*)malloc(SATURN_PROJECT_MAX_CONTENT_SIZE);
+    SaturnFormatStream stream = saturn_format_output(filename, SATURN_PROJECT_VERSION);
     if (autoChroma) {
-        put_identifier(content, &contentPointer, SATURN_PROJECT_CHROMAKEY_IDENTIFIER);
-        put_int32(content, &contentPointer, 2);
-        pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
+        saturn_format_new_section(&stream, SATURN_PROJECT_CHROMAKEY_IDENTIFIER);
         u8 skybox = 0;
         if (use_color_background) {
             if (renderFloor) skybox = 0xFF;
             else skybox = 0xFE;
         }
         else skybox = gChromaKeyBackground;
-        put_int8(content, &contentPointer, skybox);
-        put_int8(content, &contentPointer, chromaColor.red[0]);
-        put_int8(content, &contentPointer, chromaColor.green[0]);
-        put_int8(content, &contentPointer, chromaColor.blue[0]);
-        pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
+        saturn_format_write_int8(&stream, skybox);
+        saturn_format_write_int8(&stream, chromaColor.red[0]);
+        saturn_format_write_int8(&stream, chromaColor.green[0]);
+        saturn_format_write_int8(&stream, chromaColor.blue[0]);
+        saturn_format_close_section(&stream);
     }
-    put_identifier(content, &contentPointer, SATURN_PROJECT_GAME_IDENTIFIER);
-    put_int32(content, &contentPointer, 8);
-    pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
+    saturn_format_new_section(&stream, SATURN_PROJECT_GAME_IDENTIFIER);
     u16 flags = 0;
     u8 walkpoint = run_speed;
     if (camera_frozen) flags |= SATURN_PROJECT_FLAG_CAMERA_FROZEN;
@@ -413,97 +259,70 @@ void saturn_save_project(char* filename) {
     if (gLevelEnv & 1) walkpoint |= SATURN_PROJECT_ENV_BIT_2;
     flags |= (gLevelEnv >> 1) & 1;
     walkpoint |= (gLevelEnv & 1) << 7;
-    put_int16(content, &contentPointer, flags);
-    put_int8(content, &contentPointer, walkpoint);
-    put_int8(content, &contentPointer, (get_saturn_level_id(gCurrLevelNum) << 2) | gCurrAreaIndex);
-    put_floating_point(content, &contentPointer, spin_mult);
+    saturn_format_write_int16(&stream, flags);
+    saturn_format_write_int8(&stream, walkpoint);
+    saturn_format_write_int8(&stream, (get_saturn_level_id(gCurrLevelNum) << 2) | gCurrAreaIndex);
+    saturn_format_write_float(&stream, spin_mult);
     /* Version 1
-    put_floating_point(content, &contentPointer, gLakituState.pos[0]);
-    put_floating_point(content, &contentPointer, gLakituState.pos[1]);
-    put_floating_point(content, &contentPointer, gLakituState.pos[2]);
+    saturn_format_write_float(&stream, gLakituState.pos[0]);
+    saturn_format_write_float(&stream, gLakituState.pos[1]);
+    saturn_format_write_float(&stream, gLakituState.pos[2]);
     s16 yaw;
     s16 pitch;
     float dist;
     vec3f_get_dist_and_angle(gLakituState.pos, gLakituState.focus, &dist, &pitch, &yaw);
-    put_floating_point(content, &contentPointer, (float)yaw);
-    put_floating_point(content, &contentPointer, (float)pitch);
+    saturn_format_write_float(&stream, (float)yaw);
+    saturn_format_write_float(&stream, (float)pitch);
     */
-    put_floating_point(content, &contentPointer, camVelSpeed);
-    put_floating_point(content, &contentPointer, camVelRSpeed);
-    put_floating_point(content, &contentPointer, camera_fov);
-    put_floating_point(content, &contentPointer, camera_focus);
-    put_int8(content, &contentPointer, current_eye_state);
-    put_int8(content, &contentPointer, scrollHandState);
-    put_int8(content, &contentPointer, scrollCapState);
-    put_int8(content, &contentPointer, saturnModelState);
-    put_floating_point(content, &contentPointer, gMarioState->faceAngle[1]);
-    put_floating_point(content, &contentPointer, gMarioState->pos[0]);
-    put_floating_point(content, &contentPointer, gMarioState->pos[1]);
-    put_floating_point(content, &contentPointer, gMarioState->pos[2]);
-    put_floating_point(content, &contentPointer, world_light_dir4);
-    put_floating_point(content, &contentPointer, world_light_dir1);
-    put_floating_point(content, &contentPointer, world_light_dir2);
-    put_floating_point(content, &contentPointer, world_light_dir3);
-    put_floating_point(content, &contentPointer, marioScaleSizeX);
-    put_floating_point(content, &contentPointer, marioScaleSizeY);
-    put_floating_point(content, &contentPointer, marioScaleSizeZ);
-    put_int32(content, &contentPointer, endFrame);
-    put_int32(content, &contentPointer, k_current_frame);
-    put_int32(content, &contentPointer, gMarioState->action);
-    put_int32(content, &contentPointer, gMarioState->actionState);
-    put_int32(content, &contentPointer, gMarioState->actionTimer);
-    put_int32(content, &contentPointer, gMarioState->actionArg);
-    put_int8(content, &contentPointer, gCurrActNum);
-    pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-    put_identifier(content, &contentPointer, SATURN_PROJECT_CAMERA_IDENTIFIER);
-    put_int32(content, &contentPointer, ceil((sizeof(*gCamera) + sizeof(gLakituState)) / 16.0f) + 1);
-    pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-    put_any(content, &contentPointer, gCamera, sizeof(*gCamera));
-    put_any(content, &contentPointer, &gLakituState, sizeof(gLakituState));
-    pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
+    saturn_format_write_float(&stream, camVelSpeed);
+    saturn_format_write_float(&stream, camVelRSpeed);
+    saturn_format_write_float(&stream, camera_fov);
+    saturn_format_write_float(&stream, camera_focus);
+    saturn_format_write_int8(&stream, current_eye_state);
+    saturn_format_write_int8(&stream, scrollHandState);
+    saturn_format_write_int8(&stream, scrollCapState);
+    saturn_format_write_int8(&stream, saturnModelState);
+    saturn_format_write_float(&stream, gMarioState->faceAngle[1]);
+    saturn_format_write_float(&stream, gMarioState->pos[0]);
+    saturn_format_write_float(&stream, gMarioState->pos[1]);
+    saturn_format_write_float(&stream, gMarioState->pos[2]);
+    saturn_format_write_float(&stream, world_light_dir4);
+    saturn_format_write_float(&stream, world_light_dir1);
+    saturn_format_write_float(&stream, world_light_dir2);
+    saturn_format_write_float(&stream, world_light_dir3);
+    saturn_format_write_float(&stream, marioScaleSizeX);
+    saturn_format_write_float(&stream, marioScaleSizeY);
+    saturn_format_write_float(&stream, marioScaleSizeZ);
+    saturn_format_write_int32(&stream, endFrame);
+    saturn_format_write_int32(&stream, k_current_frame);
+    saturn_format_write_int32(&stream, gMarioState->action);
+    saturn_format_write_int32(&stream, gMarioState->actionState);
+    saturn_format_write_int32(&stream, gMarioState->actionTimer);
+    saturn_format_write_int32(&stream, gMarioState->actionArg);
+    saturn_format_write_int8(&stream, gCurrActNum);
+    saturn_format_close_section(&stream);
+    saturn_format_new_section(&stream, SATURN_PROJECT_CAMERA_IDENTIFIER);
+    saturn_format_write_any(&stream, gCamera, sizeof(*gCamera));
+    saturn_format_write_any(&stream, &gLakituState, sizeof(gLakituState));
+    saturn_format_close_section(&stream);
     for (auto& entry : k_frame_keys) {
-        int beginningPointer = contentPointer;
-        put_identifier(content, &contentPointer, SATURN_PROJECT_TIMELINE_IDENTIFIER);
-        pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-        put_int8(content, &contentPointer, entry.second.first.precision);
-        put_bool(content, &contentPointer, entry.second.first.autoCreation);
-        put_string(content, &contentPointer, (char*)entry.first.c_str());
-        pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-        int blocks = (contentPointer - beginningPointer) / SATURN_PROJECT_BLOCK_SIZE;
-        contentPointer = beginningPointer + 4;
-        put_int32(content, &contentPointer, blocks);
-        contentPointer += blocks * SATURN_PROJECT_BLOCK_SIZE - 8;
+        saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
+        saturn_format_write_int8(&stream, entry.second.first.precision);
+        saturn_format_write_bool(&stream, entry.second.first.autoCreation);
+        saturn_format_write_string(&stream, (char*)entry.first.c_str());
+        saturn_format_close_section(&stream);
     }
     for (auto& entry : k_frame_keys) {
         char* name = (char*)entry.first.c_str();
         for (Keyframe keyframe : entry.second.second) {
-            int beginningPointer = contentPointer;
-            put_identifier(content, &contentPointer, SATURN_PROJECT_KEYFRAME_IDENTIFIER);
-            pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-            put_floating_point(content, &contentPointer, keyframe.value);
-            put_int32(content, &contentPointer, keyframe.position);
-            put_int8(content, &contentPointer, keyframe.curve);
-            put_string(content, &contentPointer, name);
-            pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-            int blocks = (contentPointer - beginningPointer) / SATURN_PROJECT_BLOCK_SIZE;
-            contentPointer = beginningPointer + 4;
-            put_int32(content, &contentPointer, blocks);
-            contentPointer += blocks * SATURN_PROJECT_BLOCK_SIZE - 8;
+            saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
+            saturn_format_write_float(&stream, keyframe.value);
+            saturn_format_write_int32(&stream, keyframe.position);
+            saturn_format_write_int8(&stream, keyframe.curve);
+            saturn_format_write_string(&stream, name);
+            saturn_format_close_section(&stream);
         }
     }
-    put_identifier(content, &contentPointer, SATURN_PROJECT_DONE_IDENTIFIER);
-    pad(content, &contentPointer, SATURN_PROJECT_BLOCK_SIZE);
-    put_identifier(header, &headerPointer, SATURN_PROJECT_IDENTIFIER);
-    put_int32(header, &headerPointer, contentPointer / SATURN_PROJECT_BLOCK_SIZE);
-    put_int32(header, &headerPointer, hash(content, contentPointer));
-    put_int32(header, &headerPointer, SATURN_PROJECT_VERSION);
-    file.write(header, SATURN_PROJECT_HEADER_SIZE);
-    file.write(content, contentPointer);
-    file.close();
-    free(header);
-    free(content);
+    saturn_format_write((char*)full_file_path(filename).c_str(), &stream);
     std::cout << "Saved project " << filename << std::endl;
-}
-std::vector<std::string> saturn_list_projects() {
-
 }
