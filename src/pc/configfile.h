@@ -67,6 +67,9 @@ extern unsigned int configFakeStarCount;
 extern bool         configUnlockDoors;
 extern bool         configEditorAlwaysChroma;
 extern bool         configWindowState;
+extern bool         configNoWaterBombs;
+extern bool         configNoCamShake;
+extern bool         configNoButterflies;
 extern float        camera_fov;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
@@ -85,6 +88,7 @@ extern bool         configSkipIntro;
 #ifdef DISCORDRPC
 extern bool         configDiscordRPC;
 #endif
+extern unsigned int configAutosaveDelay;
 
 void configfile_load(const char *filename);
 void configfile_save(const char *filename);

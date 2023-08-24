@@ -293,6 +293,12 @@ void ssettings_imgui_update() {
         //ImGui::PopItemWidth();
         ImGui::Checkbox("Unlock Doors", &configUnlockDoors);
         imgui_bundled_tooltip("Unlocks all areas in the castle, regardless of save file.");
+        ImGui::Checkbox("Disable Water Bombs", &configNoWaterBombs);
+        imgui_bundled_tooltip("Removes Water Bombs from Bob-Omb Battlefield.");
+        ImGui::Checkbox("Disable Camera Shake", &configNoCamShake);
+        imgui_bundled_tooltip("Removes camera shakes.");
+        ImGui::Checkbox("Butterflies Begone (TM)", &configNoButterflies);
+        imgui_bundled_tooltip("Hides butterflies.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);
@@ -301,6 +307,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Displays small image previews for expression and eye textures; May cause lag on low-end machines.");
         ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
         imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
+        ImGui::SliderInt("###autosave_delay_slider", (int*)&configAutosaveDelay, 10, 600, "Autosave Delay: %ds");
+        imgui_bundled_tooltip("Delay between each project autosave.");
         //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
         //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
         //ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);

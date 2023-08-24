@@ -30,7 +30,7 @@ using namespace std;
 
 // Variables
 
-static ImVec4 uiChromaColor =              ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiChromaColor =              ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
 bool renderFloor = false;
 int currentChromaArea = 1;
 
@@ -88,6 +88,7 @@ void schroma_imgui_update() {
         set_chroma_color();
 
         ImGui::SameLine(); ImGui::Text("Color");
+        saturn_keyframe_color_popout("Skybox Color", "k_color");
         if (gCurrLevelNum != LEVEL_SA) ImGui::BeginDisabled();
         if (ImGui::Checkbox("Render Floor", &renderFloor))
             chromaRequireReload = true;

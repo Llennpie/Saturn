@@ -176,6 +176,7 @@ extern struct Camera *gCamera;
 Vec3f freezecamPos = { 0, 0, 0 };
 float freezecamYaw = 0;
 float freezecamPitch = 0;
+float freezecamRoll = 0;
 
 /**
  * Lakitu's position and focus.
@@ -3056,6 +3057,8 @@ u8 cameraRotateLeft;
 u8 cameraRotateRight;
 u8 cameraRotateUp;
 u8 cameraRotateDown;
+u8 cameraRollLeft;
+u8 cameraRollRight;
 
 Vec3f mCameraKeyPos;
 Vec3f mCameraKeyFoc;
@@ -3369,6 +3372,9 @@ void update_camera(struct Camera *c) {
                         }
                     }
                 }
+                if (cameraRollLeft) gLakituState.roll += camVelRSpeed * 512;
+                if (cameraRollRight) gLakituState.roll -= camVelRSpeed * 512;
+                if (cameraRollLeft || cameraRollRight) is_camera_moving = true;
 
                 c->pos[1] += camVelY;
                 c->focus[1] += camVelY;
@@ -4958,6 +4964,7 @@ void rotate_in_yz(Vec3f dst, Vec3f src, s16 pitch) {
  * Start shaking the camera's pitch (up and down)
  */
 void set_camera_pitch_shake(s16 mag, s16 decay, s16 inc) {
+    if (configNoCamShake) return;
     if (gLakituState.shakeMagnitude[0] < mag) {
         gLakituState.shakeMagnitude[0] = mag;
         gLakituState.shakePitchDecay = decay;
@@ -4969,6 +4976,7 @@ void set_camera_pitch_shake(s16 mag, s16 decay, s16 inc) {
  * Start shaking the camera's yaw (side to side)
  */
 void set_camera_yaw_shake(s16 mag, s16 decay, s16 inc) {
+    if (configNoCamShake) return;
     if (ABS(mag) > ABS(gLakituState.shakeMagnitude[1])) {
         gLakituState.shakeMagnitude[1] = mag;
         gLakituState.shakeYawDecay = decay;
@@ -4980,6 +4988,7 @@ void set_camera_yaw_shake(s16 mag, s16 decay, s16 inc) {
  * Start shaking the camera's roll (rotate screen clockwise and counterclockwise)
  */
 void set_camera_roll_shake(s16 mag, s16 decay, s16 inc) {
+    if (configNoCamShake) return;
     if (gLakituState.shakeMagnitude[2] < mag) {
         gLakituState.shakeMagnitude[2] = mag;
         gLakituState.shakeRollDecay = decay;

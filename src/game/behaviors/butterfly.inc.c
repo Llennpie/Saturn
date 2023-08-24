@@ -1,3 +1,5 @@
+#include "pc/configfile.h"
+
 // butterfly.c.inc
 
 void bhv_butterfly_init(void) {
@@ -94,6 +96,12 @@ void butterfly_act_return_home(void) {
 }
 
 void bhv_butterfly_loop(void) {
+    if (configNoButterflies) {
+        o->header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
+        return;
+    }
+    else o->header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
+
     switch (o->oAction) {
         case BUTTERFLY_ACT_RESTING:
             butterfly_act_rest();

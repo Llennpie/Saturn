@@ -132,6 +132,8 @@ extern std::string model_details;
 extern std::string cc_details;
 extern bool is_cc_editing;
 
+extern int autosaveDelay;
+
 extern Vec3f stored_mario_pos;
 extern Vec3s stored_mario_angle;
 extern void saturn_copy_camera(bool);

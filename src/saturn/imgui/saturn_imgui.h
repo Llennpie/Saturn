@@ -26,6 +26,7 @@ enum {
 extern void saturn_keyframe_float_popout(float* edit_value, std::string value_name, std::string id);
 extern void saturn_keyframe_bool_popout(bool* edit_value, std::string value_name, std::string id);
 extern void saturn_keyframe_camera_popout(std::string value_name, std::string id);
+extern void saturn_keyframe_color_popout(std::string value_name, std::string id);
 
 template <typename T>
 extern void saturn_keyframe_popout(const T &edit_value, s32 data_type, std::string, std::string);
@@ -42,6 +43,9 @@ extern bool windowChromaKey;
 extern bool chromaRequireReload;
 
 extern SDL_Window* window;
+
+extern uint32_t endFrame;
+extern int endFrameText;
 
 extern bool splash_finished;
 
