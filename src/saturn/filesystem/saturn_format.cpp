@@ -1,4 +1,4 @@
-#include "saturn/saturn_format.h"
+#include "saturn_format.h"
 
 #include <fstream>
 #include <iostream>
@@ -85,7 +85,6 @@ SaturnFormatStream saturn_format_output(char* identifier, int version) {
     return stream;
 }
 u8 saturn_format_read_int8(SaturnFormatStream* stream) {
-    std::cout << (int)(u8)stream->data[stream->pointer] << " at " << stream->pointer << std::endl;
     return stream->data[stream->pointer++];
 }
 u16 saturn_format_read_int16(SaturnFormatStream* stream) {

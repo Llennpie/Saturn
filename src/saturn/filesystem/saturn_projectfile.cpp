@@ -5,12 +5,12 @@
 #include <string>
 #include <map>
 #include "saturn_format.h"
-#include "saturn.h"
-#include "saturn_colors.h"
-#include "saturn_textures.h"
-#include "imgui/saturn_imgui.h"
-#include "imgui/saturn_imgui_chroma.h"
-#include "imgui/saturn_imgui_machinima.h"
+#include "saturn/saturn.h"
+#include "saturn/saturn_colors.h"
+#include "saturn/saturn_textures.h"
+#include "saturn/imgui/saturn_imgui.h"
+#include "saturn/imgui/saturn_imgui_chroma.h"
+#include "saturn/imgui/saturn_imgui_machinima.h"
 extern "C" {
 #include "engine/geo_layout.h"
 #include "engine/math_util.h"

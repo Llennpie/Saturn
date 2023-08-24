@@ -22,7 +22,7 @@
 #include "data/dynos.cpp.h"
 #include "icons/IconsForkAwesome.h"
 #include "icons/IconsFontAwesome5.h"
-#include "saturn/saturn_projectfile.h"
+#include "saturn/filesystem/saturn_projectfile.h"
 
 #include <SDL2/SDL.h>
 

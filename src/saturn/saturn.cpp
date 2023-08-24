@@ -11,7 +11,7 @@
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "libs/sdl2_scancode_to_dinput.h"
 #include "pc/configfile.h"
-#include "saturn_projectfile.h"
+#include "saturn/filesystem/saturn_projectfile.h"
 #include "saturn/imgui/saturn_imgui_dynos.h"
 
 bool mario_exists;
