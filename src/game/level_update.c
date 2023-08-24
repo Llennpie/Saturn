@@ -549,8 +549,8 @@ void check_instant_warp(void) {
     s16 cameraAngle;
     struct Surface *floor;
 
-    if (gCurrLevelNum == LEVEL_CASTLE
-        && save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1) >= 70) {
+    if ((gCurrLevelNum == LEVEL_CASTLE
+        && save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1) >= 70) || configUnlockDoors) {
         return;
     }
 
