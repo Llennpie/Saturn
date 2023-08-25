@@ -111,20 +111,16 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     u8 level = saturn_format_read_int8(stream);
     spin_mult = saturn_format_read_float(stream);
     if (version == 1) {
-        overriden_camera_struct = *gCamera;
-        overriden_lakitu_struct = gLakituState;
         gCamera->pos[0] = saturn_format_read_float(stream);
         gCamera->pos[1] = saturn_format_read_float(stream);
         gCamera->pos[2] = saturn_format_read_float(stream);
         float yaw = saturn_format_read_float(stream);
         float pitch = saturn_format_read_float(stream);
         vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, (s16)pitch, (s16)yaw);
-        vec3f_copy(overriden_camera_struct.pos, gCamera->pos);
-        vec3f_copy(overriden_camera_struct.focus, gCamera->focus);
-        vec3f_copy(overriden_lakitu_struct.goalPos, gCamera->pos);
-        vec3f_copy(overriden_lakitu_struct.goalFocus, gCamera->focus);
-        vec3f_copy(overriden_lakitu_struct.pos, gCamera->pos);
-        vec3f_copy(overriden_lakitu_struct.focus, gCamera->focus);
+        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+        vec3f_copy(gLakituState.pos, gCamera->pos);
+        vec3f_copy(gLakituState.focus, gCamera->focus);
     }
     camVelSpeed = saturn_format_read_float(stream);
     camVelRSpeed = saturn_format_read_float(stream);
@@ -160,10 +156,10 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     }
     k_previous_frame = -1;
     u8 lvlID = (level >> 2) & 63;
-    if (lvlID != get_saturn_level_id(gCurrLevelNum) || (level & 3) != gCurrAreaIndex) {
-        warp_to_level(lvlID, level & 3, act);
-        if (lvlID == 0) dynos_override_mario_and_camera = 1;
-        override_mario_and_camera = 3; // We override for 3 frames otherwise it breaks :/
+    if (lvlID != get_saturn_level_id(gCurrLevelNum) || (level & 3) != gCurrAreaIndex - 1) {
+        warp_to_level(lvlID, (level & 3) + 1, act);
+        if (lvlID == 0) dynos_override_mario = 1;
+        override_mario = 3; // We override for 3 frames otherwise it breaks :/
     }
 }
 
@@ -212,8 +208,67 @@ void saturn_project_keyframe_handler(SaturnFormatStream* stream, int version) {
 }
 
 void saturn_project_camera_handler(SaturnFormatStream* stream, int version) {
-    saturn_format_read_any(stream, &overriden_camera_struct, sizeof(struct Camera));
-    saturn_format_read_any(stream, &overriden_lakitu_struct, sizeof(struct LakituState));
+    gCamera->areaCenX = saturn_format_read_int32(stream);
+    gCamera->areaCenY = saturn_format_read_int32(stream);
+    gCamera->areaCenZ = saturn_format_read_int32(stream);
+    gCamera->cutscene = saturn_format_read_int8(stream);
+    gCamera->defMode = saturn_format_read_int8(stream);
+    gCamera->doorStatus = saturn_format_read_int8(stream);
+    gCamera->focus[0] = saturn_format_read_float(stream);
+    gCamera->focus[1] = saturn_format_read_float(stream);
+    gCamera->focus[2] = saturn_format_read_float(stream);
+    gCamera->mode = saturn_format_read_int8(stream);
+    gCamera->nextYaw = saturn_format_read_int16(stream);
+    gCamera->pos[0] = saturn_format_read_float(stream);
+    gCamera->pos[1] = saturn_format_read_float(stream);
+    gCamera->pos[2] = saturn_format_read_float(stream);
+    gCamera->yaw = saturn_format_read_int16(stream);
+    gLakituState.curFocus[0] = saturn_format_read_float(stream);
+    gLakituState.curFocus[1] = saturn_format_read_float(stream);
+    gLakituState.curFocus[2] = saturn_format_read_float(stream);
+    gLakituState.curPos[0] = saturn_format_read_float(stream);
+    gLakituState.curPos[1] = saturn_format_read_float(stream);
+    gLakituState.curPos[2] = saturn_format_read_float(stream);
+    gLakituState.defMode = saturn_format_read_int8(stream);
+    gLakituState.focHSpeed = saturn_format_read_float(stream);
+    gLakituState.focus[0] = saturn_format_read_float(stream);
+    gLakituState.focus[1] = saturn_format_read_float(stream);
+    gLakituState.focus[2] = saturn_format_read_float(stream);
+    gLakituState.focusDistance = saturn_format_read_float(stream);
+    gLakituState.focVSpeed = saturn_format_read_float(stream);
+    gLakituState.goalFocus[0] = saturn_format_read_float(stream);
+    gLakituState.goalFocus[1] = saturn_format_read_float(stream);
+    gLakituState.goalFocus[2] = saturn_format_read_float(stream);
+    gLakituState.goalPos[0] = saturn_format_read_float(stream);
+    gLakituState.goalPos[1] = saturn_format_read_float(stream);
+    gLakituState.goalPos[2] = saturn_format_read_float(stream);
+    gLakituState.keyDanceRoll = saturn_format_read_int16(stream);
+    gLakituState.lastFrameAction = saturn_format_read_int32(stream);
+    gLakituState.mode = saturn_format_read_int8(stream);
+    gLakituState.nextYaw = saturn_format_read_int16(stream);
+    gLakituState.oldPitch = saturn_format_read_int16(stream);
+    gLakituState.oldRoll = saturn_format_read_int16(stream);
+    gLakituState.oldYaw = saturn_format_read_int16(stream);
+    gLakituState.pos[0] = saturn_format_read_float(stream);
+    gLakituState.pos[1] = saturn_format_read_float(stream);
+    gLakituState.pos[2] = saturn_format_read_float(stream);
+    gLakituState.posHSpeed = saturn_format_read_float(stream);
+    gLakituState.posVSpeed = saturn_format_read_float(stream);
+    gLakituState.roll = saturn_format_read_int16(stream);
+    gLakituState.shakeMagnitude[0] = saturn_format_read_int16(stream);
+    gLakituState.shakeMagnitude[1] = saturn_format_read_int16(stream);
+    gLakituState.shakeMagnitude[2] = saturn_format_read_int16(stream);
+    gLakituState.shakePitchDecay = saturn_format_read_int16(stream);
+    gLakituState.shakePitchPhase = saturn_format_read_int16(stream);
+    gLakituState.shakePitchVel = saturn_format_read_int16(stream);
+    gLakituState.shakeRollDecay = saturn_format_read_int16(stream);
+    gLakituState.shakeRollPhase = saturn_format_read_int16(stream);
+    gLakituState.shakeRollVel = saturn_format_read_int16(stream);
+    gLakituState.shakeYawDecay = saturn_format_read_int16(stream);
+    gLakituState.shakeYawPhase = saturn_format_read_int16(stream);
+    gLakituState.shakeYawVel = saturn_format_read_int16(stream);
+    gLakituState.skipCameraInterpolationTimestamp = saturn_format_read_int32(stream);
+    gLakituState.yaw = saturn_format_read_int16(stream);
 }
 
 void saturn_load_project(char* filename) {
@@ -266,7 +321,7 @@ void saturn_save_project(char* filename) {
     walkpoint |= (gLevelEnv & 1) << 7;
     saturn_format_write_int16(&stream, flags);
     saturn_format_write_int8(&stream, walkpoint);
-    saturn_format_write_int8(&stream, (get_saturn_level_id(gCurrLevelNum) << 2) | gCurrAreaIndex);
+    saturn_format_write_int8(&stream, (get_saturn_level_id(gCurrLevelNum) << 2) | (gCurrAreaIndex - 1));
     saturn_format_write_float(&stream, spin_mult);
     /* Version 1
     saturn_format_write_float(&stream, gLakituState.pos[0]);
@@ -307,8 +362,67 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int8(&stream, gCurrActNum);
     saturn_format_close_section(&stream);
     saturn_format_new_section(&stream, SATURN_PROJECT_CAMERA_IDENTIFIER);
-    saturn_format_write_any(&stream, gCamera, sizeof(*gCamera));
-    saturn_format_write_any(&stream, &gLakituState, sizeof(gLakituState));
+    saturn_format_write_float(&stream, gCamera->areaCenX);
+    saturn_format_write_float(&stream, gCamera->areaCenY);
+    saturn_format_write_float(&stream, gCamera->areaCenZ);
+    saturn_format_write_int8(&stream, gCamera->cutscene);
+    saturn_format_write_int8(&stream, gCamera->defMode);
+    saturn_format_write_int8(&stream, gCamera->doorStatus);
+    saturn_format_write_float(&stream, gCamera->focus[0]);
+    saturn_format_write_float(&stream, gCamera->focus[1]);
+    saturn_format_write_float(&stream, gCamera->focus[2]);
+    saturn_format_write_int8(&stream, gCamera->mode);
+    saturn_format_write_int16(&stream, gCamera->nextYaw);
+    saturn_format_write_float(&stream, gCamera->pos[0]);
+    saturn_format_write_float(&stream, gCamera->pos[1]);
+    saturn_format_write_float(&stream, gCamera->pos[2]);
+    saturn_format_write_int16(&stream, gCamera->yaw);
+    saturn_format_write_float(&stream, gLakituState.curFocus[0]);
+    saturn_format_write_float(&stream, gLakituState.curFocus[1]);
+    saturn_format_write_float(&stream, gLakituState.curFocus[2]);
+    saturn_format_write_float(&stream, gLakituState.curPos[0]);
+    saturn_format_write_float(&stream, gLakituState.curPos[1]);
+    saturn_format_write_float(&stream, gLakituState.curPos[2]);
+    saturn_format_write_int8(&stream, gLakituState.defMode);
+    saturn_format_write_float(&stream, gLakituState.focHSpeed);
+    saturn_format_write_float(&stream, gLakituState.focus[0]);
+    saturn_format_write_float(&stream, gLakituState.focus[1]);
+    saturn_format_write_float(&stream, gLakituState.focus[2]);
+    saturn_format_write_float(&stream, gLakituState.focusDistance);
+    saturn_format_write_float(&stream, gLakituState.focVSpeed);
+    saturn_format_write_float(&stream, gLakituState.goalFocus[0]);
+    saturn_format_write_float(&stream, gLakituState.goalFocus[1]);
+    saturn_format_write_float(&stream, gLakituState.goalFocus[2]);
+    saturn_format_write_float(&stream, gLakituState.goalPos[0]);
+    saturn_format_write_float(&stream, gLakituState.goalPos[1]);
+    saturn_format_write_float(&stream, gLakituState.goalPos[2]);
+    saturn_format_write_int16(&stream, gLakituState.keyDanceRoll);
+    saturn_format_write_int32(&stream, gLakituState.lastFrameAction);
+    saturn_format_write_int8(&stream, gLakituState.mode);
+    saturn_format_write_int16(&stream, gLakituState.nextYaw);
+    saturn_format_write_int16(&stream, gLakituState.oldPitch);
+    saturn_format_write_int16(&stream, gLakituState.oldRoll);
+    saturn_format_write_int16(&stream, gLakituState.oldYaw);
+    saturn_format_write_float(&stream, gLakituState.pos[0]);
+    saturn_format_write_float(&stream, gLakituState.pos[1]);
+    saturn_format_write_float(&stream, gLakituState.pos[2]);
+    saturn_format_write_float(&stream, gLakituState.posHSpeed);
+    saturn_format_write_float(&stream, gLakituState.posVSpeed);
+    saturn_format_write_int16(&stream, gLakituState.roll);
+    saturn_format_write_int16(&stream, gLakituState.shakeMagnitude[0]);
+    saturn_format_write_int16(&stream, gLakituState.shakeMagnitude[1]);
+    saturn_format_write_int16(&stream, gLakituState.shakeMagnitude[2]);
+    saturn_format_write_int16(&stream, gLakituState.shakePitchDecay);
+    saturn_format_write_int16(&stream, gLakituState.shakePitchPhase);
+    saturn_format_write_int16(&stream, gLakituState.shakePitchVel);
+    saturn_format_write_int16(&stream, gLakituState.shakeRollDecay);
+    saturn_format_write_int16(&stream, gLakituState.shakeRollPhase);
+    saturn_format_write_int16(&stream, gLakituState.shakeRollVel);
+    saturn_format_write_int16(&stream, gLakituState.shakeYawDecay);
+    saturn_format_write_int16(&stream, gLakituState.shakeYawPhase);
+    saturn_format_write_int16(&stream, gLakituState.shakeYawVel);
+    saturn_format_write_int32(&stream, gLakituState.skipCameraInterpolationTimestamp);
+    saturn_format_write_int16(&stream, gLakituState.yaw);
     saturn_format_close_section(&stream);
     for (auto& entry : k_frame_keys) {
         saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);

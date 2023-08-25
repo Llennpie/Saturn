@@ -16,6 +16,7 @@
 #include "saturn/saturn_obj_def.h"
 #include "saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
+#include "saturn/filesystem/saturn_locationfile.h"
 #include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
@@ -54,6 +55,9 @@ int obj_rot[3];
 int obj_beh_params[4];
 int obj_model;
 int obj_beh;
+
+int current_location_index = 0;
+char location_name[256];
 
 s16 levelList[] = { 
     LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
@@ -254,6 +258,39 @@ void imgui_machinima_quick_options() {
             // Erase existing timelines
             k_frame_keys.clear();
         }
+
+        auto locations = saturn_get_locations();
+        bool do_save = false;
+        std::vector<std::string> forRemoval = {};
+        if (ImGui::BeginMenu("Locations")) {
+            for (auto& entry : *locations) {
+                if (ImGui::Button((std::string(ICON_FK_PLAY "###warp_to_location_") + entry.first).c_str())) {
+                    gMarioState->pos[0] = entry.second.second[0];
+                    gMarioState->pos[1] = entry.second.second[1];
+                    gMarioState->pos[2] = entry.second.second[2];
+                    gMarioState->faceAngle[1] = entry.second.first;
+                    do_save = true;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button((std::string(ICON_FK_TRASH "###delete_location_") + entry.first).c_str())) {
+                    forRemoval.push_back(entry.first);
+                    do_save = true;
+                }
+                ImGui::SameLine();
+                ImGui::Text(entry.first.c_str());
+            }
+            if (ImGui::Button(ICON_FK_PLUS "###add_location")) {
+                saturn_add_location(location_name);
+                do_save = true;
+            }
+            ImGui::SameLine();
+            ImGui::InputText("###location_input", location_name, 256);
+            ImGui::EndMenu();
+        }
+        for (std::string key : forRemoval) {
+            locations->erase(key);
+        }
+        if (do_save) saturn_save_locations();
     }
     if (mario_exists) {
         ImGui::Separator();
