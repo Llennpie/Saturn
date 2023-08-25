@@ -271,11 +271,13 @@ void imgui_machinima_quick_options() {
                     gMarioState->faceAngle[1] = entry.second.first;
                     do_save = true;
                 }
+                imgui_bundled_tooltip("Warp");
                 ImGui::SameLine();
                 if (ImGui::Button((std::string(ICON_FK_TRASH "###delete_location_") + entry.first).c_str())) {
                     forRemoval.push_back(entry.first);
                     do_save = true;
                 }
+                imgui_bundled_tooltip("Remove");
                 ImGui::SameLine();
                 ImGui::Text(entry.first.c_str());
             }
@@ -283,6 +285,7 @@ void imgui_machinima_quick_options() {
                 saturn_add_location(location_name);
                 do_save = true;
             }
+            imgui_bundled_tooltip("Add");
             ImGui::SameLine();
             ImGui::InputText("###location_input", location_name, 256);
             ImGui::EndMenu();
