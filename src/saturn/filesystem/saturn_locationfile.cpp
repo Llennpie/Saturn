@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <utility>
+#include <array>
 extern "C" {
 #include "include/types.h"
 #include "game/area.h"
