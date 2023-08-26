@@ -27,7 +27,7 @@ extern "C" {
 #include "game/object_list_processor.h"
 }
 
-#define SATURN_PROJECT_VERSION 2
+#define SATURN_PROJECT_VERSION 1
 
 #define SATURN_PROJECT_IDENTIFIER           "STPJ"
 #define SATURN_PROJECT_GAME_IDENTIFIER      "GAME"
@@ -110,18 +110,6 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     run_speed = walkpoint & SATURN_PROJECT_WALKPOINT_MASK;
     u8 level = saturn_format_read_int8(stream);
     spin_mult = saturn_format_read_float(stream);
-    if (version == 1) {
-        gCamera->pos[0] = saturn_format_read_float(stream);
-        gCamera->pos[1] = saturn_format_read_float(stream);
-        gCamera->pos[2] = saturn_format_read_float(stream);
-        float yaw = saturn_format_read_float(stream);
-        float pitch = saturn_format_read_float(stream);
-        vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, (s16)pitch, (s16)yaw);
-        vec3f_copy(gLakituState.goalPos, gCamera->pos);
-        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
-        vec3f_copy(gLakituState.pos, gCamera->pos);
-        vec3f_copy(gLakituState.focus, gCamera->focus);
-    }
     camVelSpeed = saturn_format_read_float(stream);
     camVelRSpeed = saturn_format_read_float(stream);
     camera_fov = saturn_format_read_float(stream);
@@ -146,14 +134,12 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     endFrame = saturn_format_read_int32(stream);
     endFrameText = endFrame;
     int act = 0;
-    if (version >= 2) {
-        k_current_frame = saturn_format_read_int32(stream);
-        gMarioState->action = saturn_format_read_int32(stream);
-        gMarioState->actionState = saturn_format_read_int32(stream);
-        gMarioState->actionTimer = saturn_format_read_int32(stream);
-        gMarioState->actionArg = saturn_format_read_int32(stream);
-        act = saturn_format_read_int8(stream);
-    }
+    k_current_frame = saturn_format_read_int32(stream);
+    gMarioState->action = saturn_format_read_int32(stream);
+    gMarioState->actionState = saturn_format_read_int32(stream);
+    gMarioState->actionTimer = saturn_format_read_int32(stream);
+    gMarioState->actionArg = saturn_format_read_int32(stream);
+    act = saturn_format_read_int8(stream);
     k_previous_frame = -1;
     u8 lvlID = (level >> 2) & 63;
     if (lvlID != get_saturn_level_id(gCurrLevelNum) || (level & 3) != gCurrAreaIndex - 1) {
@@ -323,17 +309,6 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int8(&stream, walkpoint);
     saturn_format_write_int8(&stream, (get_saturn_level_id(gCurrLevelNum) << 2) | (gCurrAreaIndex - 1));
     saturn_format_write_float(&stream, spin_mult);
-    /* Version 1
-    saturn_format_write_float(&stream, gLakituState.pos[0]);
-    saturn_format_write_float(&stream, gLakituState.pos[1]);
-    saturn_format_write_float(&stream, gLakituState.pos[2]);
-    s16 yaw;
-    s16 pitch;
-    float dist;
-    vec3f_get_dist_and_angle(gLakituState.pos, gLakituState.focus, &dist, &pitch, &yaw);
-    saturn_format_write_float(&stream, (float)yaw);
-    saturn_format_write_float(&stream, (float)pitch);
-    */
     saturn_format_write_float(&stream, camVelSpeed);
     saturn_format_write_float(&stream, camVelRSpeed);
     saturn_format_write_float(&stream, camera_fov);
