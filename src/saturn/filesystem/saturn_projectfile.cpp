@@ -81,7 +81,10 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     { "k_c_camera_roll", { { &freezecamRoll, nullptr }, "Camera Roll" } },
     { "k_color_r", { { &uiChromaColor.x, nullptr }, "Skybox Color R" } },
     { "k_color_g", { { &uiChromaColor.y, nullptr }, "Skybox Color G" } },
-    { "k_color_b", { { &uiChromaColor.z, nullptr }, "Skybox Color B" } }
+    { "k_color_b", { { &uiChromaColor.z, nullptr }, "Skybox Color B" } },
+    { "k_light_col_r", { { &gLightingColor[0], nullptr }, "Light Color R" } },
+    { "k_light_col_g", { { &gLightingColor[1], nullptr }, "Light Color G" } },
+    { "k_light_col_b", { { &gLightingColor[2], nullptr }, "Light Color B" } }
 };
 
 std::string full_file_path(char* filename) {
