@@ -18,6 +18,7 @@ extern float world_light_dir1;
 extern float world_light_dir2;
 extern float world_light_dir3;
 extern float world_light_dir4;
+extern Vec3f gLightingColor;
 
 extern "C" {
 #endif

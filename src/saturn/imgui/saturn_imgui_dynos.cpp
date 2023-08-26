@@ -863,22 +863,26 @@ void sdynos_imgui_menu() {
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Shading###tab_shading")) {
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
+                ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
                 saturn_keyframe_float_popout(&world_light_dir1, "Mario Shade X", "k_shade_x");
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
+                ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
                 saturn_keyframe_float_popout(&world_light_dir2, "Mario Shade Y", "k_shade_y");
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
+                ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
                 saturn_keyframe_float_popout(&world_light_dir3, "Mario Shade Z", "k_shade_z");
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
+                ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
                 saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
+                ImGui::ColorEdit4("Col###wlight_col", gLightingColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_NoOptions);
+                saturn_keyframe_color_popout("Light Color", "k_light_col");
 
                 if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
-                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine();
                     if (ImGui::Button("Reset###reset_wshading")) {
                         world_light_dir1 = 0.f;
                         world_light_dir2 = 0.f;
                         world_light_dir3 = 0.f;
                         world_light_dir4 = 1.f;
+                        gLightingColor[0] = 1.f;
+                        gLightingColor[1] = 1.f;
+                        gLightingColor[2] = 1.f;
                     }
                 }
                 ImGui::EndTabItem();
