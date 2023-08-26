@@ -88,7 +88,7 @@ void schroma_imgui_update() {
         set_chroma_color();
 
         ImGui::SameLine(); ImGui::Text("Color");
-        saturn_keyframe_color_popout("Skybox Color", "k_color");
+        saturn_keyframe_color_popout("Skybox Color", "k_color", &uiChromaColor.x, &uiChromaColor.y, &uiChromaColor.z);
         if (gCurrLevelNum != LEVEL_SA) ImGui::BeginDisabled();
         if (ImGui::Checkbox("Render Floor", &renderFloor))
             chromaRequireReload = true;

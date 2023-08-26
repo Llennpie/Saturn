@@ -872,7 +872,7 @@ void sdynos_imgui_menu() {
                 ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
                 saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
                 ImGui::ColorEdit4("Col###wlight_col", gLightingColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_NoOptions);
-                saturn_keyframe_color_popout("Light Color", "k_light_col");
+                saturn_keyframe_color_popout("Light Color", "k_light_col", &gLightingColor[0], &gLightingColor[1], &gLightingColor[2]);
 
                 if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
                     if (ImGui::Button("Reset###reset_wshading")) {

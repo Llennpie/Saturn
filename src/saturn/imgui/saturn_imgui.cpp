@@ -836,7 +836,7 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
     }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
-void saturn_keyframe_color_popout(string value_name, string id) {
+void saturn_keyframe_color_popout(string value_name, string id, float* r, float* g, float* b) {
     bool contains = k_frame_keys.find(id + "_r") != k_frame_keys.end();
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
@@ -845,9 +845,9 @@ void saturn_keyframe_color_popout(string value_name, string id) {
     if (ImGui::Button(buttonLabel.c_str())) {
         // ((id, name), (precision, value_ptr))
         std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
-            std::make_pair(std::make_pair("r", "R"), std::make_pair(-3, &uiChromaColor.x)),
-            std::make_pair(std::make_pair("g", "G"), std::make_pair(-3, &uiChromaColor.y)),
-            std::make_pair(std::make_pair("b", "B"), std::make_pair(-3, &uiChromaColor.z)),
+            std::make_pair(std::make_pair("r", "R"), std::make_pair(-3, r)),
+            std::make_pair(std::make_pair("g", "G"), std::make_pair(-3, g)),
+            std::make_pair(std::make_pair("b", "B"), std::make_pair(-3, b)),
         };
         k_popout_open = true;
         if (contains) {
