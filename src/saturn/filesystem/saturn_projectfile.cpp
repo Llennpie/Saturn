@@ -128,6 +128,10 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     world_light_dir1 = saturn_format_read_float(stream);
     world_light_dir2 = saturn_format_read_float(stream);
     world_light_dir3 = saturn_format_read_float(stream);
+    gLightingColor[0] = saturn_format_read_int8(stream) / 255.0f;
+    gLightingColor[1] = saturn_format_read_int8(stream) / 255.0f;
+    gLightingColor[2] = saturn_format_read_int8(stream) / 255.0f;
+    saturn_format_read_int8(stream); // filler byte, align to 4 bytes
     marioScaleSizeX = saturn_format_read_float(stream);
     marioScaleSizeY = saturn_format_read_float(stream);
     marioScaleSizeZ = saturn_format_read_float(stream);
@@ -268,7 +272,7 @@ void saturn_load_project(char* filename) {
     });
 }
 void saturn_save_project(char* filename) {
-    SaturnFormatStream stream = saturn_format_output(filename, SATURN_PROJECT_VERSION);
+    SaturnFormatStream stream = saturn_format_output(SATURN_PROJECT_IDENTIFIER, SATURN_PROJECT_VERSION);
     if (autoChroma) {
         saturn_format_new_section(&stream, SATURN_PROJECT_CHROMAKEY_IDENTIFIER);
         u8 skybox = 0;
@@ -325,6 +329,10 @@ void saturn_save_project(char* filename) {
     saturn_format_write_float(&stream, world_light_dir1);
     saturn_format_write_float(&stream, world_light_dir2);
     saturn_format_write_float(&stream, world_light_dir3);
+    saturn_format_write_int8(&stream, gLightingColor[0] * 255);
+    saturn_format_write_int8(&stream, gLightingColor[1] * 255);
+    saturn_format_write_int8(&stream, gLightingColor[2] * 255);
+    saturn_format_write_int8(&stream, 255);
     saturn_format_write_float(&stream, marioScaleSizeX);
     saturn_format_write_float(&stream, marioScaleSizeY);
     saturn_format_write_float(&stream, marioScaleSizeZ);
