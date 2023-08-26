@@ -55,6 +55,7 @@ extern "C" {
     void saturn_imgui_init();
     void saturn_imgui_handle_events(SDL_Event *);
     void saturn_imgui_update(void);
+    bool saturn_disable_sm64_input();
 
     extern SDL_Scancode bind_to_sdl_scancode[512];
 #ifdef __cplusplus

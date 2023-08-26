@@ -873,6 +873,10 @@ void saturn_keyframe_color_popout(string value_name, string id, float* r, float*
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
 
+bool saturn_disable_sm64_input() {
+    return ImGui::GetIO().WantTextInput;
+}
+
 template <typename T>
 void saturn_keyframe_popout(const T &edit_value, s32 data_type, string value_name, string id) {
     /*string buttonLabel = ICON_FK_LINK "###kb_" + id;
