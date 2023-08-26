@@ -269,7 +269,6 @@ void imgui_machinima_quick_options() {
                     gMarioState->pos[1] = entry.second.second[1];
                     gMarioState->pos[2] = entry.second.second[2];
                     gMarioState->faceAngle[1] = entry.second.first;
-                    do_save = true;
                 }
                 imgui_bundled_tooltip("Warp");
                 ImGui::SameLine();
