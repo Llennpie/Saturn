@@ -3728,6 +3728,7 @@ void init_camera(struct Camera *c) {
             gLakituState.mode = CAMERA_MODE_FREE_ROAM;
             break;
         case LEVEL_SA:
+            marioOffset[1] = 200.f;
             marioOffset[2] = 200.f;
             break;
         case LEVEL_CASTLE_COURTYARD:

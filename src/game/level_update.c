@@ -1019,6 +1019,14 @@ s32 play_mode_normal(void) {
         }
     }
 
+    if (gCurrLevelNum == LEVEL_SA && gGlobalTimer < 120) {
+        gMarioState->faceAngle[1] = 0;
+        if (gCamera) {
+            vec3f_set(gCamera->pos, 0.f, 192.f, 264.f);
+            vec3f_set(gCamera->focus, 0.f, 181.f, 28.f);
+        }
+    }
+
     // Override Mario if loaded from project file
     if (override_mario) {
         override_mario--;
