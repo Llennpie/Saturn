@@ -14,6 +14,7 @@
 #include "saturn/filesystem/saturn_projectfile.h"
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/filesystem/saturn_locationfile.h"
+#include "data/dynos.cpp.h"
 
 bool mario_exists;
 
@@ -571,6 +572,7 @@ const char* saturn_get_stage_name(int courseNum) {
 }
 
 void saturn_do_load() {
+    DynOS_Opt_Init();
     saturn_imgui_init();
     saturn_load_locations();
 }
