@@ -188,7 +188,7 @@ void saturn_update() {
     machinimaMode = (camera_frozen) ? 1 : 0;
     machinimaKeyframing = (keyframe_playing && active_data_type == KEY_CAMERA);
 
-    if (camera_frozen) {
+    if (camera_frozen && !saturn_disable_sm64_input()) {
         if (configMCameraMode == 2) {
             camera_view_enabled = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT];
             camera_view_moving = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_RMASK;
