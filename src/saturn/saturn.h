@@ -153,6 +153,7 @@ extern "C" {
     const char* saturn_get_stage_name(int);
     void saturn_do_load();
     void saturn_on_splash_finish();
+    s32 saturn_should_show_splash();
 #ifdef __cplusplus
 }
 #endif

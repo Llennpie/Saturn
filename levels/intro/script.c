@@ -20,7 +20,12 @@
 
 #include "saturn/saturn.h"
 
-const LevelScript level_intro_entry_1[] = {
+static const LevelScript level_intro_load_saturn[] = {
+    CALL(/*arg*/ 0, /*func*/ saturn_do_load),
+    CALL(/*arg*/ 0, /*func*/ saturn_on_splash_finish),
+    EXIT_AND_EXECUTE(/*seg*/ 0x14, _menuSegmentRomStart, _menuSegmentRomEnd, level_main_menu_entry_1),
+};
+static const LevelScript level_intro_splash[] = {
     INIT_LEVEL(),
     FIXED_LOAD(/*loadAddr*/ _goddardSegmentStart, /*romStart*/ _goddardSegmentRomStart, /*romEnd*/ _goddardSegmentRomEnd),
     LOAD_RAW(/*seg*/ 0x13, _behaviorSegmentRomStart, _behaviorSegmentRomEnd),
@@ -42,6 +47,13 @@ const LevelScript level_intro_entry_1[] = {
     CLEAR_LEVEL(),
     CALL(/*arg*/ 0, /*func*/ saturn_on_splash_finish),
     EXIT_AND_EXECUTE(/*seg*/ 0x14, _menuSegmentRomStart, _menuSegmentRomEnd, level_main_menu_entry_1),
+};
+
+const LevelScript level_intro_entry_1[] = {
+    CALL(/*arg*/ 0, saturn_should_show_splash),
+    JUMP_IF(/*op*/ OP_EQ, 1, level_intro_splash),
+    JUMP_IF(/*op*/ OP_EQ, 0, level_intro_load_saturn),
+    EXIT(),
 };
 
 const LevelScript level_intro_entry_2[] = {

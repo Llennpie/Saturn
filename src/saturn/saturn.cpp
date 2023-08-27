@@ -579,3 +579,6 @@ void saturn_do_load() {
 void saturn_on_splash_finish() {
     splash_finished = true;
 }
+s32 saturn_should_show_splash() {
+    return configSaturnSplash;
+}

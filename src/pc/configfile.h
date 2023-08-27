@@ -70,6 +70,7 @@ extern bool         configWindowState;
 extern bool         configNoWaterBombs;
 extern bool         configNoCamShake;
 extern bool         configNoButterflies;
+extern bool         configSaturnSplash;
 extern float        camera_fov;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;
