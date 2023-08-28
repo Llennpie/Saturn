@@ -11,6 +11,7 @@
 #include "saturn/imgui/saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
+#include "saturn/imgui/saturn_imgui_dynos.h"
 extern "C" {
 #include "engine/geo_layout.h"
 #include "engine/math_util.h"
@@ -56,35 +57,66 @@ extern "C" {
 #define SATURN_PROJECT_ENV_BIT_2                 (1 << 7)
 #define SATURN_PROJECT_WALKPOINT_MASK            0x7F
 
+#define SATURN_KFENTRY_BOOL(name, variable, id) { id, { { nullptr, (bool*)&variable }, name } }
+#define SATURN_KFENTRY_FLOAT(name, variable, id) { id, { { (float*)&variable, nullptr }, name } }
+#define SATURN_KFENTRY_COLOR(name, variable, id) \
+    { (std::string(id) + "_r").c_str(), { { (float*)&variable.x, nullptr }, (std::string(name) + " R").c_str() } },\
+    { (std::string(id) + "_g").c_str(), { { (float*)&variable.y, nullptr }, (std::string(name) + " G").c_str() } },\
+    { (std::string(id) + "_b").c_str(), { { (float*)&variable.z, nullptr }, (std::string(name) + " B").c_str() } }
+#define SATURN_KFENTRY_COLOR_VEC3F(name, variable, id) \
+    { (std::string(id) + "_r").c_str(), { { (float*)&variable[0], nullptr }, (std::string(name) + " R").c_str() } },\
+    { (std::string(id) + "_g").c_str(), { { (float*)&variable[1], nullptr }, (std::string(name) + " G").c_str() } },\
+    { (std::string(id) + "_b").c_str(), { { (float*)&variable[2], nullptr }, (std::string(name) + " B").c_str() } }
+
 std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timelineDataTable = {
-    { "k_skybox_mode", { { nullptr, &use_color_background }, "Skybox Mode" } },
-    { "k_shadows", { { nullptr, &enable_shadows }, "Shadows" } },
-    { "k_shade_x", { { &world_light_dir1, nullptr }, "Mario Shade X" } },
-    { "k_shade_y", { { &world_light_dir2, nullptr }, "Mario Shade Y" } },
-    { "k_shade_z", { { &world_light_dir3, nullptr }, "Mario Shade Z" } },
-    { "k_shade_t", { { &world_light_dir4, nullptr }, "Mario Shade Tex" } },
-    { "k_scale", { { &marioScaleSizeX, nullptr }, "Mario Scale" } },
-    { "k_scale_x", { { &marioScaleSizeX, nullptr }, "Mario Scale X" } },
-    { "k_scale_y", { { &marioScaleSizeY, nullptr }, "Mario Scale Y" } },
-    { "k_scale_z", { { &marioScaleSizeZ, nullptr }, "Mario Scale Z" } },
-    { "k_head_rot", { { nullptr, &enable_head_rotations }, "Head Rotations" } },
-    { "k_v_cap_emblem", { { nullptr, &show_vmario_emblem }, "M Cap Emblem" } },
-    { "k_angle", { { (float*)&gMarioState->faceAngle[1], nullptr }, "Mario Angle" } },
-    { "k_hud", { { nullptr, &configHUD }, "HUD" } },
-    { "k_fov", { { &camera_fov, nullptr }, "FOV" } },
-    { "k_focus", { { &camera_focus, nullptr }, "Follow" } },
-    { "k_c_camera_pos0", { { &freezecamPos[0], nullptr }, "Camera Pos X" } },
-    { "k_c_camera_pos1", { { &freezecamPos[1], nullptr }, "Camera Pos Y" } },
-    { "k_c_camera_pos2", { { &freezecamPos[2], nullptr }, "Camera Pos Z" } },
-    { "k_c_camera_yaw", { { &freezecamYaw, nullptr }, "Camera Yaw" } },
-    { "k_c_camera_pitch", { { &freezecamPitch, nullptr }, "Camera Pitch" } },
-    { "k_c_camera_roll", { { &freezecamRoll, nullptr }, "Camera Roll" } },
-    { "k_color_r", { { &uiChromaColor.x, nullptr }, "Skybox Color R" } },
-    { "k_color_g", { { &uiChromaColor.y, nullptr }, "Skybox Color G" } },
-    { "k_color_b", { { &uiChromaColor.z, nullptr }, "Skybox Color B" } },
-    { "k_light_col_r", { { &gLightingColor[0], nullptr }, "Light Color R" } },
-    { "k_light_col_g", { { &gLightingColor[1], nullptr }, "Light Color G" } },
-    { "k_light_col_b", { { &gLightingColor[2], nullptr }, "Light Color B" } }
+    SATURN_KFENTRY_BOOL("k_skybox_mode", use_color_background, "Skybox Mode"),
+    SATURN_KFENTRY_BOOL("k_shadows", enable_shadows, "Shadows"),
+    SATURN_KFENTRY_FLOAT("k_shade_x", world_light_dir1, "Mario Shade X"),
+    SATURN_KFENTRY_FLOAT("k_shade_y", world_light_dir2, "Mario Shade Y"),
+    SATURN_KFENTRY_FLOAT("k_shade_z", world_light_dir3, "Mario Shade Z"),
+    SATURN_KFENTRY_FLOAT("k_shade_t", world_light_dir4, "Mario Shade Tex"),
+    SATURN_KFENTRY_FLOAT("k_scale", marioScaleSizeX, "Mario Scale"),
+    SATURN_KFENTRY_FLOAT("k_scale_x", marioScaleSizeX, "Mario Scale X"),
+    SATURN_KFENTRY_FLOAT("k_scale_y", marioScaleSizeY, "Mario Scale Y"),
+    SATURN_KFENTRY_FLOAT("k_scale_z", marioScaleSizeZ, "Mario Scale Z"),
+    SATURN_KFENTRY_BOOL("k_head_rot", enable_head_rotations, "Head Rotations"),
+    SATURN_KFENTRY_BOOL("k_v_cap_emblem", show_vmario_emblem, "M Cap Emblem"),
+    SATURN_KFENTRY_FLOAT("k_angle", gMarioState->faceAngle[1], "Mario Angle"),
+    SATURN_KFENTRY_BOOL("k_hud", configHUD, "HUD"),
+    SATURN_KFENTRY_FLOAT("k_fov", camera_fov, "FOV"),
+    SATURN_KFENTRY_FLOAT("k_focus", camera_focus, "Follow"),
+    SATURN_KFENTRY_FLOAT("k_c_camera_pos0", freezecamPos[0], "Camera Pos X"),
+    SATURN_KFENTRY_FLOAT("k_c_camera_pos1", freezecamPos[1], "Camera Pos Y"),
+    SATURN_KFENTRY_FLOAT("k_c_camera_pos2", freezecamPos[2], "Camera Pos Z"),
+    SATURN_KFENTRY_FLOAT("k_c_camera_yaw", freezecamYaw, "Camera Yaw"),
+    SATURN_KFENTRY_FLOAT("k_c_camera_pitch", freezecamPitch, "Camera Pitch"),
+    SATURN_KFENTRY_FLOAT("k_c_camera_roll", freezecamRoll, "Camera Roll"),
+    SATURN_KFENTRY_COLOR_VEC3F("k_light_col", gLightingColor, "Light Color"),
+    SATURN_KFENTRY_COLOR("k_color", uiChromaColor, "Skybox Color"),
+    SATURN_KFENTRY_COLOR("k_1/2###hat_half_1", uiHatColor, "Hat, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###hat_half_2", uiHatShadeColor, "Hat, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###overalls_half_1", uiOverallsColor, "Overalls, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###overalls_half_2", uiOverallsShadeColor, "Overalls, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###gloves_half_1", uiGlovesColor, "Gloves, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###gloves_half_2", uiGlovesShadeColor, "Gloves, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###shoes_half_1", uiShoesColor, "Shoes, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###shoes_half_2", uiShoesShadeColor, "Shoes, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###skin_half_1", uiSkinColor, "Skin, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###skin_half_2", uiSkinShadeColor, "Skin, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###hair_half_1", uiHairColor, "Hair, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###hair_half_2", uiHairShadeColor, "Hair, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###shirt_half_1", uiShirtColor, "Shirt, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###shirt_half_2", uiShirtShadeColor, "Shirt, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###shoulders_half_1", uiShouldersColor, "Shoulders, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###shoulders_half_2", uiShouldersShadeColor, "Shoulders, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###arms_half_1", uiArmsColor, "Arms, Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###arms_half_2", uiArmsShadeColor, "Arms, Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###overalls_bottom_half_1", uiOverallsBottomColor, "Overalls (Bottom), Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###overalls_bottom_half_2", uiOverallsBottomShadeColor, "Overalls (Bottom), Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_1", uiLegTopColor, "Leg (Top), Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_2", uiLegTopShadeColor, "Leg (Top), Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_1", uiLegBottomColor, "Leg (Bottom), Main"),
+    SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_2", uiLegBottomShadeColor, "Leg (Bottom), Shade"),
 };
 
 std::string full_file_path(char* filename) {
