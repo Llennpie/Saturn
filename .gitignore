@@ -87,3 +87,8 @@ actors/mario/mario_logo.rgba16.png
 *.spj
 !/levels/intro/4_saturn.rgba16.png
 !/levels/intro/5_ring.rgba16.png
+
+!/textures/title_screen_bg/title_screen_bg.00E40.rgba16.png
+!/textures/title_screen_bg/title_screen_bg.001C0.rgba16.png
+!/textures/title_screen_bg/title_screen_bg.01AC0.rgba16.png
+!/textures/title_screen_bg/title_screen_bg.02740.rgba16.png
