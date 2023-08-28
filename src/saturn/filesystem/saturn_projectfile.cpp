@@ -294,6 +294,12 @@ void saturn_project_camera_handler(SaturnFormatStream* stream, int version) {
     gLakituState.shakeYawVel = saturn_format_read_int16(stream);
     gLakituState.skipCameraInterpolationTimestamp = saturn_format_read_int32(stream);
     gLakituState.yaw = saturn_format_read_int16(stream);
+    freezecamRoll = saturn_format_read_int16(stream);
+    vec3f_copy(freezecamPos, gLakituState.pos);
+    s16 yaw, pitch;
+    calculate_angles(gLakituState.pos, gLakituState.focus, &pitch, &yaw);
+    freezecamYaw = yaw;
+    freezecamPitch = pitch;
 }
 
 void saturn_load_project(char* filename) {
@@ -441,6 +447,7 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int16(&stream, gLakituState.shakeYawVel);
     saturn_format_write_int32(&stream, gLakituState.skipCameraInterpolationTimestamp);
     saturn_format_write_int16(&stream, gLakituState.yaw);
+    saturn_format_write_int16(&stream, freezecamRoll);
     saturn_format_close_section(&stream);
     for (auto& entry : k_frame_keys) {
         saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
