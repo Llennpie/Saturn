@@ -23,7 +23,7 @@ void pad(SaturnFormatStream* stream) {
     int padding = SATURN_FORMAT_BLOCK_SIZE - (stream->pointer % SATURN_FORMAT_BLOCK_SIZE);
     if (padding == SATURN_FORMAT_BLOCK_SIZE) return;
     for (int i = 0; i < padding; i++) {
-        saturn_format_write_int8(stream, rand() % 256);
+        saturn_format_write_int8(stream, 255);
     }
 }
 u32 hash(char* data, int length, int offset = 0) { // See Java's java.lang.String#hashCode() method
