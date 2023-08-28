@@ -57,13 +57,13 @@ extern "C" {
 #define SATURN_PROJECT_ENV_BIT_2                 (1 << 7)
 #define SATURN_PROJECT_WALKPOINT_MASK            0x7F
 
-#define SATURN_KFENTRY_BOOL(name, variable, id) { id, { { nullptr, (bool*)&variable }, name } }
-#define SATURN_KFENTRY_FLOAT(name, variable, id) { id, { { (float*)&variable, nullptr }, name } }
-#define SATURN_KFENTRY_COLOR(name, variable, id) \
+#define SATURN_KFENTRY_BOOL(id, variable, name) { id, { { nullptr, (bool*)&variable }, name } }
+#define SATURN_KFENTRY_FLOAT(id, variable, name) { id, { { (float*)&variable, nullptr }, name } }
+#define SATURN_KFENTRY_COLOR(id, variable, name) \
     { (std::string(id) + "_r").c_str(), { { (float*)&variable.x, nullptr }, (std::string(name) + " R").c_str() } },\
     { (std::string(id) + "_g").c_str(), { { (float*)&variable.y, nullptr }, (std::string(name) + " G").c_str() } },\
     { (std::string(id) + "_b").c_str(), { { (float*)&variable.z, nullptr }, (std::string(name) + " B").c_str() } }
-#define SATURN_KFENTRY_COLOR_VEC3F(name, variable, id) \
+#define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) \
     { (std::string(id) + "_r").c_str(), { { (float*)&variable[0], nullptr }, (std::string(name) + " R").c_str() } },\
     { (std::string(id) + "_g").c_str(), { { (float*)&variable[1], nullptr }, (std::string(name) + " G").c_str() } },\
     { (std::string(id) + "_b").c_str(), { { (float*)&variable[2], nullptr }, (std::string(name) + " B").c_str() } }
@@ -221,7 +221,7 @@ void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
 
 void saturn_project_keyframe_handler(SaturnFormatStream* stream, int version) {
     float value = saturn_format_read_float(stream);
-    u32 position = saturn_format_read_int8(stream);
+    u32 position = saturn_format_read_int32(stream);
     InterpolationCurve curve = InterpolationCurve(saturn_format_read_int8(stream));
     Keyframe keyframe = Keyframe((int)position, curve);
     keyframe.value = value;
@@ -452,7 +452,7 @@ void saturn_save_project(char* filename) {
     for (auto& entry : k_frame_keys) {
         char* name = (char*)entry.first.c_str();
         for (Keyframe keyframe : entry.second.second) {
-            saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
+            saturn_format_new_section(&stream, SATURN_PROJECT_KEYFRAME_IDENTIFIER);
             saturn_format_write_float(&stream, keyframe.value);
             saturn_format_write_int32(&stream, keyframe.position);
             saturn_format_write_int8(&stream, keyframe.curve);
