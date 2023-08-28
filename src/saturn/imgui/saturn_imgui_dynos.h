@@ -36,6 +36,7 @@ extern ImVec4 uiLegBottomShadeColor;
 
 extern "C" {
 #endif
+    void apply_cc_from_editor(void);
     void sdynos_imgui_init(void);
     void sdynos_imgui_menu(void);
     void imgui_dynos_cc_editor(void);

@@ -232,6 +232,8 @@ void saturn_update() {
 
     camera_default_fov = camera_fov + 5.0f;
 
+    apply_cc_from_editor();
+
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
     if (gCurrLevelNum == LEVEL_SA || autoChroma) {
