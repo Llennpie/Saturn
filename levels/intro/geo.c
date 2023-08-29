@@ -23,7 +23,7 @@ const GeoLayout intro_geo_0002D0[] = {
       GEO_OPEN_NODE(),
          GEO_NODE_ORTHO(100),
          GEO_OPEN_NODE(),
-            GEO_BACKGROUND_COLOR(0x0001),
+            GEO_ASM(0, geo_intro_backdrop),
          GEO_CLOSE_NODE(),
       GEO_CLOSE_NODE(),
       GEO_ZBUFFER(1),

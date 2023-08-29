@@ -32,7 +32,6 @@ DYNOS_AT_STARTUP void DynOS_Init() {
 #ifdef OMM_DEFINES_H
     omm_opt_init();
 #endif
-    DynOS_Opt_Init();
 }
 
 //

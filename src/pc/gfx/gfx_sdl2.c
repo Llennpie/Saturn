@@ -242,7 +242,7 @@ static void gfx_sdl_init(const char *window_title) {
     );
     ctx = SDL_GL_CreateContext(wnd);
 
-    saturn_imgui_init(wnd, ctx);
+    saturn_imgui_init_backend(wnd, ctx);
 
     gfx_sdl_set_vsync(configWindow.vsync);
 

@@ -100,6 +100,10 @@ bool         configEditorExpressionPreviews = false;
 unsigned int configFakeStarCount    = 0;
 bool         configUnlockDoors = true;
 bool         configWindowState = false;
+bool         configNoWaterBombs = true;
+bool         configNoCamShake = false;
+bool         configNoButterflies = false;
+bool         configSaturnSplash = true;
 float        camera_fov = 50.0f;
 #ifdef BETTERCAMERA
 // BetterCamera settings
@@ -119,6 +123,7 @@ bool         configHUD           = false;
 #ifdef DISCORDRPC
 bool         configDiscordRPC    = false;
 #endif
+unsigned int configAutosaveDelay = 60; // seconds
 
 static const struct ConfigOption options[] = {
     {.name = "fullscreen",           .type = CONFIG_TYPE_BOOL, .boolValue = &configWindow.fullscreen},
@@ -173,6 +178,10 @@ static const struct ConfigOption options[] = {
     {.name = "fake_star_count", .type = CONFIG_TYPE_UINT, .uintValue = &configFakeStarCount},
     {.name = "fake_unlock_doors", .type = CONFIG_TYPE_BOOL, .uintValue = &configUnlockDoors},
     {.name = "controller_works_unfocus", .type = CONFIG_TYPE_BOOL, .uintValue = &configWindowState},
+    {.name = "no_water_bomb", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoWaterBombs},
+    {.name = "no_cam_shake", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoCamShake},
+    {.name = "no_butterflies", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoButterflies},
+    {.name = "show_splash", .type = CONFIG_TYPE_BOOL, .uintValue = &configSaturnSplash},
     {.name = "default_fov", .type = CONFIG_TYPE_FLOAT, .floatValue = &camera_fov},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
@@ -190,6 +199,7 @@ static const struct ConfigOption options[] = {
     #ifdef DISCORDRPC
     {.name = "discordrpc_enable",    .type = CONFIG_TYPE_BOOL, .boolValue = &configDiscordRPC},
     #endif 
+    {.name = "autosave_delay",       .type = CONFIG_TYPE_UINT, .uintValue = &configAutosaveDelay},
 };
 
 // Reads an entire line from a file (excluding the newline character) and returns an allocated string

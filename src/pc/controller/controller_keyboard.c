@@ -10,6 +10,7 @@
 #include "../configfile.h"
 #include "controller_keyboard.h"
 #include "saturn/saturn.h"
+#include "saturn/imgui/saturn_imgui.h"
 
 bool accept_text_input = true;
 
@@ -98,6 +99,12 @@ static void keyboard_init(void) {
 }
 
 static void keyboard_read(OSContPad *pad) {
+    if (saturn_disable_sm64_input()) {
+        pad->button = 0;
+        pad->stick_x = 0;
+        pad->stick_y = 0;
+        return;
+    }
     pad->button |= keyboard_buttons_down;
     const u32 xstick = keyboard_buttons_down & STICK_XMASK;
     const u32 ystick = keyboard_buttons_down & STICK_YMASK;

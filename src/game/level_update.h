@@ -102,6 +102,11 @@ struct HudDisplay {
 extern struct HudDisplay gHudDisplay;
 extern s8 gShouldNotPlayCastleMusic;
 
+extern u8 override_mario;
+extern u8 dynos_override_mario;
+extern s16 overriden_mario_angle;
+extern Vec3f overriden_mario_pos;
+
 enum HUDDisplayFlag {
     HUD_DISPLAY_FLAG_LIVES = 0x0001,
     HUD_DISPLAY_FLAG_COIN_COUNT = 0x0002,

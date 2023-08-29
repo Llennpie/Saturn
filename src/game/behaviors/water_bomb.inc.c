@@ -1,4 +1,4 @@
-
+#include "pc/configfile.h"
 /**
  * Behaviors for bhvWaterBombSpawner, bhvWaterBomb, and bhvWaterBombShadow.
  * The spawner spawns the water bombs that fall on mario from above. These ones
@@ -29,6 +29,7 @@ static struct ObjectHitbox sWaterBombHitbox = {
  * Spawn water bombs targeting mario when he comes in range.
  */
 void bhv_water_bomb_spawner_update(void) {
+    if (configNoWaterBombs) return;
     f32 latDistToMario;
     f32 spawnerRadius;
 

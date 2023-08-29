@@ -132,6 +132,8 @@ extern std::string model_details;
 extern std::string cc_details;
 extern bool is_cc_editing;
 
+extern int autosaveDelay;
+
 extern Vec3f stored_mario_pos;
 extern Vec3s stored_mario_angle;
 extern void saturn_copy_camera(bool);
@@ -149,6 +151,9 @@ extern "C" {
     void saturn_play_keyframe();
     void saturn_print(const char*);
     const char* saturn_get_stage_name(int);
+    void saturn_do_load();
+    void saturn_on_splash_finish();
+    s32 saturn_should_show_splash();
 #ifdef __cplusplus
 }
 #endif

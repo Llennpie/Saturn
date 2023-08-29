@@ -11,10 +11,14 @@
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "libs/sdl2_scancode_to_dinput.h"
 #include "pc/configfile.h"
+#include "saturn/filesystem/saturn_projectfile.h"
+#include "saturn/imgui/saturn_imgui_dynos.h"
+#include "saturn/filesystem/saturn_locationfile.h"
+#include "data/dynos.cpp.h"
 
 bool mario_exists;
 
-bool camera_frozen;
+bool camera_frozen = true;
 float camera_speed = 0.0f;
 float camera_focus = 1.f;
 float camera_savestate_mult = 1.f;
@@ -127,6 +131,8 @@ unsigned int chromaKeyColorR = 0;
 unsigned int chromaKeyColorG = 255;
 unsigned int chromaKeyColorB = 0;
 
+int autosaveDelay = -1;
+
 u16 gChromaKeyColor = 0x07C1;
 u16 gChromaKeyBackground = 0;
 
@@ -182,7 +188,7 @@ void saturn_update() {
     machinimaMode = (camera_frozen) ? 1 : 0;
     machinimaKeyframing = (keyframe_playing && active_data_type == KEY_CAMERA);
 
-    if (camera_frozen) {
+    if (camera_frozen && !saturn_disable_sm64_input()) {
         if (configMCameraMode == 2) {
             camera_view_enabled = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT];
             camera_view_moving = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_RMASK;
@@ -213,6 +219,8 @@ void saturn_update() {
             cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & accept_text_input;
             cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & accept_text_input;
         }
+        cameraRollLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_V];
+        cameraRollRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_B];
     }
 
     if (!keyframe_playing && !camera_frozen) {
@@ -223,6 +231,8 @@ void saturn_update() {
     }
 
     camera_default_fov = camera_fov + 5.0f;
+
+    apply_cc_from_editor();
 
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
@@ -342,6 +352,12 @@ void saturn_update() {
         marioScaleSizeY = marioScaleSizeX;
         marioScaleSizeZ = marioScaleSizeX;
     }
+
+    // Autosave
+
+    if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
+    autosaveDelay--;
+    if (autosaveDelay == 0) saturn_save_project("autosave.spj");
 }
 
 float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyframe, bool* last) {
@@ -555,4 +571,16 @@ const char* saturn_get_stage_name(int courseNum) {
 
         default: return "Unknown"; break;
     }
+}
+
+void saturn_do_load() {
+    DynOS_Opt_Init();
+    saturn_imgui_init();
+    saturn_load_locations();
+}
+void saturn_on_splash_finish() {
+    splash_finished = true;
+}
+s32 saturn_should_show_splash() {
+    return configSaturnSplash;
 }

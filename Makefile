@@ -311,6 +311,7 @@ endif
 SRC_DIRS += src/saturn
 SRC_DIRS += src/saturn/imgui
 SRC_DIRS += src/saturn/libs/imgui
+SRC_DIRS += src/saturn/filesystem
 
 BIN_DIRS := bin bin/$(VERSION)
 

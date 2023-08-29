@@ -21,6 +21,8 @@
 #include "pc/controller/controller_keyboard.h"
 #include "data/dynos.cpp.h"
 #include "icons/IconsForkAwesome.h"
+#include "icons/IconsFontAwesome5.h"
+#include "saturn/filesystem/saturn_projectfile.h"
 
 #include <SDL2/SDL.h>
 
@@ -102,6 +104,8 @@ ImVec2 k_context_popout_pos = ImVec2(0, 0);
 
 bool was_camera_frozen = false;
 
+bool splash_finished = false;
+
 // Bundled Components
 
 void imgui_bundled_tooltip(const char* text) {
@@ -122,7 +126,7 @@ void imgui_bundled_help_marker(const char* desc) {
         return;
     }
 
-    ImGui::TextDisabled("(?)");
+    ImGui::TextDisabled(ICON_FA_QUESTION_CIRCLE);
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
@@ -214,7 +218,7 @@ void imgui_update_theme() {
 
 // Set up ImGui
 
-void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
+void saturn_imgui_init_backend(SDL_Window * sdl_window, SDL_GLContext ctx) {
     window = sdl_window;
 
     const char* glsl_version = "#version 120";
@@ -229,11 +233,13 @@ void saturn_imgui_init(SDL_Window * sdl_window, SDL_GLContext ctx) {
     ImGui_ImplSDL2_InitForOpenGL(window, ctx);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
+}
+
+void saturn_imgui_init() {
     sdynos_imgui_init();
     smachinima_imgui_init();
     ssettings_imgui_init();
-
-    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -248,7 +254,7 @@ void saturn_imgui_handle_events(SDL_Event * event) {
                 configWindow.fps_changed = true;
             }
 
-            if(event->key.keysym.sym == SDLK_F5) {
+            if(event->key.keysym.sym == SDLK_F9) {
                 imgui_update_theme();
             }
 
@@ -369,7 +375,10 @@ void saturn_keyframe_window() {
     }
 }
 
+char saturnProjectFilename[257] = "Project";
+
 void saturn_imgui_update() {
+    if (!splash_finished) return;
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(window);
     ImGui::NewFrame();
@@ -388,6 +397,22 @@ void saturn_imgui_update() {
                     if (!showMenu) accept_text_input = true;
                 }
                 if (ImGui::MenuItem(ICON_FK_WINDOW_MINIMIZE " Show Status Bars",  NULL, showStatusBars)) showStatusBars = !showStatusBars;
+                ImGui::Separator();
+                ImGui::PushItemWidth(125);
+                ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
+                ImGui::PopItemWidth();
+                if (ImGui::Button(ICON_FA_FILE " Open###project_file_open")) {
+                    saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                }
+                ImGui::SameLine(70);
+                if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
+                    saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                }
+                ImGui::SameLine();
+                imgui_bundled_help_marker("Project files are basically save states for Saturn\nEXPERIMENTAL - May crash");
+                if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
+                    saturn_load_project("autosave.spj");
+                }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_LINE_CHART " Timeline Editor", "F6", k_popout_open == true)) {
@@ -525,6 +550,8 @@ void saturn_imgui_update() {
                     ImGui::TextDisabled(ICON_FK_GITHUB " " GIT_BRANCH " " GIT_HASH);
 #endif
 #endif
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 135);
+                    ImGui::Text("Autosaving in %ds", autosaveDelay / 30);
                     ImGui::EndMenuBar();
                 }
                 ImGui::End();
@@ -661,6 +688,7 @@ void saturn_imgui_update() {
             should_update_cam_from_keyframes = false;
             vec3f_copy(gCamera->pos, freezecamPos);
             vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
+            gLakituState.roll = freezecamRoll;
         }
         else {
             float dist;
@@ -670,6 +698,7 @@ void saturn_imgui_update() {
             vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
             freezecamYaw = (float)yaw;
             freezecamPitch = (float)pitch;
+            freezecamRoll = (float)gLakituState.roll;
         }
         vec3f_copy(gLakituState.pos, gCamera->pos);
         vec3f_copy(gLakituState.focus, gCamera->focus);
@@ -696,6 +725,7 @@ void saturn_imgui_update() {
         k_frame_keys.erase("k_c_camera_pos2");
         k_frame_keys.erase("k_c_camera_yaw");
         k_frame_keys.erase("k_c_camera_pitch");
+        k_frame_keys.erase("k_c_camera_roll");
     }
     was_camera_frozen = camera_frozen;
 }
@@ -762,7 +792,7 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
 void saturn_keyframe_camera_popout(string value_name, string id) {
-    bool contains = k_frame_keys.find(id + "_cam_pos0") != k_frame_keys.end();
+    bool contains = k_frame_keys.find(id + "_pos0") != k_frame_keys.end();
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
@@ -780,7 +810,8 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
             std::make_pair(std::make_pair("pos1", "Pos Y"), std::make_pair(0, &freezecamPos[1])),
             std::make_pair(std::make_pair("pos2", "Pos Z"), std::make_pair(0, &freezecamPos[2])),
             std::make_pair(std::make_pair("yaw", "Yaw"), std::make_pair(2, &freezecamYaw)),
-            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(2, &freezecamPitch))
+            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(2, &freezecamPitch)),
+            std::make_pair(std::make_pair("roll", "Roll"), std::make_pair(2, &freezecamRoll)),
         };
         k_popout_open = true;
         if (contains) {
@@ -804,6 +835,46 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         }
     }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
+}
+void saturn_keyframe_color_popout(string value_name, string id, float* r, float* g, float* b) {
+    bool contains = k_frame_keys.find(id + "_r") != k_frame_keys.end();
+
+    string buttonLabel = ICON_FK_LINK "###kb_" + id;
+
+    ImGui::SameLine();
+    if (ImGui::Button(buttonLabel.c_str())) {
+        // ((id, name), (precision, value_ptr))
+        std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
+            std::make_pair(std::make_pair("r", "R"), std::make_pair(-3, r)),
+            std::make_pair(std::make_pair("g", "G"), std::make_pair(-3, g)),
+            std::make_pair(std::make_pair("b", "B"), std::make_pair(-3, b)),
+        };
+        k_popout_open = true;
+        if (contains) {
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
+                k_frame_keys.erase(id + "_" + values[i].first.first);
+            }
+        }
+        else { // Add the timeline
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
+                KeyframeTimeline timeline = KeyframeTimeline();
+                timeline.fdest = values[i].second.second;
+                timeline.name = value_name + " " + values[i].first.second;
+                timeline.precision = values[i].second.first;
+                Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
+                keyframe.value = *values[i].second.second;
+                keyframe.timelineID = id + "_" + values[i].first.first;
+                k_frame_keys.insert({ id + "_" + values[i].first.first, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
+                k_current_frame = 0;
+                startFrame = 0;
+            }
+        }
+    }
+    imgui_bundled_tooltip(contains ? "Remove" : "Animate");
+}
+
+bool saturn_disable_sm64_input() {
+    return ImGui::GetIO().WantTextInput;
 }
 
 template <typename T>

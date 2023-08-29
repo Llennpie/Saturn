@@ -16,6 +16,7 @@
 #include "saturn/saturn_obj_def.h"
 #include "saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
+#include "saturn/filesystem/saturn_locationfile.h"
 #include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
@@ -55,12 +56,24 @@ int obj_beh_params[4];
 int obj_model;
 int obj_beh;
 
+int current_location_index = 0;
+char location_name[256];
+
+s16 levelList[] = { 
+    LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
+    LEVEL_WF, LEVEL_PSS, LEVEL_TOTWC, LEVEL_JRB, LEVEL_CCM,
+    LEVEL_BITDW, LEVEL_BBH, LEVEL_HMC, LEVEL_COTMC, LEVEL_LLL,
+    LEVEL_SSL, LEVEL_VCUTM, LEVEL_DDD, LEVEL_BITFS, 
+    LEVEL_SL, LEVEL_WDW, LEVEL_TTM, LEVEL_THI,
+    LEVEL_TTC, LEVEL_WMOTR, LEVEL_RR, LEVEL_BITS
+};
+
 int current_level_sel = 0;
 void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
     if (!mario_exists)
         return;
 
-    if (destLevel == gCurrLevelNum) {
+    if (destLevel == gCurrLevelNum && destArea == gCurrAreaIndex) {
         if (current_slevel_index < 4)
             return;
             
@@ -105,6 +118,45 @@ void smachinima_imgui_controls(SDL_Event * event) {
             camera_view_move_y = event->motion.yrel;
         
         break;
+    }
+}
+
+void warp_to_level(int level, int area, int act = -1) {
+    is_anim_playing = false;
+    is_anim_paused = false;
+
+    if (level != 0) enable_shadows = true;
+    else enable_shadows = false;
+
+    s32 levelID = levelList[level];
+    s32 warpnode = 0x0A;
+
+    switch (level) {
+        case 1:
+            warpnode = 0x04;
+            break;
+        case 2:
+            if (area == 1) warpnode = 0x1E;
+            else warpnode = 0x10;
+            break;
+        case 3:
+            warpnode = 0x0B;
+            break;
+    }
+
+    if (levelID != LEVEL_BOB && levelID != LEVEL_WF  && levelID != LEVEL_JRB &&
+        levelID != LEVEL_CCM && levelID != LEVEL_BBH && levelID != LEVEL_HMC &&
+        levelID != LEVEL_LLL && levelID != LEVEL_SSL && levelID != LEVEL_DDD &&
+        levelID != LEVEL_SL  && levelID != LEVEL_WDW && levelID != LEVEL_TTM &&
+        levelID != LEVEL_THI && levelID != LEVEL_TTC && levelID != LEVEL_RR  && levelID != LEVEL_SA) act = -1;
+
+    if (act == -1) warp_to(levelID, area, warpnode);
+    else DynOS_Warp_ToWarpNode(levelID, area, act, warpnode);
+}
+
+int get_saturn_level_id(int level) {
+    for (int i = 0; i < IM_ARRAYSIZE(levelList); i++) {
+        if (levelList[i] == level) return i;
     }
 }
 
@@ -185,15 +237,6 @@ void imgui_machinima_quick_options() {
         }
         ImGui::Separator();
 
-        s16 levelList[] = { 
-            LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
-            LEVEL_WF, LEVEL_PSS, LEVEL_TOTWC, LEVEL_JRB, LEVEL_CCM,
-            LEVEL_BITDW, LEVEL_BBH, LEVEL_HMC, LEVEL_COTMC, LEVEL_LLL,
-            LEVEL_SSL, LEVEL_VCUTM, LEVEL_DDD, LEVEL_BITFS, 
-            LEVEL_SL, LEVEL_WDW, LEVEL_TTM, LEVEL_THI,
-            LEVEL_TTC, LEVEL_WMOTR, LEVEL_RR, LEVEL_BITS
-        };
-
         if (ImGui::BeginCombo("###warp_to_level", saturn_get_stage_name(levelList[current_slevel_index]), ImGuiComboFlags_None)) {
             for (int n = 0; n < IM_ARRAYSIZE(levelList); n++) {
                 const bool is_selected = (current_slevel_index == n);
@@ -209,38 +252,72 @@ void imgui_machinima_quick_options() {
         }
 
         if (ImGui::Button("Warp to Level")) {
-            is_anim_playing = false;
-            is_anim_paused = false;
-
-            if (current_slevel_index != 0) enable_shadows = true;
-            else enable_shadows = false;
-
             autoChroma = false;
+            camera_frozen = false;
 
-            switch (current_slevel_index) {
-                case 0:
-                    DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, 0);
-                    break;
-                case 1:
-                    warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
-                    break;
-                case 2:
-                    warp_to(LEVEL_CASTLE, 0x01, 0x01);
-                    break;
-                case 3:
-                    warp_to(LEVEL_CASTLE_COURTYARD, 0x01, 0x0B);
-                    break;
-                default:
-                    warp_to(levelList[current_slevel_index]);
-                    break;
-            }
-
+            warp_to_level(current_slevel_index, (s32)currentChromaArea, -1);
             // Erase existing timelines
             k_frame_keys.clear();
         }
+
+        auto locations = saturn_get_locations();
+        bool do_save = false;
+        std::vector<std::string> forRemoval = {};
+        if (ImGui::BeginMenu("Locations")) {
+            for (auto& entry : *locations) {
+                if (ImGui::Button((std::string(ICON_FK_PLAY "###warp_to_location_") + entry.first).c_str())) {
+                    gMarioState->pos[0] = entry.second.second[0];
+                    gMarioState->pos[1] = entry.second.second[1];
+                    gMarioState->pos[2] = entry.second.second[2];
+                    gMarioState->faceAngle[1] = entry.second.first;
+                }
+                imgui_bundled_tooltip("Warp");
+                ImGui::SameLine();
+                if (ImGui::Button((std::string(ICON_FK_TRASH "###delete_location_") + entry.first).c_str())) {
+                    forRemoval.push_back(entry.first);
+                    do_save = true;
+                }
+                imgui_bundled_tooltip("Remove");
+                ImGui::SameLine();
+                ImGui::Text(entry.first.c_str());
+            }
+            if (ImGui::Button(ICON_FK_PLUS "###add_location")) {
+                saturn_add_location(location_name);
+                do_save = true;
+            }
+            imgui_bundled_tooltip("Add");
+            ImGui::SameLine();
+            ImGui::InputText("###location_input", location_name, 256);
+            ImGui::EndMenu();
+        }
+        for (std::string key : forRemoval) {
+            locations->erase(key);
+        }
+        if (do_save) saturn_save_locations();
     }
+    ImGui::Separator();
+    ImGui::Checkbox("HUD", &configHUD);
+    imgui_bundled_tooltip("Controls the in-game HUD visibility.");
+    saturn_keyframe_bool_popout(&configHUD, "HUD", "k_hud");
+    ImGui::Checkbox("Shadows", &enable_shadows);
+    imgui_bundled_tooltip("Displays the shadows of various objects.");
+    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
+    ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
+    imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
+    ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
+    imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
     if (mario_exists) {
+        if (gMarioState->action == ACT_IDLE) {
+            if (ImGui::Button("Sleep")) {
+                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
+            }
+        }
         ImGui::Separator();
+        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
+        ImGui::PushItemWidth(100);
+        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
+        ImGui::PopItemWidth();
+        
         if (ImGui::BeginMenu("Spawn Object")) {
             ImGui::Text("Position");
             ImGui::SameLine();
@@ -291,29 +368,6 @@ void imgui_machinima_quick_options() {
             }
             ImGui::EndMenu();
         }
-    }
-    ImGui::Separator();
-    ImGui::Checkbox("HUD", &configHUD);
-    imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-    saturn_keyframe_bool_popout(&configHUD, "HUD", "k_hud");
-    ImGui::Checkbox("Shadows", &enable_shadows);
-    imgui_bundled_tooltip("Displays the shadows of various objects.");
-    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
-    ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
-    imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
-    ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
-    imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
-    if (mario_exists) {
-        if (gMarioState->action == ACT_IDLE) {
-            if (ImGui::Button("Sleep")) {
-                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
-            }
-        }
-        ImGui::Separator();
-        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
-        ImGui::PushItemWidth(100);
-        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
-        ImGui::PopItemWidth();
     }
 }
 

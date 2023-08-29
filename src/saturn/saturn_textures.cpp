@@ -165,7 +165,9 @@ const void* saturn_bind_texture(const void* input) {
     const char* inputTexture = static_cast<const char*>(input);
     const char* outputTexture;
 
-    string texName = string(inputTexture);
+    if (input == (const void*)0x7365727574786574) return input;
+    
+    string texName = inputTexture;
 
     if (current_model_data.name != "") {
         for (int i = 0; i < current_model_data.expressions.size(); i++) {

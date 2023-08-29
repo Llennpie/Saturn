@@ -65,6 +65,7 @@ float world_light_dir1;
 float world_light_dir2;
 float world_light_dir3;
 float world_light_dir4 = 1.f;
+Vec3f gLightingColor = { 1.f, 1.f, 1.f };
 
 struct RGBA {
     uint8_t r, g, b, a;
@@ -998,7 +999,10 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                     }
                 }
             }
-            
+
+            r *= gLightingColor[0];
+            g *= gLightingColor[1];
+            b *= gLightingColor[2];
             d->color.r = r > 255 ? 255 : r;
             d->color.g = g > 255 ? 255 : g;
             d->color.b = b > 255 ? 255 : b;

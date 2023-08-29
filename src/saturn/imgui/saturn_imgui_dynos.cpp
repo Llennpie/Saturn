@@ -36,31 +36,31 @@ Array<PackData *> &sDynosPacks = DynOS_Gfx_GetPacks();
 
 using namespace std;
 
-static ImVec4 uiHatColor =              ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiHatShadeColor =         ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiOverallsColor =         ImVec4(0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiOverallsShadeColor =    ImVec4(0.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiGlovesColor =           ImVec4(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiGlovesShadeColor =      ImVec4(127.0f / 255.0f, 127.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiShoesColor =            ImVec4(114.0f / 255.0f, 28.0f / 255.0f, 14.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiShoesShadeColor =       ImVec4(57.0f / 255.0f, 14.0f / 255.0f, 7.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiSkinColor =             ImVec4(254.0f / 255.0f, 193.0f / 255.0f, 121.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiSkinShadeColor =        ImVec4(127.0f / 255.0f, 96.0f / 255.0f, 60.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiHairColor =             ImVec4(115.0f / 255.0f, 6.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiHairShadeColor =        ImVec4(57.0f / 255.0f, 3.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiHatColor =              ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiHatShadeColor =         ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiOverallsColor =         ImVec4(0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiOverallsShadeColor =    ImVec4(0.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiGlovesColor =           ImVec4(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiGlovesShadeColor =      ImVec4(127.0f / 255.0f, 127.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiShoesColor =            ImVec4(114.0f / 255.0f, 28.0f / 255.0f, 14.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiShoesShadeColor =       ImVec4(57.0f / 255.0f, 14.0f / 255.0f, 7.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiSkinColor =             ImVec4(254.0f / 255.0f, 193.0f / 255.0f, 121.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiSkinShadeColor =        ImVec4(127.0f / 255.0f, 96.0f / 255.0f, 60.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiHairColor =             ImVec4(115.0f / 255.0f, 6.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiHairShadeColor =        ImVec4(57.0f / 255.0f, 3.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
 // SPARK
-static ImVec4 uiShirtColor =                    ImVec4(255.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiShirtShadeColor =               ImVec4(127.0f / 255.0f, 127.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiShouldersColor =                ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiShouldersShadeColor =           ImVec4(0.0f / 255.0f, 127.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiArmsColor =                     ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiArmsShadeColor =                ImVec4(0.0f / 255.0f, 127.0f / 255.0f, 64.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiOverallsBottomColor =           ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiOverallsBottomShadeColor =      ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiLegTopColor =                   ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiLegTopShadeColor =              ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 64.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiLegBottomColor =                ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
-static ImVec4 uiLegBottomShadeColor =           ImVec4(64.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiShirtColor =                    ImVec4(255.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiShirtShadeColor =               ImVec4(127.0f / 255.0f, 127.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiShouldersColor =                ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiShouldersShadeColor =           ImVec4(0.0f / 255.0f, 127.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiArmsColor =                     ImVec4(0.0f / 255.0f, 255.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiArmsShadeColor =                ImVec4(0.0f / 255.0f, 127.0f / 255.0f, 64.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiOverallsBottomColor =           ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiOverallsBottomShadeColor =      ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiLegTopColor =                   ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiLegTopShadeColor =              ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 64.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiLegBottomColor =                ImVec4(127.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
+ImVec4 uiLegBottomShadeColor =           ImVec4(64.0f / 255.0f, 0.0f / 255.0f, 127.0f / 255.0f, 255.0f / 255.0f);
 
 static char ui_cc_name[128] = "Sample";
 static int current_cc_id = 0;
@@ -337,6 +337,10 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
                 colorValue->y = (rand() % 255) / 255.0f;
                 colorValue->z = (rand() % 255) / 255.0f;
             }
+            ImGui::Dummy(ImVec2(0, 15));
+            string id2 = "k_" + id + "_1";
+            saturn_keyframe_color_popout(mainName, id2, &colorValue->x, &colorValue->y, &colorValue->z);
+
             ImGui::EndPopup();
         }
 
@@ -373,6 +377,10 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
                 shadeColorValue->y = (rand() % 127) / 255.0f;
                 shadeColorValue->z = (rand() % 127) / 255.0f;
             }
+            ImGui::Dummy(ImVec2(0, 15));
+            string id3 = "k_" + id + "_2";
+            saturn_keyframe_color_popout(shadeName, id3, &shadeColorValue->x, &shadeColorValue->y, &shadeColorValue->z);
+
             ImGui::EndPopup();
         }
 
@@ -822,28 +830,8 @@ void sdynos_imgui_menu() {
 
     if (ImGui::BeginMenu("Misc.###menu_misc")) {
 
-        if (mario_exists) {
-            ImGui::Text("Position");
-            ImGui::InputFloat3("###mario_set_pos", (float*)&gMarioState->pos);
-            if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_mario")) {
-                vec3f_copy(stored_mario_pos, gMarioState->pos);
-                vec3s_copy(stored_mario_angle, gMarioState->faceAngle);
-                has_copy_mario = true;
-            } ImGui::SameLine();
-            if (!has_copy_mario) ImGui::BeginDisabled();
-            if (ImGui::Button(ICON_FK_CLIPBOARD " Paste###paste_mario")) {
-                if (has_copy_mario) {
-                    vec3f_copy(gMarioState->pos, stored_mario_pos);
-                    vec3f_copy(gMarioState->marioObj->header.gfx.pos, stored_mario_pos);
-                    vec3s_copy(gMarioState->faceAngle, stored_mario_angle);
-                    vec3s_set(gMarioState->marioObj->header.gfx.angle, 0, stored_mario_angle[1], 0);
-                }
-            }
-            if (!has_copy_mario) ImGui::EndDisabled();
-        }
-
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-        ImGui::BeginChild("Misc.###misc_child", ImVec2(225, 150), true, ImGuiWindowFlags_None);
+        ImGui::BeginChild("Misc.###misc_child", ImVec2(225, 175), true, ImGuiWindowFlags_None);
         if (ImGui::BeginTabBar("###misc_tabbar", ImGuiTabBarFlags_None)) {
 
             if (ImGui::BeginTabItem("Switches###switches_scale")) {
@@ -859,50 +847,101 @@ void sdynos_imgui_menu() {
                 ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
                 const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
                 ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
+                if (any_packs_selected) ImGui::BeginDisabled();
+                ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
+                imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
+                saturn_keyframe_bool_popout(&show_vmario_emblem, "M Cap Emblem", "k_v_cap_emblem");
+                if (any_packs_selected) ImGui::EndDisabled();
 
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Shading###tab_shading")) {
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
+                ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
                 saturn_keyframe_float_popout(&world_light_dir1, "Mario Shade X", "k_shade_x");
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
+                ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
                 saturn_keyframe_float_popout(&world_light_dir2, "Mario Shade Y", "k_shade_y");
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
+                ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
                 saturn_keyframe_float_popout(&world_light_dir3, "Mario Shade Z", "k_shade_z");
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
+                ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
                 saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
 
+                ImGui::ColorEdit4("Col###wlight_col", gLightingColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
+                if (ImGui::IsItemActivated()) accept_text_input = false;
+                if (ImGui::IsItemDeactivated()) accept_text_input = true;
+                
+                if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+                    ImGui::OpenPopup("###texColColorPresets");
+
+                if (ImGui::BeginPopup("###texColColorPresets")) {
+                    if (ImGui::Selectable(ICON_FK_UNDO " Reset")) {
+                        gLightingColor[0] = 1.f;
+                        gLightingColor[1] = 1.f;
+                        gLightingColor[2] = 1.f;
+                    }
+                    if (ImGui::Selectable("Randomize")) {
+                        gLightingColor[0] = (rand() % 255) / 255.0f;
+                        gLightingColor[1] = (rand() % 255) / 255.0f;
+                        gLightingColor[2] = (rand() % 255) / 255.0f;
+                    }
+                    ImGui::EndPopup();
+                }
+
+                ImGui::SameLine(); ImGui::Text("Col");
+                saturn_keyframe_color_popout("Light Color", "k_light_col", &gLightingColor[0], &gLightingColor[1], &gLightingColor[2]);
+
                 if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
-                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine();
                     if (ImGui::Button("Reset###reset_wshading")) {
                         world_light_dir1 = 0.f;
                         world_light_dir2 = 0.f;
                         world_light_dir3 = 0.f;
                         world_light_dir4 = 1.f;
+                        gLightingColor[0] = 1.f;
+                        gLightingColor[1] = 1.f;
+                        gLightingColor[2] = 1.f;
                     }
                 }
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Scale###tab_scale")) {
+            if (ImGui::BeginTabItem("Special###tab_special")) {
                 if (linkMarioScale) {
-                    ImGui::Dummy(ImVec2(8, 0)); ImGui::SameLine(); ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
+                    ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
                     saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale", "k_scale");
                 } else {
-                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("X###mscale_x", &marioScaleSizeX, -2.f, 2.f);
+                    ImGui::SliderFloat("X###mscale_x", &marioScaleSizeX, -2.f, 2.f);
                     saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale X", "k_scale_x");
-                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Y###mscale_y", &marioScaleSizeY, -2.f, 2.f);
+                    ImGui::SliderFloat("Y###mscale_y", &marioScaleSizeY, -2.f, 2.f);
                     saturn_keyframe_float_popout(&marioScaleSizeY, "Mario Scale Y", "k_scale_y");
-                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::SliderFloat("Z###mscale_z", &marioScaleSizeZ, -2.f, 2.f);
+                    ImGui::SliderFloat("Z###mscale_z", &marioScaleSizeZ, -2.f, 2.f);
                     saturn_keyframe_float_popout(&marioScaleSizeZ, "Mario Scale Z", "k_scale_z");
                 }
-                ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine(); ImGui::Checkbox("Link###link_mario_scale", &linkMarioScale);
+                ImGui::Checkbox("Link###link_mario_scale", &linkMarioScale);
                 if (marioScaleSizeX != 1.f || marioScaleSizeY != 1.f || marioScaleSizeZ != 1.f) {
-                    ImGui::Dummy(ImVec2(15, 0)); ImGui::SameLine();
-                    if (ImGui::Button("Reset###reset_mscale")) {
+                    ImGui::SameLine(); if (ImGui::Button("Reset###reset_mscale")) {
                         marioScaleSizeX = 1.f;
                         marioScaleSizeY = 1.f;
                         marioScaleSizeZ = 1.f;
                     }
+                }
+
+                if (mario_exists) {
+                    ImGui::Dummy(ImVec2(0, 5));
+                    ImGui::Text("Position");
+                    ImGui::InputFloat3("###mario_set_pos", (float*)&gMarioState->pos);
+                    if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_mario")) {
+                        vec3f_copy(stored_mario_pos, gMarioState->pos);
+                        vec3s_copy(stored_mario_angle, gMarioState->faceAngle);
+                        has_copy_mario = true;
+                    } ImGui::SameLine();
+                    if (!has_copy_mario) ImGui::BeginDisabled();
+                    if (ImGui::Button(ICON_FK_CLIPBOARD " Paste###paste_mario")) {
+                        if (has_copy_mario) {
+                            vec3f_copy(gMarioState->pos, stored_mario_pos);
+                            vec3f_copy(gMarioState->marioObj->header.gfx.pos, stored_mario_pos);
+                            vec3s_copy(gMarioState->faceAngle, stored_mario_angle);
+                            vec3s_set(gMarioState->marioObj->header.gfx.angle, 0, stored_mario_angle[1], 0);
+                        }
+                    }
+                    if (!has_copy_mario) ImGui::EndDisabled();
                 }
 
                 ImGui::EndTabItem();
@@ -924,14 +963,6 @@ void sdynos_imgui_menu() {
             ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(25); ImGui::Text(ICON_FK_SKATE " Walkpoint");
             ImGui::Dummy(ImVec2(0, 0)); ImGui::SameLine(25); ImGui::SliderFloat("###run_speed", &run_speed, 0.f, 127.f, "%.0f");
             imgui_bundled_tooltip("Controls the axis range for Mario's running input; Can be used to force walking (36) or tiptoe (25) animations.");
-
-            ImGui::Dummy(ImVec2(0, 5));
-
-            if (!any_packs_selected) {
-                ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
-                imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
-                saturn_keyframe_bool_popout(&show_vmario_emblem, "M Cap Emblem", "k_v_cap_emblem");
-            }
 
             ImGui::TableSetColumnIndex(1);
             if (gMarioState) {

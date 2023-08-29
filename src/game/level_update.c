@@ -175,6 +175,11 @@ s16 unusedEULevelUpdateBss1;
 s8 sTimerRunning;
 s8 gShouldNotPlayCastleMusic;
 
+u8 override_mario;
+u8 dynos_override_mario;
+s16 overriden_mario_angle;
+Vec3f overriden_mario_pos;
+
 struct MarioState *gMarioState = &gMarioStates[0];
 u8 unused1[4] = { 0 };
 s8 D_8032C9E0 = 0;
@@ -394,14 +399,14 @@ void init_mario_after_warp(void) {
         }
 
         init_mario();
-        set_mario_initial_action(gMarioState, marioSpawnType, sWarpDest.arg);
+        if (!override_mario && !dynos_override_mario) set_mario_initial_action(gMarioState, marioSpawnType, sWarpDest.arg);
 
         gMarioState->interactObj = spawnNode->object;
         gMarioState->usedObj = spawnNode->object;
     }
 
     if (gCurrentArea) {
-        reset_camera(gCurrentArea->camera);
+        if (!override_mario) reset_camera(gCurrentArea->camera);
     }
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
@@ -542,7 +547,7 @@ void check_instant_warp(void) {
     struct Surface *floor;
 
     if (gCurrLevelNum == LEVEL_CASTLE
-        && save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1) >= 70) {
+        && (save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1) >= 70 || configUnlockDoors)) {
         return;
     }
 
@@ -1014,6 +1019,21 @@ s32 play_mode_normal(void) {
         }
     }
 
+    if (gCurrLevelNum == LEVEL_SA && gGlobalTimer < 120) {
+        gMarioState->faceAngle[1] = 0;
+        if (gCamera) {
+            vec3f_set(gCamera->pos, 0.f, 192.f, 264.f);
+            vec3f_set(gCamera->focus, 0.f, 181.f, 28.f);
+        }
+    }
+
+    // Override Mario if loaded from project file
+    if (override_mario) {
+        override_mario--;
+        vec3f_copy(gMarioState->pos, overriden_mario_pos);
+        gMarioState->faceAngle[1] = overriden_mario_angle;
+    }
+
     return 0;
 }
 
@@ -1201,7 +1221,7 @@ s32 init_level(void) {
         }
 
         if (gCurrentArea != NULL) {
-            reset_camera(gCurrentArea->camera);
+            if (!override_mario) reset_camera(gCurrentArea->camera);
 
             if (gCurrDemoInput != NULL) {
                 set_mario_action(gMarioState, ACT_IDLE, 0);
