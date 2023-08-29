@@ -253,8 +253,9 @@ void imgui_machinima_quick_options() {
 
         if (ImGui::Button("Warp to Level")) {
             autoChroma = false;
-            warp_to_level(current_slevel_index, (s32)currentChromaArea, -1);
+            camera_frozen = false;
 
+            warp_to_level(current_slevel_index, (s32)currentChromaArea, -1);
             // Erase existing timelines
             k_frame_keys.clear();
         }
@@ -294,8 +295,29 @@ void imgui_machinima_quick_options() {
         }
         if (do_save) saturn_save_locations();
     }
+    ImGui::Separator();
+    ImGui::Checkbox("HUD", &configHUD);
+    imgui_bundled_tooltip("Controls the in-game HUD visibility.");
+    saturn_keyframe_bool_popout(&configHUD, "HUD", "k_hud");
+    ImGui::Checkbox("Shadows", &enable_shadows);
+    imgui_bundled_tooltip("Displays the shadows of various objects.");
+    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
+    ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
+    imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
+    ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
+    imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
     if (mario_exists) {
+        if (gMarioState->action == ACT_IDLE) {
+            if (ImGui::Button("Sleep")) {
+                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
+            }
+        }
         ImGui::Separator();
+        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
+        ImGui::PushItemWidth(100);
+        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
+        ImGui::PopItemWidth();
+        
         if (ImGui::BeginMenu("Spawn Object")) {
             ImGui::Text("Position");
             ImGui::SameLine();
@@ -346,29 +368,6 @@ void imgui_machinima_quick_options() {
             }
             ImGui::EndMenu();
         }
-    }
-    ImGui::Separator();
-    ImGui::Checkbox("HUD", &configHUD);
-    imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-    saturn_keyframe_bool_popout(&configHUD, "HUD", "k_hud");
-    ImGui::Checkbox("Shadows", &enable_shadows);
-    imgui_bundled_tooltip("Displays the shadows of various objects.");
-    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
-    ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
-    imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
-    ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
-    imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
-    if (mario_exists) {
-        if (gMarioState->action == ACT_IDLE) {
-            if (ImGui::Button("Sleep")) {
-                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
-            }
-        }
-        ImGui::Separator();
-        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
-        ImGui::PushItemWidth(100);
-        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
-        ImGui::PopItemWidth();
     }
 }
 
