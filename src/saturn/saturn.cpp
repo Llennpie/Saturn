@@ -15,6 +15,7 @@
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/filesystem/saturn_locationfile.h"
 #include "data/dynos.cpp.h"
+#include "saturn/imgui/saturn_imgui_chroma.h"
 
 bool mario_exists;
 
@@ -233,6 +234,7 @@ void saturn_update() {
     camera_default_fov = camera_fov + 5.0f;
 
     apply_cc_from_editor();
+    schroma_imgui_init(); // this is a public alias for set_chroma_color function, which updates the chromakey background color
 
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
