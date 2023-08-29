@@ -313,6 +313,10 @@ namespace ImGui
     IMGUI_API void          StyleColorsMoon(ImGuiStyle* dst = NULL);    // a style based on saturn moon edition
     IMGUI_API void          StyleColorsHalfLife(ImGuiStyle* dst = NULL);    // a style based on half-life vgui
     IMGUI_API void          StyleColorsM64MM(ImGuiStyle* dst = NULL);   // a style based on m64mm
+    IMGUI_API void          StyleColorsWindows95(ImGuiStyle* dst = NULL);   // a style based on windows 95
+    IMGUI_API void          StyleColorsTerminal(ImGuiStyle* dst = NULL);   // a style based on classic terminals
+    IMGUI_API void          StyleColorsWarioWare(ImGuiStyle* dst = NULL);   // a style based on the franchise, wario-ware
+    IMGUI_API void          StyleColorsDiscord(ImGuiStyle* dst = NULL);   // a style based on the discord app
 
     // Windows
     // - Begin() = push window to the stack and start appending to it. End() = pop window from the stack.
