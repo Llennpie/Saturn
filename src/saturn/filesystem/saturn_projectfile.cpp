@@ -44,6 +44,7 @@ namespace fs = std::filesystem;
 #define SATURN_PROJECT_TIMELINE_IDENTIFIER  "TMLN"
 #define SATURN_PROJECT_KEYFRAME_IDENTIFIER  "KEFR"
 #define SATURN_PROJECT_CAMERA_IDENTIFIER    "CMRA"
+#define SATURN_PROJECT_COLORCODE_IDENTIFIER "COLR"
 #define SATURN_PROJECT_DONE_IDENTIFIER      "DONE"
 
 #define SATURN_PROJECT_FLAG_CAMERA_FROZEN        (1 << 15)
@@ -310,6 +311,81 @@ void saturn_project_camera_handler(SaturnFormatStream* stream, int version) {
     freezecamPitch = pitch;
 }
 
+void saturn_project_colorcode_handler(SaturnFormatStream* stream, int version) {
+    defaultColorHat.red[0] = saturn_format_read_int8(stream);
+    defaultColorHat.green[0] = saturn_format_read_int8(stream);
+    defaultColorHat.blue[0] = saturn_format_read_int8(stream);
+    defaultColorHat.red[1] = saturn_format_read_int8(stream);
+    defaultColorHat.green[1] = saturn_format_read_int8(stream);
+    defaultColorHat.blue[1] = saturn_format_read_int8(stream);
+    defaultColorOveralls.red[0] = saturn_format_read_int8(stream);
+    defaultColorOveralls.green[0] = saturn_format_read_int8(stream);
+    defaultColorOveralls.blue[0] = saturn_format_read_int8(stream);
+    defaultColorOveralls.red[1] = saturn_format_read_int8(stream);
+    defaultColorOveralls.green[1] = saturn_format_read_int8(stream);
+    defaultColorOveralls.blue[1] = saturn_format_read_int8(stream);
+    defaultColorGloves.red[0] = saturn_format_read_int8(stream);
+    defaultColorGloves.green[0] = saturn_format_read_int8(stream);
+    defaultColorGloves.blue[0] = saturn_format_read_int8(stream);
+    defaultColorGloves.red[1] = saturn_format_read_int8(stream);
+    defaultColorGloves.green[1] = saturn_format_read_int8(stream);
+    defaultColorGloves.blue[1] = saturn_format_read_int8(stream);
+    defaultColorShoes.red[0] = saturn_format_read_int8(stream);
+    defaultColorShoes.green[0] = saturn_format_read_int8(stream);
+    defaultColorShoes.blue[0] = saturn_format_read_int8(stream);
+    defaultColorShoes.red[1] = saturn_format_read_int8(stream);
+    defaultColorShoes.green[1] = saturn_format_read_int8(stream);
+    defaultColorShoes.blue[1] = saturn_format_read_int8(stream);
+    defaultColorSkin.red[0] = saturn_format_read_int8(stream);
+    defaultColorSkin.green[0] = saturn_format_read_int8(stream);
+    defaultColorSkin.blue[0] = saturn_format_read_int8(stream);
+    defaultColorSkin.red[1] = saturn_format_read_int8(stream);
+    defaultColorSkin.green[1] = saturn_format_read_int8(stream);
+    defaultColorSkin.blue[1] = saturn_format_read_int8(stream);
+    defaultColorHair.red[0] = saturn_format_read_int8(stream);
+    defaultColorHair.green[0] = saturn_format_read_int8(stream);
+    defaultColorHair.blue[0] = saturn_format_read_int8(stream);
+    defaultColorHair.red[1] = saturn_format_read_int8(stream);
+    defaultColorHair.green[1] = saturn_format_read_int8(stream);
+    defaultColorHair.blue[1] = saturn_format_read_int8(stream);
+    sparkColorShirt.red[0] = saturn_format_read_int8(stream);
+    sparkColorShirt.green[0] = saturn_format_read_int8(stream);
+    sparkColorShirt.blue[0] = saturn_format_read_int8(stream);
+    sparkColorShirt.red[1] = saturn_format_read_int8(stream);
+    sparkColorShirt.green[1] = saturn_format_read_int8(stream);
+    sparkColorShirt.blue[1] = saturn_format_read_int8(stream);
+    sparkColorShoulders.red[0] = saturn_format_read_int8(stream);
+    sparkColorShoulders.green[0] = saturn_format_read_int8(stream);
+    sparkColorShoulders.blue[0] = saturn_format_read_int8(stream);
+    sparkColorShoulders.red[1] = saturn_format_read_int8(stream);
+    sparkColorShoulders.green[1] = saturn_format_read_int8(stream);
+    sparkColorShoulders.blue[1] = saturn_format_read_int8(stream);
+    sparkColorArms.red[0] = saturn_format_read_int8(stream);
+    sparkColorArms.green[0] = saturn_format_read_int8(stream);
+    sparkColorArms.blue[0] = saturn_format_read_int8(stream);
+    sparkColorArms.red[1] = saturn_format_read_int8(stream);
+    sparkColorArms.green[1] = saturn_format_read_int8(stream);
+    sparkColorArms.blue[1] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.red[0] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.green[0] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.blue[0] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.red[1] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.green[1] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.blue[1] = saturn_format_read_int8(stream);
+    sparkColorLegTop.red[0] = saturn_format_read_int8(stream);
+    sparkColorLegTop.green[0] = saturn_format_read_int8(stream);
+    sparkColorLegTop.blue[0] = saturn_format_read_int8(stream);
+    sparkColorLegTop.red[1] = saturn_format_read_int8(stream);
+    sparkColorLegTop.green[1] = saturn_format_read_int8(stream);
+    sparkColorLegTop.blue[1] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.red[0] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.green[0] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.blue[0] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.red[1] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.green[1] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.blue[1] = saturn_format_read_int8(stream);
+}
+
 void saturn_load_project(char* filename) {
     k_frame_keys.clear();
     saturn_format_input((char*)full_file_path(filename).c_str(), SATURN_PROJECT_IDENTIFIER, {
@@ -318,6 +394,7 @@ void saturn_load_project(char* filename) {
         { SATURN_PROJECT_TIMELINE_IDENTIFIER, saturn_project_timeline_handler },
         { SATURN_PROJECT_KEYFRAME_IDENTIFIER, saturn_project_keyframe_handler },
         { SATURN_PROJECT_CAMERA_IDENTIFIER, saturn_project_camera_handler },
+        { SATURN_PROJECT_COLORCODE_IDENTIFIER, saturn_project_colorcode_handler },
     });
 }
 void saturn_save_project(char* filename) {
@@ -456,6 +533,80 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int32(&stream, gLakituState.skipCameraInterpolationTimestamp);
     saturn_format_write_int16(&stream, gLakituState.yaw);
     saturn_format_write_int16(&stream, freezecamRoll);
+    saturn_format_close_section(&stream);
+    saturn_format_new_section(&stream, SATURN_PROJECT_COLORCODE_IDENTIFIER);
+    saturn_format_write_int8(&stream, defaultColorHat.red[0]);
+    saturn_format_write_int8(&stream, defaultColorHat.green[0]);
+    saturn_format_write_int8(&stream, defaultColorHat.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorHat.red[1]);
+    saturn_format_write_int8(&stream, defaultColorHat.green[1]);
+    saturn_format_write_int8(&stream, defaultColorHat.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.red[0]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.green[0]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.red[1]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.green[1]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorGloves.red[0]);
+    saturn_format_write_int8(&stream, defaultColorGloves.green[0]);
+    saturn_format_write_int8(&stream, defaultColorGloves.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorGloves.red[1]);
+    saturn_format_write_int8(&stream, defaultColorGloves.green[1]);
+    saturn_format_write_int8(&stream, defaultColorGloves.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorShoes.red[0]);
+    saturn_format_write_int8(&stream, defaultColorShoes.green[0]);
+    saturn_format_write_int8(&stream, defaultColorShoes.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorShoes.red[1]);
+    saturn_format_write_int8(&stream, defaultColorShoes.green[1]);
+    saturn_format_write_int8(&stream, defaultColorShoes.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorSkin.red[0]);
+    saturn_format_write_int8(&stream, defaultColorSkin.green[0]);
+    saturn_format_write_int8(&stream, defaultColorSkin.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorSkin.red[1]);
+    saturn_format_write_int8(&stream, defaultColorSkin.green[1]);
+    saturn_format_write_int8(&stream, defaultColorSkin.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorHair.red[0]);
+    saturn_format_write_int8(&stream, defaultColorHair.green[0]);
+    saturn_format_write_int8(&stream, defaultColorHair.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorHair.red[1]);
+    saturn_format_write_int8(&stream, defaultColorHair.green[1]);
+    saturn_format_write_int8(&stream, defaultColorHair.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorShirt.red[0]);
+    saturn_format_write_int8(&stream, sparkColorShirt.green[0]);
+    saturn_format_write_int8(&stream, sparkColorShirt.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorShirt.red[1]);
+    saturn_format_write_int8(&stream, sparkColorShirt.green[1]);
+    saturn_format_write_int8(&stream, sparkColorShirt.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.red[0]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.green[0]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.red[1]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.green[1]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorArms.red[0]);
+    saturn_format_write_int8(&stream, sparkColorArms.green[0]);
+    saturn_format_write_int8(&stream, sparkColorArms.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorArms.red[1]);
+    saturn_format_write_int8(&stream, sparkColorArms.green[1]);
+    saturn_format_write_int8(&stream, sparkColorArms.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.red[0]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.green[0]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.red[1]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.green[1]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.red[0]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.green[0]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.red[1]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.green[1]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.red[0]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.green[0]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.red[1]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.green[1]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.blue[1]);
     saturn_format_close_section(&stream);
     for (auto& entry : k_frame_keys) {
         saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
