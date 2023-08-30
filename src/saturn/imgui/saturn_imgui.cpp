@@ -240,6 +240,8 @@ void saturn_imgui_init() {
     sdynos_imgui_init();
     smachinima_imgui_init();
     ssettings_imgui_init();
+    
+    saturn_load_project_list();
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -319,7 +321,7 @@ void saturn_keyframe_window() {
     ImGui::PopItemWidth();
             
     // Scrolling
-    int scroll = keyframe_playing ? (k_current_frame - startFrame) == 30 ? 1 : 0 : (int)(ImGui::GetMouseScrollY() * -2);
+    int scroll = keyframe_playing ? (k_current_frame - startFrame) == 30 ? 1 : 0 : (ImGui::IsWindowHovered() ? (int)(ImGui::GetMouseScrollY() * -2) : 0);
     if (scroll >= 60) scroll = 59;
     startFrame += scroll;
     if (startFrame + 60 > endFrame) startFrame = endFrame - 60;
@@ -370,12 +372,22 @@ void saturn_keyframe_window() {
     ImGui::End();
 
     // Auto focus (use controls without clicking window first)
-    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None) && accept_text_input == false) {
+    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None) && saturn_disable_sm64_input()) {
         ImGui::SetWindowFocus(windowLabel.c_str());
+    }
+
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_None)) {
+        for (auto& entry : k_frame_keys) {
+            if (entry.second.first.name.find(", Main") != string::npos || entry.second.first.name.find(", Shade") != string::npos) {
+                // Apply color keyframes
+                apply_cc_from_editor();
+            }
+        }
     }
 }
 
 char saturnProjectFilename[257] = "Project";
+int current_project_id;
 
 void saturn_imgui_update() {
     if (!splash_finished) return;
@@ -392,27 +404,62 @@ void saturn_imgui_update() {
             if (ImGui::BeginMenu("Menu")) {
                 windowCcEditor = false;
 
-                if (ImGui::MenuItem(ICON_FK_WINDOW_MAXIMIZE " Show UI",      translate_bind_to_name(configKeyShowMenu[0]), showMenu)) {
-                    showMenu = !showMenu;
-                    if (!showMenu) accept_text_input = true;
-                }
+                if (ImGui::MenuItem(ICON_FK_WINDOW_MAXIMIZE " Show UI",      translate_bind_to_name(configKeyShowMenu[0]), showMenu)) showMenu = !showMenu;
                 if (ImGui::MenuItem(ICON_FK_WINDOW_MINIMIZE " Show Status Bars",  NULL, showStatusBars)) showStatusBars = !showStatusBars;
                 ImGui::Separator();
-                ImGui::PushItemWidth(125);
-                ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
-                ImGui::PopItemWidth();
-                if (ImGui::Button(ICON_FA_FILE " Open###project_file_open")) {
-                    saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+
+                if (ImGui::BeginMenu("Open Project")) {
+                    ImGui::BeginChild("###menu_model_ccs", ImVec2(165, 75), true);
+                    for (int n = 0; n < project_array.size(); n++) {
+                        const bool is_selected = (current_project_id == n);
+                        std::string spj_name = project_array[n].substr(0, project_array[n].size() - 4);
+
+                        if (ImGui::Selectable(spj_name.c_str(), is_selected)) {
+                            current_project_id = n;
+                            if (spj_name.length() <= 256);
+                                strcpy(saturnProjectFilename, spj_name.c_str());
+                            //saturn_load_project((char*)(spj_name + ".spj").c_str());
+                        }
+
+                        if (ImGui::BeginPopupContextItem()) {
+                            ImGui::Text("%s.spj", spj_name.c_str());
+                            imgui_bundled_tooltip(("/dynos/projects/" + spj_name + ".spj").c_str());
+                            if (spj_name != "autosave") {
+                                if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
+                                    saturn_delete_file(project_dir + spj_name + ".spj");
+                                    saturn_load_project_list();
+                                    ImGui::CloseCurrentPopup();
+                                } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                            }
+                            ImGui::Separator();
+                            ImGui::TextDisabled("%i project(s)", project_array.size());
+                            if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
+                                saturn_load_project_list();
+                                ImGui::CloseCurrentPopup();
+                            }
+                            ImGui::EndPopup();
+                        }
+                    }
+                    ImGui::EndChild();
+                    ImGui::PushItemWidth(125);
+                    ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
+                    ImGui::PopItemWidth();
+                    if (ImGui::Button(ICON_FA_FILE " Open###project_file_open")) {
+                        saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                    }
+                    ImGui::SameLine(70);
+                    if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
+                        saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                        saturn_load_project_list();
+                    }
+                    ImGui::SameLine();
+                    imgui_bundled_help_marker("NOTE: Project files are currently EXPERIMENTAL and prone to crashing!");
+                    ImGui::EndMenu();
                 }
-                ImGui::SameLine(70);
-                if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
-                    saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
-                }
-                ImGui::SameLine();
-                imgui_bundled_help_marker("Project files are basically save states for Saturn\nEXPERIMENTAL - May crash");
                 if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
                     saturn_load_project("autosave.spj");
                 }
+
                 ImGui::Separator();
                 if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_LINE_CHART " Timeline Editor", "F6", k_popout_open == true)) {
