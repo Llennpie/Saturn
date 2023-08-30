@@ -207,8 +207,8 @@ void saturn_run_chainer() {
     if (is_anim_playing && is_custom_anim) {
         if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
             // Check if our next animation exists
-            std::ifstream file_c1("dynos/anims/" + chainer_name + "_" + std::to_string(chainer_index) + ".json");
-            string test = "dynos/anims/" + chainer_name + "_" + std::to_string(chainer_index) + ".json";
+            std::ifstream file_c1(current_anim_dir_path + chainer_name + "_" + std::to_string(chainer_index) + ".json");
+            string test = current_anim_dir_path + chainer_name + "_" + std::to_string(chainer_index) + ".json";
             std::cout << test << std::endl;
             if (file_c1.good()) {
                 saturn_read_mcomp_animation(chainer_name + "_" + std::to_string(chainer_index));
