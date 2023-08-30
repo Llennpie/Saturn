@@ -31,6 +31,7 @@
 #include "save_file.h"
 #include "spawn_object.h"
 #include "spawn_sound.h"
+#include "saturn/imgui/saturn_imgui_machinima.h"
 
 /**
  * @file obj_behaviors.c
@@ -260,7 +261,7 @@ void calc_new_obj_vel_and_pos_y(struct Surface *objFloor, f32 objFloorY, f32 obj
     f32 objFriction;
 
     // Caps vertical speed with a "terminal velocity".
-    o->oVelY -= o->oGravity;
+    o->oVelY -= o->oGravity * gravity;
     if (o->oVelY > 75.0) {
         o->oVelY = 75.0;
     }
@@ -288,10 +289,10 @@ void calc_new_obj_vel_and_pos_y(struct Surface *objFloor, f32 objFloorY, f32 obj
 
         // Adds horizontal component of gravity for horizontal speed.
         objVelX += floor_nX * (floor_nX * floor_nX + floor_nZ * floor_nZ)
-                   / (floor_nX * floor_nX + floor_nY * floor_nY + floor_nZ * floor_nZ) * o->oGravity
+                   / (floor_nX * floor_nX + floor_nY * floor_nY + floor_nZ * floor_nZ) * o->oGravity * gravity
                    * 2;
         objVelZ += floor_nZ * (floor_nX * floor_nX + floor_nZ * floor_nZ)
-                   / (floor_nX * floor_nX + floor_nY * floor_nY + floor_nZ * floor_nZ) * o->oGravity
+                   / (floor_nX * floor_nX + floor_nY * floor_nY + floor_nZ * floor_nZ) * o->oGravity * gravity
                    * 2;
 
         if (objVelX < 0.000001 && objVelX > -0.000001) {

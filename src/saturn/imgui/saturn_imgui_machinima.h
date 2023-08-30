@@ -3,6 +3,8 @@
 
 #include "SDL2/SDL.h"
 
+extern float gravity;
+
 extern void anim_play_button();
 
 #ifdef __cplusplus

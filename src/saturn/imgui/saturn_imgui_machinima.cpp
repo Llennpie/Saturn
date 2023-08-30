@@ -56,6 +56,8 @@ int obj_beh_params[4];
 int obj_model;
 int obj_beh;
 
+float gravity = 1;
+
 int current_location_index = 0;
 char location_name[256];
 
@@ -316,6 +318,8 @@ void imgui_machinima_quick_options() {
         const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
         ImGui::PushItemWidth(100);
         ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
+        ImGui::SliderFloat("Gravity", &gravity, 0.f, 3.f);
+        saturn_keyframe_float_popout(&gravity, "Gravity", "k_gravity");
         ImGui::PopItemWidth();
         
         if (ImGui::BeginMenu("Spawn Object")) {

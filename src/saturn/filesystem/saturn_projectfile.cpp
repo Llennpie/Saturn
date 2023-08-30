@@ -36,7 +36,7 @@ extern "C" {
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-#define SATURN_PROJECT_VERSION 1
+#define SATURN_PROJECT_VERSION 2
 
 #define SATURN_PROJECT_IDENTIFIER           "STPJ"
 #define SATURN_PROJECT_GAME_IDENTIFIER      "GAME"
@@ -100,6 +100,7 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     SATURN_KFENTRY_FLOAT("k_c_camera_yaw", freezecamYaw, "Camera Yaw"),
     SATURN_KFENTRY_FLOAT("k_c_camera_pitch", freezecamPitch, "Camera Pitch"),
     SATURN_KFENTRY_FLOAT("k_c_camera_roll", freezecamRoll, "Camera Roll"),
+    SATURN_KFENTRY_FLOAT("k_gravity", gravity, "Gravity"),
     SATURN_KFENTRY_COLOR_VEC3F("k_light_col", gLightingColor, "Light Color"),
     SATURN_KFENTRY_COLOR("k_color", uiChromaColor, "Skybox Color"),
     SATURN_KFENTRY_COLOR("k_1/2###hat_half_1", uiHatColor, "Hat, Main"),
@@ -187,6 +188,7 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     gMarioState->actionState = saturn_format_read_int32(stream);
     gMarioState->actionTimer = saturn_format_read_int32(stream);
     gMarioState->actionArg = saturn_format_read_int32(stream);
+    if (version >= 2) gravity = saturn_format_read_float(stream);
     act = saturn_format_read_int8(stream);
     k_previous_frame = -1;
     u8 lvlID = (level >> 2) & 63;
@@ -468,6 +470,7 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int32(&stream, gMarioState->actionState);
     saturn_format_write_int32(&stream, gMarioState->actionTimer);
     saturn_format_write_int32(&stream, gMarioState->actionArg);
+    saturn_format_write_int32(&stream, gravity);
     saturn_format_write_int8(&stream, gCurrActNum);
     saturn_format_close_section(&stream);
     saturn_format_new_section(&stream, SATURN_PROJECT_CAMERA_IDENTIFIER);
