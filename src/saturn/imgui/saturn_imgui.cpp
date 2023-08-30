@@ -816,6 +816,8 @@ void saturn_imgui_update() {
         k_frame_keys.erase("k_c_camera_roll");
     }
     was_camera_frozen = camera_frozen;
+
+    if (!is_gameshark_open) apply_cc_from_editor();
 }
 
 /*
