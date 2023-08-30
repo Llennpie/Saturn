@@ -443,7 +443,7 @@ void saturn_play_animation(MarioAnimID anim) {
 }
 
 void saturn_play_keyframe() {
-    if (k_frame_keys.size() <= 1) return;
+    if (k_frame_keys.size() <= 0) return;
 
     if (!keyframe_playing) {
         k_last_passed_index = 0;
