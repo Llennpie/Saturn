@@ -34,6 +34,8 @@ namespace fs = std::filesystem;
 
 std::vector<string> canim_array;
 std::string current_anim_dir_path;
+std::vector<std::string> previous_anim_paths;
+
 std::string chainer_name;
 
 extern "C" {
@@ -48,13 +50,20 @@ void saturn_load_anim_folder(string path, int* index) {
         return;
 
     // reset dir if we last used models or returned to root
-    if (path == "../" || path == "") {
-        path = "";
-        current_anim_dir_path = "dynos/anims/";
+    if (path == "../") {
+        if (previous_anim_paths.size() < 1) {
+            path = "";
+            current_anim_dir_path = "dynos/anims/";
+        } else {
+            current_anim_dir_path = previous_anim_paths[previous_anim_paths.size() - 2];
+            previous_anim_paths.pop_back();
+        }
     }
+    if (path == "") current_anim_dir_path = "dynos/anims/";
 
     // only update current path if folder exists
-    if (fs::is_directory(current_anim_dir_path + path)) {
+    if (fs::is_directory(current_anim_dir_path + path) && path != "../") {
+        previous_anim_paths.push_back(current_anim_dir_path + path);
         current_anim_dir_path = current_anim_dir_path + path;
     }
 

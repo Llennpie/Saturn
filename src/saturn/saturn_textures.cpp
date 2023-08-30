@@ -69,6 +69,8 @@ string blink_eye_3;
 bool force_blink;
 bool enable_blink_cycle = false;
 
+std::vector<std::string> previous_eye_paths;
+
 // Eye Folders, Non-Model
 
 void saturn_load_eye_folder(std::string path) {
@@ -80,14 +82,21 @@ void saturn_load_eye_folder(std::string path) {
         return;
 
     // reset dir if we last used models or returned to root
-    if (path == "../") path = "";
+    if (path == "../") {
+        if (previous_eye_paths.size() < 1) path = "";
+        else {
+            current_eye_dir_path = previous_eye_paths[previous_eye_paths.size() - 2];
+            previous_eye_paths.pop_back();
+        }
+    }
     if (model_eyes_enabled || path == "") {
         model_eyes_enabled = false;
         current_eye_dir_path = "dynos/eyes/";
     }
 
     // only update current path if folder exists
-    if (fs::is_directory(current_eye_dir_path + path)) {
+    if (fs::is_directory(current_eye_dir_path + path) && path != "../") {
+        previous_eye_paths.push_back(current_eye_dir_path + path);
         current_eye_dir_path = current_eye_dir_path + path;
     }
 
@@ -463,6 +472,8 @@ void saturn_load_model_data(std::string folder_name) {
 
     string path = "dynos/packs/" + folder_name + "/expressions/";
     if (!fs::is_directory(path)) return;
+
+    previous_eye_paths.clear();
 
     int i = 0;
     for (const auto & entry : fs::directory_iterator(path)) {
