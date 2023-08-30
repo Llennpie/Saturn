@@ -28,6 +28,14 @@ extern "C" {
 #include "game/object_list_processor.h"
 }
 
+#include <dirent.h>
+#include <filesystem>
+#include <assert.h>
+#include <stdlib.h>
+#include <array>
+namespace fs = std::filesystem;
+#include "pc/fs/fs.h"
+
 #define SATURN_PROJECT_VERSION 1
 
 #define SATURN_PROJECT_IDENTIFIER           "STPJ"
@@ -469,4 +477,31 @@ void saturn_save_project(char* filename) {
     }
     saturn_format_write((char*)full_file_path(filename).c_str(), &stream);
     std::cout << "Saved project " << filename << std::endl;
+}
+
+std::string project_dir;
+std::vector<std::string> project_array;
+
+void saturn_load_project_list() {
+    project_array.clear();
+    //project_array.push_back("autosave.spj");
+
+    #ifdef __MINGW32__
+        // windows moment
+        project_dir = "dynos\\projects\\";
+    #else
+        project_dir = "dynos/projects/";
+    #endif
+
+    if (!fs::exists(project_dir))
+        return;
+
+    for (const auto & entry : fs::directory_iterator(project_dir)) {
+        fs::path path = entry.path();
+
+        if (path.filename().u8string() != "autosave.spj") {
+            if (path.extension().u8string() == ".spj")
+                project_array.push_back(path.filename().u8string());
+        }
+    }
 }
