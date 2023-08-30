@@ -306,8 +306,6 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
     string nameStr = name;
     if (nameStr != "") {
         ImGui::ColorEdit4(mainName, (float*)colorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoInputs);
-        if (ImGui::IsItemActivated()) accept_text_input = false;
-        if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
             ImGui::OpenPopup(id.c_str());
@@ -346,8 +344,6 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
 
         ImGui::SameLine();
         ImGui::ColorEdit4(shadeName, (float*)shadeColorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoInputs);
-        if (ImGui::IsItemActivated()) accept_text_input = false;
-        if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
             ImGui::OpenPopup((id + "1").c_str());
@@ -413,8 +409,6 @@ void sdynos_imgui_menu() {
 
         if (cc_array.size() >= 18) {
             ImGui::InputTextWithHint("###cc_search_text", ICON_FK_SEARCH " Search color codes...", ccSearchTerm, IM_ARRAYSIZE(ccSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
         } else {
             // If our CC list is reloaded, and we now have less than 18 files, this can cause filter issues if not reset to nothing
             if (ccSearchTerm != "") strcpy(ccSearchTerm, "");
@@ -593,8 +587,6 @@ void sdynos_imgui_menu() {
 
         if (sDynosPacks.Count() >= 20) {
             ImGui::InputTextWithHint("###model_search_text", ICON_FK_SEARCH " Search models...", modelSearchTerm, IM_ARRAYSIZE(modelSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
         } else {
             // If our model list is reloaded, and we now have less than 20 packs, this can cause filter issues if not reset to nothing
             if (modelSearchTerm != "") strcpy(modelSearchTerm, "");
@@ -866,8 +858,6 @@ void sdynos_imgui_menu() {
                 saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
 
                 ImGui::ColorEdit4("Col###wlight_col", gLightingColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
-                if (ImGui::IsItemActivated()) accept_text_input = false;
-                if (ImGui::IsItemDeactivated()) accept_text_input = true;
                 
                 if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
                     ImGui::OpenPopup("###texColColorPresets");
@@ -1375,8 +1365,6 @@ void imgui_dynos_cc_editor() {
 
     ImGui::PushItemWidth(100);
     ImGui::InputText(".gs", ui_cc_name, IM_ARRAYSIZE(ui_cc_name));
-    if (ImGui::IsItemActivated()) accept_text_input = false;
-    if (ImGui::IsItemDeactivated()) accept_text_input = true;
     ImGui::PopItemWidth();
 
     ImGui::SameLine(150);
@@ -1527,8 +1515,6 @@ void imgui_dynos_cc_editor() {
 
         if (ImGui::BeginTabItem("GameShark")) {
             ImGui::InputTextMultiline("###gameshark_box", ui_gameshark, IM_ARRAYSIZE(ui_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_AutoSelectAll);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
             if (ImGui::Button(ICON_FK_CLIPBOARD " Apply GS Code")) {
                 string ui_gameshark_input = ui_gameshark;

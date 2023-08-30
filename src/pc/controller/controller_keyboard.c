@@ -12,8 +12,6 @@
 #include "saturn/saturn.h"
 #include "saturn/imgui/saturn_imgui.h"
 
-bool accept_text_input = true;
-
 static int keyboard_buttons_down;
 
 #define MAX_KEYBINDS 64
@@ -33,7 +31,7 @@ static int keyboard_map_scancode(int scancode) {
 }
 
 bool keyboard_on_key_down(int scancode) {
-    if (!accept_text_input) return false;
+    if (saturn_disable_sm64_input()) return false;
 
     int mapped = keyboard_map_scancode(scancode);
     keyboard_buttons_down |= mapped;
@@ -42,7 +40,7 @@ bool keyboard_on_key_down(int scancode) {
 }
 
 bool keyboard_on_key_up(int scancode) {
-    if (!accept_text_input) return false;
+    if (saturn_disable_sm64_input()) return false;
 
     int mapped = keyboard_map_scancode(scancode);
     keyboard_buttons_down &= ~mapped;

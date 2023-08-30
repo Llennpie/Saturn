@@ -116,14 +116,11 @@ void SaturnKeyBind(const char* title, unsigned int configKey[], const char* id, 
 
             // Set a tooltip so the user knows they are rebinding
             ImGui::SetTooltip("Press any key or gamepad button. ESC to clear.");
-            
-            accept_text_input = true;
         }
 
         // buttonIndex is a unique ordered number for each button
         if (ImGui::Button(buttonName.c_str(), ImVec2(75, 20))) {
             waitingIndex = buttonIndex + i;
-            accept_text_input = false;
         }
 
         ImGui::SameLine();

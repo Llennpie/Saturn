@@ -72,8 +72,6 @@ void schroma_imgui_update() {
     if (gCurrLevelNum != LEVEL_SA) use_color_background = true;
     if (use_color_background) {
         ImGui::ColorEdit4("Chroma Key Color", (float*)&uiChromaColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
-        if (ImGui::IsItemActivated()) accept_text_input = false;
-        if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
             ImGui::OpenPopup("###chromaColorPresets");
@@ -101,10 +99,6 @@ void schroma_imgui_update() {
             chromaRequireReload = true;
     }
     currentChromaArea = (renderFloor & use_color_background) ? 1 : 2;
-    if (gCurrLevelNum != LEVEL_SA) currentChromaArea = gCurrAreaIndex;
-        
-    if (ImGui::IsItemActivated()) accept_text_input = false;
-    if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
     if (gCurrLevelNum == LEVEL_SA) {
         if (ImGui::Button("Reload###apply_chroma_color")) {
@@ -117,6 +111,8 @@ void schroma_imgui_update() {
             chromaRequireReload = false;
             bool result = DynOS_Warp_ToLevel(gCurrLevelNum, (s32)currentChromaArea, gCurrActNum);
         } imgui_bundled_tooltip("WARNING: This will restart the level!");
+    } else {
+        currentChromaArea = gCurrAreaIndex;
     }
 
     ImGui::Dummy(ImVec2(0, 5));
