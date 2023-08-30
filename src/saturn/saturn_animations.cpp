@@ -58,8 +58,6 @@ void saturn_load_anim_folder(string path, int* index) {
         current_anim_dir_path = current_anim_dir_path + path;
     }
 
-    std::cout << current_anim_dir_path << std::endl;
-
     if (current_anim_dir_path != "dynos/anims/") {
         canim_array.push_back("../");
     }

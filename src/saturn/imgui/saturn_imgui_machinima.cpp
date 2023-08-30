@@ -98,14 +98,14 @@ void anim_play_button() {
 void smachinima_imgui_controls(SDL_Event * event) {
     switch (event->type){
         case SDL_KEYDOWN:
-            if (event->key.keysym.sym == SDLK_m && accept_text_input) {
+            if (event->key.keysym.sym == SDLK_m && !saturn_disable_sm64_input()) {
                 if (camera_fov <= 98.0f) camera_fov += 2.f;
-            } else if (event->key.keysym.sym == SDLK_n && accept_text_input) {
+            } else if (event->key.keysym.sym == SDLK_n && !saturn_disable_sm64_input()) {
                 if (camera_fov >= 2.0f) camera_fov -= 2.f;
             }
 
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]) {
-                if (accept_text_input) {
+                if (!saturn_disable_sm64_input()) {
                     if (event->key.keysym.sym >= SDLK_0 && event->key.keysym.sym <= SDLK_9) {
                         saturn_load_expression_number(event->key.keysym.sym);
                     }
@@ -432,8 +432,6 @@ void imgui_machinima_animation_player() {
 
     if (current_sanim_group_index == 8 && canim_array.size() >= 20) {
         ImGui::InputTextWithHint("###anim_search_text", ICON_FK_SEARCH " Search animations...", animSearchTerm, IM_ARRAYSIZE(animSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
-        if (ImGui::IsItemActivated()) accept_text_input = false;
-        if (ImGui::IsItemDeactivated()) accept_text_input = true;
     } else {
         // If our anim list is reloaded, and we now have less than 20 anims, this can cause filter issues if not reset to nothing
         if (animSearchTerm != "") strcpy(animSearchTerm, "");
@@ -563,17 +561,26 @@ void imgui_machinima_animation_player() {
             is_anim_paused = false;
             using_chainer = false;
             chainer_index = 0;
-        } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+        }
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+        ImGui::SameLine(); if (ImGui::Checkbox("Hang", &is_anim_hang))  if (!is_anim_hang) {
+                                                                            is_anim_playing = false;
+                                                                            is_anim_paused = false;
+                                                                            using_chainer = false;
+                                                                            chainer_index = 0;
+                                                                        }
         
         ImGui::PushItemWidth(150);
-        ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length);
+        ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length - 1);
         ImGui::PopItemWidth();
         ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
     } else {
         ImGui::Text("");
         if (ImGui::Button("Play")) {
             anim_play_button();
-        } ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+        }
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
+        ImGui::SameLine(); ImGui::Checkbox("Hang", &is_anim_hang);
 
         ImGui::PushItemWidth(150);
         ImGui::SliderFloat("Speed###anim_speed", &anim_speed, 0.1f, 2.0f);

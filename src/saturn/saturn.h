@@ -43,6 +43,7 @@ extern int chainer_index;
 extern bool is_anim_playing;
 extern enum MarioAnimID selected_animation;
 extern bool is_anim_looped;
+extern bool is_anim_hang;
 extern float anim_speed;
 extern int current_anim_frame;
 extern int current_anim_id;

@@ -9,6 +9,7 @@
 #include "data/dynos.cpp.h"
 #include "saturn/imgui/saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
+#include "saturn/imgui/saturn_imgui_chroma.h"
 #include "libs/sdl2_scancode_to_dinput.h"
 #include "pc/configfile.h"
 #include "saturn/filesystem/saturn_projectfile.h"
@@ -49,6 +50,7 @@ int chainer_index;
 bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
 bool is_anim_looped = false;
+bool is_anim_hang = false;
 float anim_speed = 1.0f;
 int current_anim_frame;
 int current_anim_id;
@@ -156,7 +158,6 @@ void saturn_update() {
     if (mario_exists) {
         if (gPlayer1Controller->buttonPressed & D_JPAD) {
             showMenu = !showMenu;
-            if (!showMenu) accept_text_input = true;
         }
         if (keyResetter == 6) {
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F2]) {
@@ -165,7 +166,7 @@ void saturn_update() {
                 keyResetter = 0;
             }
         }
-        if (accept_text_input) {
+        if (!saturn_disable_sm64_input()) {
             if (gPlayer1Controller->buttonPressed & U_JPAD) camera_frozen = !camera_frozen;
             if (gPlayer1Controller->buttonPressed & L_JPAD) {
                 if (!is_anim_playing) {
@@ -196,28 +197,28 @@ void saturn_update() {
             camera_view_rotating = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_LMASK;
         } else if (configMCameraMode == 0) {
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_R]) {
-                cameraRotateUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & accept_text_input;
-                cameraRotateDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
-                cameraRotateLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
-                cameraRotateRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+                cameraRotateUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & !saturn_disable_sm64_input();
+                cameraRotateDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & !saturn_disable_sm64_input();
+                cameraRotateLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & !saturn_disable_sm64_input();
+                cameraRotateRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & !saturn_disable_sm64_input();
                 // Stop from moving
                 cameraMoveForward = 0;
                 cameraMoveBackward = 0;
                 cameraMoveLeft = 0;
                 cameraMoveRight = 0;
             } else {
-                cameraMoveForward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & accept_text_input;
-                cameraMoveBackward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
-                cameraMoveLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
-                cameraMoveRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+                cameraMoveForward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & !saturn_disable_sm64_input();
+                cameraMoveBackward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & !saturn_disable_sm64_input();
+                cameraMoveLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & !saturn_disable_sm64_input();
+                cameraMoveRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & !saturn_disable_sm64_input();
                 // Stop from rotating
                 cameraRotateUp = 0;
                 cameraRotateDown = 0;
                 cameraRotateLeft = 0;
                 cameraRotateRight = 0;
             }
-            cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & accept_text_input;
-            cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & accept_text_input;
+            cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & !saturn_disable_sm64_input();
+            cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & !saturn_disable_sm64_input();
         }
         cameraRollLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_V];
         cameraRollRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_B];
@@ -231,8 +232,6 @@ void saturn_update() {
     }
 
     camera_default_fov = camera_fov + 5.0f;
-
-    apply_cc_from_editor();
 
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
@@ -265,6 +264,12 @@ void saturn_update() {
             gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
             gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
         } else if (is_anim_playing) {
+            if (is_anim_hang) {
+                if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1)) {
+                    is_anim_paused = !is_anim_paused;
+                }
+            }
+
             if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
                 if (is_anim_looped && !using_chainer) {
                     gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
@@ -280,6 +285,7 @@ void saturn_update() {
                     }
                 }
             }
+
             if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
                 is_anim_playing = false;
                 is_anim_paused = false;
@@ -318,17 +324,8 @@ void saturn_update() {
             if (k_loop) mcam_timer = 0;
             else keyframe_playing = false;
         }
-    }
 
-    //s16 pitch, yaw;
-    //f32 thisDist;
-    //vec3f_get_dist_and_angle(gCamera->focus, gCamera->pos, &thisDist, &pitch, &yaw);
-    //camera_approach_f32_symmetric_bool(&thisDist, 150.f, 7.f);
-    //vec3f_set_dist_and_angle(c->focus, c->pos, dist, pitch, yaw);
-    //update_camera_yaw(c);
-
-    if (is_spinning && mario_exists) {
-        gMarioState->faceAngle[1] += (s16)(spin_mult * 15 * 182.04f);
+        schroma_imgui_init();
     }
 
     // Misc
@@ -351,6 +348,10 @@ void saturn_update() {
     if (linkMarioScale) {
         marioScaleSizeY = marioScaleSizeX;
         marioScaleSizeZ = marioScaleSizeX;
+    }
+
+    if (is_spinning && mario_exists) {
+        gMarioState->faceAngle[1] += (s16)(spin_mult * 15 * 182.04f);
     }
 
     // Autosave
