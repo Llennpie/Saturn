@@ -69,13 +69,13 @@ namespace fs = std::filesystem;
 #define SATURN_KFENTRY_BOOL(id, variable, name) { id, { { nullptr, (bool*)&variable }, name } }
 #define SATURN_KFENTRY_FLOAT(id, variable, name) { id, { { (float*)&variable, nullptr }, name } }
 #define SATURN_KFENTRY_COLOR(id, variable, name) \
-    { (std::string(id) + "_r").c_str(), { { (float*)&variable.x, nullptr }, (std::string(name) + " R").c_str() } },\
-    { (std::string(id) + "_g").c_str(), { { (float*)&variable.y, nullptr }, (std::string(name) + " G").c_str() } },\
-    { (std::string(id) + "_b").c_str(), { { (float*)&variable.z, nullptr }, (std::string(name) + " B").c_str() } }
+    { id "_r", { { (float*)&variable.x, nullptr }, name " R" } },\
+    { id "_g", { { (float*)&variable.y, nullptr }, name " G" } },\
+    { id "_b", { { (float*)&variable.z, nullptr }, name " B" } }
 #define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) \
-    { (std::string(id) + "_r").c_str(), { { (float*)&variable[0], nullptr }, (std::string(name) + " R").c_str() } },\
-    { (std::string(id) + "_g").c_str(), { { (float*)&variable[1], nullptr }, (std::string(name) + " G").c_str() } },\
-    { (std::string(id) + "_b").c_str(), { { (float*)&variable[2], nullptr }, (std::string(name) + " B").c_str() } }
+    { id "_r", { { (float*)&variable[0], nullptr }, name " R" } },\
+    { id "_g", { { (float*)&variable[1], nullptr }, name " G" } },\
+    { id "_b", { { (float*)&variable[2], nullptr }, name " B" } }
 
 std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timelineDataTable = {
     SATURN_KFENTRY_BOOL("k_skybox_mode", use_color_background, "Skybox Mode"),
@@ -219,7 +219,7 @@ void saturn_project_chromakey_handler(SaturnFormatStream* stream, int version) {
 void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
     KeyframeTimeline timeline = KeyframeTimeline();
     timeline.precision = (char)saturn_format_read_int8(stream);
-    timeline.autoCreation = saturn_format_read_int8(stream);
+    if (version == 1) saturn_format_read_int8(stream);
     char id[257];
     saturn_format_read_string(stream, id);
     id[256] = 0;
@@ -398,6 +398,7 @@ void saturn_load_project(char* filename) {
         { SATURN_PROJECT_CAMERA_IDENTIFIER, saturn_project_camera_handler },
         { SATURN_PROJECT_COLORCODE_IDENTIFIER, saturn_project_colorcode_handler },
     });
+    std::cout << "Loaded project " << filename << std::endl;
 }
 void saturn_save_project(char* filename) {
     SaturnFormatStream stream = saturn_format_output(SATURN_PROJECT_IDENTIFIER, SATURN_PROJECT_VERSION);
@@ -614,7 +615,6 @@ void saturn_save_project(char* filename) {
     for (auto& entry : k_frame_keys) {
         saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
         saturn_format_write_int8(&stream, entry.second.first.precision);
-        saturn_format_write_bool(&stream, entry.second.first.autoCreation);
         saturn_format_write_string(&stream, (char*)entry.first.c_str());
         saturn_format_close_section(&stream);
     }

@@ -105,9 +105,7 @@ class KeyframeTimeline {
     float* fdest = nullptr;
     bool* bdest = nullptr;
     std::string name;
-    bool disabled;
     int precision;
-    bool autoCreation;
 };
 
 extern bool k_popout_open;

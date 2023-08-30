@@ -23,6 +23,7 @@
 #include "icons/IconsForkAwesome.h"
 #include "icons/IconsFontAwesome5.h"
 #include "saturn/filesystem/saturn_projectfile.h"
+#include "saturn/saturn_timeline_groups.h"
 
 #include <SDL2/SDL.h>
 
@@ -284,6 +285,24 @@ uint32_t startFrame = 0;
 uint32_t endFrame = 60;
 int endFrameText = 60;
 
+std::vector<std::string> find_timeline_group(std::string timeline, std::string* out = nullptr) {
+    for (auto& entry : k_groups) {
+        if (std::find(entry.second.begin(), entry.second.end(), timeline) != entry.second.end()) {
+            if (out != nullptr) *out = entry.first;
+            return entry.second;
+        }
+    }
+    return { timeline };
+}
+
+bool saturn_keyframe_group_matches(std::string id, int frame) {
+    std::vector<std::string> group = find_timeline_group(id);
+    for (std::string timeline : group) {
+        if (!saturn_keyframe_matches(timeline, frame)) return false;
+    }
+    return true;
+}
+
 void saturn_keyframe_window() {
 #ifdef DISCORDRPC
     discord_state = "In-Game // Keyframing";
@@ -329,10 +348,15 @@ void saturn_keyframe_window() {
     uint32_t end = min(60, endFrame - startFrame) + startFrame;
 
     // Sequencer
+    std::vector<std::string> skip = {};
     if (ImGui::BeginNeoSequencer("Sequencer###k_sequencer", (uint32_t*)&k_current_frame, &startFrame, &end, ImVec2((end - startFrame) * 6, 0), ImGuiNeoSequencerFlags_HideZoom)) {
         for (auto& entry : k_frame_keys) {
-            if (ImGui::BeginNeoTimeline(entry.second.first.name.c_str(), entry.second.second)) {
-                entry.second.first.disabled = ImGui::IsNeoTimelineSelected();
+            if (std::find(skip.begin(), skip.end(), entry.first) != skip.end()) continue;
+            std::string name = entry.second.first.name;
+            for (std::string groupMember : find_timeline_group(entry.first, &name)) {
+                skip.push_back(groupMember);
+            }
+            if (ImGui::BeginNeoTimeline(name.c_str(), entry.second.second)) {
                 ImGui::EndNeoTimeLine();
             }
         }
@@ -341,11 +365,20 @@ void saturn_keyframe_window() {
 
     // Keyframes
     if (!keyframe_playing) {
+        std::map<std::string, bool> shouldEditKeyframe = {};
+        for (auto& entry : k_frame_keys) {
+            if (shouldEditKeyframe.find(entry.first) != shouldEditKeyframe.end()) continue;
+            std::vector<std::string> group = find_timeline_group(entry.first);
+            bool doEdit = !saturn_keyframe_group_matches(entry.first, k_current_frame);
+            for (std::string groupEntry : group) {
+                shouldEditKeyframe.insert({ groupEntry, doEdit });
+            }
+        }
         for (auto& entry : k_frame_keys) {
             KeyframeTimeline timeline = entry.second.first;
             std::vector<Keyframe>* keyframes = &entry.second.second;
 
-            if (k_previous_frame == k_current_frame && !saturn_keyframe_matches(entry.first, k_current_frame)) {
+            if (k_previous_frame == k_current_frame && shouldEditKeyframe[entry.first]) {
                 // We create a keyframe here
                 int keyframeIndex = 0;
                 for (int i = 0; i < keyframes->size(); i++) {
@@ -384,6 +417,8 @@ void saturn_keyframe_window() {
             }
         }
     }
+
+    k_previous_frame = k_current_frame;
 }
 
 char saturnProjectFilename[257] = "Project";
@@ -674,6 +709,7 @@ void saturn_imgui_update() {
             ImGui::SetNextWindowPos(k_context_popout_pos);
             if (ImGui::Begin("###kf_menu", &k_context_popout_open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove)) {
                 vector<Keyframe>* keyframes = &k_frame_keys[k_context_popout_keyframe.timelineID].second;
+                int curve = -1;
                 int index = -1;
                 for (int i = 0; i < keyframes->size(); i++) {
                     if ((*keyframes)[i].position == k_context_popout_keyframe.position) index = i;
@@ -695,9 +731,7 @@ void saturn_imgui_update() {
                 ImGui::Separator();
                 for (int i = 0; i < IM_ARRAYSIZE(curveNames); i++) {
                     if (ImGui::MenuItem(curveNames[i].c_str(), NULL, k_context_popout_keyframe.curve == InterpolationCurve(i))) {
-                        (*keyframes)[index].curve = InterpolationCurve(i);
-                        k_previous_frame = -1;
-                        k_context_popout_open = false;
+                        curve = i;
                     }
                 }
                 ImVec2 pos = ImGui::GetWindowPos();
@@ -705,25 +739,34 @@ void saturn_imgui_update() {
                 ImVec2 mouse = ImGui::GetMousePos();
                 if ((mouse.x < pos.x || mouse.y < pos.y || mouse.x >= pos.x + size.x || mouse.y >= pos.y + size.y) && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))) k_context_popout_open = false;
                 ImGui::End();
-                if (doCopy) {
-                    int hoverKeyframeIndex = -1;
-                    for (int i = 0; i < keyframes->size(); i++) {
-                        if ((*keyframes)[i].position == k_current_frame) hoverKeyframeIndex = i;
+                std::vector<std::string> affectedTimelines = find_timeline_group(k_context_popout_keyframe.timelineID);
+                for (std::string timeline : affectedTimelines) {
+                    keyframes = &k_frame_keys[timeline].second;
+                    if (curve != -1) {
+                        (*keyframes)[index].curve = InterpolationCurve(curve);
+                        k_context_popout_open = false;
+                        k_previous_frame = -1;
                     }
-                    Keyframe copy = Keyframe(k_current_frame, (*keyframes)[index].curve);
-                    copy.value = (*keyframes)[index].value;
-                    copy.timelineID = (*keyframes)[index].timelineID;
-                    if (hoverKeyframeIndex == -1) keyframes->push_back(copy);
-                    else (*keyframes)[hoverKeyframeIndex] = copy;
-                    k_context_popout_open = false;
-                    k_previous_frame = -1;
+                    if (doCopy) {
+                        int hoverKeyframeIndex = -1;
+                        for (int i = 0; i < keyframes->size(); i++) {
+                            if ((*keyframes)[i].position == k_current_frame) hoverKeyframeIndex = i;
+                        }
+                        Keyframe copy = Keyframe(k_current_frame, (*keyframes)[index].curve);
+                        copy.value = (*keyframes)[index].value;
+                        copy.timelineID = (*keyframes)[index].timelineID;
+                        if (hoverKeyframeIndex == -1) keyframes->push_back(copy);
+                        else (*keyframes)[hoverKeyframeIndex] = copy;
+                        k_context_popout_open = false;
+                        k_previous_frame = -1;
+                    }
+                    if (doDelete) {
+                        keyframes->erase(keyframes->begin() + index);
+                        k_context_popout_open = false;
+                        k_previous_frame = -1;
+                    }
+                    saturn_keyframe_sort(keyframes);
                 }
-                if (doDelete) {
-                    keyframes->erase(keyframes->begin() + index);
-                    k_context_popout_open = false;
-                    k_previous_frame = -1;
-                }
-                saturn_keyframe_sort(keyframes);
             }
         }
 
@@ -754,8 +797,6 @@ void saturn_imgui_update() {
         gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
         gLakituState.yaw = gCamera->yaw;
     }
-
-    k_previous_frame = k_current_frame;
 
     is_cc_editing = windowCcEditor;
 

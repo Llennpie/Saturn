@@ -391,8 +391,6 @@ bool saturn_keyframe_apply(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    if (timeline.disabled) return true;
-
     float value;
     bool last = true;
     if (keyframes.size() == 1) value = keyframes[0].value;
