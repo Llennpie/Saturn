@@ -471,7 +471,7 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int32(&stream, gMarioState->actionState);
     saturn_format_write_int32(&stream, gMarioState->actionTimer);
     saturn_format_write_int32(&stream, gMarioState->actionArg);
-    saturn_format_write_int32(&stream, gravity);
+    saturn_format_write_float(&stream, gravity);
     saturn_format_write_int8(&stream, gCurrActNum);
     saturn_format_close_section(&stream);
     saturn_format_new_section(&stream, SATURN_PROJECT_CAMERA_IDENTIFIER);
