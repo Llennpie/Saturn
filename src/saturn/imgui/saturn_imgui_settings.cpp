@@ -296,6 +296,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Removes camera shakes.");
         ImGui::Checkbox("Butterflies Begone (TM)", &configNoButterflies);
         imgui_bundled_tooltip("Hides butterflies.");
+        ImGui::Checkbox("Disable Water Controls", &configNoWater);
+        imgui_bundled_tooltip("Makes it so you have non-water controls in water.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);

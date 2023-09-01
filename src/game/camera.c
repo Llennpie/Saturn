@@ -682,7 +682,7 @@ f32 calc_y_to_curr_floor(f32 *posOff, f32 posMul, f32 posBound, f32 *focOff, f32
 
     if (!(sMarioCamState->action & ACT_FLAG_METAL_WATER)) {
         //! @bug this should use sMarioGeometry.waterHeight
-        if (floorHeight < (waterHeight = find_water_level(sMarioCamState->pos[0], sMarioCamState->pos[2]))) {
+        if (floorHeight < (waterHeight = find_water_level(sMarioCamState->pos[0], sMarioCamState->pos[2])) && !configNoWater) {
             floorHeight = waterHeight;
         }
     }
@@ -2300,7 +2300,8 @@ s16 update_default_camera(struct Camera *c) {
         }
         // If not wearing the metal cap, always stay above
         if (!(gCameraMovementFlags & CAM_MOVE_METAL_BELOW_WATER) && camFloorHeight < waterHeight) {
-            camFloorHeight = waterHeight;
+            if (configNoWater) camFloorHeight = find_floor(cPos[0], waterHeight - 10.f, cPos[2], &cFloor);
+            else camFloorHeight = waterHeight;
         }
     } else {
         gCameraMovementFlags &= ~CAM_MOVE_METAL_BELOW_WATER;
