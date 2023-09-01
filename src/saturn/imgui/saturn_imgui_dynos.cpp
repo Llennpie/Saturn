@@ -96,6 +96,8 @@ bool has_copy_mario;
 
 bool last_model_had_model_eyes;
 
+bool is_gameshark_open;
+
 /*
 Sets Mario's global colors from the CC editor color values.
 */
@@ -1501,19 +1503,14 @@ void imgui_dynos_cc_editor() {
 
             ImGui::Dummy(ImVec2(0, 5));
 
-            if (!configEditorFastApply) {
-                if (ImGui::Button(ICON_FK_CLIPBOARD " Apply CC###apply_cc_from_editor")) {
-                    apply_cc_from_editor();
-                }
-                ImGui::Dummy(ImVec2(0, 5));
-            } else {
-                apply_cc_from_editor();
-            }
+            //apply_cc_from_editor();
 
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("GameShark")) {
+            is_gameshark_open = true;
+
             ImGui::InputTextMultiline("###gameshark_box", ui_gameshark, IM_ARRAYSIZE(ui_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_AutoSelectAll);
 
             if (ImGui::Button(ICON_FK_CLIPBOARD " Apply GS Code")) {
@@ -1525,7 +1522,7 @@ void imgui_dynos_cc_editor() {
                 "Copy/paste a GameShark color code from here!");
 
             ImGui::EndTabItem();
-        }
+        } else { is_gameshark_open = false; }
         ImGui::EndTabBar();
     }
 }

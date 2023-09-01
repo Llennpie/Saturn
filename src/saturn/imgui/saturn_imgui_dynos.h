@@ -34,6 +34,8 @@ extern ImVec4 uiLegTopShadeColor;
 extern ImVec4 uiLegBottomColor;
 extern ImVec4 uiLegBottomShadeColor;
 
+extern bool is_gameshark_open;
+
 extern "C" {
 #endif
     void apply_cc_from_editor(void);

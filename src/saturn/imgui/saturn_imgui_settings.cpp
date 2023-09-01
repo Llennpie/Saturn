@@ -302,8 +302,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Displays tooltips and help markers for advanced features; Helpful for new users.");
         ImGui::Checkbox("Show expression previews", &configEditorExpressionPreviews);
         imgui_bundled_tooltip("Displays small image previews for expression and eye textures; May cause lag on low-end machines.");
-        ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
-        imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
+        //ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
+        //imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
         ImGui::Checkbox("Splash screen", &configSaturnSplash);
         imgui_bundled_tooltip("Shows a Saturn splash screen on startup.");
         ImGui::SliderInt("###autosave_delay_slider", (int*)&configAutosaveDelay, 10, 600, "Autosave Delay: %ds");
