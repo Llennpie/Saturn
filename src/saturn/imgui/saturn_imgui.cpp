@@ -400,7 +400,6 @@ void saturn_keyframe_window() {
                     if (timeline.forceWait) keyframe.curve = InterpolationCurve::WAIT;
                     keyframes->push_back(keyframe);
                 }
-                
                 saturn_keyframe_sort(keyframes);
             }
             else saturn_keyframe_apply(entry.first, k_current_frame);
@@ -420,6 +419,31 @@ void saturn_keyframe_window() {
                 apply_cc_from_editor();
             }
         }
+    }
+
+    if (camera_frozen) {
+        if (keyframe_playing || k_current_frame != k_previous_frame) {
+            should_update_cam_from_keyframes = false;
+            vec3f_copy(gCamera->pos, freezecamPos);
+            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
+            gLakituState.roll = freezecamRoll;
+        }
+        else {
+            float dist;
+            s16 yaw;
+            s16 pitch;
+            vec3f_copy(freezecamPos, gCamera->pos);
+            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+            freezecamYaw = (float)yaw;
+            freezecamPitch = (float)pitch;
+            freezecamRoll = (float)gLakituState.roll;
+        }
+        vec3f_copy(gLakituState.pos, gCamera->pos);
+        vec3f_copy(gLakituState.focus, gCamera->focus);
+        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+        gLakituState.yaw = gCamera->yaw;
     }
 
     k_previous_frame = k_current_frame;
@@ -780,31 +804,6 @@ void saturn_imgui_update() {
         //ImGui::ShowDemoWindow();
     }
 
-    if (camera_frozen) {
-        if (keyframe_playing || k_current_frame != k_previous_frame) {
-            should_update_cam_from_keyframes = false;
-            vec3f_copy(gCamera->pos, freezecamPos);
-            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
-            gLakituState.roll = freezecamRoll;
-        }
-        else {
-            float dist;
-            s16 yaw;
-            s16 pitch;
-            vec3f_copy(freezecamPos, gCamera->pos);
-            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
-            freezecamYaw = (float)yaw;
-            freezecamPitch = (float)pitch;
-            freezecamRoll = (float)gLakituState.roll;
-        }
-        vec3f_copy(gLakituState.pos, gCamera->pos);
-        vec3f_copy(gLakituState.focus, gCamera->focus);
-        vec3f_copy(gLakituState.goalPos, gCamera->pos);
-        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
-        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
-        gLakituState.yaw = gCamera->yaw;
-    }
-
     is_cc_editing = windowCcEditor;
 
     ImGui::Render();
@@ -923,6 +922,7 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         else { // Add the timeline
             for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
                 KeyframeTimeline timeline = KeyframeTimeline();
+                timeline.type = KFTYPE_FLOAT;
                 timeline.dest = values[i].second.second;
                 timeline.name = value_name + " " + values[i].first.second;
                 timeline.forceWait = false;
