@@ -2507,8 +2507,8 @@ s16 customFlyCurrYaw = 0;
 s16 customFlyCurrPitch = 0;
 
 void mode_custom_fly(struct Camera *c) {
-    if (gPlayer1Controller->buttonPressed & U_CBUTTONS && customFlyPitch > -3) customFlyPitch--; 
-    if (gPlayer1Controller->buttonPressed & D_CBUTTONS && customFlyPitch < 3) customFlyPitch++;
+    if (gPlayer1Controller->buttonPressed & U_CBUTTONS && customFlyPitch < 3) customFlyPitch++; 
+    if (gPlayer1Controller->buttonPressed & D_CBUTTONS && customFlyPitch > -3) customFlyPitch--;
     if (gPlayer1Controller->buttonPressed & L_CBUTTONS) customFlyYaw--;
     if (gPlayer1Controller->buttonPressed & R_CBUTTONS) customFlyYaw++;
     s16 targetYaw = customFlyYaw * 8192;
