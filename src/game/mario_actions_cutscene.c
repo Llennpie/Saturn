@@ -579,15 +579,15 @@ s32 act_debug_free_move(struct MarioState *m) {
         pos[2] += 32.0f * speed * coss(m->intendedYaw);
     }
 
-    resolve_and_return_wall_collisions(pos, 60.0f, 50.0f);
+    //resolve_and_return_wall_collisions(pos, 60.0f, 50.0f);
 
-    floorHeight = find_floor(pos[0], pos[1], pos[2], &surf);
-    if (surf != NULL) {
-        if (pos[1] < floorHeight) {
-            pos[1] = floorHeight;
-        }
-        vec3f_copy(m->pos, pos);
-    }
+    //floorHeight = find_floor(pos[0], pos[1], pos[2], &surf);
+    //if (surf != NULL) {
+    //    if (pos[1] < floorHeight) {
+    //        pos[1] = floorHeight;
+    //    }
+    vec3f_copy(m->pos, pos);
+    //}
 
     m->faceAngle[1] = m->intendedYaw;
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
@@ -2635,7 +2635,7 @@ static s32 check_for_instant_quicksand(struct MarioState *m) {
 s32 mario_execute_cutscene_action(struct MarioState *m) {
     s32 cancel;
 
-    if (check_for_instant_quicksand(m)) {
+    if (m->action != ACT_DEBUG_FREE_MOVE) if (check_for_instant_quicksand(m)) {
         return TRUE;
     }
 

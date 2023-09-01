@@ -1367,6 +1367,8 @@ void update_mario_joystick_inputs(struct MarioState *m) {
  * Resolves wall collisions, and updates a variety of inputs.
  */
 void update_mario_geometry_inputs(struct MarioState *m) {
+    if (m->action == ACT_DEBUG_FREE_MOVE) return;
+
     f32 gasLevel;
     f32 ceilToFloorDist;
 
@@ -1804,7 +1806,7 @@ s32 execute_mario_action(UNUSED struct Object *o) {
         mario_process_interactions(gMarioState);
 
         // If Mario is OOB, stop executing actions.
-        if (gMarioState->floor == NULL) {
+        if (gMarioState->floor == NULL && gMarioState->action != ACT_DEBUG_FREE_MOVE) {
             return 0;
         }
 
@@ -1841,6 +1843,10 @@ s32 execute_mario_action(UNUSED struct Object *o) {
                     inLoop = mario_execute_object_action(gMarioState);
                     break;
             }
+        }
+
+        if (gMarioState->floor == NULL) {
+            return 0;
         }
 
         sink_mario_in_quicksand(gMarioState);
