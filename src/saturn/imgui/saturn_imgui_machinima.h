@@ -6,6 +6,9 @@
 extern float gravity;
 
 extern void anim_play_button();
+extern void anim_play_button(int);
+extern int encode_animation();
+extern void decode_animation(int);
 
 #ifdef __cplusplus
 extern "C" {

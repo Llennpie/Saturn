@@ -86,6 +86,43 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
     fade_into_special_warp(0,0);
 }
 
+int encode_animation() {
+    int encoded = 0;
+    encoded |= is_custom_anim << 31;
+    encoded |= is_anim_looped << 30;
+    encoded |= is_anim_hang << 29;
+    encoded |= (((int)(anim_speed * 1000) & 0x3FFF) << 14);
+    encoded |= (is_custom_anim ? custom_anim_index : current_sanim_id) & 0x3FFF;
+    return encoded;
+}
+void decode_animation(int raw) {
+    is_custom_anim = raw & (1 << 31);
+    is_anim_looped = raw & (1 << 30);
+    is_anim_hang = raw & (1 << 29);
+    anim_speed = ((raw >> 14) & 0x3FFF) / 1000.f;
+    current_sanim_id = raw & 0x3FFF;
+    if (is_custom_anim) {
+        current_sanim_group_index = 8;
+        current_sanim_id = selected_animation = MARIO_ANIM_A_POSE;
+        custom_anim_index = current_sanim_id;
+        current_sanim_name = canim_array[current_sanim_id];
+        anim_preview_name = current_sanim_name;
+        anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
+    }
+    else {
+        std::pair<int, std::string> animInfo;
+        for (auto& map : sanim_maps) {
+            for (auto& entry : map) {
+                if (entry.second == current_sanim_id) animInfo = entry.first;
+            }
+        }
+        current_sanim_index = animInfo.first;
+        current_sanim_name = animInfo.second;
+        anim_preview_name = current_sanim_name;
+        current_sanim_id = selected_animation = MarioAnimID(current_sanim_id);
+    }
+}
+
 void anim_play_button() {
     current_anim_frame = 0;
     if (is_custom_anim) {
@@ -95,6 +132,11 @@ void anim_play_button() {
     } else {
         saturn_play_animation(selected_animation);
     }
+}
+
+void anim_play_button(int animation) {
+    decode_animation(animation);
+    anim_play_button();
 }
 
 void smachinima_imgui_controls(SDL_Event * event) {
@@ -380,7 +422,7 @@ static char animSearchTerm[128];
 void imgui_machinima_animation_player() {
     selected_animation = (MarioAnimID)current_sanim_id;
     
-    if (is_anim_playing)
+    if (is_anim_playing || keyframe_playing)
         ImGui::BeginDisabled();
 
     const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
@@ -393,18 +435,8 @@ void imgui_machinima_animation_player() {
             const bool is_selected = (current_sanim_group_index == n);
             if (ImGui::Selectable(anim_groups[n], is_selected)) {
                 current_sanim_group_index = n;
-                switch(current_sanim_group_index) {
-                    case 0: current_anim_map = sanim_movement; break;
-                    case 1: current_anim_map = sanim_actions; break;
-                    case 2: current_anim_map = sanim_automatic; break;
-                    case 3: current_anim_map = sanim_damagedeaths; break;
-                    case 4: current_anim_map = sanim_cutscenes; break;
-                    case 5: current_anim_map = sanim_water; break;
-                    case 6: current_anim_map = sanim_climbing; break;
-                    case 7: current_anim_map = sanim_object; break;
-                    //case 8: current_anim_map = sanim_misc; break;
-                }
                 if (current_sanim_group_index != 8) {
+                    current_anim_map = sanim_maps[current_sanim_group_index];
                     is_custom_anim = false;
                     current_sanim_index = current_anim_map.begin()->first.first;
                     current_sanim_name = current_anim_map.begin()->first.second;
@@ -458,6 +490,8 @@ void imgui_machinima_animation_player() {
                 current_sanim_name = a.second;
                 current_sanim_id = b;
                 anim_preview_name = current_sanim_name;
+                k_current_anim = encode_animation();
+                place_keyframe_anim = true;
             }
 
             if (is_selected)
@@ -506,6 +540,8 @@ void imgui_machinima_animation_player() {
                 is_anim_paused = false;
                 using_chainer = false;
                 chainer_index = 0;
+                k_current_anim = encode_animation();
+                place_keyframe_anim = true;
             }
 
             if (ImGui::BeginPopupContextItem()) {
@@ -531,7 +567,7 @@ void imgui_machinima_animation_player() {
     }
     ImGui::EndChild();
 
-    if (is_anim_playing)
+    if (is_anim_playing && !keyframe_playing)
         ImGui::EndDisabled();
 
     ImGui::PushItemWidth(290);
@@ -594,4 +630,6 @@ void imgui_machinima_animation_player() {
                 anim_speed = 1.0f;
         }
     }
+    if (keyframe_playing) ImGui::EndDisabled();
+    saturn_keyframe_anim_popout("Animation", "k_mario_anim");
 }

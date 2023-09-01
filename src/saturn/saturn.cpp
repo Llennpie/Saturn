@@ -79,6 +79,11 @@ int k_current_frame = 0;
 int k_previous_frame = 0;
 int k_curr_curve_type = 0;
 
+int k_current_anim = -1;
+int k_prev_anim = -1;
+
+bool place_keyframe_anim = false;
+
 bool should_update_cam_from_keyframes = false;
 
 std::map<std::string, std::pair<KeyframeTimeline, std::vector<Keyframe>>> k_frame_keys = {};
@@ -257,9 +262,39 @@ void saturn_update() {
         //configHUD = prev_quicks[2];
     }
 
+    // Keyframes
+    
+    bool justFinished = false;
+    if (keyframe_playing) {
+        mcam_timer++;
+        k_current_frame = (uint32_t)mcam_timer;
+
+        // Prevents smoothing for sharper, more consistent panning
+        gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
+        gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
+        gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
+        gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
+        
+        bool end = true;
+        for (const auto& entry : k_frame_keys) {
+            if (!saturn_keyframe_apply(entry.first, mcam_timer)) end = false;
+        }
+        if (end) {
+            if (k_loop) mcam_timer = 0;
+            else keyframe_playing = false;
+            k_prev_anim = -1;
+            justFinished = true;
+        }
+
+        schroma_imgui_init();
+    }
+
     // Animations
 
     if (mario_exists) {
+        if ((keyframe_playing || justFinished) && k_prev_anim != k_current_anim && k_current_anim != -1) anim_play_button(k_current_anim);
+        k_prev_anim = k_current_anim;
+
         if (is_anim_paused) {
             gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
             gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
@@ -302,30 +337,6 @@ void saturn_update() {
 
             if (using_chainer && is_anim_playing) saturn_run_chainer();
         }
-    }
-
-    // Keyframes
-
-    if (keyframe_playing) {
-        mcam_timer++;
-        k_current_frame = (uint32_t)mcam_timer;
-
-        // Prevents smoothing for sharper, more consistent panning
-        gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
-        gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
-        gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
-        gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
-        
-        bool end = true;
-        for (const auto& entry : k_frame_keys) {
-            if (!saturn_keyframe_apply(entry.first, mcam_timer)) end = false;
-        }
-        if (end) {
-            if (k_loop) mcam_timer = 0;
-            else keyframe_playing = false;
-        }
-
-        schroma_imgui_init();
     }
 
     // Misc
@@ -398,12 +409,24 @@ bool saturn_keyframe_apply(std::string id, int frame) {
         int keyframe = 0;
         last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-        value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        if (timeline.forceWait) value = keyframes[keyframe + (int)x].value;
+        else value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
     }
-    if (timeline.bdest != nullptr) *timeline.bdest = value >= 1;
-    if (timeline.fdest != nullptr) *timeline.fdest = value;
+    if (timeline.type == KFTYPE_BOOL) *(bool*)timeline.dest = value >= 1;
+    if (timeline.type == KFTYPE_FLOAT) *(float*)timeline.dest = value;
+    if (timeline.type == KFTYPE_FLAGS) {
+        *(int*)timeline.dest = *(int*)&value;
+    }
 
     return last;
+}
+
+void flag_place_keyframe(std::string curr_id, std::string id, bool* doPlace, bool* out) {
+    if (*out) return;
+    if (curr_id == id && *doPlace) {
+        *doPlace = false;
+        *out = true;
+    }
 }
 
 // returns true if the value is the same as if the keyframe was applied
@@ -411,24 +434,31 @@ bool saturn_keyframe_matches(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    float value;
-    if (keyframes.size() == 1) value = keyframes[0].value;
+    float expectedValue;
+    if (keyframes.size() == 1) expectedValue = keyframes[0].value;
     else {
         int keyframe = 0;
         bool last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-
-        value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        if (timeline.forceWait) expectedValue = keyframes[keyframe + (int)x].value;
+        else expectedValue = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
     }
-    if (timeline.bdest != nullptr) {
-        if (*timeline.bdest != value >= 1) return false;
+    if (timeline.type == KFTYPE_BOOL) {
+        if (*(bool*)timeline.dest != expectedValue >= 1) return false;
+        return true;
     }
-    if (timeline.fdest != nullptr) {
-        float distance = abs(*timeline.fdest - value);
+    if (timeline.type == KFTYPE_FLOAT) {
+        float value = *(float*)timeline.dest;
+        float distance = abs(value - expectedValue);
         if (distance > pow(10, timeline.precision)) {
             if (id.find("cam") != string::npos) return !is_camera_moving;
             else return false;
         }
+    }
+    if (timeline.type == KFTYPE_FLAGS) {
+        bool doPlace = false;
+        flag_place_keyframe(id, "k_mario_anim", &place_keyframe_anim, &doPlace);
+        return !doPlace;
     }
 
     return true;
@@ -448,6 +478,8 @@ void saturn_play_keyframe() {
     if (!keyframe_playing) {
         k_last_passed_index = 0;
         k_distance_between = 0;
+        k_current_anim = -1;
+        k_prev_anim = -1;
         mcam_timer = 0;
         keyframe_playing = true;
     } else {

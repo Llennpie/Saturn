@@ -257,6 +257,18 @@ extern std::map<std::pair<int, std::string>, int> sanim_misc = {
     { std::make_pair(1, "A_POSE"), MARIO_ANIM_A_POSE},
 };
 
+extern std::vector<std::map<std::pair<int, std::string>, int>> sanim_maps = {
+    sanim_movement,
+    sanim_actions,
+    sanim_automatic,
+    sanim_damagedeaths,
+    sanim_cutscenes,
+    sanim_water,
+    sanim_climbing,
+    sanim_object,
+    sanim_misc
+};
+
 extern std::map<int, int> saturn_anims_size = {
     { 0, 49 },
     { 1, 23 },

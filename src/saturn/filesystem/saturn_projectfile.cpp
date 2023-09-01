@@ -66,18 +66,19 @@ namespace fs = std::filesystem;
 #define SATURN_PROJECT_ENV_BIT_2                 (1 << 7)
 #define SATURN_PROJECT_WALKPOINT_MASK            0x7F
 
-#define SATURN_KFENTRY_BOOL(id, variable, name) { id, { { nullptr, (bool*)&variable }, name } }
-#define SATURN_KFENTRY_FLOAT(id, variable, name) { id, { { (float*)&variable, nullptr }, name } }
+#define SATURN_KFENTRY_BOOL(id, variable, name) { id, { { &variable, KFTYPE_BOOL }, { true, name } } }
+#define SATURN_KFENTRY_FLOAT(id, variable, name) { id, { { &variable, KFTYPE_FLOAT }, { false, name } } }
+#define SATURN_KFENTRY_ANIM(id, name) { id, { { &k_current_anim, KFTYPE_FLAGS }, { true, name } } }
 #define SATURN_KFENTRY_COLOR(id, variable, name) \
-    { id "_r", { { (float*)&variable.x, nullptr }, name " R" } },\
-    { id "_g", { { (float*)&variable.y, nullptr }, name " G" } },\
-    { id "_b", { { (float*)&variable.z, nullptr }, name " B" } }
+    { id "_r", { { &variable.x, KFTYPE_FLOAT }, { false, name " R" } } },\
+    { id "_g", { { &variable.y, KFTYPE_FLOAT }, { false, name " G" } } },\
+    { id "_b", { { &variable.z, KFTYPE_FLOAT }, { false, name " B" } } }
 #define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) \
-    { id "_r", { { (float*)&variable[0], nullptr }, name " R" } },\
-    { id "_g", { { (float*)&variable[1], nullptr }, name " G" } },\
-    { id "_b", { { (float*)&variable[2], nullptr }, name " B" } }
+    { id "_r", { { &variable[0], KFTYPE_FLOAT }, { false, name " R" } } },\
+    { id "_g", { { &variable[1], KFTYPE_FLOAT }, { false, name " G" } } },\
+    { id "_b", { { &variable[2], KFTYPE_FLOAT }, { false, name " B" } } }
 
-std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timelineDataTable = {
+std::map<std::string, std::pair<std::pair<void*, KeyframeType>, std::pair<bool, std::string>>> timelineDataTable = {
     SATURN_KFENTRY_BOOL("k_skybox_mode", use_color_background, "Skybox Mode"),
     SATURN_KFENTRY_BOOL("k_shadows", enable_shadows, "Shadows"),
     SATURN_KFENTRY_FLOAT("k_shade_x", world_light_dir1, "Mario Shade X"),
@@ -127,6 +128,7 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_2", uiLegTopShadeColor, "Leg (Top), Shade"),
     SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_1", uiLegBottomColor, "Leg (Bottom), Main"),
     SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_2", uiLegBottomShadeColor, "Leg (Bottom), Shade"),
+    SATURN_KFENTRY_ANIM("k_mario_anim", "Animation"),
 };
 
 std::string full_file_path(char* filename) {
@@ -224,9 +226,10 @@ void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
     saturn_format_read_string(stream, id);
     id[256] = 0;
     auto timelineConfig = timelineDataTable[id];
-    timeline.fdest = timelineConfig.first.first;
-    timeline.bdest = timelineConfig.first.second;
-    timeline.name = timelineConfig.second;
+    timeline.dest = timelineConfig.first.first;
+    timeline.type = timelineConfig.first.second;
+    timeline.forceWait = timelineConfig.second.first;
+    timeline.name = timelineConfig.second.second;
     k_frame_keys.insert({ std::string(id), { timeline, {} } });
 }
 

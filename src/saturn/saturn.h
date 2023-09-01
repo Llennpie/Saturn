@@ -80,6 +80,12 @@ enum InterpolationCurve {
     CUBIC,
     WAIT
 };
+enum KeyframeType {
+    KFTYPE_FLOAT,
+    KFTYPE_FLAGS,
+    KFTYPE_BOOL
+};
+
 inline std::string curveNames[] = {
     "Linear",
     "Sine",
@@ -102,10 +108,11 @@ class Keyframe {
 
 class KeyframeTimeline {
     public:
-    float* fdest = nullptr;
-    bool* bdest = nullptr;
+    void* dest = nullptr;
+    KeyframeType type;
     std::string name;
     int precision;
+    bool forceWait;
 };
 
 extern bool k_popout_open;
@@ -116,6 +123,10 @@ extern int k_current_frame;
 extern int k_previous_frame;
 extern int k_curr_curve_type;
 extern bool keyframe_playing;
+extern int k_current_anim;
+extern int k_prev_anim;
+
+extern bool place_keyframe_anim;
 
 extern std::map<std::string, std::pair<KeyframeTimeline, std::vector<Keyframe>>> k_frame_keys;
 
