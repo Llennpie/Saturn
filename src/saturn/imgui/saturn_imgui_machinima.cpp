@@ -515,7 +515,7 @@ void imgui_machinima_quick_options() {
                 if (selection.size() != 0) {
                     filesystem::path path = selection[0];
                     is_custom_level_loaded = true;
-                    custom_level_path = path;
+                    custom_level_path = path.string();
                     custom_level_dirname = path.parent_path().string();
                     custom_level_filename = path.filename().string();
                 }
