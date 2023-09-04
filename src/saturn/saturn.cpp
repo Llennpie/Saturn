@@ -67,6 +67,7 @@ bool has_discord_init;
 bool is_chroma_keying = false;
 bool prev_quicks[3];
 int lastCourseNum = -1;
+int saturn_launch_timer;
 
 float* active_key_float_value = &camera_fov;
 bool* active_key_bool_value;
@@ -262,6 +263,28 @@ void saturn_update() {
         //enable_shadows = prev_quicks[0];
         //enable_dust_particles = prev_quicks[1];
         //configHUD = prev_quicks[2];
+    }
+
+    saturn_launch_timer++;
+    //std::cout << saturn_launch_timer << std::endl;
+    if (gCurrLevelNum == LEVEL_SA && saturn_launch_timer < 50) {
+        gMarioState->faceAngle[1] = 0;
+        if (gCamera) { // i hate the sm64 camera system aaaaaaaaaaaaaaaaaa
+            float dist = 0;
+            s16 yaw, pitch;
+            vec3f_set(gCamera->pos, 0.f, 192.f, 264.f);
+            vec3f_set(gCamera->focus, 0.f, 181.f, 28.f);
+            vec3f_copy(freezecamPos, gCamera->pos);
+            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+            freezecamYaw = (float)yaw;
+            freezecamPitch = (float)pitch;
+            vec3f_copy(gLakituState.pos, gCamera->pos);
+            vec3f_copy(gLakituState.focus, gCamera->focus);
+            vec3f_copy(gLakituState.goalPos, gCamera->pos);
+            vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+            gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+            gLakituState.yaw = gCamera->yaw;
+        }
     }
 
     // Keyframes
@@ -609,9 +632,13 @@ const char* saturn_get_stage_name(int courseNum) {
 }
 
 void saturn_do_load() {
+    DynOS_Gfx_GetPacks().Clear();
     DynOS_Opt_Init();
+    model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+    if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
     saturn_imgui_init();
     saturn_load_locations();
+    saturn_launch_timer = 0;
 }
 void saturn_on_splash_finish() {
     splash_finished = true;

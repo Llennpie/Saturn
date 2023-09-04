@@ -1020,26 +1020,6 @@ s32 play_mode_normal(void) {
         }
     }
 
-    if (gCurrLevelNum == LEVEL_SA && gGlobalTimer < 120) {
-        gMarioState->faceAngle[1] = 0;
-        if (gCamera) { // i hate the sm64 camera system aaaaaaaaaaaaaaaaaa
-            float dist = 0;
-            s16 yaw, pitch;
-            vec3f_set(gCamera->pos, 0.f, 192.f, 264.f);
-            vec3f_set(gCamera->focus, 0.f, 181.f, 28.f);
-            vec3f_copy(freezecamPos, gCamera->pos);
-            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
-            freezecamYaw = (float)yaw;
-            freezecamPitch = (float)pitch;
-            vec3f_copy(gLakituState.pos, gCamera->pos);
-            vec3f_copy(gLakituState.focus, gCamera->focus);
-            vec3f_copy(gLakituState.goalPos, gCamera->pos);
-            vec3f_copy(gLakituState.goalFocus, gCamera->focus);
-            gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
-            gLakituState.yaw = gCamera->yaw;
-        }
-    }
-
     // Override Mario if loaded from project file
     if (override_mario) {
         override_mario--;
