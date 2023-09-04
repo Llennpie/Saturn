@@ -98,6 +98,10 @@ bool last_model_had_model_eyes;
 
 bool is_gameshark_open;
 
+std::vector<std::string> choose_file_dialog(std::string windowTitle, std::vector<std::string> filetypes, bool multiselect) {
+    return pfd::open_file(windowTitle, ".", filetypes, multiselect ? pfd::opt::multiselect : pfd::opt::none).result();
+}
+
 /*
 Sets Mario's global colors from the CC editor color values.
 */
@@ -571,10 +575,7 @@ void sdynos_imgui_menu() {
         }
         ImGui::EndChild();
         if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_v_cc")) {
-            auto selection3 = pfd::open_file("Select a file", ".",
-                        { "Color Code Files", "*.gs *.txt",
-                            "All Files", "*" },
-                        pfd::opt::multiselect).result();
+            auto selection3 = choose_file_dialog("Select a file", { "Color Code Files", "*.gs *.txt", "All Files", "*" }, true);
 
             // Do something with selection
             for (auto const &filename3 : selection3) {
@@ -1109,10 +1110,7 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndChild();
                 if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Eye...###add_v_eye")) {
-                    auto selection = pfd::open_file("Select a file", ".",
-                                { "PNG Textures", "*.png ",
-                                  "All Files", "*" },
-                                pfd::opt::multiselect).result();
+                    auto selection = choose_file_dialog("Select a file", { "PNG Textures", "*.png", "All Files", "*" }, true);
 
                     // Do something with selection
                     for (auto const &filename : selection) {
@@ -1224,10 +1222,7 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndChild();
                 if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Eye...###add_m_eye")) {
-                    auto selection1 = pfd::open_file("Select a file", ".",
-                                { "PNG Textures", "*.png ",
-                                  "All Files", "*" },
-                                pfd::opt::multiselect).result();
+                    auto selection1 = choose_file_dialog("Select a file", { "PNG Textures", "*.png", "All Files", "*" }, true);
 
                     // Do something with selection
                     for (auto const &filename1 : selection1) {
@@ -1324,10 +1319,7 @@ void sdynos_imgui_menu() {
                     // Refresh
                     if (ImGui::BeginPopupContextItem()) {
                         if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Expression...###add_m_exp")) {
-                            auto selection1 = pfd::open_file("Select a file", ".",
-                                        { "PNG Textures", "*.png ",
-                                        "All Files", "*" },
-                                        pfd::opt::multiselect).result();
+                            auto selection1 = choose_file_dialog("Select a file", { "PNG Textures", "*.png", "All Files", "*" }, true);
 
                             // Do something with selection
                             for (auto const &filename1 : selection1) {

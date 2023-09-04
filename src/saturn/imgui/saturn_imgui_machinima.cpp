@@ -15,6 +15,7 @@
 #include "saturn/saturn_animation_ids.h"
 #include "saturn/saturn_animations.h"
 #include "saturn/saturn_obj_def.h"
+#include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
 #include "saturn/filesystem/saturn_locationfile.h"
@@ -22,7 +23,6 @@
 #include <SDL2/SDL.h>
 
 #include "icons/IconsForkAwesome.h"
-#include "saturn/libs/portable-file-dialogs.h"
 
 #include "data/dynos.cpp.h"
 
@@ -511,13 +511,13 @@ void imgui_machinima_quick_options() {
             if (!is_custom_level_loaded || in_custom_level) ImGui::EndDisabled();
             ImGui::SameLine();
             if (ImGui::Button("Load .obj")) {
-                auto selection = pfd::open_file("Select a model", ".", { "Wavefront Model (.obj)", "*.obj" }, pfd::opt::none).result();
+                auto selection = choose_file_dialog("Select a model", { "Wavefront Model (.obj)", "*.obj", "All Files", "*" }, false);
                 if (selection.size() != 0) {
-                    std::string path = selection[0];
+                    filesystem::path path = selection[0];
                     is_custom_level_loaded = true;
                     custom_level_path = path;
-                    custom_level_dirname = filesystem::path(path).parent_path();
-                    custom_level_filename = filesystem::path(path).filename();
+                    custom_level_dirname = path.parent_path().string();
+                    custom_level_filename = path.filename().string();
                 }
             }
             ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");

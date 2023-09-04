@@ -6,6 +6,7 @@
 
 #ifdef __cplusplus
 #include <string>
+#include <vector>
 
 extern void set_editor_from_global_cc(std::string);
 extern int numColorCodes;
@@ -35,6 +36,8 @@ extern ImVec4 uiLegBottomColor;
 extern ImVec4 uiLegBottomShadeColor;
 
 extern bool is_gameshark_open;
+
+extern std::vector<std::string> choose_file_dialog(std::string windowTitle, std::vector<std::string> filetypes, bool multiselect);
 
 extern "C" {
 #endif
