@@ -257,8 +257,14 @@ void saturn_imgui_handle_events(SDL_Event * event) {
                 configWindow.fps_changed = true;
             }
 
-            if(event->key.keysym.sym == SDLK_SCROLLLOCK) {
-                imgui_update_theme();
+            if(event->key.keysym.sym == SDLK_F9) {
+                DynOS_Gfx_GetPacks().Clear();
+                DynOS_Opt_Init();
+                model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+                if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
+
+                if (gCurrLevelNum > 3 || !mario_exists)
+                    DynOS_ReturnToMainMenu();
             }
 
             if(event->key.keysym.sym == SDLK_F6) {
