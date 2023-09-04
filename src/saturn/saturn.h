@@ -68,6 +68,8 @@ extern bool autoChroma;
 
 extern bool should_update_cam_from_keyframes;
 
+extern u8 activatedToads;
+
 #ifdef __cplusplus
 #include <string>
 #include <vector>

@@ -2100,3 +2100,12 @@ Arrgghh!\n\
 Anyone entering this cave\n\
 without permission will\n\
 meet certain disaster."))
+
+DEFINE_DIALOG(DIALOG_170, 1, 4, 30, 205, _("\
+Wow! You unlocked a super\n\
+secret easter egg that\n\
+allows you to duplicate\n\
+your DynOS models!\n\
+Just game over and see how\n\
+the model count increases\n\
+each and every time!"))

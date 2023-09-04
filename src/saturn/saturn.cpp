@@ -112,6 +112,8 @@ bool is_cc_editing;
 
 bool autoChroma;
 
+u8 activatedToads = 0;
+
 extern "C" {
 #include "game/camera.h"
 #include "game/area.h"
