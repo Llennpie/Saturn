@@ -651,9 +651,6 @@ void sdynos_imgui_menu() {
                     current_mcc_id = -1;
                     current_model_id = i;
 
-                    model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
-                    if (sDynosPacks.Count() != 1) model_details += "s";
-
                     if (is_default_cc(ui_gameshark)) {
                         if (model_cc_array.size() > 0) {
                             current_mcc_id = 0;
@@ -774,7 +771,9 @@ void sdynos_imgui_menu() {
                     ImGui::TextDisabled("%i model pack(s)", sDynosPacks.Count());
                     if (ImGui::Button(ICON_FK_DOWNLOAD " Refresh Packs###refresh_dynos_packs")) {
                         sDynosPacks.Clear();
-                        DynOS_Gfx_Init();
+                        DynOS_Opt_Init();
+                        model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+                        if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::SameLine(); imgui_bundled_help_marker("WARNING: Experimental - this will probably lag the game.");
