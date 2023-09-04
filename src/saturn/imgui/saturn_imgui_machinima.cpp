@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <fstream>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -21,6 +22,7 @@
 #include <SDL2/SDL.h>
 
 #include "icons/IconsForkAwesome.h"
+#include "saturn/libs/portable-file-dialogs.h"
 
 #include "data/dynos.cpp.h"
 
@@ -38,6 +40,7 @@ extern "C" {
 #include "src/game/interaction.h"
 #include "include/behavior_data.h"
 #include "game/object_helpers.h"
+#include "game/custom_level.h"
 }
 
 using namespace std;
@@ -60,6 +63,12 @@ float gravity = 1;
 
 int current_location_index = 0;
 char location_name[256];
+
+float custom_level_scale = 100.f;
+bool is_custom_level_loaded = false;
+std::string custom_level_path;
+std::string custom_level_filename;
+std::string custom_level_dirname;
 
 s16 levelList[] = { 
     LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
@@ -202,6 +211,75 @@ int get_saturn_level_id(int level) {
     for (int i = 0; i < IM_ARRAYSIZE(levelList); i++) {
         if (levelList[i] == level) return i;
     }
+}
+
+std::vector<std::string> split(std::string input, char character) {
+    std::vector<std::string> tokens = {};
+    std::string token = "";
+    for (int i = 0; i < input.length(); i++) {
+        if (input[i] == '\r') continue;
+        if (input[i] == character) {
+            tokens.push_back(token);
+            token = "";
+        }
+        else token += input[i];
+    }
+    tokens.push_back(token);
+    return tokens;
+}
+std::vector<std::vector<std::string>> tokenize(std::string input) {
+    std::vector<std::vector<std::string>> tokens = {};
+    auto lines = split(input, '\n');
+    for (auto line : lines) {
+        tokens.push_back(split(line, ' '));
+    }
+    return tokens;
+}
+
+void parse_materials(char* data, std::map<std::string, filesystem::path>* materials) {
+    auto tokens = tokenize(std::string(data));
+    std::string matname = "";
+    for (auto line : tokens) {
+        if (line[0] == "newmtl") matname = line[1];
+        if (line[0] == "map_Kd" && matname != "") materials->insert({ matname, filesystem::absolute(std::filesystem::path(custom_level_dirname) / line[1]) });
+    }
+}
+
+void parse_custom_level(char* data) {
+    auto tokens = tokenize(std::string(data));
+    custom_level_new();
+    std::vector<std::array<float, 3>> vertices = {};
+    std::vector<std::array<float, 2>> uv = {};
+    std::map<std::string, filesystem::path> materials = {};
+    for (auto line : tokens) {
+        if (line.size() == 0) continue;
+        if (line[0] == "mtllib") {
+            filesystem::path path = filesystem::absolute(std::filesystem::path(custom_level_dirname) / line[1]);
+            if (!filesystem::exists(path)) continue;
+            auto size = filesystem::file_size(path);
+            char* mtldata = (char*)malloc(size);
+            std::ifstream file = std::ifstream(path, std::ios::binary);
+            file.read(mtldata, size);
+            parse_materials(mtldata, &materials);
+            free(mtldata);
+        }
+        if (line[0] == "v") vertices.push_back({ std::stof(line[1]), std::stof(line[2]), std::stof(line[3]) });
+        if (line[0] == "vt") uv.push_back({ std::stof(line[1]), std::stof(line[2]) });
+        if (line[0] == "usemtl") {
+            if (materials.find(line[1]) == materials.end()) continue; 
+            custom_level_texture((char*)materials[line[1]].c_str());
+        }
+        if (line[0] == "f") {
+            for (int i = 1; i < line.size(); i++) {
+                auto indexes = split(line[i], '/');
+                int v = std::stoi(indexes[0]) - 1;
+                int vt = std::stoi(indexes[1]) - 1;
+                custom_level_vertex(vertices[v][0] * custom_level_scale, vertices[v][1] * custom_level_scale, vertices[v][2] * custom_level_scale, uv[vt][0] * 1024, uv[vt][1] * 1024);
+            }
+            custom_level_face();
+        }
+    }
+    custom_level_finish();
 }
 
 void smachinima_imgui_init() {
@@ -412,6 +490,37 @@ void imgui_machinima_quick_options() {
                 obj->oFaceAngleRoll = obj_rot[2];
                 obj->oBehParams = ((obj_beh_params[0] & 0xFF) << 24) | ((obj_beh_params[1] & 0xFF) << 16) | ((obj_beh_params[2] & 0xFF) << 8) | (obj_beh_params[3] & 0xFF);
             }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Custom Level")) {
+            bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
+            ImGui::PushItemWidth(80);
+            ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
+            ImGui::PopItemWidth();
+            if (!is_custom_level_loaded || in_custom_level) ImGui::BeginDisabled();
+            if (ImGui::Button("Load Level")) {
+                auto size = filesystem::file_size(custom_level_path);
+                char* data = (char*)malloc(size);
+                std::ifstream file = std::ifstream((char*)custom_level_path.c_str(), std::ios::binary);
+                file.read(data, size);
+                parse_custom_level(data);
+                free(data);
+                warp_to_level(0, 3);
+            }
+            if (!is_custom_level_loaded || in_custom_level) ImGui::EndDisabled();
+            ImGui::SameLine();
+            if (ImGui::Button("Load .obj")) {
+                auto selection = pfd::open_file("Select a model", ".", { "Wavefront Model (.obj)", "*.obj" }, pfd::opt::none).result();
+                if (selection.size() != 0) {
+                    std::string path = selection[0];
+                    is_custom_level_loaded = true;
+                    custom_level_path = path;
+                    custom_level_dirname = filesystem::path(path).parent_path();
+                    custom_level_filename = filesystem::path(path).filename();
+                }
+            }
+            ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");
             ImGui::EndMenu();
         }
     }

@@ -367,9 +367,11 @@ void saturn_update() {
 
     // Autosave
 
-    if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
-    autosaveDelay--;
-    if (autosaveDelay == 0) saturn_save_project("autosave.spj");
+    if (gCurrLevelNum != LEVEL_SA || gCurrAreaIndex != 3) {
+        if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
+        autosaveDelay--;
+        if (autosaveDelay == 0) saturn_save_project("autosave.spj");
+    }
 }
 
 float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyframe, bool* last) {

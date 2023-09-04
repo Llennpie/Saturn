@@ -33,6 +33,8 @@
 
 #include "src/engine/geo_layout.h"
 
+#include "src/game/area.h"
+
 #define SUPPORT_CHECK(x) assert(x)
 
 // SCALE_M_N: upscale/downscale M-bit integer to N-bit
@@ -626,8 +628,15 @@ static void import_texture(int tile) {
     // the "texture data" is actually a C string with the path to our texture in it
     // load it from an external image in our data path
     char texname[SYS_MAX_PATH];
-    snprintf(texname, sizeof(texname), FS_TEXTUREDIR "/%s.png", (const char*)rdp.loaded_texture[tile].addr);
-    load_texture(texname);
+    char* texpath = rdp.loaded_texture[tile].addr;
+    if (texpath[0] == 1) {
+        texpath++;
+        load_texture(texpath);
+    }
+    else {
+        snprintf(texname, sizeof(texname), FS_TEXTUREDIR "/%s.png", texpath);
+        load_texture(texname);
+    }
 #else
     // the texture data is actual texture data
     int t0 = get_time();
@@ -1020,9 +1029,12 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                 V = (int32_t)((doty / 127.0f + 1.0f) / 4.0f * rsp.texture_scaling_factor.t);
             }
         } else {
-            d->color.r = v->cn[0] / (world_light_dir4);
-            d->color.g = v->cn[1] / (world_light_dir4);
-            d->color.b = v->cn[2] / (world_light_dir4);
+            d->color.r = v->cn[0] / (world_light_dir4) * gLightingColor[0];
+            d->color.g = v->cn[1] / (world_light_dir4) * gLightingColor[1];
+            d->color.b = v->cn[2] / (world_light_dir4) * gLightingColor[2];
+            if (d->color.r > 255) d->color.r = 255;
+            if (d->color.g > 255) d->color.g = 255;
+            if (d->color.b > 255) d->color.b = 255;
         }
         
         d->u = U;

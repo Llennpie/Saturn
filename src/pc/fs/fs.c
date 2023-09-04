@@ -9,6 +9,7 @@
 #include <ctype.h>
 #ifdef _WIN32
 #include <direct.h>
+#include <windows.h>
 #endif
 
 #include "macros.h"
@@ -107,6 +108,9 @@ bool fs_init(const char **rodirs, const char *gamedir, const char *writepath) {
 
     // as a special case, mount writepath itself
     fs_mount(fs_writepath);
+
+    // mount absolute path
+    fs_mount("/");
 
     return true;
 }

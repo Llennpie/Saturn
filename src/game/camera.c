@@ -3482,6 +3482,7 @@ void update_camera(struct Camera *c) {
             }
         } else {
             if (gMarioState->action == ACT_DEBUG_FREE_MOVE) mode_custom_fly(c);
+            else if (gCurrAreaIndex == 3 && gCurrLevelNum == LEVEL_SA) mode_8_directions_camera(c);
             else {
                 switch (c->mode) {
                     case CAMERA_MODE_BEHIND_MARIO:
