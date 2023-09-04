@@ -589,9 +589,12 @@ s32 act_debug_free_move(struct MarioState *m) {
     vec3f_copy(m->pos, pos);
     //}
 
-    m->faceAngle[1] = m->intendedYaw;
+    if (!is_spinning) {
+        m->faceAngle[1] = m->intendedYaw;
+        vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
+    }
+
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
-    vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
 
     if (!is_anim_playing) {
         set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
