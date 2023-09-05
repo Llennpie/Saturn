@@ -222,9 +222,9 @@ void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
     KeyframeTimeline timeline = KeyframeTimeline();
     timeline.precision = (char)saturn_format_read_int8(stream);
     if (version == 1) saturn_format_read_int8(stream);
-    char id[257];
-    saturn_format_read_string(stream, id);
-    id[256] = 0;
+    char id[256];
+    saturn_format_read_string(stream, id, 256);
+    id[255] = 0;
     auto timelineConfig = timelineDataTable[id];
     timeline.dest = timelineConfig.first.first;
     timeline.type = timelineConfig.first.second;
@@ -239,9 +239,9 @@ void saturn_project_keyframe_handler(SaturnFormatStream* stream, int version) {
     InterpolationCurve curve = InterpolationCurve(saturn_format_read_int8(stream));
     Keyframe keyframe = Keyframe((int)position, curve);
     keyframe.value = value;
-    char id[257];
-    saturn_format_read_string(stream, id);
-    id[256] = 0;
+    char id[256];
+    saturn_format_read_string(stream, id, 256);
+    id[254] = 0;
     keyframe.timelineID = id;
     k_frame_keys[id].second.push_back(keyframe);
 }
