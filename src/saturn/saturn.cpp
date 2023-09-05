@@ -16,7 +16,6 @@
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/filesystem/saturn_locationfile.h"
 #include "data/dynos.cpp.h"
-#include "game/save_file.h"
 
 bool mario_exists;
 
@@ -129,6 +128,7 @@ extern "C" {
 #include <sm64.h>
 #include "pc/controller/controller_keyboard.h"
 #include "pc/cheats.h"
+#include "game/save_file.h"
 }
 
 using namespace std;
