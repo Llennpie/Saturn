@@ -16,6 +16,7 @@
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/filesystem/saturn_locationfile.h"
 #include "data/dynos.cpp.h"
+#include "game/save_file.h"
 
 bool mario_exists;
 
@@ -632,7 +633,7 @@ const char* saturn_get_stage_name(int courseNum) {
 }
 
 void saturn_do_load() {
-    DynOS_Gfx_GetPacks().Clear();
+    if (!(save_file_get_flags() & SAVE_FLAG_TALKED_TO_ALL_TOADS)) DynOS_Gfx_GetPacks().Clear();
     DynOS_Opt_Init();
     model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
     if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
