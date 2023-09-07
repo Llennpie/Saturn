@@ -395,6 +395,8 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
 }
 
 int numColorCodes;
+std::vector<std::string> cc_path_stack = {};
+std::string selected_cc_path = "";
 
 void sdynos_imgui_init() {
     saturn_load_cc_directory();
@@ -448,7 +450,7 @@ void sdynos_imgui_menu() {
                         if (model_cc_array[n] == "../default.gs")
                             label = ui_mfolder_name;
 
-                        if (ImGui::Selectable((ICON_FK_USER " " + cc_name).c_str(), is_selected)) {
+                        if (ImGui::Selectable((ICON_FK_USER " " + cc_name + "/").c_str(), is_selected)) {
                             current_mcc_id = n;
                             current_cc_id = -1;
                             set_cc_from_model(ui_mfolder_path + "/colorcodes/" + cc_name + ".gs");
@@ -506,8 +508,10 @@ void sdynos_imgui_menu() {
             }
         }
         for (int n = 0; n < cc_array.size(); n++) {
-            const bool is_selected = (current_cc_id == n);
-            cc_name = cc_array[n].substr(0, cc_array[n].size() - 3);
+            bool is_dir = filesystem::is_directory("dynos/colorcodes/" + current_cc_path + cc_array[n]);
+            if (!is_dir) cc_name = cc_array[n].substr(0, cc_array[n].size() - 3);
+            else cc_name = cc_array[n];
+            const bool is_selected = current_cc_id == n - current_cc_path_dirs + 1 && selected_cc_path == current_cc_path && !is_dir;
 
             // If we're searching, only include CCs with the search keyword in the name
             // Also convert to lowercase
@@ -520,21 +524,35 @@ void sdynos_imgui_menu() {
                     continue;
                 }
             }
-
-            if (ImGui::Selectable(cc_name.c_str(), is_selected)) {
-                current_cc_id = n;
-                current_mcc_id = -1;
-                load_cc_file((char*)cc_array[current_cc_id].c_str());
-                set_editor_from_global_cc(cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3));
-
-                cc_details = "" + std::to_string(cc_array.size()) + " color code";
-                if (cc_array.size() != 1) cc_details += "s";
+            
+            if (is_dir) {
+                if (ImGui::Selectable((ICON_FK_FOLDER " " + cc_name).c_str(), is_selected)) {
+                    if (cc_name == "../") {
+                        current_cc_path = cc_path_stack[cc_path_stack.size() - 1];
+                        cc_path_stack.pop_back();
+                    }
+                    else {
+                        cc_path_stack.push_back(current_cc_path);
+                        current_cc_path += cc_name + "/";
+                    }
+                    saturn_load_cc_directory();
+                }
+            }
+            else {
+                if (ImGui::Selectable(cc_name.c_str(), is_selected)) {
+                    current_cc_id = n;
+                    current_mcc_id = -1;
+                    selected_cc_path = current_cc_path;
+                    load_cc_file((char*)cc_array[current_cc_id].c_str());
+                    set_editor_from_global_cc(cc_array[current_cc_id].substr(0, cc_array[current_cc_id].size() - 3));
+                    saturn_refresh_cc_count();
+                }
             }
 
             if (ImGui::BeginPopupContextItem()) {
                 if (cc_name != "Mario") {
                     ImGui::Text("%s.gs", cc_name.c_str());
-                    imgui_bundled_tooltip(("/dynos/colorcodes/" + cc_name + ".gs").c_str());
+                    imgui_bundled_tooltip(("/dynos/colorcodes/" + current_cc_path + cc_name + ".gs").c_str());
                     if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                         delete_cc_file(cc_name);
                         current_cc_id = -1;
@@ -579,7 +597,7 @@ void sdynos_imgui_menu() {
 
             // Do something with selection
             for (auto const &filename3 : selection3) {
-                saturn_copy_file(filename3, "dynos/colorcodes/");
+                saturn_copy_file(filename3, "dynos/colorcodes/" + current_cc_path);
                 saturn_load_cc_directory();
             }
         }
@@ -1398,7 +1416,7 @@ void imgui_dynos_cc_editor() {
                 strcpy(ui_cc_name, "Sample");
                 save_cc_model_file("Sample", global_gs_code(), ui_mfolder_name);
             }
-            saturn_load_cc_directory();
+        saturn_load_cc_directory();
         }
         string tooltipLabel = "dynos/packs/" + ui_mfolder_name + "/colorcodes/" + ui_cc_name;
         imgui_bundled_tooltip(tooltipLabel.c_str());

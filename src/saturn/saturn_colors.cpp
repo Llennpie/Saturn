@@ -74,6 +74,9 @@ bool modelCcLoaded;
 std::vector<string> model_cc_array;
 string modelColorCodeDir;
 
+string current_cc_path = "";
+int current_cc_path_dirs = 0;
+
 std::string formatColour(ColorTemplate &colorBodyPart) {
     char colour[64];
     ImFormatString(colour, IM_ARRAYSIZE(colour), "%02X%02X%02X%02X%02X%02X"
@@ -195,29 +198,42 @@ string last_model_cc_address;
 */
 void saturn_load_cc_directory() {
     cc_array.clear();
-    cc_array.push_back("Mario.gs");
 
 #ifdef __MINGW32__
     // windows moment
-    colorCodeDir = "dynos\\colorcodes\\";
+    colorCodeDir = "dynos\\colorcodes\\" + current_cc_path;
 #else
-    colorCodeDir = "dynos/colorcodes/";
+    colorCodeDir = "dynos/colorcodes/" + current_cc_path;
 #endif
 
     if (!fs::exists(colorCodeDir))
         return;
+    
+    current_cc_path_dirs = 1;
+    if (current_cc_path != "") cc_array.push_back("../");
+    else current_cc_path_dirs = 0;
 
     for (const auto & entry : fs::directory_iterator(colorCodeDir)) {
         fs::path path = entry.path();
 
+        if (!fs::is_directory(path)) continue;
+        current_cc_path_dirs++;
+        cc_array.push_back(path.filename().u8string());
+    }
+
+    if (current_cc_path == "") cc_array.push_back("Mario.gs");
+
+    for (const auto & entry : fs::directory_iterator(colorCodeDir)) {
+        fs::path path = entry.path();
+        
+        if (fs::is_directory(path)) continue;
         if (path.filename().u8string() != "Mario") {
             if (path.extension().u8string() == ".gs")
                 cc_array.push_back(path.filename().u8string());
         }
     }
 
-    cc_details = "" + std::to_string(cc_array.size()) + " color code";
-    if (cc_array.size() != 1) cc_details += "s";
+    saturn_refresh_cc_count();
 }
 
 /*
@@ -569,9 +585,9 @@ void paste_gs_code(string content) {
 */
 void save_cc_file(std::string name, std::string gameshark) {
 #ifdef __MINGW32__
-    std::ofstream file("dynos\\colorcodes\\" + name + ".gs");
+    std::ofstream file("dynos\\colorcodes\\" + current_cc_path + name + ".gs");
 #else
-    std::ofstream file("dynos/colorcodes/" + name + ".gs");
+    std::ofstream file("dynos/colorcodes/" + current_cc_path + name + ".gs");
 #endif
     file << gameshark;
 }
@@ -584,6 +600,7 @@ void save_cc_model_file(std::string name, std::string gameshark, std::string mod
     fs::create_directory("dynos/packs/" + modelFolder + "/colorcodes");
 
 #ifdef __MINGW32__
+    // windows moment
     std::ofstream file("dynos\\packs\\" + modelFolder + "\\colorcodes\\" + name + ".gs");
 #else
     std::ofstream file("dynos/packs/" + modelFolder + "/colorcodes/" + name + ".gs");
@@ -627,9 +644,9 @@ void delete_cc_file(std::string name) {
         name = "Sample";
 
 #ifdef __MINGW32__
-    string cc_path = "dynos\\colorcodes\\" + name + ".gs";
+    string cc_path = "dynos\\colorcodes\\" + current_cc_path + name + ".gs";
 #else
-    string cc_path = "dynos/colorcodes/" + name + ".gs";
+    string cc_path = "dynos/colorcodes/" + current_cc_path + name + ".gs";
 #endif
 
     remove(cc_path.c_str());
@@ -705,4 +722,19 @@ void set_cc_from_model(std::string ccPath) {
         if (!cc_spark_support) cc_spark_support = is_spark_address(address);
         run_cc_replacement(address, value1, value2);
     }
+}
+
+void scan_cc_dir(std::string dir, int* out) {
+    for (const auto& entry : fs::directory_iterator(dir)) {
+        fs::path path = entry.path();
+        if (fs::is_directory(path)) scan_cc_dir(dir + path.filename().u8string() + "/", out);
+        else if (path.extension().u8string() == ".gs") *out++;
+    }
+}
+
+void saturn_refresh_cc_count() {
+    int count = 0;
+    scan_cc_dir("dynos/colorcodes/", &count);
+    cc_details = "" + std::to_string(count) + " color code";
+    if (count != 1) cc_details += "s";
 }
