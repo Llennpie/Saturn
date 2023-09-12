@@ -1422,8 +1422,8 @@ void update_mario_geometry_inputs(struct MarioState *m) {
     } else {
         struct Surface* cur_floor = NULL;
         f32 floor_height = 0;
-        for (int i = 0; i < 16; i++) {
-            floor_height = find_ceil(m->pos[0], m->pos[1] + i * 500, m->pos[2], &cur_floor);
+        for (int i = 1; i <= 16; i++) {
+            floor_height = find_floor(m->pos[0], m->pos[1] + i * 500, m->pos[2], &cur_floor);
         }
         if (cur_floor == NULL) level_trigger_warp(m, WARP_OP_DEATH);
         else m->pos[1] = floor_height;
