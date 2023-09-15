@@ -4,6 +4,7 @@
 #include "SDL2/SDL.h"
 
 extern float gravity;
+extern bool enable_time_freeze;
 
 extern void anim_play_button();
 extern void anim_play_button(int);

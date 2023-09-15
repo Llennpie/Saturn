@@ -60,6 +60,7 @@ int obj_model;
 int obj_beh;
 
 float gravity = 1;
+bool enable_time_freeze = false;
 
 int current_location_index = 0;
 char location_name[256];
@@ -177,6 +178,7 @@ void smachinima_imgui_controls(SDL_Event * event) {
 void warp_to_level(int level, int area, int act = -1) {
     is_anim_playing = false;
     is_anim_paused = false;
+    enable_time_freeze = false;
 
     if (level != 0) enable_shadows = true;
     else enable_shadows = false;
@@ -426,6 +428,12 @@ void imgui_machinima_quick_options() {
     saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
     ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
     imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
+    if (ImGui::Checkbox("Time Freeze", (bool*)&enable_time_freeze)) {
+        if (enable_time_freeze) enable_time_stop_including_mario();
+        else disable_time_stop_including_mario();
+    }
+    saturn_keyframe_bool_popout(&enable_time_freeze, "Time Freeze", "k_time_freeze");
+    imgui_bundled_tooltip("Freezes everything excluding the camera.");
     ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
     imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
     if (mario_exists) {
