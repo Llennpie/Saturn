@@ -314,10 +314,10 @@ void saturn_update() {
             justFinished = true;
         }
 
+        gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
+
         schroma_imgui_init();
     }
-
-    gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
 
     // Animations
 
