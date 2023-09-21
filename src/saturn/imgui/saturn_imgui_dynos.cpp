@@ -90,8 +90,6 @@ static char modelSearchTerm[128];
 static char ccSearchTerm[128];
 static int current_mcc_id = 0;
 
-float this_face_angle;
-
 bool has_copy_mario;
 
 bool last_model_had_model_eyes;
@@ -978,10 +976,10 @@ void sdynos_imgui_menu() {
             if (gMarioState) {
                 if (ImGuiKnobs::Knob("Angle", &this_face_angle, -180.f, 180.f, 0.f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
                     gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
-                } else {
+                } else if (!k_popout_open || keyframe_playing) {
                     this_face_angle = (float)gMarioState->faceAngle[1] / 182.04;
                 }
-                saturn_keyframe_float_popout((float*)&gMarioState->faceAngle[1], "Mario Angle", "k_angle");
+                saturn_keyframe_float_popout(&this_face_angle, "Mario Angle", "k_angle");
             }
 
             ImGui::Checkbox("Spin###spin_angle", &is_spinning);

@@ -58,6 +58,8 @@ int current_anim_length;
 bool is_anim_paused = false;
 int paused_anim_frame;
 
+float this_face_angle;
+
 bool limit_fps = true;
 
 // discord
@@ -314,6 +316,8 @@ void saturn_update() {
 
         schroma_imgui_init();
     }
+
+    gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
 
     // Animations
 

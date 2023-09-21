@@ -50,6 +50,8 @@ extern int current_anim_id;
 extern int current_anim_length;
 extern bool is_anim_paused;
 
+extern float this_face_angle;
+
 extern bool limit_fps;
 extern bool has_discord_init;
 
