@@ -90,7 +90,10 @@ void sdiscord_update() {
     app.core->run_callbacks(app.core);
 
     gCurActivity.type = DiscordActivityType_Playing;
-    strcpy(gCurActivity.details, (model_details + ", " + cc_details).c_str());
+    if (model_details == "" || cc_details == "")
+        strcpy(gCurActivity.details, "Loading...");
+    else
+        strcpy(gCurActivity.details, (model_details + ", " + cc_details).c_str());
 
     switch(gCurrLevelNum) {
         case LEVEL_SA:
