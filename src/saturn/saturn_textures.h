@@ -62,7 +62,7 @@ extern struct ModelData current_model_data;
 extern bool using_model_eyes;
 extern std::string current_folder_name;
 extern std::string saturn_load_search(std::string folder_name);
-void saturn_load_model_data(std::string folder_name);
+void saturn_load_model_data(std::string folder_name, bool refresh_textures);
 void saturn_set_model_texture(int expIndex, std::string path);
 void saturn_set_model_blink_eye(int, int, std::string);
 void saturn_load_expression_number(char number);

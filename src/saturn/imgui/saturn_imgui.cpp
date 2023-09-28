@@ -547,16 +547,12 @@ void saturn_imgui_update() {
                         saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
                     }
                     ImGui::SameLine(70);
-                    bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
-                    if (in_custom_level) ImGui::BeginDisabled();
                     if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
                         saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
                         saturn_load_project_list();
                     }
-                    if (in_custom_level) ImGui::EndDisabled();
                     ImGui::SameLine();
                     imgui_bundled_help_marker("NOTE: Project files are currently EXPERIMENTAL and prone to crashing!");
-                    if (in_custom_level) ImGui::Text("Saving in a custom\nlevel isn't supported");
                     ImGui::EndMenu();
                 }
                 if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
@@ -744,14 +740,8 @@ void saturn_imgui_update() {
                     ImGui::TextDisabled(ICON_FK_GITHUB " " GIT_BRANCH " " GIT_HASH);
 #endif
 #endif
-                    if (gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3) {
-                        ImGui::SameLine(ImGui::GetWindowWidth() - 280);
-                        ImGui::Text("Saving in custom level isn't supported");
-                    }
-                    else {
-                        ImGui::SameLine(ImGui::GetWindowWidth() - 140);
-                        ImGui::Text("Autosaving in %ds", autosaveDelay / 30);
-                    }
+                    ImGui::SameLine(ImGui::GetWindowWidth() - 135);
+                    ImGui::Text("Autosaving in %ds", autosaveDelay / 30);
                     ImGui::EndMenuBar();
                 }
                 ImGui::End();

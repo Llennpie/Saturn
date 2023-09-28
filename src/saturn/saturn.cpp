@@ -60,6 +60,8 @@ int current_anim_length;
 bool is_anim_paused = false;
 int paused_anim_frame;
 
+float this_face_angle;
+
 bool limit_fps = true;
 
 // discord
@@ -314,6 +316,8 @@ void saturn_update() {
             justFinished = true;
         }
 
+        gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
+
         schroma_imgui_init();
     }
 
@@ -397,11 +401,9 @@ void saturn_update() {
 
     // Autosave
 
-    if (gCurrLevelNum != LEVEL_SA || gCurrAreaIndex != 3) {
-        if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
-        autosaveDelay--;
-        if (autosaveDelay == 0) saturn_save_project("autosave.spj");
-    }
+    if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
+    autosaveDelay--;
+    if (autosaveDelay == 0) saturn_save_project("autosave.spj");
 }
 
 float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyframe, bool* last) {

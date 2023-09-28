@@ -27,6 +27,8 @@ extern void saturn_play_custom_animation();
 extern void saturn_run_chainer();
 extern int saturn_anim_by_name(std::string);
 
+extern const char* saturn_animations_list[];
+
 #endif
 
 extern bool current_canim_has_extra;
