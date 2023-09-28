@@ -16,6 +16,8 @@
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/filesystem/saturn_locationfile.h"
 #include "data/dynos.cpp.h"
+#include "saturn/filesystem/saturn_registerfile.h"
+#include "saturn/cmd/saturn_cmd.h"
 
 bool mario_exists;
 
@@ -391,6 +393,8 @@ void saturn_update() {
         gMarioState->faceAngle[1] += (s16)(spin_mult * 15 * 182.04f);
     }
 
+    saturn_cmd_resume();
+
     // Autosave
 
     if (gCurrLevelNum != LEVEL_SA || gCurrAreaIndex != 3) {
@@ -640,6 +644,7 @@ void saturn_do_load() {
     saturn_imgui_init();
     saturn_load_locations();
     saturn_launch_timer = 0;
+    saturn_cmd_registers_load();
 }
 void saturn_on_splash_finish() {
     splash_finished = true;

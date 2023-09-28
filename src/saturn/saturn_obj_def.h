@@ -10,7 +10,7 @@
 #include <string>
 #include <map>
 
-std::pair<std::string, int> obj_models[] = {
+inline std::pair<std::string, int> obj_models[] = {
     std::make_pair("MODEL_1UP", MODEL_1UP),
     std::make_pair("MODEL_AMP", MODEL_AMP),
     std::make_pair("MODEL_BBH_HAUNTED_DOOR", MODEL_BBH_HAUNTED_DOOR),
@@ -423,7 +423,7 @@ std::pair<std::string, int> obj_models[] = {
     std::make_pair("MODEL_YOSHI", MODEL_YOSHI),
     std::make_pair("MODEL_YOSHI_EGG", MODEL_YOSHI_EGG)
 };
-std::pair<std::string, const BehaviorScript*> obj_behaviors[] = {
+inline std::pair<std::string, const BehaviorScript*> obj_behaviors[] = {
     std::make_pair("bhv1Up", bhv1Up),
     std::make_pair("bhv1upJumpOnApproach", bhv1upJumpOnApproach),
     std::make_pair("bhv1upRunningAway", bhv1upRunningAway),

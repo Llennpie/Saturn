@@ -13,6 +13,8 @@
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 
+#include "saturn/saturn_animation_ids.h"
+
 #include "pc/configfile.h"
 
 extern "C" {
@@ -232,4 +234,13 @@ void saturn_run_chainer() {
             }
         }
     }
+}
+
+int saturn_anim_by_name(std::string name) {
+    for (auto map : sanim_maps) {
+        for (auto& entry : map) {
+            if (entry.first.second == name) return entry.second;
+        }
+    }
+    return -1;
 }

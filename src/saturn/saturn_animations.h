@@ -25,6 +25,7 @@ extern void saturn_read_mcomp_animation(std::string);
 extern void saturn_load_anim_folder(std::string, int*);
 extern void saturn_play_custom_animation();
 extern void saturn_run_chainer();
+extern int saturn_anim_by_name(std::string);
 
 #endif
 

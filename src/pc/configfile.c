@@ -105,6 +105,7 @@ bool         configNoCamShake = false;
 bool         configNoButterflies = false;
 bool         configSaturnSplash = true;
 bool         configNoWater = false;
+bool         configEnableCli = false;
 float        camera_fov = 50.0f;
 #ifdef BETTERCAMERA
 // BetterCamera settings
@@ -184,6 +185,7 @@ static const struct ConfigOption options[] = {
     {.name = "no_butterflies", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoButterflies},
     {.name = "show_splash", .type = CONFIG_TYPE_BOOL, .uintValue = &configSaturnSplash},
     {.name = "no_water", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoWater},
+    {.name = "enable_cli", .type = CONFIG_TYPE_BOOL, .uintValue = &configEnableCli},
     {.name = "default_fov", .type = CONFIG_TYPE_FLOAT, .floatValue = &camera_fov},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},

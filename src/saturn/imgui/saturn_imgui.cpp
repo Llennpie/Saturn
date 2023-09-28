@@ -24,6 +24,7 @@
 #include "icons/IconsFontAwesome5.h"
 #include "saturn/filesystem/saturn_projectfile.h"
 #include "saturn/saturn_timeline_groups.h"
+#include "saturn/cmd/saturn_cmd.h"
 
 #include <SDL2/SDL.h>
 
@@ -69,6 +70,8 @@ extern "C" {
 #include "game/object_list_processor.h"
 }
 
+#define CLI_MAX_INPUT_SIZE 4096
+
 using namespace std;
 
 SDL_Window* window = nullptr;
@@ -106,6 +109,32 @@ ImVec2 k_context_popout_pos = ImVec2(0, 0);
 bool was_camera_frozen = false;
 
 bool splash_finished = false;
+
+std::vector<std::string> macro_array = {};
+std::vector<std::string> macro_dir_stack = {};
+std::string current_macro_dir = "";
+int current_macro_id = -1;
+int current_macro_dir_count = 0;
+char cli_input[CLI_MAX_INPUT_SIZE];
+
+void saturn_load_macros() {
+    std::string dir = "dynos/macros/" + current_macro_dir;
+    macro_array.clear();
+    current_macro_id = -1;
+    current_macro_dir_count = 1;
+    if (current_macro_dir != "") macro_array.push_back("../");
+    else current_macro_dir_count = 0;
+    for (auto& entry : filesystem::directory_iterator(dir)) {
+        if (!filesystem::is_directory(entry)) continue;
+        macro_array.push_back(entry.path().filename().u8string() + "/");
+        current_macro_dir_count++;
+    }
+    for (auto& entry : filesystem::directory_iterator(dir)) {
+        if (filesystem::is_directory(entry)) continue;
+        if (entry.path().extension().u8string() == ".stm")
+            macro_array.push_back(entry.path().filename().u8string());
+    }
+}
 
 // Bundled Components
 
@@ -243,6 +272,7 @@ void saturn_imgui_init() {
     ssettings_imgui_init();
     
     saturn_load_project_list();
+    saturn_load_macros();
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -534,6 +564,50 @@ void saturn_imgui_update() {
                 }
 
                 ImGui::Separator();
+
+                if (ImGui::BeginMenu(ICON_FK_CODE " Macros")) {
+                    ImGui::BeginChild("###menu_macros", ImVec2(165, 75), true);
+                    for (int i = 0; i < macro_array.size(); i++) {
+                        std::string macro = macro_array[i];
+                        bool selected = false;
+                        if (filesystem::is_directory("dynos/macros/" + current_macro_dir + macro)) {
+                            if (ImGui::Selectable((std::string(ICON_FK_FOLDER " ") + macro).c_str(), &selected)) {
+                                if (macro == "../") {
+                                    current_macro_dir = macro_dir_stack[macro_dir_stack.size() - 1];
+                                    macro_dir_stack.pop_back();
+                                }
+                                else {
+                                    macro_dir_stack.push_back(current_macro_dir);
+                                    current_macro_dir += macro;
+                                }
+                                saturn_load_macros();
+                            }
+                        }
+                        else {
+                            selected = i == current_macro_id;
+                            if (ImGui::Selectable(macro.c_str(), &selected)) {
+                                current_macro_id = i;
+                            }
+                        }
+                    }
+                    ImGui::EndChild();
+                    if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
+                        saturn_load_macros();
+                    } ImGui::SameLine();
+                    if (current_macro_id == -1) ImGui::BeginDisabled();
+                    if (ImGui::Button("Run")) {
+                        saturn_cmd_clear_registers();
+                        saturn_cmd_eval_file("dynos/macros/" + current_macro_dir + macro_array[current_macro_id]);
+                    }
+                    if (current_macro_id == -1) ImGui::EndDisabled();
+                    ImGui::SameLine();
+                    imgui_bundled_help_marker("EXPERIMENTAL - Allows you to run commands and do stuff in bulk.\nCurrently has no debugging or documentation.");
+                    ImGui::Checkbox("Command Line", &configEnableCli);
+                    ImGui::EndMenu();
+                }
+
+                ImGui::Separator();
+
                 if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_LINE_CHART " Timeline Editor", "F6", k_popout_open == true)) {
                     k_popout_open = !k_popout_open;
@@ -682,6 +756,23 @@ void saturn_imgui_update() {
                 }
                 ImGui::End();
             }
+        }
+
+        if (configEnableCli)
+        if (ImGui::BeginViewportSideBar("###CliMenuBar", viewport, ImGuiDir_Down, height, window_flags)) {
+            if (ImGui::BeginMenuBar()) {
+                ImGui::Dummy({ 0, 0 });
+                ImGui::SameLine(-7);
+                ImGui::PushItemWidth(ImGui::GetWindowWidth());
+                if (ImGui::InputText("###cli_input", cli_input, CLI_MAX_INPUT_SIZE, ImGuiInputTextFlags_EnterReturnsTrue)) {
+                    is_cli = true;
+                    saturn_cmd_eval(std::string(cli_input));
+                    cli_input[0] = 0;
+                }
+                ImGui::PopItemWidth();
+                ImGui::EndMenuBar();
+            }
+            ImGui::End();
         }
 
         if (windowStats) {
