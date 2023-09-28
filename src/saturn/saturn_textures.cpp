@@ -71,27 +71,34 @@ bool enable_blink_cycle = false;
 
 std::vector<std::string> previous_eye_paths;
 
+std::vector<string> eye1_array;
+
 // Eye Folders, Non-Model
 
 void saturn_load_eye_folder(std::string path) {
     eye_array.clear();
+    eye1_array.clear();
     fs::create_directory("res/gfx");
 
-    // if eye folder is missing
+    // If eye folder is misplaced
     if (!fs::exists("dynos/eyes/"))
         return;
 
-    // reset dir if we last used models or returned to root
-    if (path == "../") {
-        if (previous_eye_paths.size() < 1) path = "";
-        else {
+    // Go back a subfolder
+    if (path.find("../") != string::npos) {
+        // Only go back if the previous directory actually exists
+        if (previous_eye_paths.size() < 1 || !fs::exists(previous_eye_paths[previous_eye_paths.size() - 2])) {
+            path = "";
+            current_eye_dir_path = "dynos/eyes/";
+            previous_eye_paths.clear();
+        } else {
             current_eye_dir_path = previous_eye_paths[previous_eye_paths.size() - 2];
             previous_eye_paths.pop_back();
         }
     }
-    if (model_eyes_enabled || path == "") {
-        model_eyes_enabled = false;
+    if (path == "") {
         current_eye_dir_path = "dynos/eyes/";
+        previous_eye_paths.clear();
     }
 
     // only update current path if folder exists
@@ -112,9 +119,12 @@ void saturn_load_eye_folder(std::string path) {
         } else {
             string entryPath = entry.path().filename().u8string();
             if (entryPath.find(".png") != string::npos) // only allow png files
-                eye_array.push_back(entryPath);
+                eye1_array.push_back(entryPath);
         }
     }
+
+    eye_array.insert(eye_array.end(), eye1_array.begin(), eye1_array.end());
+    eye1_array.clear();
     
     if (eye_array.size() > 0)
         saturn_set_eye_texture(0);
@@ -375,7 +385,9 @@ string saturn_load_search(std::string folder_name) {
     return folder_name;
 }
 
-void saturn_load_model_data(std::string folder_name) {
+std::string previous_model_name;
+
+void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
     // Reset current model data
     ModelData blank;
     current_model_data = blank;
@@ -480,19 +492,28 @@ void saturn_load_model_data(std::string folder_name) {
         if (fs::is_directory(entry.path())) {
             string expression_name = entry.path().filename().u8string();
             saturn_load_model_expression_entry(folder_name, expression_name);
-            
+
             // Choose first texture as default
-            current_model_exp_tex[i] = "../../" + current_model_data.expressions[i].path + current_model_data.expressions[i].textures[0];
-            current_model_exp_tex[i] = current_model_exp_tex[i].substr(0, current_model_exp_tex[i].size() - 4);
+            if (!refresh_textures) {
+                current_model_exp_tex[i] = "../../" + current_model_data.expressions[i].path + current_model_data.expressions[i].textures[0];
+                current_model_exp_tex[i] = current_model_exp_tex[i].substr(0, current_model_exp_tex[i].size() - 4);
+            }
 
             // Toggle model eyes
-            if (expression_name.find("eye") != string::npos) using_model_eyes = true;
+            if (expression_name.find("eye") != string::npos) {
+                using_model_eyes = true;
+            } else {
+                saturn_load_eye_folder("");
+                previous_eye_paths.clear();
+            }
 
             i++;
         } else {
             // Ignore, these are files
         }
     }
+
+    previous_model_name = current_model_data.name;
 }
 
 void saturn_copy_file(string from, string to) {
