@@ -175,30 +175,23 @@ void warp_to_level(int level, int area, int act = -1) {
     if (level != 0) enable_shadows = true;
     else enable_shadows = false;
 
-    s32 levelID = levelList[level];
-    s32 warpnode = 0x0A;
-
     switch (level) {
+        case 0:
+            DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, 0);
+            break;
         case 1:
-            warpnode = 0x04;
+            warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
             break;
         case 2:
-            if (area == 1) warpnode = 0x1E;
-            else warpnode = 0x10;
+            warp_to(LEVEL_CASTLE, 0x01, 0x01);
             break;
         case 3:
-            warpnode = 0x0B;
+            warp_to(LEVEL_CASTLE_COURTYARD, 0x01, 0x0B);
+            break;
+        default:
+            warp_to(levelList[level]);
             break;
     }
-
-    if (levelID != LEVEL_BOB && levelID != LEVEL_WF  && levelID != LEVEL_JRB &&
-        levelID != LEVEL_CCM && levelID != LEVEL_BBH && levelID != LEVEL_HMC &&
-        levelID != LEVEL_LLL && levelID != LEVEL_SSL && levelID != LEVEL_DDD &&
-        levelID != LEVEL_SL  && levelID != LEVEL_WDW && levelID != LEVEL_TTM &&
-        levelID != LEVEL_THI && levelID != LEVEL_TTC && levelID != LEVEL_RR  && levelID != LEVEL_SA) act = -1;
-
-    if (act == -1) warp_to(levelID, area, warpnode);
-    else DynOS_Warp_ToWarpNode(levelID, area, act, warpnode);
 }
 
 int get_saturn_level_id(int level) {
@@ -435,7 +428,7 @@ void imgui_machinima_animation_player() {
         ImGui::BeginDisabled();
 
     const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
-        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", "CUSTOM..." };
+        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", ICON_FK_FILE_O " CUSTOM...", "All (209)"};
     int animArraySize = (canim_array.size() > 0) ? IM_ARRAYSIZE(anim_groups) : IM_ARRAYSIZE(anim_groups) - 1;
 
     ImGui::PushItemWidth(290);
@@ -444,14 +437,7 @@ void imgui_machinima_animation_player() {
             const bool is_selected = (current_sanim_group_index == n);
             if (ImGui::Selectable(anim_groups[n], is_selected)) {
                 current_sanim_group_index = n;
-                if (current_sanim_group_index != 8) {
-                    current_anim_map = sanim_maps[current_sanim_group_index];
-                    is_custom_anim = false;
-                    current_sanim_index = current_anim_map.begin()->first.first;
-                    current_sanim_name = current_anim_map.begin()->first.second;
-                    current_sanim_id = current_anim_map.begin()->second;
-                    anim_preview_name = current_sanim_name;
-                } else {
+                if (current_sanim_group_index == 8) {
                     is_custom_anim = true;
                     current_sanim_id = MARIO_ANIM_A_POSE;
 
@@ -460,6 +446,25 @@ void imgui_machinima_animation_player() {
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
                     is_anim_looped = current_canim_looping;
+                } else if (current_sanim_group_index == 9) {
+                    current_anim_map = sanim_maps[9];
+                    is_custom_anim = false;
+
+                    for (int i; i < 8; i++) {
+                        current_anim_map.merge(sanim_maps[i]);
+                    }
+                    current_sanim_index = current_anim_map.begin()->first.first;
+                    current_sanim_name = current_anim_map.begin()->first.second;
+                    current_sanim_id = current_anim_map.begin()->second;
+                    anim_preview_name = current_sanim_name;
+
+                } else {
+                    current_anim_map = sanim_maps[current_sanim_group_index];
+                    is_custom_anim = false;
+                    current_sanim_index = current_anim_map.begin()->first.first;
+                    current_sanim_name = current_anim_map.begin()->first.second;
+                    current_sanim_id = current_anim_map.begin()->second;
+                    anim_preview_name = current_sanim_name;
                 }
             }
 
@@ -475,7 +480,7 @@ void imgui_machinima_animation_player() {
         ImGui::EndCombo();
     }
 
-    if (current_sanim_group_index == 8 && canim_array.size() >= 20) {
+    if ((current_sanim_group_index == 8 && canim_array.size() >= 20) || current_sanim_group_index == 9) {
         ImGui::InputTextWithHint("###anim_search_text", ICON_FK_SEARCH " Search animations...", animSearchTerm, IM_ARRAYSIZE(animSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
     } else {
         // If our anim list is reloaded, and we now have less than 20 anims, this can cause filter issues if not reset to nothing
@@ -488,29 +493,14 @@ void imgui_machinima_animation_player() {
     ImGui::PopItemWidth();
 
     ImGui::BeginChild("###anim_box_child", ImVec2(290, 100), true);
-    if (current_sanim_group_index != 8) {
-        for (auto &[a,b]:current_anim_map) {
-            current_sanim_index = a.first;
-            current_sanim_name = a.second;
-
-            const bool is_selected = (current_sanim_id == b);
-            if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
-                current_sanim_index = a.first;
-                current_sanim_name = a.second;
-                current_sanim_id = b;
-                anim_preview_name = current_sanim_name;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
-            }
-
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-        }
-    } else {
+    if (current_sanim_group_index == 8) {
         for (int i = 0; i < canim_array.size(); i++) {
             current_sanim_name = canim_array[i];
             if (canim_array[i].find("/") != string::npos)
-                current_sanim_name = ICON_FK_FOLDER_O " " + canim_array[i];
+                current_sanim_name = ICON_FK_FOLDER " " + canim_array[i].substr(0, canim_array[i].size() - 1);
+
+            if (canim_array[i] == "../")
+                current_sanim_name = ICON_FK_FOLDER " ../";
 
             const bool is_selected = (custom_anim_index == i);
 
@@ -568,6 +558,52 @@ void imgui_machinima_animation_player() {
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
+            }
+
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+    } else if (current_sanim_group_index == 9) {
+        for (int i = 0; i < 209; i++) {
+            const bool is_selected = (current_sanim_index == i);
+            current_sanim_name = saturn_animations_list[i];
+
+            // If we're searching, only include anims with the search keyword in the name
+            // Also convert to lowercase
+            if (animSearchLower != "") {
+                string nameLower = current_sanim_name;
+                std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(),
+                    [](unsigned char c1){ return std::tolower(c1); });
+
+                if (nameLower.find(animSearchLower) == string::npos) {
+                    continue;
+                }
+            }
+
+            if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                current_sanim_index = i;
+                current_sanim_name = saturn_animations_list[i];
+                current_sanim_id = i;
+                k_current_anim = encode_animation();
+                place_keyframe_anim = true;
+            }
+
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+    } else {
+        for (auto &[a,b]:current_anim_map) {
+            current_sanim_index = a.first;
+            current_sanim_name = a.second;
+
+            const bool is_selected = (current_sanim_id == b);
+            if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                current_sanim_index = a.first;
+                current_sanim_name = a.second;
+                current_sanim_id = b;
+                anim_preview_name = current_sanim_name;
+                k_current_anim = encode_animation();
+                place_keyframe_anim = true;
             }
 
             if (is_selected)
