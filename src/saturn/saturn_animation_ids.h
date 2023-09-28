@@ -251,9 +251,12 @@ extern std::map<std::pair<int, std::string>, int> sanim_object = {
 };
 
 // unused
+extern std::map<std::pair<int, std::string>, int> sanim_custom = {
+    { std::make_pair(1, "A_POSE"), MARIO_ANIM_A_POSE},
+};
+
+// unused
 extern std::map<std::pair<int, std::string>, int> sanim_misc = {
-    // 8 : Misc. (2)
-    { std::make_pair(0, "TILT_SPAZ"), MARIO_ANIM_TILT_SPAZ}, // custom saturn anim for spazzing, credits to Weegeepie
     { std::make_pair(1, "A_POSE"), MARIO_ANIM_A_POSE},
 };
 
@@ -266,6 +269,7 @@ extern std::vector<std::map<std::pair<int, std::string>, int>> sanim_maps = {
     sanim_water,
     sanim_climbing,
     sanim_object,
+    sanim_custom,
     sanim_misc
 };
 
