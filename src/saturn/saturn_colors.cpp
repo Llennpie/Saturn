@@ -75,7 +75,6 @@ std::vector<string> model_cc_array;
 string modelColorCodeDir;
 
 string current_cc_path = "";
-int current_cc_path_dirs = 0;
 
 std::string formatColour(ColorTemplate &colorBodyPart) {
     char colour[64];
@@ -208,18 +207,6 @@ void saturn_load_cc_directory() {
 
     if (!fs::exists(colorCodeDir))
         return;
-    
-    current_cc_path_dirs = 1;
-    if (current_cc_path != "") cc_array.push_back("../");
-    else current_cc_path_dirs = 0;
-
-    for (const auto & entry : fs::directory_iterator(colorCodeDir)) {
-        fs::path path = entry.path();
-
-        if (!fs::is_directory(path)) continue;
-        current_cc_path_dirs++;
-        cc_array.push_back(path.filename().u8string());
-    }
 
     if (current_cc_path == "") cc_array.push_back("Mario.gs");
 

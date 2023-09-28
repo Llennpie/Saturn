@@ -37,7 +37,6 @@ extern std::vector<std::string> cc_array;
 extern std::string global_gs_code();
 
 extern std::string current_cc_path;
-extern int current_cc_path_dirs;
 
 extern bool is_default_cc(std::string gameshark);
 
