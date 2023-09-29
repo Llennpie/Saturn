@@ -758,6 +758,7 @@ void saturn_imgui_update() {
                     is_cli = true;
                     saturn_cmd_eval(std::string(cli_input));
                     cli_input[0] = 0;
+                    ImGui::SetKeyboardFocusHere(-1);
                 }
                 ImGui::PopItemWidth();
                 ImGui::EndMenuBar();
