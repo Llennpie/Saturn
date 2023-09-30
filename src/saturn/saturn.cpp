@@ -321,6 +321,19 @@ void saturn_update() {
         schroma_imgui_init();
     }
 
+    if (camera_frozen && keyframe_playing) {
+        should_update_cam_from_keyframes = false;
+        vec3f_copy(gCamera->pos, freezecamPos);
+        vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
+        gLakituState.roll = freezecamRoll;
+        vec3f_copy(gLakituState.pos, gCamera->pos);
+        vec3f_copy(gLakituState.focus, gCamera->focus);
+        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+        gLakituState.yaw = gCamera->yaw;
+    }
+
     // Animations
 
     if (mario_exists) {
