@@ -320,6 +320,19 @@ void saturn_update() {
         }
     }
 
+    if (camera_frozen && keyframe_playing) {
+        should_update_cam_from_keyframes = false;
+        vec3f_copy(gCamera->pos, freezecamPos);
+        vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
+        gLakituState.roll = freezecamRoll;
+        vec3f_copy(gLakituState.pos, gCamera->pos);
+        vec3f_copy(gLakituState.focus, gCamera->focus);
+        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+        gLakituState.yaw = gCamera->yaw;
+    }
+
     //s16 pitch, yaw;
     //f32 thisDist;
     //vec3f_get_dist_and_angle(gCamera->focus, gCamera->pos, &thisDist, &pitch, &yaw);
