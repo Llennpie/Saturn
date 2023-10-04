@@ -58,5 +58,6 @@ extern void cmd_wait(CommandContext context);
 extern void cmd_alias_set_value(CommandContext context);
 extern void cmd_alias_set_from(CommandContext context);
 extern void cmd_alias_delete(CommandContext context);
+extern void cmd_kill(CommandContext context);
 
 #endif

@@ -309,6 +309,9 @@ extern const Command commands[] = { CMD_LITERALS(),
             CMD_END(),
         CMD_END(),
     CMD_END(),
+    CMD_LITERAL("kill"),
+        CMD_EXEC(cmd_kill),
+    CMD_END(),
 CMD_END() };
 
 #endif
