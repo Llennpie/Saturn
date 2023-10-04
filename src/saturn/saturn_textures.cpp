@@ -477,6 +477,26 @@ void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
         if (root.isMember("custom_blink_cycle")) {
             enable_blink_cycle = root["custom_blink_cycle"].asBool();
         }
+
+        // Default hand state for the model (optional)
+        if (root.isMember("default_hand_state")) {
+            std::string data = root["default_hand_state"].asString();
+            if (data == "fists") scrollHandState = 0;
+            if (data == "open") scrollHandState = 1;
+            if (data == "peace") scrollHandState = 2;
+            if (data == "cap") scrollHandState = 3;
+            if (data == "wing") scrollHandState = 4;
+            if (data == "right_open") scrollHandState = 5;
+            if (data == "fists") scrollHandState = 6;
+        }
+
+        // Default cap state for the model (optional)
+        if (root.isMember("default_cap_state")) {
+            std::string data = root["default_cap_state"].asString();
+            if (data == "on") scrollCapState = 0;
+            if (data == "off") scrollCapState = 1;
+            if (data == "wing") scrollCapState = 2;
+        }
     }
 
     // Set the current folder name
