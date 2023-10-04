@@ -85,6 +85,7 @@ sm64config.txt
 actors/mario_cap/mario_cap_logo.rgba16.png
 actors/mario/mario_logo.rgba16.png
 *.spj
+command_data.bin
 !/levels/intro/4_saturn.rgba16.png
 !/levels/intro/5_ring.rgba16.png
 

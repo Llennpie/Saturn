@@ -141,6 +141,20 @@ void anim_play_button(int animation) {
     anim_play_button();
 }
 
+void saturn_create_object(int model, const BehaviorScript* behavior, float x, float y, float z, s16 pitch, s16 yaw, s16 roll, int behParams) {
+    Object* obj = spawn_object(gMarioState->marioObj, model, behavior);
+    obj->oPosX = x;
+    obj->oPosY = y;
+    obj->oPosZ = z;
+    obj->oHomeX = x;
+    obj->oHomeY = y;
+    obj->oHomeZ = z;
+    obj->oFaceAnglePitch = pitch;
+    obj->oFaceAngleYaw = yaw;
+    obj->oFaceAngleRoll = roll;
+    obj->oBehParams = behParams;
+}
+
 void smachinima_imgui_controls(SDL_Event * event) {
     switch (event->type){
         case SDL_KEYDOWN:
@@ -348,8 +362,8 @@ void imgui_machinima_quick_options() {
         if (enable_time_freeze) enable_time_stop_including_mario();
         else disable_time_stop_including_mario();
     }
-    saturn_keyframe_bool_popout(&enable_time_freeze, "Time Freeze", "k_time_freeze");
     imgui_bundled_tooltip("Freezes everything excluding the camera.");
+    saturn_keyframe_bool_popout(&enable_time_freeze, "Time Freeze", "k_time_freeze");
     ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
     imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
     if (mario_exists) {
@@ -402,17 +416,12 @@ void imgui_machinima_quick_options() {
             ImGui::InputInt4("###obj_beh_params", obj_beh_params);
             ImGui::Separator();
             if (ImGui::Button("Spawn Object")) {
-                Object* obj = spawn_object(gMarioState->marioObj, obj_models[obj_model].second, obj_behaviors[obj_beh].second);
-                obj->oPosX = obj_pos[0];
-                obj->oPosY = obj_pos[1];
-                obj->oPosZ = obj_pos[2];
-                obj->oHomeX = obj_pos[0];
-                obj->oHomeY = obj_pos[1];
-                obj->oHomeZ = obj_pos[2];
-                obj->oFaceAnglePitch = obj_rot[0];
-                obj->oFaceAngleYaw = obj_rot[1];
-                obj->oFaceAngleRoll = obj_rot[2];
-                obj->oBehParams = ((obj_beh_params[0] & 0xFF) << 24) | ((obj_beh_params[1] & 0xFF) << 16) | ((obj_beh_params[2] & 0xFF) << 8) | (obj_beh_params[3] & 0xFF);
+                saturn_create_object(
+                    obj_models[obj_model].second, obj_behaviors[obj_beh].second,
+                    obj_pos[0], obj_pos[1], obj_pos[2],
+                    obj_rot[0], obj_rot[1], obj_rot[2],
+                    ((obj_beh_params[0] & 0xFF) << 24) | ((obj_beh_params[1] & 0xFF) << 16) | ((obj_beh_params[2] & 0xFF) << 8) | (obj_beh_params[3] & 0xFF)
+                );
             }
             ImGui::EndMenu();
         }

@@ -34,6 +34,8 @@ extern void saturn_keyframe_popout(const T &edit_value, s32 data_type, std::stri
 
 extern void saturn_keyframe_context_popout(Keyframe keyframe);
 
+extern void saturn_keyframe_sort(std::vector<Keyframe>* keyframes);
+
 extern bool showMenu;
 extern int currentMenu;
 
