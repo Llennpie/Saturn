@@ -481,21 +481,24 @@ void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
         // Default hand state for the model (optional)
         if (root.isMember("default_hand_state")) {
             std::string data = root["default_hand_state"].asString();
+            std::cout << "default_hand_state : " << data << std::endl;
             if (data == "fists") scrollHandState = 0;
             if (data == "open") scrollHandState = 1;
             if (data == "peace") scrollHandState = 2;
             if (data == "cap") scrollHandState = 3;
             if (data == "wing") scrollHandState = 4;
             if (data == "right_open") scrollHandState = 5;
-            if (data == "fists") scrollHandState = 6;
+            gMarioState->marioBodyState->handState = scrollHandState;
         }
 
         // Default cap state for the model (optional)
         if (root.isMember("default_cap_state")) {
             std::string data = root["default_cap_state"].asString();
+            std::cout << "default_cap_state : " << data << std::endl;
             if (data == "on") scrollCapState = 0;
             if (data == "off") scrollCapState = 1;
             if (data == "wing") scrollCapState = 2;
+            gMarioState->marioBodyState->capState = scrollCapState;
         }
     }
 
