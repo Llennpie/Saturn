@@ -414,6 +414,10 @@ void cmd_alias_delete(CommandContext context) {
     if (aliases.find(arg_str("name")) == aliases.end()) return;
     aliases.erase(arg_str("name"));
 }
+void cmd_kill(CommandContext context) {
+    godmode_temp_off = true;
+    gMarioState->health = 0xFF;
+}
 
 #undef arg_int
 #undef arg_flt

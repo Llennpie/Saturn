@@ -72,6 +72,8 @@ extern bool should_update_cam_from_keyframes;
 
 extern u8 activatedToads;
 
+extern u8 godmode_temp_off;
+
 #ifdef __cplusplus
 #include <string>
 #include <vector>

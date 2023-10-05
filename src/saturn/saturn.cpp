@@ -153,6 +153,8 @@ u16 gChromaKeyBackground = 0;
 
 int keyResetter;
 
+u8 godmode_temp_off = false;
+
 extern void saturn_run_chainer();
 
 float key_increase_val(std::vector<float> vecfloat) {

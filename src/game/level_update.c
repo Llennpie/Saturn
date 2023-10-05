@@ -403,6 +403,8 @@ void init_mario_after_warp(void) {
 
         gMarioState->interactObj = spawnNode->object;
         gMarioState->usedObj = spawnNode->object;
+
+        godmode_temp_off = false;
     }
 
     if (gCurrentArea) {
