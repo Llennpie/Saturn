@@ -297,10 +297,11 @@ const void* saturn_bind_texture(const void* input) {
 
         if (autoChroma) {
             // Toggle object visibility
-            if (!autoChromaObjects &&
-                texName.find("castle_grounds_textures.0BC00.ia16") != string::npos ||
-                texName.find("butterfly_wing.rgba16") != string::npos) {
-                    return "textures/saturn/mario_logo.rgba16";
+            if (!autoChromaObjects) {
+                if (texName.find("castle_grounds_textures.0BC00.ia16") != string::npos ||
+                    texName.find("butterfly_wing.rgba16") != string::npos) {
+                        return "textures/saturn/mario_logo.rgba16";
+                }
             }
             // Toggle level visibility
             if (!autoChromaLevel) {
