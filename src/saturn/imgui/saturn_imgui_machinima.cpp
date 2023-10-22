@@ -350,8 +350,8 @@ void imgui_machinima_quick_options() {
     }
     saturn_keyframe_bool_popout(&enable_time_freeze, "Time Freeze", "k_time_freeze");
     imgui_bundled_tooltip("Freezes everything excluding the camera.");
-    ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
-    imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
+    ImGui::Checkbox("Object Interactions", (bool*)&enable_dialogue);
+    imgui_bundled_tooltip("Toggles interactions with some objects; This includes opening/closing doors, triggering dialogue when interacting with an NPC or readable sign, etc.");
     if (mario_exists) {
         if (gMarioState->action == ACT_IDLE) {
             if (ImGui::Button("Sleep")) {
