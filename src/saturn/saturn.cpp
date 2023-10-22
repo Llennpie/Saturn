@@ -114,6 +114,8 @@ std::string cc_details;
 bool is_cc_editing;
 
 bool autoChroma;
+bool autoChromaLevel;
+bool autoChromaObjects;
 
 u8 activatedToads = 0;
 

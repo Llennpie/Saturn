@@ -67,6 +67,8 @@ extern int mcam_timer;
 extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 
 extern bool autoChroma;
+extern bool autoChromaLevel;
+extern bool autoChromaObjects;
 
 extern bool should_update_cam_from_keyframes;
 
