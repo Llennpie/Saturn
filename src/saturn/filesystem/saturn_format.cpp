@@ -105,16 +105,16 @@ float saturn_format_read_float(SaturnFormatStream* stream) {
     u.x = saturn_format_read_int32(stream);
     return u.y;
 }
-bool saturn_format_write_bool(SaturnFormatStream* stream) {
+bool saturn_format_read_bool(SaturnFormatStream* stream) {
     saturn_format_read_int8(stream) != 0;
 }
-void saturn_format_read_string(SaturnFormatStream* stream, char* dest) {
+void saturn_format_read_string(SaturnFormatStream* stream, char* dest, int bufferLength) {
     int i = -1;
     do {
         i++;
         dest[i] = saturn_format_read_int8(stream);
     }
-    while (dest[i] != '\0');
+    while (dest[i] != '\0' && i < bufferLength);
 }
 void saturn_format_read_any(SaturnFormatStream* stream, void* dest, int length) {
     memcpy(dest, stream->data + stream->pointer, length);

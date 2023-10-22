@@ -90,11 +90,15 @@ static char modelSearchTerm[128];
 static char ccSearchTerm[128];
 static int current_mcc_id = 0;
 
-float this_face_angle;
-
 bool has_copy_mario;
 
 bool last_model_had_model_eyes;
+
+bool is_gameshark_open;
+
+std::vector<std::string> choose_file_dialog(std::string windowTitle, std::vector<std::string> filetypes, bool multiselect) {
+    return pfd::open_file(windowTitle, ".", filetypes, multiselect ? pfd::opt::multiselect : pfd::opt::none).result();
+}
 
 /*
 Sets Mario's global colors from the CC editor color values.
@@ -306,8 +310,6 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
     string nameStr = name;
     if (nameStr != "") {
         ImGui::ColorEdit4(mainName, (float*)colorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoInputs);
-        if (ImGui::IsItemActivated()) accept_text_input = false;
-        if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
             ImGui::OpenPopup(id.c_str());
@@ -346,8 +348,6 @@ void handle_cc_box(const char* name, const char* mainName, const char* shadeName
 
         ImGui::SameLine();
         ImGui::ColorEdit4(shadeName, (float*)shadeColorValue, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoInputs);
-        if (ImGui::IsItemActivated()) accept_text_input = false;
-        if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
             ImGui::OpenPopup((id + "1").c_str());
@@ -413,8 +413,6 @@ void sdynos_imgui_menu() {
 
         if (cc_array.size() >= 18) {
             ImGui::InputTextWithHint("###cc_search_text", ICON_FK_SEARCH " Search color codes...", ccSearchTerm, IM_ARRAYSIZE(ccSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
         } else {
             // If our CC list is reloaded, and we now have less than 18 files, this can cause filter issues if not reset to nothing
             if (ccSearchTerm != "") strcpy(ccSearchTerm, "");
@@ -534,7 +532,7 @@ void sdynos_imgui_menu() {
             if (ImGui::BeginPopupContextItem()) {
                 if (cc_name != "Mario") {
                     ImGui::Text("%s.gs", cc_name.c_str());
-                    imgui_bundled_tooltip(("/dynos/colorcodes/" + cc_name + ".gs").c_str());
+                    imgui_bundled_tooltip(("/dynos/colorcodes/" + current_cc_path + cc_name + ".gs").c_str());
                     if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                         delete_cc_file(cc_name);
                         current_cc_id = -1;
@@ -575,14 +573,11 @@ void sdynos_imgui_menu() {
         }
         ImGui::EndChild();
         if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_v_cc")) {
-            auto selection3 = pfd::open_file("Select a file", ".",
-                        { "Color Code Files", "*.gs *.txt",
-                            "All Files", "*" },
-                        pfd::opt::multiselect).result();
+            auto selection3 = choose_file_dialog("Select a file", { "Color Code Files", "*.gs *.txt", "All Files", "*" }, true);
 
             // Do something with selection
             for (auto const &filename3 : selection3) {
-                saturn_copy_file(filename3, "dynos/colorcodes/");
+                saturn_copy_file(filename3, "dynos/colorcodes/" + current_cc_path);
                 saturn_load_cc_directory();
             }
         }
@@ -593,8 +588,6 @@ void sdynos_imgui_menu() {
 
         if (sDynosPacks.Count() >= 20) {
             ImGui::InputTextWithHint("###model_search_text", ICON_FK_SEARCH " Search models...", modelSearchTerm, IM_ARRAYSIZE(modelSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
         } else {
             // If our model list is reloaded, and we now have less than 20 packs, this can cause filter issues if not reset to nothing
             if (modelSearchTerm != "") strcpy(modelSearchTerm, "");
@@ -642,7 +635,7 @@ void sdynos_imgui_menu() {
                     gfx_precache_textures();
 
                     // Fetch model data
-                    saturn_load_model_data(label);
+                    saturn_load_model_data(label, false);
                     for (int i = 0; i < 8; i++) {
                         current_exp_index[i] = 0;
                     }
@@ -655,9 +648,6 @@ void sdynos_imgui_menu() {
                     get_ccs_from_model(sDynosPacks[i]->mPath);
                     current_mcc_id = -1;
                     current_model_id = i;
-
-                    model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
-                    if (sDynosPacks.Count() != 1) model_details += "s";
 
                     if (is_default_cc(ui_gameshark)) {
                         if (model_cc_array.size() > 0) {
@@ -779,7 +769,9 @@ void sdynos_imgui_menu() {
                     ImGui::TextDisabled("%i model pack(s)", sDynosPacks.Count());
                     if (ImGui::Button(ICON_FK_DOWNLOAD " Refresh Packs###refresh_dynos_packs")) {
                         sDynosPacks.Clear();
-                        DynOS_Gfx_Init();
+                        DynOS_Opt_Init();
+                        model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+                        if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::SameLine(); imgui_bundled_help_marker("WARNING: Experimental - this will probably lag the game.");
@@ -866,8 +858,6 @@ void sdynos_imgui_menu() {
                 saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
 
                 ImGui::ColorEdit4("Col###wlight_col", gLightingColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
-                if (ImGui::IsItemActivated()) accept_text_input = false;
-                if (ImGui::IsItemDeactivated()) accept_text_input = true;
                 
                 if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
                     ImGui::OpenPopup("###texColColorPresets");
@@ -968,10 +958,10 @@ void sdynos_imgui_menu() {
             if (gMarioState) {
                 if (ImGuiKnobs::Knob("Angle", &this_face_angle, -180.f, 180.f, 0.f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
                     gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
-                } else {
+                } else if (!k_popout_open || keyframe_playing) {
                     this_face_angle = (float)gMarioState->faceAngle[1] / 182.04;
                 }
-                saturn_keyframe_float_popout((float*)&gMarioState->faceAngle[1], "Mario Angle", "k_angle");
+                saturn_keyframe_float_popout(&this_face_angle, "Mario Angle", "k_angle");
             }
 
             ImGui::Checkbox("Spin###spin_angle", &is_spinning);
@@ -1044,8 +1034,12 @@ void sdynos_imgui_menu() {
                     const bool is_eye_selected = (current_eye_index == n || blink_eye_2_index == n || blink_eye_3_index == n);
                     string entry_name = eye_array[n];
                     string preview_name = entry_name;
+                    
                     if (eye_array[n].find("/") != string::npos)
-                        preview_name = ICON_FK_FOLDER_O " " + eye_array[n];
+                        preview_name = ICON_FK_FOLDER " " + eye_array[n].substr(0, eye_array[n].size() - 1);
+
+                    if (eye_array[n] == "../")
+                        preview_name = ICON_FK_FOLDER " ../";
 
                     if (ImGui::Selectable(preview_name.c_str(), is_eye_selected)) {
                         gfx_precache_textures();
@@ -1117,10 +1111,7 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndChild();
                 if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Eye...###add_v_eye")) {
-                    auto selection = pfd::open_file("Select a file", ".",
-                                { "PNG Textures", "*.png ",
-                                  "All Files", "*" },
-                                pfd::opt::multiselect).result();
+                    auto selection = choose_file_dialog("Select a file", { "PNG Textures", "*.png", "All Files", "*" }, true);
 
                     // Do something with selection
                     for (auto const &filename : selection) {
@@ -1191,9 +1182,10 @@ void sdynos_imgui_menu() {
                         if (expression.textures.size() > 1) {
                             if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                                 saturn_delete_file("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name);
-                                saturn_load_model_data(current_folder_name);
+                                saturn_load_model_data(current_folder_name, true);
                                 for (int i = 0; i < 8; i++) {
-                                    current_exp_index[i] = 0;
+                                    if (current_exp_index[i] > expression.textures.size())
+                                        current_exp_index[i] = 0;
                                 }
                                 // Reset blink cycle (if it exists)
                                 blink_eye_2_index = -1; blink_eye_2 = "";
@@ -1221,9 +1213,10 @@ void sdynos_imgui_menu() {
                         ImGui::Separator();
                         ImGui::TextDisabled("%i eye texture(s)", expression.textures.size());
                         if (ImGui::Button(ICON_FK_UNDO " Refresh###refresh_m_eyes")) {
-                            saturn_load_model_data(current_folder_name);
+                            saturn_load_model_data(current_folder_name, true);
                             for (int i = 0; i < 8; i++) {
-                                current_exp_index[i] = 0;
+                                if (current_exp_index[i] > expression.textures.size())
+                                    current_exp_index[i] = 0;
                             }
                             ImGui::CloseCurrentPopup();
                         }
@@ -1232,15 +1225,12 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndChild();
                 if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Eye...###add_m_eye")) {
-                    auto selection1 = pfd::open_file("Select a file", ".",
-                                { "PNG Textures", "*.png ",
-                                  "All Files", "*" },
-                                pfd::opt::multiselect).result();
+                    auto selection1 = choose_file_dialog("Select a file", { "PNG Textures", "*.png", "All Files", "*" }, true);
 
                     // Do something with selection
                     for (auto const &filename1 : selection1) {
                         saturn_copy_file(filename1, "dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/");
-                        saturn_load_model_data(current_folder_name);
+                        saturn_load_model_data(current_folder_name, true);
                     }
                 }
                 if (current_model_data.expressions.size() >= 1) ImGui::Separator();
@@ -1314,9 +1304,10 @@ void sdynos_imgui_menu() {
                                     if (expression.textures.size() > 1) {
                                         if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
                                             saturn_delete_file("dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/" + entry_name);
-                                            saturn_load_model_data(current_folder_name);
+                                            saturn_load_model_data(current_folder_name, true);
                                             for (int i = 0; i < 8; i++) {
-                                                current_exp_index[i] = 0;
+                                                if (current_exp_index[i] > expression.textures.size())
+                                                    current_exp_index[i] = 0;
                                             }
                                             ImGui::CloseCurrentPopup();
                                         } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
@@ -1332,24 +1323,22 @@ void sdynos_imgui_menu() {
                     // Refresh
                     if (ImGui::BeginPopupContextItem()) {
                         if (ImGui::Button(ICON_FK_FILE_IMAGE_O " Add Expression...###add_m_exp")) {
-                            auto selection1 = pfd::open_file("Select a file", ".",
-                                        { "PNG Textures", "*.png ",
-                                        "All Files", "*" },
-                                        pfd::opt::multiselect).result();
+                            auto selection1 = choose_file_dialog("Select a file", { "PNG Textures", "*.png", "All Files", "*" }, true);
 
                             // Do something with selection
                             for (auto const &filename1 : selection1) {
                                 saturn_copy_file(filename1, "dynos/packs/" + current_folder_name + "/expressions/" + expression.name + "/");
-                                saturn_load_model_data(current_folder_name);
+                                saturn_load_model_data(current_folder_name, true);
                                 ImGui::CloseCurrentPopup();
                             }
                         }
                         ImGui::Separator();
                         ImGui::TextDisabled("%i %s expression(s)", expression.textures.size(), expression.name.c_str());
                         if (ImGui::Button(ICON_FK_UNDO " Refresh###refresh_m_exp")) {
-                            saturn_load_model_data(current_folder_name);
+                            saturn_load_model_data(current_folder_name, true);
                             for (int i = 0; i < 8; i++) {
-                                current_exp_index[i] = 0;
+                                if (current_exp_index[i] > expression.textures.size())
+                                    current_exp_index[i] = 0;
                             }
                             ImGui::CloseCurrentPopup();
                         }
@@ -1375,8 +1364,6 @@ void imgui_dynos_cc_editor() {
 
     ImGui::PushItemWidth(100);
     ImGui::InputText(".gs", ui_cc_name, IM_ARRAYSIZE(ui_cc_name));
-    if (ImGui::IsItemActivated()) accept_text_input = false;
-    if (ImGui::IsItemDeactivated()) accept_text_input = true;
     ImGui::PopItemWidth();
 
     ImGui::SameLine(150);
@@ -1417,7 +1404,7 @@ void imgui_dynos_cc_editor() {
                 strcpy(ui_cc_name, "Sample");
                 save_cc_model_file("Sample", global_gs_code(), ui_mfolder_name);
             }
-            saturn_load_cc_directory();
+        saturn_load_cc_directory();
         }
         string tooltipLabel = "dynos/packs/" + ui_mfolder_name + "/colorcodes/" + ui_cc_name;
         imgui_bundled_tooltip(tooltipLabel.c_str());
@@ -1513,22 +1500,15 @@ void imgui_dynos_cc_editor() {
 
             ImGui::Dummy(ImVec2(0, 5));
 
-            if (!configEditorFastApply) {
-                if (ImGui::Button(ICON_FK_CLIPBOARD " Apply CC###apply_cc_from_editor")) {
-                    apply_cc_from_editor();
-                }
-                ImGui::Dummy(ImVec2(0, 5));
-            } else {
-                apply_cc_from_editor();
-            }
+            //apply_cc_from_editor();
 
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("GameShark")) {
+            is_gameshark_open = true;
+
             ImGui::InputTextMultiline("###gameshark_box", ui_gameshark, IM_ARRAYSIZE(ui_gameshark), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 25), ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_AutoSelectAll);
-            if (ImGui::IsItemActivated()) accept_text_input = false;
-            if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
             if (ImGui::Button(ICON_FK_CLIPBOARD " Apply GS Code")) {
                 string ui_gameshark_input = ui_gameshark;
@@ -1539,7 +1519,7 @@ void imgui_dynos_cc_editor() {
                 "Copy/paste a GameShark color code from here!");
 
             ImGui::EndTabItem();
-        }
+        } else { is_gameshark_open = false; }
         ImGui::EndTabBar();
     }
 }

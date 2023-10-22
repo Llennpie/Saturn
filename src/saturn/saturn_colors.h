@@ -36,6 +36,8 @@ extern bool cc_spark_support;
 extern std::vector<std::string> cc_array;
 extern std::string global_gs_code();
 
+extern std::string current_cc_path;
+
 extern bool is_default_cc(std::string gameshark);
 
 void paste_gs_code(std::string content);
@@ -47,6 +49,7 @@ void set_cc_from_model(std::string ccPath);
 extern std::vector<std::string> model_cc_array;
 void get_ccs_from_model(std::string modelPath);
 extern std::string last_model_cc_address;
+void saturn_refresh_cc_count();
 
 extern "C" {
 #endif

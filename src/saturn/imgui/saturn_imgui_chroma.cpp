@@ -24,6 +24,7 @@ extern "C" {
 #include "engine/level_script.h"
 #include "engine/geo_layout.h"
 #include "src/game/envfx_snow.h"
+#include "src/game/object_list_processor.h"
 }
 
 using namespace std;
@@ -57,23 +58,26 @@ void schroma_imgui_init() {
 }
 
 void schroma_imgui_update() {
+    currentChromaArea = (renderFloor & use_color_background) ? 1 : 2;
 
     if (autoChroma && gCurrLevelNum != LEVEL_SA) {
         ImGui::Text(ICON_FK_EYEDROPPER " Auto-chroma Enabled");
         ImGui::SameLine(); imgui_bundled_help_marker("Experimental: Allows CHROMA KEY to be automatically enabled from any stage; Useful for maintaining consistent camera angles.");
+        ImGui::Checkbox("Show Level", &autoChromaLevel);
+        if (ImGui::Checkbox("Show Objects", &autoChromaObjects)) {
+            for (int i = 0; i < 960; i++) {
+                if (autoChromaObjects) gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
+                else gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
+            }
+        }
         ImGui::Dummy(ImVec2(0, 5));
     }
 
-    if (gCurrLevelNum != LEVEL_SA) ImGui::BeginDisabled();
     ImGui::Checkbox("Color Skybox", &use_color_background);
     saturn_keyframe_bool_popout(&use_color_background, "Skybox Mode", "k_skybox_mode");
-    if (gCurrLevelNum != LEVEL_SA) ImGui::EndDisabled();
 
-    if (gCurrLevelNum != LEVEL_SA) use_color_background = true;
     if (use_color_background) {
         ImGui::ColorEdit4("Chroma Key Color", (float*)&uiChromaColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
-        if (ImGui::IsItemActivated()) accept_text_input = false;
-        if (ImGui::IsItemDeactivated()) accept_text_input = true;
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
             ImGui::OpenPopup("###chromaColorPresets");
@@ -82,6 +86,7 @@ void schroma_imgui_update() {
             if (ImGui::Selectable("Blue")) uiChromaColor = ImVec4(0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
             if (ImGui::Selectable("Pink")) uiChromaColor = ImVec4(255.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
             if (ImGui::Selectable("Black")) uiChromaColor = ImVec4(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 255.0f / 255.0f);
+            if (ImGui::Selectable("White")) uiChromaColor = ImVec4(255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f);
             ImGui::EndPopup();
         }
 
@@ -89,34 +94,26 @@ void schroma_imgui_update() {
 
         ImGui::SameLine(); ImGui::Text("Color");
         saturn_keyframe_color_popout("Skybox Color", "k_color", &uiChromaColor.x, &uiChromaColor.y, &uiChromaColor.z);
-        if (gCurrLevelNum != LEVEL_SA) ImGui::BeginDisabled();
-        if (ImGui::Checkbox("Render Floor", &renderFloor))
-            chromaRequireReload = true;
+        if (gCurrLevelNum == LEVEL_SA) {
+            if (ImGui::Checkbox("Render Floor", &renderFloor))
+                chromaRequireReload = true;
+            ImGui::SameLine(); imgui_bundled_help_marker("Renders a floor object; Useful for animations that clip through the ground.");
+            
+            if (ImGui::Button("Reload###apply_chroma_color")) {
+                using_chainer = false;
+                chainer_index = 0;
+                is_anim_playing = false;
+                is_anim_paused = false;
 
-        ImGui::SameLine(); imgui_bundled_help_marker("Renders a floor object; Useful for animations that clip through the ground.");
-        if (gCurrLevelNum != LEVEL_SA) ImGui::EndDisabled();
+                mario_loaded = false;
+                chromaRequireReload = false;
+                bool result = DynOS_Warp_ToLevel(gCurrLevelNum, (s32)currentChromaArea, gCurrActNum);
+            } imgui_bundled_tooltip("WARNING: This will restart the level!");
+        }
     } else {
         const char* mSkyboxSettings[] = { "Ocean Sky", "Flaming Sky", "Underwater City", "Below Clouds", "Snow Mountains", "Desert", "Haunted", "Green Sky", "Above Clouds", "Purple Sky" };
-        if (ImGui::Combo("###skybox_background", (int*)&gChromaKeyBackground, mSkyboxSettings, IM_ARRAYSIZE(mSkyboxSettings)))
-            chromaRequireReload = true;
-    }
-    currentChromaArea = (renderFloor & use_color_background) ? 1 : 2;
-    if (gCurrLevelNum != LEVEL_SA) currentChromaArea = gCurrAreaIndex;
-        
-    if (ImGui::IsItemActivated()) accept_text_input = false;
-    if (ImGui::IsItemDeactivated()) accept_text_input = true;
-
-    if (gCurrLevelNum == LEVEL_SA) {
-        if (ImGui::Button("Reload###apply_chroma_color")) {
-            using_chainer = false;
-            chainer_index = 0;
-            is_anim_playing = false;
-            is_anim_paused = false;
-
-            mario_loaded = false;
-            chromaRequireReload = false;
-            bool result = DynOS_Warp_ToLevel(gCurrLevelNum, (s32)currentChromaArea, gCurrActNum);
-        } imgui_bundled_tooltip("WARNING: This will restart the level!");
+        ImGui::Combo("###skybox_background", (int*)&gChromaKeyBackground, mSkyboxSettings, IM_ARRAYSIZE(mSkyboxSettings));
+        currentChromaArea = gCurrAreaIndex;
     }
 
     ImGui::Dummy(ImVec2(0, 5));

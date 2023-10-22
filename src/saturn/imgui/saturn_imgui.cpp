@@ -23,6 +23,7 @@
 #include "icons/IconsForkAwesome.h"
 #include "icons/IconsFontAwesome5.h"
 #include "saturn/filesystem/saturn_projectfile.h"
+#include "saturn/saturn_timeline_groups.h"
 
 #include <SDL2/SDL.h>
 
@@ -240,6 +241,8 @@ void saturn_imgui_init() {
     sdynos_imgui_init();
     smachinima_imgui_init();
     ssettings_imgui_init();
+    
+    saturn_load_project_list();
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -255,7 +258,13 @@ void saturn_imgui_handle_events(SDL_Event * event) {
             }
 
             if(event->key.keysym.sym == SDLK_F9) {
-                imgui_update_theme();
+                DynOS_Gfx_GetPacks().Clear();
+                DynOS_Opt_Init();
+                model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+                if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
+
+                if (gCurrLevelNum > 3 || !mario_exists)
+                    DynOS_ReturnToMainMenu();
             }
 
             if(event->key.keysym.sym == SDLK_F6) {
@@ -281,6 +290,24 @@ void saturn_keyframe_sort(std::vector<Keyframe>* keyframes) {
 uint32_t startFrame = 0;
 uint32_t endFrame = 60;
 int endFrameText = 60;
+
+std::vector<std::string> find_timeline_group(std::string timeline, std::string* out = nullptr) {
+    for (auto& entry : k_groups) {
+        if (std::find(entry.second.begin(), entry.second.end(), timeline) != entry.second.end()) {
+            if (out != nullptr) *out = entry.first;
+            return entry.second;
+        }
+    }
+    return { timeline };
+}
+
+bool saturn_keyframe_group_matches(std::string id, int frame) {
+    std::vector<std::string> group = find_timeline_group(id);
+    for (std::string timeline : group) {
+        if (!saturn_keyframe_matches(timeline, frame)) return false;
+    }
+    return true;
+}
 
 void saturn_keyframe_window() {
 #ifdef DISCORDRPC
@@ -319,7 +346,7 @@ void saturn_keyframe_window() {
     ImGui::PopItemWidth();
             
     // Scrolling
-    int scroll = keyframe_playing ? (k_current_frame - startFrame) == 30 ? 1 : 0 : (int)(ImGui::GetMouseScrollY() * -2);
+    int scroll = keyframe_playing ? (k_current_frame - startFrame) == 30 ? 1 : 0 : (ImGui::IsWindowHovered() ? (int)(ImGui::GetMouseScrollY() * -2) : 0);
     if (scroll >= 60) scroll = 59;
     startFrame += scroll;
     if (startFrame + 60 > endFrame) startFrame = endFrame - 60;
@@ -327,10 +354,15 @@ void saturn_keyframe_window() {
     uint32_t end = min(60, endFrame - startFrame) + startFrame;
 
     // Sequencer
+    std::vector<std::string> skip = {};
     if (ImGui::BeginNeoSequencer("Sequencer###k_sequencer", (uint32_t*)&k_current_frame, &startFrame, &end, ImVec2((end - startFrame) * 6, 0), ImGuiNeoSequencerFlags_HideZoom)) {
         for (auto& entry : k_frame_keys) {
-            if (ImGui::BeginNeoTimeline(entry.second.first.name.c_str(), entry.second.second)) {
-                entry.second.first.disabled = ImGui::IsNeoTimelineSelected();
+            if (std::find(skip.begin(), skip.end(), entry.first) != skip.end()) continue;
+            std::string name = entry.second.first.name;
+            for (std::string groupMember : find_timeline_group(entry.first, &name)) {
+                skip.push_back(groupMember);
+            }
+            if (ImGui::BeginNeoTimeline(name.c_str(), entry.second.second)) {
                 ImGui::EndNeoTimeLine();
             }
         }
@@ -339,11 +371,20 @@ void saturn_keyframe_window() {
 
     // Keyframes
     if (!keyframe_playing) {
+        std::map<std::string, bool> shouldEditKeyframe = {};
+        for (auto& entry : k_frame_keys) {
+            if (shouldEditKeyframe.find(entry.first) != shouldEditKeyframe.end()) continue;
+            std::vector<std::string> group = find_timeline_group(entry.first);
+            bool doEdit = !saturn_keyframe_group_matches(entry.first, k_current_frame);
+            for (std::string groupEntry : group) {
+                shouldEditKeyframe.insert({ groupEntry, doEdit });
+            }
+        }
         for (auto& entry : k_frame_keys) {
             KeyframeTimeline timeline = entry.second.first;
             std::vector<Keyframe>* keyframes = &entry.second.second;
 
-            if (k_previous_frame == k_current_frame && !saturn_keyframe_matches(entry.first, k_current_frame)) {
+            if (k_previous_frame == k_current_frame && shouldEditKeyframe[entry.first]) {
                 // We create a keyframe here
                 int keyframeIndex = 0;
                 for (int i = 0; i < keyframes->size(); i++) {
@@ -351,17 +392,20 @@ void saturn_keyframe_window() {
                 }
                 if ((*keyframes)[keyframeIndex].position == k_current_frame) {
                     Keyframe* keyframe = &(*keyframes)[keyframeIndex];
-                    if (timeline.bdest != nullptr) (*keyframe).value = *timeline.bdest ? 1 : 0;
-                    if (timeline.fdest != nullptr) (*keyframe).value = *timeline.fdest;
+                    if (timeline.type == KFTYPE_BOOL) (*keyframe).value = *(bool*)timeline.dest ? 1 : 0;
+                    if (timeline.type == KFTYPE_FLOAT) (*keyframe).value = *(float*)timeline.dest;
+                    if (timeline.type == KFTYPE_FLAGS) (*keyframe).value = *(float*)timeline.dest;
+                    if (timeline.forceWait) (*keyframe).curve = InterpolationCurve::WAIT;
                 }
                 else {
                     Keyframe keyframe = Keyframe(k_current_frame, (*keyframes)[keyframeIndex].curve);
                     keyframe.timelineID = entry.first;
-                    if (timeline.bdest != nullptr) keyframe.value = *timeline.bdest ? 1 : 0;
-                    if (timeline.fdest != nullptr) keyframe.value = *timeline.fdest;
+                    if (timeline.type == KFTYPE_BOOL) keyframe.value = *(bool*)timeline.dest ? 1 : 0;
+                    if (timeline.type == KFTYPE_FLOAT) keyframe.value = *(float*)timeline.dest;
+                    if (timeline.type == KFTYPE_FLAGS) keyframe.value = *(float*)timeline.dest;
+                    if (timeline.forceWait) keyframe.curve = InterpolationCurve::WAIT;
                     keyframes->push_back(keyframe);
                 }
-                
                 saturn_keyframe_sort(keyframes);
             }
             else saturn_keyframe_apply(entry.first, k_current_frame);
@@ -370,12 +414,49 @@ void saturn_keyframe_window() {
     ImGui::End();
 
     // Auto focus (use controls without clicking window first)
-    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None) && accept_text_input == false) {
+    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_None) && saturn_disable_sm64_input()) {
         ImGui::SetWindowFocus(windowLabel.c_str());
     }
+
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_None)) {
+        for (auto& entry : k_frame_keys) {
+            if (entry.second.first.name.find(", Main") != string::npos || entry.second.first.name.find(", Shade") != string::npos) {
+                // Apply color keyframes
+                apply_cc_from_editor();
+            }
+        }
+    }
+
+    if (camera_frozen) {
+        if (keyframe_playing || k_current_frame != k_previous_frame) {
+            should_update_cam_from_keyframes = false;
+            vec3f_copy(gCamera->pos, freezecamPos);
+            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
+            gLakituState.roll = freezecamRoll;
+        }
+        else {
+            float dist;
+            s16 yaw;
+            s16 pitch;
+            vec3f_copy(freezecamPos, gCamera->pos);
+            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+            freezecamYaw = (float)yaw;
+            freezecamPitch = (float)pitch;
+            freezecamRoll = (float)gLakituState.roll;
+        }
+        vec3f_copy(gLakituState.pos, gCamera->pos);
+        vec3f_copy(gLakituState.focus, gCamera->focus);
+        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+        gLakituState.yaw = gCamera->yaw;
+    }
+
+    k_previous_frame = k_current_frame;
 }
 
 char saturnProjectFilename[257] = "Project";
+int current_project_id;
 
 void saturn_imgui_update() {
     if (!splash_finished) return;
@@ -392,27 +473,62 @@ void saturn_imgui_update() {
             if (ImGui::BeginMenu("Menu")) {
                 windowCcEditor = false;
 
-                if (ImGui::MenuItem(ICON_FK_WINDOW_MAXIMIZE " Show UI",      translate_bind_to_name(configKeyShowMenu[0]), showMenu)) {
-                    showMenu = !showMenu;
-                    if (!showMenu) accept_text_input = true;
-                }
+                if (ImGui::MenuItem(ICON_FK_WINDOW_MAXIMIZE " Show UI",      translate_bind_to_name(configKeyShowMenu[0]), showMenu)) showMenu = !showMenu;
                 if (ImGui::MenuItem(ICON_FK_WINDOW_MINIMIZE " Show Status Bars",  NULL, showStatusBars)) showStatusBars = !showStatusBars;
                 ImGui::Separator();
-                ImGui::PushItemWidth(125);
-                ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
-                ImGui::PopItemWidth();
-                if (ImGui::Button(ICON_FA_FILE " Open###project_file_open")) {
-                    saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+
+                if (ImGui::BeginMenu("Open Project")) {
+                    ImGui::BeginChild("###menu_model_ccs", ImVec2(165, 75), true);
+                    for (int n = 0; n < project_array.size(); n++) {
+                        const bool is_selected = (current_project_id == n);
+                        std::string spj_name = project_array[n].substr(0, project_array[n].size() - 4);
+
+                        if (ImGui::Selectable(spj_name.c_str(), is_selected)) {
+                            current_project_id = n;
+                            if (spj_name.length() <= 256);
+                                strcpy(saturnProjectFilename, spj_name.c_str());
+                            //saturn_load_project((char*)(spj_name + ".spj").c_str());
+                        }
+
+                        if (ImGui::BeginPopupContextItem()) {
+                            ImGui::Text("%s.spj", spj_name.c_str());
+                            imgui_bundled_tooltip(("/dynos/projects/" + spj_name + ".spj").c_str());
+                            if (spj_name != "autosave") {
+                                if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
+                                    saturn_delete_file(project_dir + spj_name + ".spj");
+                                    saturn_load_project_list();
+                                    ImGui::CloseCurrentPopup();
+                                } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                            }
+                            ImGui::Separator();
+                            ImGui::TextDisabled("%i project(s)", project_array.size());
+                            if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
+                                saturn_load_project_list();
+                                ImGui::CloseCurrentPopup();
+                            }
+                            ImGui::EndPopup();
+                        }
+                    }
+                    ImGui::EndChild();
+                    ImGui::PushItemWidth(125);
+                    ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
+                    ImGui::PopItemWidth();
+                    if (ImGui::Button(ICON_FA_FILE " Open###project_file_open")) {
+                        saturn_load_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                    }
+                    ImGui::SameLine(70);
+                    if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
+                        saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                        saturn_load_project_list();
+                    }
+                    ImGui::SameLine();
+                    imgui_bundled_help_marker("NOTE: Project files are currently EXPERIMENTAL and prone to crashing!");
+                    ImGui::EndMenu();
                 }
-                ImGui::SameLine(70);
-                if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
-                    saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
-                }
-                ImGui::SameLine();
-                imgui_bundled_help_marker("Project files are basically save states for Saturn\nEXPERIMENTAL - May crash");
                 if (ImGui::MenuItem(ICON_FA_UNDO " Load Autosaved")) {
                     saturn_load_project("autosave.spj");
                 }
+
                 ImGui::Separator();
                 if (ImGui::MenuItem("Stats",        NULL, windowStats == true)) windowStats = !windowStats;
                 if (ImGui::MenuItem(ICON_FK_LINE_CHART " Timeline Editor", "F6", k_popout_open == true)) {
@@ -517,11 +633,9 @@ void saturn_imgui_update() {
                 windowCcEditor = false;
                 windowAnimPlayer = false;
 
-                // Auto-chroma
-                // Allows any level to become a customizable chroma key stage
                 for (int i = 0; i < 960; i++) {
-                    if (!autoChroma) gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
-                    else gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
+                    gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
+                    if (autoChroma && !autoChromaObjects) gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
                 }
             }
             ImGui::EndMainMenuBar();
@@ -627,6 +741,7 @@ void saturn_imgui_update() {
             ImGui::SetNextWindowPos(k_context_popout_pos);
             if (ImGui::Begin("###kf_menu", &k_context_popout_open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove)) {
                 vector<Keyframe>* keyframes = &k_frame_keys[k_context_popout_keyframe.timelineID].second;
+                int curve = -1;
                 int index = -1;
                 for (int i = 0; i < keyframes->size(); i++) {
                     if ((*keyframes)[i].position == k_context_popout_keyframe.position) index = i;
@@ -646,69 +761,52 @@ void saturn_imgui_update() {
                     doCopy = true;
                 }
                 ImGui::Separator();
+                bool forceWait = k_frame_keys[k_context_popout_keyframe.timelineID].first.forceWait;
+                if (forceWait) ImGui::BeginDisabled();
                 for (int i = 0; i < IM_ARRAYSIZE(curveNames); i++) {
                     if (ImGui::MenuItem(curveNames[i].c_str(), NULL, k_context_popout_keyframe.curve == InterpolationCurve(i))) {
-                        (*keyframes)[index].curve = InterpolationCurve(i);
-                        k_previous_frame = -1;
-                        k_context_popout_open = false;
+                        curve = i;
                     }
                 }
+                if (forceWait) ImGui::EndDisabled();
                 ImVec2 pos = ImGui::GetWindowPos();
                 ImVec2 size = ImGui::GetWindowSize();
                 ImVec2 mouse = ImGui::GetMousePos();
                 if ((mouse.x < pos.x || mouse.y < pos.y || mouse.x >= pos.x + size.x || mouse.y >= pos.y + size.y) && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))) k_context_popout_open = false;
                 ImGui::End();
-                if (doCopy) {
-                    int hoverKeyframeIndex = -1;
-                    for (int i = 0; i < keyframes->size(); i++) {
-                        if ((*keyframes)[i].position == k_current_frame) hoverKeyframeIndex = i;
+                std::vector<std::string> affectedTimelines = find_timeline_group(k_context_popout_keyframe.timelineID);
+                for (std::string timeline : affectedTimelines) {
+                    keyframes = &k_frame_keys[timeline].second;
+                    if (curve != -1) {
+                        (*keyframes)[index].curve = InterpolationCurve(curve);
+                        k_context_popout_open = false;
+                        k_previous_frame = -1;
                     }
-                    Keyframe copy = Keyframe(k_current_frame, (*keyframes)[index].curve);
-                    copy.value = (*keyframes)[index].value;
-                    copy.timelineID = (*keyframes)[index].timelineID;
-                    if (hoverKeyframeIndex == -1) keyframes->push_back(copy);
-                    else (*keyframes)[hoverKeyframeIndex] = copy;
-                    k_context_popout_open = false;
-                    k_previous_frame = -1;
+                    if (doCopy) {
+                        int hoverKeyframeIndex = -1;
+                        for (int i = 0; i < keyframes->size(); i++) {
+                            if ((*keyframes)[i].position == k_current_frame) hoverKeyframeIndex = i;
+                        }
+                        Keyframe copy = Keyframe(k_current_frame, (*keyframes)[index].curve);
+                        copy.value = (*keyframes)[index].value;
+                        copy.timelineID = (*keyframes)[index].timelineID;
+                        if (hoverKeyframeIndex == -1) keyframes->push_back(copy);
+                        else (*keyframes)[hoverKeyframeIndex] = copy;
+                        k_context_popout_open = false;
+                        k_previous_frame = -1;
+                    }
+                    if (doDelete) {
+                        keyframes->erase(keyframes->begin() + index);
+                        k_context_popout_open = false;
+                        k_previous_frame = -1;
+                    }
+                    saturn_keyframe_sort(keyframes);
                 }
-                if (doDelete) {
-                    keyframes->erase(keyframes->begin() + index);
-                    k_context_popout_open = false;
-                    k_previous_frame = -1;
-                }
-                saturn_keyframe_sort(keyframes);
             }
         }
 
         //ImGui::ShowDemoWindow();
     }
-
-    if (camera_frozen) {
-        if (keyframe_playing || k_current_frame != k_previous_frame) {
-            should_update_cam_from_keyframes = false;
-            vec3f_copy(gCamera->pos, freezecamPos);
-            vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, 100, freezecamPitch, freezecamYaw);
-            gLakituState.roll = freezecamRoll;
-        }
-        else {
-            float dist;
-            s16 yaw;
-            s16 pitch;
-            vec3f_copy(freezecamPos, gCamera->pos);
-            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
-            freezecamYaw = (float)yaw;
-            freezecamPitch = (float)pitch;
-            freezecamRoll = (float)gLakituState.roll;
-        }
-        vec3f_copy(gLakituState.pos, gCamera->pos);
-        vec3f_copy(gLakituState.focus, gCamera->focus);
-        vec3f_copy(gLakituState.goalPos, gCamera->pos);
-        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
-        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
-        gLakituState.yaw = gCamera->yaw;
-    }
-
-    k_previous_frame = k_current_frame;
 
     is_cc_editing = windowCcEditor;
 
@@ -728,6 +826,8 @@ void saturn_imgui_update() {
         k_frame_keys.erase("k_c_camera_roll");
     }
     was_camera_frozen = camera_frozen;
+
+    if (!is_gameshark_open) apply_cc_from_editor();
 }
 
 /*
@@ -754,8 +854,10 @@ void saturn_keyframe_float_popout(float* edit_value, string value_name, string i
         if (contains) k_frame_keys.erase(id);
         else { // Add the timeline
             KeyframeTimeline timeline = KeyframeTimeline();
-            timeline.fdest = edit_value;
+            timeline.type = KFTYPE_FLOAT;
+            timeline.dest = edit_value;
             timeline.name = value_name;
+            timeline.forceWait = false;
             timeline.precision = -2; // .01
             Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
             keyframe.value = *edit_value;
@@ -778,10 +880,12 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
         if (contains) k_frame_keys.erase(id);
         else { // Add the timeline
             KeyframeTimeline timeline = KeyframeTimeline();
-            timeline.bdest = edit_value;
+            timeline.type = KFTYPE_BOOL;
+            timeline.dest = edit_value;
             timeline.name = value_name;
+            timeline.forceWait = true;
             timeline.precision = -2; // .01
-            Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
+            Keyframe keyframe = Keyframe(0, InterpolationCurve::WAIT);
             keyframe.value = *edit_value ? 1 : 0;
             keyframe.timelineID = id;
             k_frame_keys.insert({ id, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
@@ -822,8 +926,10 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
         else { // Add the timeline
             for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
                 KeyframeTimeline timeline = KeyframeTimeline();
-                timeline.fdest = values[i].second.second;
+                timeline.type = KFTYPE_FLOAT;
+                timeline.dest = values[i].second.second;
                 timeline.name = value_name + " " + values[i].first.second;
+                timeline.forceWait = false;
                 timeline.precision = values[i].second.first;
                 Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
                 keyframe.value = *values[i].second.second;
@@ -858,8 +964,9 @@ void saturn_keyframe_color_popout(string value_name, string id, float* r, float*
         else { // Add the timeline
             for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
                 KeyframeTimeline timeline = KeyframeTimeline();
-                timeline.fdest = values[i].second.second;
+                timeline.dest = values[i].second.second;
                 timeline.name = value_name + " " + values[i].first.second;
+                timeline.forceWait = false;
                 timeline.precision = values[i].second.first;
                 Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
                 keyframe.value = *values[i].second.second;
@@ -871,6 +978,41 @@ void saturn_keyframe_color_popout(string value_name, string id, float* r, float*
         }
     }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
+}
+
+void saturn_keyframe_anim_popout(string value_name, string id) {
+    bool contains = k_frame_keys.find(id) != k_frame_keys.end();
+
+    string buttonLabel = ICON_FK_LINK "###kb_" + id;
+
+    if (ImGui::Button(buttonLabel.c_str())) {
+        k_popout_open = true;
+        if (contains) k_frame_keys.erase(id);
+        else { // Add the timeline
+            KeyframeTimeline timeline = KeyframeTimeline();
+            timeline.type = KFTYPE_FLAGS;
+            timeline.dest = &k_current_anim;
+            timeline.name = value_name;
+            timeline.forceWait = true;
+            timeline.precision = 0; // 0
+            Keyframe keyframe = Keyframe(0, InterpolationCurve::WAIT);
+            keyframe.value = *(float*)&k_current_anim;
+            keyframe.timelineID = id;
+            k_frame_keys.insert({ id, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
+            k_current_frame = 0;
+            startFrame = 0;
+        }
+    }
+    imgui_bundled_tooltip(contains ? "Remove" : "Animate");
+
+    if (contains && k_current_frame == 0) {
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FK_UNDO "###kb_mario_anim_reset")) {
+            k_current_anim = -1;
+            place_keyframe_anim = true;
+        }
+        imgui_bundled_tooltip("Replace with empty keyframe");
+    }
 }
 
 bool saturn_disable_sm64_input() {

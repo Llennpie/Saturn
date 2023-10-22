@@ -1367,6 +1367,8 @@ void update_mario_joystick_inputs(struct MarioState *m) {
  * Resolves wall collisions, and updates a variety of inputs.
  */
 void update_mario_geometry_inputs(struct MarioState *m) {
+    if (m->action == ACT_DEBUG_FREE_MOVE) return;
+
     f32 gasLevel;
     f32 ceilToFloorDist;
 
@@ -1418,7 +1420,13 @@ void update_mario_geometry_inputs(struct MarioState *m) {
         }
 
     } else {
-        level_trigger_warp(m, WARP_OP_DEATH);
+        struct Surface* cur_floor = NULL;
+        f32 floor_height = 0;
+        for (int i = 1; i <= 16; i++) {
+            floor_height = find_floor(m->pos[0], m->pos[1] + i * 500, m->pos[2], &cur_floor);
+        }
+        if (cur_floor == NULL) level_trigger_warp(m, WARP_OP_DEATH);
+        else m->pos[1] = floor_height;
     }
 }
 
@@ -1804,9 +1812,11 @@ s32 execute_mario_action(UNUSED struct Object *o) {
         mario_process_interactions(gMarioState);
 
         // If Mario is OOB, stop executing actions.
-        if (gMarioState->floor == NULL) {
+        if (gMarioState->floor == NULL && gMarioState->action != ACT_DEBUG_FREE_MOVE) {
             return 0;
         }
+
+        if (configNoWater) gMarioState->waterLevel = -30000;
 
         // The function can loop through many action shifts in one frame,
         // which can lead to unexpected sub-frame behavior. Could potentially hang
@@ -1841,6 +1851,10 @@ s32 execute_mario_action(UNUSED struct Object *o) {
                     inLoop = mario_execute_object_action(gMarioState);
                     break;
             }
+        }
+
+        if (gMarioState->floor == NULL) {
+            return 0;
         }
 
         sink_mario_in_quicksand(gMarioState);

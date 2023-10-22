@@ -28,7 +28,15 @@ extern "C" {
 #include "game/object_list_processor.h"
 }
 
-#define SATURN_PROJECT_VERSION 1
+#include <dirent.h>
+#include <filesystem>
+#include <assert.h>
+#include <stdlib.h>
+#include <array>
+namespace fs = std::filesystem;
+#include "pc/fs/fs.h"
+
+#define SATURN_PROJECT_VERSION 2
 
 #define SATURN_PROJECT_IDENTIFIER           "STPJ"
 #define SATURN_PROJECT_GAME_IDENTIFIER      "GAME"
@@ -36,6 +44,7 @@ extern "C" {
 #define SATURN_PROJECT_TIMELINE_IDENTIFIER  "TMLN"
 #define SATURN_PROJECT_KEYFRAME_IDENTIFIER  "KEFR"
 #define SATURN_PROJECT_CAMERA_IDENTIFIER    "CMRA"
+#define SATURN_PROJECT_COLORCODE_IDENTIFIER "COLR"
 #define SATURN_PROJECT_DONE_IDENTIFIER      "DONE"
 
 #define SATURN_PROJECT_FLAG_CAMERA_FROZEN        (1 << 15)
@@ -57,18 +66,19 @@ extern "C" {
 #define SATURN_PROJECT_ENV_BIT_2                 (1 << 7)
 #define SATURN_PROJECT_WALKPOINT_MASK            0x7F
 
-#define SATURN_KFENTRY_BOOL(id, variable, name) { id, { { nullptr, (bool*)&variable }, name } }
-#define SATURN_KFENTRY_FLOAT(id, variable, name) { id, { { (float*)&variable, nullptr }, name } }
+#define SATURN_KFENTRY_BOOL(id, variable, name) { id, { { &variable, KFTYPE_BOOL }, { true, name } } }
+#define SATURN_KFENTRY_FLOAT(id, variable, name) { id, { { &variable, KFTYPE_FLOAT }, { false, name } } }
+#define SATURN_KFENTRY_ANIM(id, name) { id, { { &k_current_anim, KFTYPE_FLAGS }, { true, name } } }
 #define SATURN_KFENTRY_COLOR(id, variable, name) \
-    { (std::string(id) + "_r").c_str(), { { (float*)&variable.x, nullptr }, (std::string(name) + " R").c_str() } },\
-    { (std::string(id) + "_g").c_str(), { { (float*)&variable.y, nullptr }, (std::string(name) + " G").c_str() } },\
-    { (std::string(id) + "_b").c_str(), { { (float*)&variable.z, nullptr }, (std::string(name) + " B").c_str() } }
+    { id "_r", { { &variable.x, KFTYPE_FLOAT }, { false, name " R" } } },\
+    { id "_g", { { &variable.y, KFTYPE_FLOAT }, { false, name " G" } } },\
+    { id "_b", { { &variable.z, KFTYPE_FLOAT }, { false, name " B" } } }
 #define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) \
-    { (std::string(id) + "_r").c_str(), { { (float*)&variable[0], nullptr }, (std::string(name) + " R").c_str() } },\
-    { (std::string(id) + "_g").c_str(), { { (float*)&variable[1], nullptr }, (std::string(name) + " G").c_str() } },\
-    { (std::string(id) + "_b").c_str(), { { (float*)&variable[2], nullptr }, (std::string(name) + " B").c_str() } }
+    { id "_r", { { &variable[0], KFTYPE_FLOAT }, { false, name " R" } } },\
+    { id "_g", { { &variable[1], KFTYPE_FLOAT }, { false, name " G" } } },\
+    { id "_b", { { &variable[2], KFTYPE_FLOAT }, { false, name " B" } } }
 
-std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timelineDataTable = {
+std::map<std::string, std::pair<std::pair<void*, KeyframeType>, std::pair<bool, std::string>>> timelineDataTable = {
     SATURN_KFENTRY_BOOL("k_skybox_mode", use_color_background, "Skybox Mode"),
     SATURN_KFENTRY_BOOL("k_shadows", enable_shadows, "Shadows"),
     SATURN_KFENTRY_FLOAT("k_shade_x", world_light_dir1, "Mario Shade X"),
@@ -83,6 +93,7 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     SATURN_KFENTRY_BOOL("k_v_cap_emblem", show_vmario_emblem, "M Cap Emblem"),
     SATURN_KFENTRY_FLOAT("k_angle", gMarioState->faceAngle[1], "Mario Angle"),
     SATURN_KFENTRY_BOOL("k_hud", configHUD, "HUD"),
+    SATURN_KFENTRY_BOOL("k_time_freeze", enable_time_freeze, "Time Freeze"),
     SATURN_KFENTRY_FLOAT("k_fov", camera_fov, "FOV"),
     SATURN_KFENTRY_FLOAT("k_focus", camera_focus, "Follow"),
     SATURN_KFENTRY_FLOAT("k_c_camera_pos0", freezecamPos[0], "Camera Pos X"),
@@ -91,6 +102,7 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     SATURN_KFENTRY_FLOAT("k_c_camera_yaw", freezecamYaw, "Camera Yaw"),
     SATURN_KFENTRY_FLOAT("k_c_camera_pitch", freezecamPitch, "Camera Pitch"),
     SATURN_KFENTRY_FLOAT("k_c_camera_roll", freezecamRoll, "Camera Roll"),
+    SATURN_KFENTRY_FLOAT("k_gravity", gravity, "Gravity"),
     SATURN_KFENTRY_COLOR_VEC3F("k_light_col", gLightingColor, "Light Color"),
     SATURN_KFENTRY_COLOR("k_color", uiChromaColor, "Skybox Color"),
     SATURN_KFENTRY_COLOR("k_1/2###hat_half_1", uiHatColor, "Hat, Main"),
@@ -117,6 +129,7 @@ std::map<std::string, std::pair<std::pair<float*, bool*>, std::string>> timeline
     SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_2", uiLegTopShadeColor, "Leg (Top), Shade"),
     SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_1", uiLegBottomColor, "Leg (Bottom), Main"),
     SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_2", uiLegBottomShadeColor, "Leg (Bottom), Shade"),
+    SATURN_KFENTRY_ANIM("k_mario_anim", "Animation"),
 };
 
 std::string full_file_path(char* filename) {
@@ -178,6 +191,7 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     gMarioState->actionState = saturn_format_read_int32(stream);
     gMarioState->actionTimer = saturn_format_read_int32(stream);
     gMarioState->actionArg = saturn_format_read_int32(stream);
+    if (version >= 2) gravity = saturn_format_read_float(stream);
     act = saturn_format_read_int8(stream);
     k_previous_frame = -1;
     u8 lvlID = (level >> 2) & 63;
@@ -208,14 +222,15 @@ void saturn_project_chromakey_handler(SaturnFormatStream* stream, int version) {
 void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
     KeyframeTimeline timeline = KeyframeTimeline();
     timeline.precision = (char)saturn_format_read_int8(stream);
-    timeline.autoCreation = saturn_format_read_int8(stream);
-    char id[257];
-    saturn_format_read_string(stream, id);
-    id[256] = 0;
+    if (version == 1) saturn_format_read_int8(stream);
+    char id[256];
+    saturn_format_read_string(stream, id, 256);
+    id[255] = 0;
     auto timelineConfig = timelineDataTable[id];
-    timeline.fdest = timelineConfig.first.first;
-    timeline.bdest = timelineConfig.first.second;
-    timeline.name = timelineConfig.second;
+    timeline.dest = timelineConfig.first.first;
+    timeline.type = timelineConfig.first.second;
+    timeline.forceWait = timelineConfig.second.first;
+    timeline.name = timelineConfig.second.second;
     k_frame_keys.insert({ std::string(id), { timeline, {} } });
 }
 
@@ -225,9 +240,9 @@ void saturn_project_keyframe_handler(SaturnFormatStream* stream, int version) {
     InterpolationCurve curve = InterpolationCurve(saturn_format_read_int8(stream));
     Keyframe keyframe = Keyframe((int)position, curve);
     keyframe.value = value;
-    char id[257];
-    saturn_format_read_string(stream, id);
-    id[256] = 0;
+    char id[256];
+    saturn_format_read_string(stream, id, 256);
+    id[254] = 0;
     keyframe.timelineID = id;
     k_frame_keys[id].second.push_back(keyframe);
 }
@@ -302,6 +317,81 @@ void saturn_project_camera_handler(SaturnFormatStream* stream, int version) {
     freezecamPitch = pitch;
 }
 
+void saturn_project_colorcode_handler(SaturnFormatStream* stream, int version) {
+    defaultColorHat.red[0] = saturn_format_read_int8(stream);
+    defaultColorHat.green[0] = saturn_format_read_int8(stream);
+    defaultColorHat.blue[0] = saturn_format_read_int8(stream);
+    defaultColorHat.red[1] = saturn_format_read_int8(stream);
+    defaultColorHat.green[1] = saturn_format_read_int8(stream);
+    defaultColorHat.blue[1] = saturn_format_read_int8(stream);
+    defaultColorOveralls.red[0] = saturn_format_read_int8(stream);
+    defaultColorOveralls.green[0] = saturn_format_read_int8(stream);
+    defaultColorOveralls.blue[0] = saturn_format_read_int8(stream);
+    defaultColorOveralls.red[1] = saturn_format_read_int8(stream);
+    defaultColorOveralls.green[1] = saturn_format_read_int8(stream);
+    defaultColorOveralls.blue[1] = saturn_format_read_int8(stream);
+    defaultColorGloves.red[0] = saturn_format_read_int8(stream);
+    defaultColorGloves.green[0] = saturn_format_read_int8(stream);
+    defaultColorGloves.blue[0] = saturn_format_read_int8(stream);
+    defaultColorGloves.red[1] = saturn_format_read_int8(stream);
+    defaultColorGloves.green[1] = saturn_format_read_int8(stream);
+    defaultColorGloves.blue[1] = saturn_format_read_int8(stream);
+    defaultColorShoes.red[0] = saturn_format_read_int8(stream);
+    defaultColorShoes.green[0] = saturn_format_read_int8(stream);
+    defaultColorShoes.blue[0] = saturn_format_read_int8(stream);
+    defaultColorShoes.red[1] = saturn_format_read_int8(stream);
+    defaultColorShoes.green[1] = saturn_format_read_int8(stream);
+    defaultColorShoes.blue[1] = saturn_format_read_int8(stream);
+    defaultColorSkin.red[0] = saturn_format_read_int8(stream);
+    defaultColorSkin.green[0] = saturn_format_read_int8(stream);
+    defaultColorSkin.blue[0] = saturn_format_read_int8(stream);
+    defaultColorSkin.red[1] = saturn_format_read_int8(stream);
+    defaultColorSkin.green[1] = saturn_format_read_int8(stream);
+    defaultColorSkin.blue[1] = saturn_format_read_int8(stream);
+    defaultColorHair.red[0] = saturn_format_read_int8(stream);
+    defaultColorHair.green[0] = saturn_format_read_int8(stream);
+    defaultColorHair.blue[0] = saturn_format_read_int8(stream);
+    defaultColorHair.red[1] = saturn_format_read_int8(stream);
+    defaultColorHair.green[1] = saturn_format_read_int8(stream);
+    defaultColorHair.blue[1] = saturn_format_read_int8(stream);
+    sparkColorShirt.red[0] = saturn_format_read_int8(stream);
+    sparkColorShirt.green[0] = saturn_format_read_int8(stream);
+    sparkColorShirt.blue[0] = saturn_format_read_int8(stream);
+    sparkColorShirt.red[1] = saturn_format_read_int8(stream);
+    sparkColorShirt.green[1] = saturn_format_read_int8(stream);
+    sparkColorShirt.blue[1] = saturn_format_read_int8(stream);
+    sparkColorShoulders.red[0] = saturn_format_read_int8(stream);
+    sparkColorShoulders.green[0] = saturn_format_read_int8(stream);
+    sparkColorShoulders.blue[0] = saturn_format_read_int8(stream);
+    sparkColorShoulders.red[1] = saturn_format_read_int8(stream);
+    sparkColorShoulders.green[1] = saturn_format_read_int8(stream);
+    sparkColorShoulders.blue[1] = saturn_format_read_int8(stream);
+    sparkColorArms.red[0] = saturn_format_read_int8(stream);
+    sparkColorArms.green[0] = saturn_format_read_int8(stream);
+    sparkColorArms.blue[0] = saturn_format_read_int8(stream);
+    sparkColorArms.red[1] = saturn_format_read_int8(stream);
+    sparkColorArms.green[1] = saturn_format_read_int8(stream);
+    sparkColorArms.blue[1] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.red[0] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.green[0] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.blue[0] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.red[1] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.green[1] = saturn_format_read_int8(stream);
+    sparkColorOverallsBottom.blue[1] = saturn_format_read_int8(stream);
+    sparkColorLegTop.red[0] = saturn_format_read_int8(stream);
+    sparkColorLegTop.green[0] = saturn_format_read_int8(stream);
+    sparkColorLegTop.blue[0] = saturn_format_read_int8(stream);
+    sparkColorLegTop.red[1] = saturn_format_read_int8(stream);
+    sparkColorLegTop.green[1] = saturn_format_read_int8(stream);
+    sparkColorLegTop.blue[1] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.red[0] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.green[0] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.blue[0] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.red[1] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.green[1] = saturn_format_read_int8(stream);
+    sparkColorLegBottom.blue[1] = saturn_format_read_int8(stream);
+}
+
 void saturn_load_project(char* filename) {
     k_frame_keys.clear();
     saturn_format_input((char*)full_file_path(filename).c_str(), SATURN_PROJECT_IDENTIFIER, {
@@ -310,7 +400,9 @@ void saturn_load_project(char* filename) {
         { SATURN_PROJECT_TIMELINE_IDENTIFIER, saturn_project_timeline_handler },
         { SATURN_PROJECT_KEYFRAME_IDENTIFIER, saturn_project_keyframe_handler },
         { SATURN_PROJECT_CAMERA_IDENTIFIER, saturn_project_camera_handler },
+        { SATURN_PROJECT_COLORCODE_IDENTIFIER, saturn_project_colorcode_handler },
     });
+    std::cout << "Loaded project " << filename << std::endl;
 }
 void saturn_save_project(char* filename) {
     SaturnFormatStream stream = saturn_format_output(SATURN_PROJECT_IDENTIFIER, SATURN_PROJECT_VERSION);
@@ -383,6 +475,7 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int32(&stream, gMarioState->actionState);
     saturn_format_write_int32(&stream, gMarioState->actionTimer);
     saturn_format_write_int32(&stream, gMarioState->actionArg);
+    saturn_format_write_float(&stream, gravity);
     saturn_format_write_int8(&stream, gCurrActNum);
     saturn_format_close_section(&stream);
     saturn_format_new_section(&stream, SATURN_PROJECT_CAMERA_IDENTIFIER);
@@ -449,10 +542,83 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int16(&stream, gLakituState.yaw);
     saturn_format_write_int16(&stream, freezecamRoll);
     saturn_format_close_section(&stream);
+    saturn_format_new_section(&stream, SATURN_PROJECT_COLORCODE_IDENTIFIER);
+    saturn_format_write_int8(&stream, defaultColorHat.red[0]);
+    saturn_format_write_int8(&stream, defaultColorHat.green[0]);
+    saturn_format_write_int8(&stream, defaultColorHat.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorHat.red[1]);
+    saturn_format_write_int8(&stream, defaultColorHat.green[1]);
+    saturn_format_write_int8(&stream, defaultColorHat.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.red[0]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.green[0]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.red[1]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.green[1]);
+    saturn_format_write_int8(&stream, defaultColorOveralls.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorGloves.red[0]);
+    saturn_format_write_int8(&stream, defaultColorGloves.green[0]);
+    saturn_format_write_int8(&stream, defaultColorGloves.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorGloves.red[1]);
+    saturn_format_write_int8(&stream, defaultColorGloves.green[1]);
+    saturn_format_write_int8(&stream, defaultColorGloves.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorShoes.red[0]);
+    saturn_format_write_int8(&stream, defaultColorShoes.green[0]);
+    saturn_format_write_int8(&stream, defaultColorShoes.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorShoes.red[1]);
+    saturn_format_write_int8(&stream, defaultColorShoes.green[1]);
+    saturn_format_write_int8(&stream, defaultColorShoes.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorSkin.red[0]);
+    saturn_format_write_int8(&stream, defaultColorSkin.green[0]);
+    saturn_format_write_int8(&stream, defaultColorSkin.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorSkin.red[1]);
+    saturn_format_write_int8(&stream, defaultColorSkin.green[1]);
+    saturn_format_write_int8(&stream, defaultColorSkin.blue[1]);
+    saturn_format_write_int8(&stream, defaultColorHair.red[0]);
+    saturn_format_write_int8(&stream, defaultColorHair.green[0]);
+    saturn_format_write_int8(&stream, defaultColorHair.blue[0]);
+    saturn_format_write_int8(&stream, defaultColorHair.red[1]);
+    saturn_format_write_int8(&stream, defaultColorHair.green[1]);
+    saturn_format_write_int8(&stream, defaultColorHair.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorShirt.red[0]);
+    saturn_format_write_int8(&stream, sparkColorShirt.green[0]);
+    saturn_format_write_int8(&stream, sparkColorShirt.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorShirt.red[1]);
+    saturn_format_write_int8(&stream, sparkColorShirt.green[1]);
+    saturn_format_write_int8(&stream, sparkColorShirt.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.red[0]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.green[0]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.red[1]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.green[1]);
+    saturn_format_write_int8(&stream, sparkColorShoulders.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorArms.red[0]);
+    saturn_format_write_int8(&stream, sparkColorArms.green[0]);
+    saturn_format_write_int8(&stream, sparkColorArms.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorArms.red[1]);
+    saturn_format_write_int8(&stream, sparkColorArms.green[1]);
+    saturn_format_write_int8(&stream, sparkColorArms.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.red[0]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.green[0]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.red[1]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.green[1]);
+    saturn_format_write_int8(&stream, sparkColorOverallsBottom.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.red[0]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.green[0]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.red[1]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.green[1]);
+    saturn_format_write_int8(&stream, sparkColorLegTop.blue[1]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.red[0]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.green[0]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.blue[0]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.red[1]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.green[1]);
+    saturn_format_write_int8(&stream, sparkColorLegBottom.blue[1]);
+    saturn_format_close_section(&stream);
     for (auto& entry : k_frame_keys) {
         saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
         saturn_format_write_int8(&stream, entry.second.first.precision);
-        saturn_format_write_bool(&stream, entry.second.first.autoCreation);
         saturn_format_write_string(&stream, (char*)entry.first.c_str());
         saturn_format_close_section(&stream);
     }
@@ -469,4 +635,31 @@ void saturn_save_project(char* filename) {
     }
     saturn_format_write((char*)full_file_path(filename).c_str(), &stream);
     std::cout << "Saved project " << filename << std::endl;
+}
+
+std::string project_dir;
+std::vector<std::string> project_array;
+
+void saturn_load_project_list() {
+    project_array.clear();
+    //project_array.push_back("autosave.spj");
+
+    #ifdef __MINGW32__
+        // windows moment
+        project_dir = "dynos\\projects\\";
+    #else
+        project_dir = "dynos/projects/";
+    #endif
+
+    if (!fs::exists(project_dir))
+        return;
+
+    for (const auto & entry : fs::directory_iterator(project_dir)) {
+        fs::path path = entry.path();
+
+        if (path.filename().u8string() != "autosave.spj") {
+            if (path.extension().u8string() == ".spj")
+                project_array.push_back(path.filename().u8string());
+        }
+    }
 }

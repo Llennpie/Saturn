@@ -26,6 +26,7 @@
 #include "rendering_graph_node.h"
 #include "spawn_object.h"
 #include "spawn_sound.h"
+#include "saturn/imgui/saturn_imgui_machinima.h"
 
 s8 D_8032F0A0[] = { 0xF8, 0x08, 0xFC, 0x04 };
 s16 D_8032F0A4[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
@@ -1319,10 +1320,10 @@ static void cur_obj_move_update_ground_air_flags(UNUSED f32 gravity, f32 bouncin
     o->oMoveFlags &= ~OBJ_MOVE_MASK_IN_WATER;
 }
 
-static f32 cur_obj_move_y_and_get_water_level(f32 gravity, f32 buoyancy) {
+static f32 cur_obj_move_y_and_get_water_level(f32 g, f32 buoyancy) {
     f32 waterLevel;
 
-    o->oVelY += gravity + buoyancy;
+    o->oVelY += g * gravity + buoyancy;
     if (o->oVelY < -78.0f) {
         o->oVelY = -78.0f;
     }
@@ -1337,7 +1338,7 @@ static f32 cur_obj_move_y_and_get_water_level(f32 gravity, f32 buoyancy) {
     return waterLevel;
 }
 
-void cur_obj_move_y(f32 gravity, f32 bounciness, f32 buoyancy) {
+void cur_obj_move_y(f32 g, f32 bounciness, f32 buoyancy) {
     f32 waterLevel;
 
     o->oMoveFlags &= ~OBJ_MOVE_LEFT_GROUND;
@@ -1350,12 +1351,12 @@ void cur_obj_move_y(f32 gravity, f32 bounciness, f32 buoyancy) {
     }
 
     if (!(o->oMoveFlags & OBJ_MOVE_MASK_IN_WATER)) {
-        waterLevel = cur_obj_move_y_and_get_water_level(gravity, 0.0f);
+        waterLevel = cur_obj_move_y_and_get_water_level(g * gravity, 0.0f);
         if (o->oPosY > waterLevel) {
             //! We only handle floor collision if the object does not enter
             //  water. This allows e.g. coins to clip through floors if they
             //  enter water on the same frame.
-            cur_obj_move_update_ground_air_flags(gravity, bounciness);
+            cur_obj_move_update_ground_air_flags(g * gravity, bounciness);
         } else {
             o->oMoveFlags |= OBJ_MOVE_ENTERED_WATER;
             o->oMoveFlags &= ~OBJ_MOVE_MASK_ON_GROUND;
@@ -1363,7 +1364,7 @@ void cur_obj_move_y(f32 gravity, f32 bounciness, f32 buoyancy) {
     } else {
         o->oMoveFlags &= ~OBJ_MOVE_ENTERED_WATER;
 
-        waterLevel = cur_obj_move_y_and_get_water_level(gravity, buoyancy);
+        waterLevel = cur_obj_move_y_and_get_water_level(g * gravity, buoyancy);
         if (o->oPosY < waterLevel) {
             cur_obj_move_update_underwater_flags();
         } else {
@@ -1800,7 +1801,6 @@ void cur_obj_update_floor_and_walls(void) {
 }
 
 void cur_obj_move_standard(s16 steepSlopeAngleDegrees) {
-    f32 gravity = o->oGravity;
     f32 bounciness = o->oBounciness;
     f32 buoyancy = o->oBuoyancy;
     f32 dragStrength = o->oDragStrength;
@@ -1827,7 +1827,7 @@ void cur_obj_move_standard(s16 steepSlopeAngleDegrees) {
         cur_obj_apply_drag_xz(dragStrength);
 
         cur_obj_move_xz(steepSlopeNormalY, careAboutEdgesAndSteepSlopes);
-        cur_obj_move_y(gravity, bounciness, buoyancy);
+        cur_obj_move_y(o->oGravity * gravity, bounciness, buoyancy);
 
         if (o->oForwardVel < 0) {
             negativeSpeed = TRUE;
@@ -2120,7 +2120,7 @@ void cur_obj_spawn_particles(struct SpawnParticlesInfo *info) {
 
         particle->oBehParams2ndByte = info->behParam;
         particle->oMoveAngleYaw = random_u16();
-        particle->oGravity = info->gravity;
+        particle->oGravity = info->gravity * gravity;
         particle->oDragStrength = info->dragStrength;
 
         particle->oPosY += info->offsetY;

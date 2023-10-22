@@ -37,9 +37,9 @@ void saturn_location_data_handler(SaturnFormatStream* stream, int version) {
         float x = saturn_format_read_float(stream);
         float y = saturn_format_read_float(stream);
         float z = saturn_format_read_float(stream);
-        char name[257];
-        saturn_format_read_string(stream, name);
-        name[256] = 0;
+        char name[256];
+        saturn_format_read_string(stream, name, 256);
+        name[255] = 0;
         saturn_add_location_internal(level, x, y, z, angle, name);
     }
 }

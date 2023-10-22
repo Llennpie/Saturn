@@ -9,6 +9,7 @@
 #include "data/dynos.cpp.h"
 #include "saturn/imgui/saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
+#include "saturn/imgui/saturn_imgui_chroma.h"
 #include "libs/sdl2_scancode_to_dinput.h"
 #include "pc/configfile.h"
 #include "saturn/filesystem/saturn_projectfile.h"
@@ -49,12 +50,15 @@ int chainer_index;
 bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
 bool is_anim_looped = false;
+bool is_anim_hang = false;
 float anim_speed = 1.0f;
 int current_anim_frame;
 int current_anim_id;
 int current_anim_length;
 bool is_anim_paused = false;
 int paused_anim_frame;
+
+float this_face_angle;
 
 bool limit_fps = true;
 
@@ -65,6 +69,7 @@ bool has_discord_init;
 bool is_chroma_keying = false;
 bool prev_quicks[3];
 int lastCourseNum = -1;
+int saturn_launch_timer;
 
 float* active_key_float_value = &camera_fov;
 bool* active_key_bool_value;
@@ -76,6 +81,11 @@ int mcam_timer = 0;
 int k_current_frame = 0;
 int k_previous_frame = 0;
 int k_curr_curve_type = 0;
+
+int k_current_anim = -1;
+int k_prev_anim = -1;
+
+bool place_keyframe_anim = false;
 
 bool should_update_cam_from_keyframes = false;
 
@@ -104,6 +114,10 @@ std::string cc_details;
 bool is_cc_editing;
 
 bool autoChroma;
+bool autoChromaLevel;
+bool autoChromaObjects;
+
+u8 activatedToads = 0;
 
 extern "C" {
 #include "game/camera.h"
@@ -118,6 +132,7 @@ extern "C" {
 #include <sm64.h>
 #include "pc/controller/controller_keyboard.h"
 #include "pc/cheats.h"
+#include "game/save_file.h"
 }
 
 using namespace std;
@@ -156,7 +171,6 @@ void saturn_update() {
     if (mario_exists) {
         if (gPlayer1Controller->buttonPressed & D_JPAD) {
             showMenu = !showMenu;
-            if (!showMenu) accept_text_input = true;
         }
         if (keyResetter == 6) {
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F2]) {
@@ -165,7 +179,7 @@ void saturn_update() {
                 keyResetter = 0;
             }
         }
-        if (accept_text_input) {
+        if (!saturn_disable_sm64_input()) {
             if (gPlayer1Controller->buttonPressed & U_JPAD) camera_frozen = !camera_frozen;
             if (gPlayer1Controller->buttonPressed & L_JPAD) {
                 if (!is_anim_playing) {
@@ -196,28 +210,28 @@ void saturn_update() {
             camera_view_rotating = SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_LMASK;
         } else if (configMCameraMode == 0) {
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_R]) {
-                cameraRotateUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & accept_text_input;
-                cameraRotateDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
-                cameraRotateLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
-                cameraRotateRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+                cameraRotateUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & !saturn_disable_sm64_input();
+                cameraRotateDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & !saturn_disable_sm64_input();
+                cameraRotateLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & !saturn_disable_sm64_input();
+                cameraRotateRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & !saturn_disable_sm64_input();
                 // Stop from moving
                 cameraMoveForward = 0;
                 cameraMoveBackward = 0;
                 cameraMoveLeft = 0;
                 cameraMoveRight = 0;
             } else {
-                cameraMoveForward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & accept_text_input;
-                cameraMoveBackward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & accept_text_input;
-                cameraMoveLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & accept_text_input;
-                cameraMoveRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & accept_text_input;
+                cameraMoveForward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Y] & !saturn_disable_sm64_input();
+                cameraMoveBackward = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_H] & !saturn_disable_sm64_input();
+                cameraMoveLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_G] & !saturn_disable_sm64_input();
+                cameraMoveRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_J] & !saturn_disable_sm64_input();
                 // Stop from rotating
                 cameraRotateUp = 0;
                 cameraRotateDown = 0;
                 cameraRotateLeft = 0;
                 cameraRotateRight = 0;
             }
-            cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & accept_text_input;
-            cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & accept_text_input;
+            cameraMoveUp = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] & !saturn_disable_sm64_input();
+            cameraMoveDown = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_U] & !saturn_disable_sm64_input();
         }
         cameraRollLeft = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_V];
         cameraRollRight = SDL_GetKeyboardState(NULL)[SDL_SCANCODE_B];
@@ -231,8 +245,6 @@ void saturn_update() {
     }
 
     camera_default_fov = camera_fov + 5.0f;
-
-    apply_cc_from_editor();
 
     //SDL_GetMouseState(&camera_view_move_x, &camera_view_move_y);
 
@@ -258,48 +270,31 @@ void saturn_update() {
         //configHUD = prev_quicks[2];
     }
 
-    // Animations
-
-    if (mario_exists) {
-        if (is_anim_paused) {
-            gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
-            gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
-        } else if (is_anim_playing) {
-            if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
-                if (is_anim_looped && !using_chainer) {
-                    gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
-                    gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
-                } else {
-                    if (using_chainer) {
-                        chainer_index++;
-                    } else {
-                        if (gMarioState->action == ACT_DEBUG_FREE_MOVE)
-                            set_mario_animation(gMarioState, MARIO_ANIM_A_POSE);
-                        is_anim_playing = false;
-                        is_anim_paused = false;
-                    }
-                }
-            }
-            if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
-                is_anim_playing = false;
-                is_anim_paused = false;
-            }
-
-            current_anim_id = (int)gMarioState->marioObj->header.gfx.unk38.animID;
-            if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON || gMarioState->action == ACT_DEBUG_FREE_MOVE) {
-                current_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
-                current_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
-            }
-
-            if (anim_speed != 1.0f)
-                gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
-
-            if (using_chainer && is_anim_playing) saturn_run_chainer();
+    saturn_launch_timer++;
+    //std::cout << saturn_launch_timer << std::endl;
+    if (gCurrLevelNum == LEVEL_SA && saturn_launch_timer < 50) {
+        gMarioState->faceAngle[1] = 0;
+        if (gCamera) { // i hate the sm64 camera system aaaaaaaaaaaaaaaaaa
+            float dist = 0;
+            s16 yaw, pitch;
+            vec3f_set(gCamera->pos, 0.f, 192.f, 264.f);
+            vec3f_set(gCamera->focus, 0.f, 181.f, 28.f);
+            vec3f_copy(freezecamPos, gCamera->pos);
+            vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+            freezecamYaw = (float)yaw;
+            freezecamPitch = (float)pitch;
+            vec3f_copy(gLakituState.pos, gCamera->pos);
+            vec3f_copy(gLakituState.focus, gCamera->focus);
+            vec3f_copy(gLakituState.goalPos, gCamera->pos);
+            vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+            gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+            gLakituState.yaw = gCamera->yaw;
         }
     }
 
     // Keyframes
-
+    
+    bool justFinished = false;
     if (keyframe_playing) {
         mcam_timer++;
         k_current_frame = (uint32_t)mcam_timer;
@@ -317,7 +312,13 @@ void saturn_update() {
         if (end) {
             if (k_loop) mcam_timer = 0;
             else keyframe_playing = false;
+            k_prev_anim = -1;
+            justFinished = true;
         }
+
+        gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
+
+        schroma_imgui_init();
     }
 
     if (camera_frozen && keyframe_playing) {
@@ -333,15 +334,54 @@ void saturn_update() {
         gLakituState.yaw = gCamera->yaw;
     }
 
-    //s16 pitch, yaw;
-    //f32 thisDist;
-    //vec3f_get_dist_and_angle(gCamera->focus, gCamera->pos, &thisDist, &pitch, &yaw);
-    //camera_approach_f32_symmetric_bool(&thisDist, 150.f, 7.f);
-    //vec3f_set_dist_and_angle(c->focus, c->pos, dist, pitch, yaw);
-    //update_camera_yaw(c);
+    // Animations
 
-    if (is_spinning && mario_exists) {
-        gMarioState->faceAngle[1] += (s16)(spin_mult * 15 * 182.04f);
+    if (mario_exists) {
+        if ((keyframe_playing || justFinished) && k_prev_anim != k_current_anim && k_current_anim != -1) anim_play_button(k_current_anim);
+        k_prev_anim = k_current_anim;
+
+        if (is_anim_paused) {
+            gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
+            gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
+        } else if (is_anim_playing) {
+            if (is_anim_hang) {
+                if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1)) {
+                    is_anim_paused = !is_anim_paused;
+                }
+            }
+
+            if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
+                if (is_anim_looped && !using_chainer) {
+                    gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
+                    gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
+                } else {
+                    if (using_chainer) {
+                        chainer_index++;
+                    } else {
+                        if (gMarioState->action == ACT_DEBUG_FREE_MOVE)
+                            set_mario_animation(gMarioState, MARIO_ANIM_A_POSE);
+                        is_anim_playing = false;
+                        is_anim_paused = false;
+                    }
+                }
+            }
+
+            if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
+                is_anim_playing = false;
+                is_anim_paused = false;
+            }
+
+            current_anim_id = (int)gMarioState->marioObj->header.gfx.unk38.animID;
+            if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON || gMarioState->action == ACT_DEBUG_FREE_MOVE) {
+                current_anim_frame = (int)gMarioState->marioObj->header.gfx.unk38.animFrame;
+                current_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
+            }
+
+            if (anim_speed != 1.0f)
+                gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
+
+            if (using_chainer && is_anim_playing) saturn_run_chainer();
+        }
     }
 
     // Misc
@@ -364,6 +404,10 @@ void saturn_update() {
     if (linkMarioScale) {
         marioScaleSizeY = marioScaleSizeX;
         marioScaleSizeZ = marioScaleSizeX;
+    }
+
+    if (is_spinning && mario_exists) {
+        gMarioState->faceAngle[1] += (s16)(spin_mult * 15 * 182.04f);
     }
 
     // Autosave
@@ -403,8 +447,6 @@ bool saturn_keyframe_apply(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    if (timeline.disabled) return true;
-
     float value;
     bool last = true;
     if (keyframes.size() == 1) value = keyframes[0].value;
@@ -412,12 +454,24 @@ bool saturn_keyframe_apply(std::string id, int frame) {
         int keyframe = 0;
         last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-        value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        if (timeline.forceWait) value = keyframes[keyframe + (int)x].value;
+        else value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
     }
-    if (timeline.bdest != nullptr) *timeline.bdest = value >= 1;
-    if (timeline.fdest != nullptr) *timeline.fdest = value;
+    if (timeline.type == KFTYPE_BOOL) *(bool*)timeline.dest = value >= 1;
+    if (timeline.type == KFTYPE_FLOAT) *(float*)timeline.dest = value;
+    if (timeline.type == KFTYPE_FLAGS) {
+        *(int*)timeline.dest = *(int*)&value;
+    }
 
     return last;
+}
+
+void flag_place_keyframe(std::string curr_id, std::string id, bool* doPlace, bool* out) {
+    if (*out) return;
+    if (curr_id == id && *doPlace) {
+        *doPlace = false;
+        *out = true;
+    }
 }
 
 // returns true if the value is the same as if the keyframe was applied
@@ -425,24 +479,31 @@ bool saturn_keyframe_matches(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    float value;
-    if (keyframes.size() == 1) value = keyframes[0].value;
+    float expectedValue;
+    if (keyframes.size() == 1) expectedValue = keyframes[0].value;
     else {
         int keyframe = 0;
         bool last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-
-        value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        if (timeline.forceWait) expectedValue = keyframes[keyframe + (int)x].value;
+        else expectedValue = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
     }
-    if (timeline.bdest != nullptr) {
-        if (*timeline.bdest != value >= 1) return false;
+    if (timeline.type == KFTYPE_BOOL) {
+        if (*(bool*)timeline.dest != expectedValue >= 1) return false;
+        return true;
     }
-    if (timeline.fdest != nullptr) {
-        float distance = abs(*timeline.fdest - value);
+    if (timeline.type == KFTYPE_FLOAT) {
+        float value = *(float*)timeline.dest;
+        float distance = abs(value - expectedValue);
         if (distance > pow(10, timeline.precision)) {
             if (id.find("cam") != string::npos) return !is_camera_moving;
             else return false;
         }
+    }
+    if (timeline.type == KFTYPE_FLAGS) {
+        bool doPlace = false;
+        flag_place_keyframe(id, "k_mario_anim", &place_keyframe_anim, &doPlace);
+        return !doPlace;
     }
 
     return true;
@@ -457,11 +518,13 @@ void saturn_play_animation(MarioAnimID anim) {
 }
 
 void saturn_play_keyframe() {
-    if (k_frame_keys.size() <= 1) return;
+    if (k_frame_keys.size() <= 0) return;
 
     if (!keyframe_playing) {
         k_last_passed_index = 0;
         k_distance_between = 0;
+        k_current_anim = -1;
+        k_prev_anim = -1;
         mcam_timer = 0;
         keyframe_playing = true;
     } else {
@@ -587,9 +650,13 @@ const char* saturn_get_stage_name(int courseNum) {
 }
 
 void saturn_do_load() {
+    if (!(save_file_get_flags() & SAVE_FLAG_TALKED_TO_ALL_TOADS)) DynOS_Gfx_GetPacks().Clear();
     DynOS_Opt_Init();
+    model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+    if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
     saturn_imgui_init();
     saturn_load_locations();
+    saturn_launch_timer = 0;
 }
 void saturn_on_splash_finish() {
     splash_finished = true;

@@ -579,19 +579,22 @@ s32 act_debug_free_move(struct MarioState *m) {
         pos[2] += 32.0f * speed * coss(m->intendedYaw);
     }
 
-    resolve_and_return_wall_collisions(pos, 60.0f, 50.0f);
+    //resolve_and_return_wall_collisions(pos, 60.0f, 50.0f);
 
-    floorHeight = find_floor(pos[0], pos[1], pos[2], &surf);
-    if (surf != NULL) {
-        if (pos[1] < floorHeight) {
-            pos[1] = floorHeight;
-        }
-        vec3f_copy(m->pos, pos);
+    //floorHeight = find_floor(pos[0], pos[1], pos[2], &surf);
+    //if (surf != NULL) {
+    //    if (pos[1] < floorHeight) {
+    //        pos[1] = floorHeight;
+    //    }
+    vec3f_copy(m->pos, pos);
+    //}
+
+    if (!is_spinning) {
+        m->faceAngle[1] = m->intendedYaw;
+        vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
     }
 
-    m->faceAngle[1] = m->intendedYaw;
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
-    vec3s_set(m->marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
 
     if (!is_anim_playing) {
         set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
@@ -1181,6 +1184,7 @@ s32 act_death_exit(struct MarioState *m) {
 #endif
         queue_rumble_data(5, 80);
         m->numLives--;
+        if (m->numLives == -1) m->numLives = 4;
         // restore 7.75 units of health
         m->healCounter = 31;
     }
@@ -1197,6 +1201,7 @@ s32 act_unused_death_exit(struct MarioState *m) {
         play_sound(SOUND_MARIO_OOOF2, m->marioObj->header.gfx.cameraToObject);
 #endif
         m->numLives--;
+        if (m->numLives == -1) m->numLives = 4;
         // restore 7.75 units of health
         m->healCounter = 31;
     }
@@ -1214,6 +1219,7 @@ s32 act_falling_death_exit(struct MarioState *m) {
 #endif
         queue_rumble_data(5, 80);
         m->numLives--;
+        if (m->numLives == -1) m->numLives = 4;
         // restore 7.75 units of health
         m->healCounter = 31;
     }
@@ -1259,6 +1265,7 @@ s32 act_special_death_exit(struct MarioState *m) {
     if (launch_mario_until_land(m, ACT_HARD_BACKWARD_GROUND_KB, MARIO_ANIM_BACKWARD_AIR_KB, -24.0f)) {
         queue_rumble_data(5, 80);
         m->numLives--;
+        if (m->numLives == -1) m->numLives = 4;
         m->healCounter = 31;
     }
     // show Mario
@@ -2635,7 +2642,7 @@ static s32 check_for_instant_quicksand(struct MarioState *m) {
 s32 mario_execute_cutscene_action(struct MarioState *m) {
     s32 cancel;
 
-    if (check_for_instant_quicksand(m)) {
+    if (m->action != ACT_DEBUG_FREE_MOVE) if (check_for_instant_quicksand(m)) {
         return TRUE;
     }
 

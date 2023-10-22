@@ -12,6 +12,8 @@ struct ObjectHitbox sHauntedChairHitbox = {
     /* hurtboxHeight:     */ 50,
 };
 
+#include "src/game/interaction.h"
+
 void bhv_haunted_chair_init(void) {
     struct Object *val04;
     f32 val00;
@@ -128,6 +130,8 @@ void haunted_chair_act_1(void) {
 }
 
 void bhv_haunted_chair_loop(void) {
+    if (enable_immunity) return;
+
     if (!(o->activeFlags & ACTIVE_FLAG_IN_DIFFERENT_ROOM)) {
         switch (o->oAction) {
             case 0:

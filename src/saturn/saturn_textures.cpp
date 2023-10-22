@@ -69,25 +69,46 @@ string blink_eye_3;
 bool force_blink;
 bool enable_blink_cycle = false;
 
+std::vector<std::string> previous_eye_paths;
+
+std::vector<string> eye1_array;
+
 // Eye Folders, Non-Model
 
 void saturn_load_eye_folder(std::string path) {
     eye_array.clear();
+    eye1_array.clear();
     fs::create_directory("res/gfx");
 
-    // if eye folder is missing
+    // If eye folder is misplaced
     if (!fs::exists("dynos/eyes/"))
         return;
 
-    // reset dir if we last used models or returned to root
-    if (path == "../") path = "";
-    if (model_eyes_enabled || path == "") {
-        model_eyes_enabled = false;
+    // Go back a subfolder
+    if (path.find("../") != string::npos) {
+        try {
+            // Only go back if the previous directory actually exists
+            if (previous_eye_paths.size() < 1 || !fs::exists(previous_eye_paths[previous_eye_paths.size() - 2])) {
+                path = "";
+                current_eye_dir_path = "dynos/eyes/";
+                previous_eye_paths.clear();
+            } else {
+                current_eye_dir_path = previous_eye_paths[previous_eye_paths.size() - 2];
+                previous_eye_paths.pop_back();
+            }
+        }
+        catch (std::exception& e) {
+            std::cerr << "Exception caught : " << e.what() << std::endl;
+        }
+    }
+    if (path == "") {
         current_eye_dir_path = "dynos/eyes/";
+        previous_eye_paths.clear();
     }
 
     // only update current path if folder exists
-    if (fs::is_directory(current_eye_dir_path + path)) {
+    if (fs::is_directory(current_eye_dir_path + path) && path != "../") {
+        previous_eye_paths.push_back(current_eye_dir_path + path);
         current_eye_dir_path = current_eye_dir_path + path;
     }
 
@@ -103,9 +124,12 @@ void saturn_load_eye_folder(std::string path) {
         } else {
             string entryPath = entry.path().filename().u8string();
             if (entryPath.find(".png") != string::npos) // only allow png files
-                eye_array.push_back(entryPath);
+                eye1_array.push_back(entryPath);
         }
     }
+
+    eye_array.insert(eye_array.end(), eye1_array.begin(), eye1_array.end());
+    eye1_array.clear();
     
     if (eye_array.size() > 0)
         saturn_set_eye_texture(0);
@@ -169,6 +193,7 @@ const void* saturn_bind_texture(const void* input) {
     
     string texName = inputTexture;
 
+    // Custom model expressions and eye textures
     if (current_model_data.name != "") {
         for (int i = 0; i < current_model_data.expressions.size(); i++) {
 
@@ -176,6 +201,7 @@ const void* saturn_bind_texture(const void* input) {
             string pos_name1 = "saturn_" + current_model_data.expressions[i].name;
             string pos_name2 = pos_name1.substr(0, pos_name1.size() - 1);
 
+            // Model custom blink cycle
             if (force_blink && eye_array.size() > 0 && is_replacing_eyes) {
                 if (texName.find("saturn_1eye") != string::npos) {
                     outputTexture = blink_eye_1.c_str();
@@ -192,6 +218,7 @@ const void* saturn_bind_texture(const void* input) {
                 }
             }
 
+            // Replace expression textures
             if (texName.find(pos_name1) != string::npos || texName.find(pos_name2) != string::npos) {
                 outputTexture = current_model_exp_tex[i].c_str();
                 //std::cout << current_model_exp_tex[i] << std::endl;
@@ -202,6 +229,7 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
+    // Overwrite the unused textures shown in eye switch options 3, 4, 5 and 6 with our custom ones
     if (eye_array.size() > 0 && is_replacing_eyes) {
         if (texName.find("saturn_eye") != string::npos ||
             texName == "actors/mario/mario_eyes_left_unused.rgba16" ||
@@ -214,6 +242,7 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
+    // Non-model custom blink cycle
     if (force_blink && eye_array.size() > 0 && is_replacing_eyes) {
         if (texName == "actors/mario/mario_eyes_center.rgba16" && blink_eye_1 != "") {
             outputTexture = blink_eye_1.c_str();
@@ -230,38 +259,70 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
-    /*cycle_blink_disabled = true;
-    if (texName.find("saturn_1eye") != string::npos || texName == "actors/mario/mario_eyes_center.rgba16"
-        || texName.find("saturn_2eye") != string::npos || texName == "actors/mario/mario_eyes_half_closed.rgba16"
-        || texName.find("saturn_3eye") != string::npos || texName == "actors/mario/mario_eyes_closed.rgba16") {
-        cycle_blink_disabled = false;
-    }*/
+    // AUTO-CHROMA
 
-    if (show_vmario_emblem) {
-        if (texName == "actors/mario/no_m.rgba16")
-            return "actors/mario/mario_logo.rgba16";
-    }
-
-    if ((gCurrLevelNum == LEVEL_SA || autoChroma == true) && use_color_background) {
-        if (texName.find("textures/skybox_tiles/") != string::npos)
-            return "textures/saturn/white.rgba16";
-    }
-
-    if (autoChroma == true) {
-        if (texName.find("saturn") == string::npos &&
-            texName.find("dynos") == string::npos &&
-            texName.find("mario_") == string::npos &&
-            texName.find("mario/") == string::npos &&
-            texName.find("skybox") == string::npos &&
-            texName.find("shadow_quarter_circle.ia8") == string::npos &&
-            texName.find("shadow_quarter_square.ia8") == string::npos) {
-                return "textures/saturn/mario_logo.rgba16";
+    // Overwrite skybox
+    // This runs for both Auto-chroma and the Chroma Key Stage
+    if (autoChroma || gCurrLevelNum == LEVEL_SA) {
+        if (use_color_background) {
+            // Use white, recolorable textures for our color background
+            if (texName.find("textures/skybox_tiles/") != string::npos)
+                return "textures/saturn/white.rgba16";
+        } else {
+            // Swapping skyboxes IDs
+            if (texName.find("textures/skybox_tiles/water") != string::npos) {
+                switch(gChromaKeyBackground) {
+                    case 0: return static_cast<const void*>(texName.replace(22, 5, "water").c_str());
+                    case 1: return static_cast<const void*>(texName.replace(22, 5, "bitfs").c_str());
+                    case 2: return static_cast<const void*>(texName.replace(22, 5, "wdw").c_str());
+                    case 3: return static_cast<const void*>(texName.replace(22, 5, "cloud_floor").c_str());
+                    case 4: return static_cast<const void*>(texName.replace(22, 5, "ccm").c_str());
+                    case 5: return static_cast<const void*>(texName.replace(22, 5, "ssl").c_str());
+                    case 6: return static_cast<const void*>(texName.replace(22, 5, "bbh").c_str());
+                    case 7: return static_cast<const void*>(texName.replace(22, 5, "bidw").c_str());
+                    case 8:
+                        // "Above Clouds" recycles textures for its bottom layer
+                        // See /us_pc/bin/clouds_skybox.c @ line 138
+                        if (texName == "textures/skybox_tiles/water.44.rgba16" ||
+                            texName == "textures/skybox_tiles/water.45.rgba16") {
+                                return "textures/skybox_tiles/clouds.40.rgba16";
+                            }
+                        else {
+                            return static_cast<const void*>(texName.replace(22, 5, "clouds").c_str());
+                        }
+                    case 9: return static_cast<const void*>(texName.replace(22, 5, "bits").c_str());
+                }
+            }
         }
-        /*if (texName.find("segment2.11C58.rgba16") != string::npos ||
-            texName.find("segment2.12C58.rgba16") != string::npos ||
-            texName.find("segment2.13C58.rgba16") != string::npos) {
-                return "textures/saturn/mario_logo.rgba16";
-        }*/
+
+        if (autoChroma) {
+            // Toggle object visibility
+            if (!autoChromaObjects) {
+                if (texName.find("castle_grounds_textures.0BC00.ia16") != string::npos ||
+                    texName.find("butterfly_wing.rgba16") != string::npos) {
+                        return "textures/saturn/mario_logo.rgba16";
+                }
+            }
+            // Toggle level visibility
+            if (!autoChromaLevel) {
+                if (texName.find("saturn") == string::npos &&
+                    texName.find("dynos") == string::npos &&
+                    texName.find("mario_") == string::npos &&
+                    texName.find("mario/") == string::npos &&
+                    texName.find("skybox") == string::npos &&
+                    texName.find("shadow_quarter_circle.ia8") == string::npos &&
+                    texName.find("shadow_quarter_square.ia8") == string::npos) {
+
+                        if (texName.find("segment2.11C58.rgba16") != string::npos ||
+                            texName.find("segment2.12C58.rgba16") != string::npos ||
+                            texName.find("segment2.13C58.rgba16") != string::npos) {
+                                return "textures/saturn/mario_logo.rgba16";
+                        }
+
+                }
+            }
+            // To-do: Hide paintings as well (low priority)
+        }
     }
 
     return input;
@@ -366,7 +427,9 @@ string saturn_load_search(std::string folder_name) {
     return folder_name;
 }
 
-void saturn_load_model_data(std::string folder_name) {
+std::string previous_model_name;
+
+void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
     // Reset current model data
     ModelData blank;
     current_model_data = blank;
@@ -464,24 +527,35 @@ void saturn_load_model_data(std::string folder_name) {
     string path = "dynos/packs/" + folder_name + "/expressions/";
     if (!fs::is_directory(path)) return;
 
+    previous_eye_paths.clear();
+
     int i = 0;
     for (const auto & entry : fs::directory_iterator(path)) {
         if (fs::is_directory(entry.path())) {
             string expression_name = entry.path().filename().u8string();
             saturn_load_model_expression_entry(folder_name, expression_name);
-            
+
             // Choose first texture as default
-            current_model_exp_tex[i] = "../../" + current_model_data.expressions[i].path + current_model_data.expressions[i].textures[0];
-            current_model_exp_tex[i] = current_model_exp_tex[i].substr(0, current_model_exp_tex[i].size() - 4);
+            if (!refresh_textures) {
+                current_model_exp_tex[i] = "../../" + current_model_data.expressions[i].path + current_model_data.expressions[i].textures[0];
+                current_model_exp_tex[i] = current_model_exp_tex[i].substr(0, current_model_exp_tex[i].size() - 4);
+            }
 
             // Toggle model eyes
-            if (expression_name.find("eye") != string::npos) using_model_eyes = true;
+            if (expression_name.find("eye") != string::npos) {
+                using_model_eyes = true;
+            } else {
+                saturn_load_eye_folder("");
+                previous_eye_paths.clear();
+            }
 
             i++;
         } else {
             // Ignore, these are files
         }
     }
+
+    previous_model_name = current_model_data.name;
 }
 
 void saturn_copy_file(string from, string to) {

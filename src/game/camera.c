@@ -682,7 +682,7 @@ f32 calc_y_to_curr_floor(f32 *posOff, f32 posMul, f32 posBound, f32 *focOff, f32
 
     if (!(sMarioCamState->action & ACT_FLAG_METAL_WATER)) {
         //! @bug this should use sMarioGeometry.waterHeight
-        if (floorHeight < (waterHeight = find_water_level(sMarioCamState->pos[0], sMarioCamState->pos[2]))) {
+        if (floorHeight < (waterHeight = find_water_level(sMarioCamState->pos[0], sMarioCamState->pos[2])) && !configNoWater) {
             floorHeight = waterHeight;
         }
     }
@@ -2300,7 +2300,8 @@ s16 update_default_camera(struct Camera *c) {
         }
         // If not wearing the metal cap, always stay above
         if (!(gCameraMovementFlags & CAM_MOVE_METAL_BELOW_WATER) && camFloorHeight < waterHeight) {
-            camFloorHeight = waterHeight;
+            if (configNoWater) camFloorHeight = find_floor(cPos[0], waterHeight - 10.f, cPos[2], &cFloor);
+            else camFloorHeight = waterHeight;
         }
     } else {
         gCameraMovementFlags &= ~CAM_MOVE_METAL_BELOW_WATER;
@@ -2499,6 +2500,29 @@ s32 update_spiral_stairs_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
  */
 void mode_spiral_stairs_camera(struct Camera *c) {
     c->nextYaw = update_spiral_stairs_camera(c, c->focus, c->pos);
+}
+
+u8 customFlyYaw = 0;
+s8 customFlyPitch = 0;
+s16 customFlyCurrYaw = 0;
+s16 customFlyCurrPitch = 0;
+
+void mode_custom_fly(struct Camera *c) {
+    if (gPlayer1Controller->buttonPressed & U_CBUTTONS && customFlyPitch < 3) customFlyPitch++; 
+    if (gPlayer1Controller->buttonPressed & D_CBUTTONS && customFlyPitch > -3) customFlyPitch--;
+    if (gPlayer1Controller->buttonPressed & L_CBUTTONS) customFlyYaw--;
+    if (gPlayer1Controller->buttonPressed & R_CBUTTONS) customFlyYaw++;
+    s16 targetYaw = customFlyYaw * 8192;
+    s16 targetPitch = customFlyPitch * 4096;
+    camera_approach_s16_symmetric_bool(&customFlyCurrYaw, targetYaw, 2048);
+    camera_approach_s16_symmetric_bool(&customFlyCurrPitch, targetPitch, 1024);
+    vec3f_set(gLakituState.focus, gMarioState->pos[0], gMarioState->pos[1] + 150, gMarioState->pos[2]);
+    vec3f_set_dist_and_angle(gLakituState.focus, gLakituState.pos, 1000, customFlyCurrPitch, customFlyCurrYaw);
+    vec3f_copy(gCamera->pos, gLakituState.pos);
+    vec3f_copy(gCamera->focus, gLakituState.focus);
+    vec3f_copy(gLakituState.goalPos, gLakituState.pos);
+    vec3f_copy(gLakituState.goalFocus, gLakituState.focus);
+    gCamera->yaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
 }
 
 s32 update_slide_or_0f_camera(UNUSED struct Camera *c, Vec3f focus, Vec3f pos) {
@@ -3457,67 +3481,70 @@ void update_camera(struct Camera *c) {
                     mode_mario_camera(c);
             }
         } else {
-            switch (c->mode) {
-                case CAMERA_MODE_BEHIND_MARIO:
-                    mode_behind_mario_camera(c);
-                    break;
+            if (gMarioState->action == ACT_DEBUG_FREE_MOVE) mode_custom_fly(c);
+            else {
+                switch (c->mode) {
+                    case CAMERA_MODE_BEHIND_MARIO:
+                        mode_behind_mario_camera(c);
+                        break;
 
-                case CAMERA_MODE_C_UP:
-                    mode_c_up_camera(c);
-                    break;
+                    case CAMERA_MODE_C_UP:
+                        mode_c_up_camera(c);
+                        break;
 
-                case CAMERA_MODE_WATER_SURFACE:
-                    mode_water_surface_camera(c);
-                    break;
+                    case CAMERA_MODE_WATER_SURFACE:
+                        mode_water_surface_camera(c);
+                        break;
 
-                case CAMERA_MODE_INSIDE_CANNON:
-                    mode_cannon_camera(c);
-                    break;
+                    case CAMERA_MODE_INSIDE_CANNON:
+                        mode_cannon_camera(c);
+                        break;
 
-                case CAMERA_MODE_8_DIRECTIONS:
-                    mode_8_directions_camera(c);
-                    break;
+                    case CAMERA_MODE_8_DIRECTIONS:
+                        mode_8_directions_camera(c);
+                        break;
 
-                case CAMERA_MODE_RADIAL:
-                    mode_radial_camera(c);
-                    break;
+                    case CAMERA_MODE_RADIAL:
+                        mode_radial_camera(c);
+                        break;
 
-                case CAMERA_MODE_OUTWARD_RADIAL:
-                    mode_outward_radial_camera(c);
-                    break;
+                    case CAMERA_MODE_OUTWARD_RADIAL:
+                        mode_outward_radial_camera(c);
+                        break;
 
-                case CAMERA_MODE_CLOSE:
-                    mode_lakitu_camera(c);
-                    break;
+                    case CAMERA_MODE_CLOSE:
+                        mode_lakitu_camera(c);
+                        break;
 
-                case CAMERA_MODE_FREE_ROAM:
-                    mode_lakitu_camera(c);
-                    break;
-                case CAMERA_MODE_BOSS_FIGHT:
-                    mode_boss_fight_camera(c);
-                    break;
+                    case CAMERA_MODE_FREE_ROAM:
+                        mode_lakitu_camera(c);
+                        break;
+                    case CAMERA_MODE_BOSS_FIGHT:
+                        mode_boss_fight_camera(c);
+                        break;
 
-                case CAMERA_MODE_PARALLEL_TRACKING:
-                    mode_parallel_tracking_camera(c);
-                    break;
+                    case CAMERA_MODE_PARALLEL_TRACKING:
+                        mode_parallel_tracking_camera(c);
+                        break;
 
-                case CAMERA_MODE_SLIDE_HOOT:
-                    mode_slide_camera(c);
-                    break;
+                    case CAMERA_MODE_SLIDE_HOOT:
+                        mode_slide_camera(c);
+                        break;
 
-                case CAMERA_MODE_FIXED:
-                    mode_fixed_camera(c);
-                    break;
+                    case CAMERA_MODE_FIXED:
+                        mode_fixed_camera(c);
+                        break;
 
-                case CAMERA_MODE_SPIRAL_STAIRS:
-                    mode_spiral_stairs_camera(c);
-                    break;
+                    case CAMERA_MODE_SPIRAL_STAIRS:
+                        mode_spiral_stairs_camera(c);
+                        break;
 
 #ifdef BETTERCAMERA
-                case CAMERA_MODE_NEWCAM:
-                    newcam_loop(c);
-                    break;
+                    case CAMERA_MODE_NEWCAM:
+                        newcam_loop(c);
+                        break;
 #endif
+                }
             }
         }
     }

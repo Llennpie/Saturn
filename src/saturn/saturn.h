@@ -43,11 +43,14 @@ extern int chainer_index;
 extern bool is_anim_playing;
 extern enum MarioAnimID selected_animation;
 extern bool is_anim_looped;
+extern bool is_anim_hang;
 extern float anim_speed;
 extern int current_anim_frame;
 extern int current_anim_id;
 extern int current_anim_length;
 extern bool is_anim_paused;
+
+extern float this_face_angle;
 
 extern bool limit_fps;
 extern bool has_discord_init;
@@ -64,8 +67,12 @@ extern int mcam_timer;
 extern SDL_Scancode saturn_key_to_scancode(unsigned int key[]);
 
 extern bool autoChroma;
+extern bool autoChromaLevel;
+extern bool autoChromaObjects;
 
 extern bool should_update_cam_from_keyframes;
+
+extern u8 activatedToads;
 
 #ifdef __cplusplus
 #include <string>
@@ -79,6 +86,12 @@ enum InterpolationCurve {
     CUBIC,
     WAIT
 };
+enum KeyframeType {
+    KFTYPE_FLOAT,
+    KFTYPE_FLAGS,
+    KFTYPE_BOOL
+};
+
 inline std::string curveNames[] = {
     "Linear",
     "Sine",
@@ -101,12 +114,11 @@ class Keyframe {
 
 class KeyframeTimeline {
     public:
-    float* fdest = nullptr;
-    bool* bdest = nullptr;
+    void* dest = nullptr;
+    KeyframeType type;
     std::string name;
-    bool disabled;
     int precision;
-    bool autoCreation;
+    bool forceWait;
 };
 
 extern bool k_popout_open;
@@ -117,6 +129,10 @@ extern int k_current_frame;
 extern int k_previous_frame;
 extern int k_curr_curve_type;
 extern bool keyframe_playing;
+extern int k_current_anim;
+extern int k_prev_anim;
+
+extern bool place_keyframe_anim;
 
 extern std::map<std::string, std::pair<KeyframeTimeline, std::vector<Keyframe>>> k_frame_keys;
 

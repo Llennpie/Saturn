@@ -116,14 +116,11 @@ void SaturnKeyBind(const char* title, unsigned int configKey[], const char* id, 
 
             // Set a tooltip so the user knows they are rebinding
             ImGui::SetTooltip("Press any key or gamepad button. ESC to clear.");
-            
-            accept_text_input = true;
         }
 
         // buttonIndex is a unique ordered number for each button
         if (ImGui::Button(buttonName.c_str(), ImVec2(75, 20))) {
             waitingIndex = buttonIndex + i;
-            accept_text_input = false;
         }
 
         ImGui::SameLine();
@@ -299,14 +296,16 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Removes camera shakes.");
         ImGui::Checkbox("Butterflies Begone (TM)", &configNoButterflies);
         imgui_bundled_tooltip("Hides butterflies.");
+        ImGui::Checkbox("Disable Water Controls", &configNoWater);
+        imgui_bundled_tooltip("Makes it so you have non-water controls in water.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);
         imgui_bundled_tooltip("Displays tooltips and help markers for advanced features; Helpful for new users.");
         ImGui::Checkbox("Show expression previews", &configEditorExpressionPreviews);
         imgui_bundled_tooltip("Displays small image previews for expression and eye textures; May cause lag on low-end machines.");
-        ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
-        imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
+        //ImGui::Checkbox("Auto-apply CC color editor", &configEditorFastApply);
+        //imgui_bundled_tooltip("If enabled, color codes will automatically apply in the CC editor; May cause lag on low-end machines.");
         ImGui::Checkbox("Splash screen", &configSaturnSplash);
         imgui_bundled_tooltip("Shows a Saturn splash screen on startup.");
         ImGui::SliderInt("###autosave_delay_slider", (int*)&configAutosaveDelay, 10, 600, "Autosave Delay: %ds");

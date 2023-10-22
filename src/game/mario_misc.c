@@ -25,6 +25,8 @@
 #include "sound_init.h"
 #include "saturn/saturn_textures.h"
 
+#include "saturn/saturn.h"
+
 #define TOAD_STAR_1_REQUIREMENT 12
 #define TOAD_STAR_2_REQUIREMENT 25
 #define TOAD_STAR_3_REQUIREMENT 35
@@ -129,6 +131,13 @@ static void toad_message_talking(void) {
         != 0) {
         gCurrentObject->oToadMessageRecentlyTalked = 1;
         gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADING;
+        activatedToads |= 1 << ((gCurrentObject->oBehParams >> 16) & 0xFF);
+        if (activatedToads == 0xFF && !(save_file_get_flags() & SAVE_FLAG_TALKED_TO_ALL_TOADS)) {
+            save_file_set_flags(SAVE_FLAG_TALKED_TO_ALL_TOADS);
+            set_mario_action(gMarioState, ACT_READING_AUTOMATIC_DIALOG, DIALOG_170);
+            play_puzzle_jingle();
+            save_file_do_save(gCurrSaveFileNum - 1);
+        }
         switch (gCurrentObject->oToadMessageDialogId) {
             case TOAD_STAR_1_DIALOG:
                 gCurrentObject->oToadMessageDialogId = TOAD_STAR_1_DIALOG_AFTER;
