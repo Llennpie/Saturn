@@ -7,6 +7,7 @@
 #include <cstring>
 extern "C" {
 #include "include/types.h"
+#include "engine/math_util.h"
 }
 
 #define SATURN_FORMAT_FINISH_IDENTIFIER "DONE"
@@ -25,13 +26,6 @@ void pad(SaturnFormatStream* stream) {
     for (int i = 0; i < padding; i++) {
         saturn_format_write_int8(stream, 255);
     }
-}
-u32 hash(char* data, int length, int offset = 0) { // See Java's java.lang.String#hashCode() method
-    u32 hash = 0;
-    for (int i = 0; i < length; i++) {
-        hash += 31 * hash + (int)(u8)(data[i + offset]);
-    }
-    return hash;
 }
 void saturn_format_input(char* filename, char* id, std::map<std::string, SaturnFormatSectionHandler> handlers) {
     std::ifstream file = std::ifstream(filename, std::ios::binary);
@@ -54,7 +48,7 @@ void saturn_format_input(char* filename, char* id, std::map<std::string, SaturnF
     contentStream.data = content;
     contentStream.pointer = 0;
     contentStream.sectionBeginning = -1;
-    int contentHash = hash(content, SATURN_FORMAT_BLOCK_SIZE * blockSize);
+    int contentHash = string_hash(content, 0, SATURN_FORMAT_BLOCK_SIZE * blockSize);
     if (std::strcmp(identifier, id) != 0) std::cout << "Identifier " << identifier << " doesn't match " << id << std::endl;
     if (checksum != contentHash) std::cout << "Checksum failed! Corruptions or crash might happen." << std::endl;
     while (true) {
@@ -182,7 +176,7 @@ void saturn_format_write(char* filename, SaturnFormatStream* stream) {
     int size = stream->pointer;
     stream->pointer = SATURN_FORMAT_IDENTIFIER_LENGTH;
     saturn_format_write_int32(stream, size / SATURN_FORMAT_BLOCK_SIZE - 1);
-    saturn_format_write_int32(stream, hash(stream->data, size - SATURN_FORMAT_BLOCK_SIZE, SATURN_FORMAT_BLOCK_SIZE));
+    saturn_format_write_int32(stream, string_hash(stream->data, size - SATURN_FORMAT_BLOCK_SIZE, SATURN_FORMAT_BLOCK_SIZE));
     file.write(stream->data, size);
     free(stream->data);
     file.close();

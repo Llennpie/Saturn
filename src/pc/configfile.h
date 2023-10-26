@@ -73,6 +73,7 @@ extern bool         configNoButterflies;
 extern bool         configSaturnSplash;
 extern bool         configNoWater;
 extern bool         configEnableCli;
+extern unsigned int configEditorThemeJson;
 extern float        camera_fov;
 #ifdef BETTERCAMERA
 extern unsigned int configCameraXSens;

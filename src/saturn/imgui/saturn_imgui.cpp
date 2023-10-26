@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <fstream>
 
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
@@ -25,6 +26,7 @@
 #include "saturn/filesystem/saturn_projectfile.h"
 #include "saturn/saturn_timeline_groups.h"
 #include "saturn/cmd/saturn_cmd.h"
+#include "saturn/saturn_json.h"
 
 #include <SDL2/SDL.h>
 
@@ -109,6 +111,9 @@ ImVec2 k_context_popout_pos = ImVec2(0, 0);
 bool was_camera_frozen = false;
 
 bool splash_finished = false;
+
+std::string editor_theme = "moon";
+std::vector<std::pair<std::string, std::string>> theme_list = {};
 
 std::vector<std::string> macro_array = {};
 std::vector<std::string> macro_dir_stack = {};
@@ -214,34 +219,180 @@ ImGuiWindowFlags imgui_bundled_window_corner(int corner, int width, int height, 
     return window_flags;
 }
 
+#define JSON_VEC4(json, entry, dest) if (json.isMember(entry)) dest = ImVec4(json[entry][0].asFloat(), json[entry][1].asFloat(), json[entry][2].asFloat(), json[entry][3].asFloat())
+#define JSON_BOOL(json, entry, dest) if (json.isMember(entry)) dest = json[entry].asBool()
+#define JSON_FLOAT(json, entry, dest) if (json.isMember(entry)) dest = json[entry].asFloat()
+#define JSON_VEC2(json, entry, dest) if (json.isMember(entry)) dest = ImVec2(json[entry][0].asFloat(), json[entry][1].asFloat())
+#define JSON_DIR(json, entry, dest) if (json.isMember(entry)) dest = to_dir(json[entry].asString())
+
+ImGuiDir to_dir(std::string dir) {
+    if (dir == "up") return ImGuiDir_Up;
+    if (dir == "left") return ImGuiDir_Left;
+    if (dir == "down") return ImGuiDir_Down;
+    if (dir == "right") return ImGuiDir_Right;
+    return ImGuiDir_None;
+}
+
+void imgui_custom_theme(std::string theme_name) {
+    std::filesystem::path path = std::filesystem::path("dynos/themes/" + theme_name + ".json");
+    if (!std::filesystem::exists(path)) return;
+    std::ifstream file = std::ifstream(path);
+    Json::Value json;
+    json << file;
+    ImGuiStyle* style = &ImGui::GetStyle();
+    style->ResetStyle();
+    ImVec4* colors = style->Colors;
+    if (json.isMember("colors")) {
+        Json::Value colorsJson = json["colors"];
+        JSON_VEC4(colorsJson, "text", colors[ImGuiCol_Text]);
+        JSON_VEC4(colorsJson, "text_disabled", colors[ImGuiCol_TextDisabled]);
+        JSON_VEC4(colorsJson, "window_bg", colors[ImGuiCol_WindowBg]);
+        JSON_VEC4(colorsJson, "child_bg", colors[ImGuiCol_ChildBg]);
+        JSON_VEC4(colorsJson, "popup_bg", colors[ImGuiCol_PopupBg]);
+        JSON_VEC4(colorsJson, "border", colors[ImGuiCol_Border]);
+        JSON_VEC4(colorsJson, "border_shadow", colors[ImGuiCol_BorderShadow]);
+        JSON_VEC4(colorsJson, "frame_bg", colors[ImGuiCol_FrameBg]);
+        JSON_VEC4(colorsJson, "frame_bg_hovered", colors[ImGuiCol_FrameBgHovered]);
+        JSON_VEC4(colorsJson, "frame_bg_active", colors[ImGuiCol_FrameBgActive]);
+        JSON_VEC4(colorsJson, "title_bg", colors[ImGuiCol_TitleBg]);
+        JSON_VEC4(colorsJson, "title_bg_active", colors[ImGuiCol_TitleBgActive]);
+        JSON_VEC4(colorsJson, "title_bg_collapsed", colors[ImGuiCol_TitleBgCollapsed]);
+        JSON_VEC4(colorsJson, "menu_bar_bg", colors[ImGuiCol_MenuBarBg]);
+        JSON_VEC4(colorsJson, "scrollbar_bg", colors[ImGuiCol_ScrollbarBg]);
+        JSON_VEC4(colorsJson, "scrollbar_grab", colors[ImGuiCol_ScrollbarGrab]);
+        JSON_VEC4(colorsJson, "scrollbar_grab_hovered", colors[ImGuiCol_ScrollbarGrabHovered]);
+        JSON_VEC4(colorsJson, "scrollbar_grab_active", colors[ImGuiCol_ScrollbarGrabActive]);
+        JSON_VEC4(colorsJson, "check_mark", colors[ImGuiCol_CheckMark]);
+        JSON_VEC4(colorsJson, "slider_grab", colors[ImGuiCol_SliderGrab]);
+        JSON_VEC4(colorsJson, "slider_grab_active", colors[ImGuiCol_SliderGrabActive]);
+        JSON_VEC4(colorsJson, "button", colors[ImGuiCol_Button]);
+        JSON_VEC4(colorsJson, "button_hovered", colors[ImGuiCol_ButtonHovered]);
+        JSON_VEC4(colorsJson, "button_active", colors[ImGuiCol_ButtonActive]);
+        JSON_VEC4(colorsJson, "header", colors[ImGuiCol_Header]);
+        JSON_VEC4(colorsJson, "header_hovered", colors[ImGuiCol_HeaderHovered]);
+        JSON_VEC4(colorsJson, "header_active", colors[ImGuiCol_HeaderActive]);
+        JSON_VEC4(colorsJson, "separator", colors[ImGuiCol_Separator]);
+        JSON_VEC4(colorsJson, "separator_hovered", colors[ImGuiCol_SeparatorHovered]);
+        JSON_VEC4(colorsJson, "separator_active", colors[ImGuiCol_SeparatorActive]);
+        JSON_VEC4(colorsJson, "resize_grip", colors[ImGuiCol_ResizeGrip]);
+        JSON_VEC4(colorsJson, "resize_grip_hovered", colors[ImGuiCol_ResizeGripHovered]);
+        JSON_VEC4(colorsJson, "resize_grip_active", colors[ImGuiCol_ResizeGripActive]);
+        JSON_VEC4(colorsJson, "tab", colors[ImGuiCol_Tab]);
+        JSON_VEC4(colorsJson, "tab_hovered", colors[ImGuiCol_TabHovered]);
+        JSON_VEC4(colorsJson, "tab_active", colors[ImGuiCol_TabActive]);
+        JSON_VEC4(colorsJson, "tab_unfocused", colors[ImGuiCol_TabUnfocused]);
+        JSON_VEC4(colorsJson, "tab_unfocused_active", colors[ImGuiCol_TabUnfocusedActive]);
+        JSON_VEC4(colorsJson, "plot_lines", colors[ImGuiCol_PlotLines]);
+        JSON_VEC4(colorsJson, "plot_lines_hovered", colors[ImGuiCol_PlotLinesHovered]);
+        JSON_VEC4(colorsJson, "plot_histogram", colors[ImGuiCol_PlotHistogram]);
+        JSON_VEC4(colorsJson, "plot_histogram_hovered", colors[ImGuiCol_PlotHistogramHovered]);
+        JSON_VEC4(colorsJson, "table_header_bg", colors[ImGuiCol_TableHeaderBg]);
+        JSON_VEC4(colorsJson, "table_border_strong", colors[ImGuiCol_TableBorderStrong]);
+        JSON_VEC4(colorsJson, "table_border_light", colors[ImGuiCol_TableBorderLight]);
+        JSON_VEC4(colorsJson, "table_row_bg", colors[ImGuiCol_TableRowBg]);
+        JSON_VEC4(colorsJson, "table_row_bg_alt", colors[ImGuiCol_TableRowBgAlt]);
+        JSON_VEC4(colorsJson, "text_selected_bg", colors[ImGuiCol_TextSelectedBg]);
+        JSON_VEC4(colorsJson, "drag_drop_target", colors[ImGuiCol_DragDropTarget]);
+        JSON_VEC4(colorsJson, "nav_highlight", colors[ImGuiCol_NavHighlight]);
+        JSON_VEC4(colorsJson, "nav_windowing_highlight", colors[ImGuiCol_NavWindowingHighlight]);
+        JSON_VEC4(colorsJson, "nav_windowing_dim_bg", colors[ImGuiCol_NavWindowingDimBg]);
+        JSON_VEC4(colorsJson, "modal_window_dim_bg", colors[ImGuiCol_ModalWindowDimBg]);
+    }
+    if (json.isMember("style")) {
+        Json::Value styleJson = json["style"];
+        JSON_BOOL(styleJson, "anti_aliased_lines", style->AntiAliasedLines);
+        JSON_BOOL(styleJson, "anti_aliased_lines_use_tex", style->AntiAliasedLinesUseTex);
+        JSON_BOOL(styleJson, "anti_aliased_fill", style->AntiAliasedFill);
+        JSON_FLOAT(styleJson, "alpha", style->Alpha);
+        JSON_FLOAT(styleJson, "disabled_alpha", style->DisabledAlpha);
+        JSON_FLOAT(styleJson, "window_rounding", style->WindowRounding);
+        JSON_FLOAT(styleJson, "window_border_size", style->WindowBorderSize);
+        JSON_FLOAT(styleJson, "child_rounding", style->ChildRounding);
+        JSON_FLOAT(styleJson, "child_border_size", style->ChildBorderSize);
+        JSON_FLOAT(styleJson, "popup_rounding", style->PopupRounding);
+        JSON_FLOAT(styleJson, "popup_border_size", style->PopupBorderSize);
+        JSON_FLOAT(styleJson, "frame_rounding", style->FrameRounding);
+        JSON_FLOAT(styleJson, "frame_border_size", style->FrameBorderSize);
+        JSON_FLOAT(styleJson, "indent_spacing", style->IndentSpacing);
+        JSON_FLOAT(styleJson, "columns_min_spacing", style->ColumnsMinSpacing);
+        JSON_FLOAT(styleJson, "scrollbar_size", style->ScrollbarSize);
+        JSON_FLOAT(styleJson, "scrollbar_rounding", style->ScrollbarRounding);
+        JSON_FLOAT(styleJson, "grab_min_size", style->GrabMinSize);
+        JSON_FLOAT(styleJson, "grab_rounding", style->GrabRounding);
+        JSON_FLOAT(styleJson, "log_slider_deadzone", style->LogSliderDeadzone);
+        JSON_FLOAT(styleJson, "tab_rounding", style->TabRounding);
+        JSON_FLOAT(styleJson, "tab_border_size", style->TabBorderSize);
+        JSON_FLOAT(styleJson, "tab_min_width_for_close_button", style->TabMinWidthForCloseButton);
+        JSON_FLOAT(styleJson, "mouse_cursor_scale", style->MouseCursorScale);
+        JSON_FLOAT(styleJson, "curve_tessellation_tol", style->CurveTessellationTol);
+        JSON_FLOAT(styleJson, "circle_tessellation_max_error", style->CircleTessellationMaxError);
+        JSON_VEC2(styleJson, "window_padding", style->WindowPadding);
+        JSON_VEC2(styleJson, "window_min_size", style->WindowMinSize);
+        JSON_VEC2(styleJson, "window_title_align", style->WindowTitleAlign);
+        JSON_VEC2(styleJson, "frame_padding", style->FramePadding);
+        JSON_VEC2(styleJson, "item_spacing", style->ItemSpacing);
+        JSON_VEC2(styleJson, "item_inner_spacing", style->ItemInnerSpacing);
+        JSON_VEC2(styleJson, "cell_padding", style->CellPadding);
+        JSON_VEC2(styleJson, "touch_extra_padding", style->TouchExtraPadding);
+        JSON_VEC2(styleJson, "button_text_align", style->ButtonTextAlign);
+        JSON_VEC2(styleJson, "selectable_text_align", style->SelectableTextAlign);
+        JSON_VEC2(styleJson, "display_window_padding", style->DisplayWindowPadding);
+        JSON_VEC2(styleJson, "display_safe_area_padding", style->DisplaySafeAreaPadding);
+        JSON_DIR(styleJson, "color_button_position", style->ColorButtonPosition);
+        JSON_DIR(styleJson, "window_menu_button_position", style->WindowMenuButtonPosition);
+    }
+}
+
+#undef JSON_VEC4
+#undef JSON_BOOL
+#undef JSON_FLOAT
+#undef JSON_VEC2
+#undef JSON_DIR
+
+bool initFont = true;
+
 void imgui_update_theme() {
     ImGuiIO& io = ImGui::GetIO();
     ImGuiStyle* style = &ImGui::GetStyle();
 
     float SCALE = 1.f;
 
-    ImFontConfig defaultConfig;
-    defaultConfig.SizePixels = 13.0f * SCALE;
-    io.Fonts->AddFontDefault(&defaultConfig);
+    if (initFont) {
+        initFont = false;
 
-    ImFontConfig symbolConfig;
-    symbolConfig.MergeMode = true;
-    symbolConfig.SizePixels = 13.0f * SCALE;
-    symbolConfig.GlyphMinAdvanceX = 13.0f * SCALE; // Use if you want to make the icon monospaced
-    static const ImWchar icon_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
-    io.Fonts->AddFontFromFileTTF("fonts/forkawesome-webfont.ttf", symbolConfig.SizePixels, &symbolConfig, icon_ranges);
+        ImFontConfig defaultConfig;
+        defaultConfig.SizePixels = 13.0f * SCALE;
+        io.Fonts->AddFontDefault(&defaultConfig);
 
-    if (configEditorTheme == 0) {
-        ImGui::StyleColorsDark();
-    } else if (configEditorTheme == 1) {
-        ImGui::StyleColorsMoon();
-    } else if (configEditorTheme == 2) {
-        ImGui::StyleColorsHalfLife();
-    } else if (configEditorTheme == 3) {
-        ImGui::StyleColorsM64MM();
-    } else if (configEditorTheme == 4) {
-        ImGui::StyleColorsClassic();
+        ImFontConfig symbolConfig;
+        symbolConfig.MergeMode = true;
+        symbolConfig.SizePixels = 13.0f * SCALE;
+        symbolConfig.GlyphMinAdvanceX = 13.0f * SCALE; // Use if you want to make the icon monospaced
+        static const ImWchar icon_ranges[] = { ICON_MIN_FK, ICON_MAX_FK, 0 };
+        io.Fonts->AddFontFromFileTTF("fonts/forkawesome-webfont.ttf", symbolConfig.SizePixels, &symbolConfig, icon_ranges);
     }
+
+    // backwards compatibility with older theme settings
+    if (configEditorTheme == 0) editor_theme = "legacy";
+    else if (configEditorTheme == 1) editor_theme = "moon";
+    else if (configEditorTheme == 2) editor_theme = "halflife";
+    else if (configEditorTheme == 3) editor_theme = "moviemaker";
+    else if (configEditorTheme == 4) editor_theme = "dear";
+    else {
+        for (const auto& entry : std::filesystem::directory_iterator("dynos/themes")) {
+            std::filesystem::path path = entry.path();
+            if (path.extension().string() != ".json") continue;
+            std::string name = path.filename().string();
+            name = name.substr(0, name.length() - 5);
+            if (string_hash(name.c_str(), 0, name.length()) == configEditorThemeJson) {
+                editor_theme = name;
+                break;
+            }
+        }
+    }
+    std::cout << "Using theme: " << editor_theme << std::endl;
+    configEditorTheme = -1;
+    imgui_custom_theme(editor_theme);
 
     style->ScaleAllSizes(SCALE);
 }
@@ -266,7 +417,23 @@ void saturn_imgui_init_backend(SDL_Window * sdl_window, SDL_GLContext ctx) {
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, configWindowState?"1":"0");
 }
 
+void saturn_load_themes() {
+    for (const auto& entry : std::filesystem::directory_iterator("dynos/themes")) {
+        std::filesystem::path path = entry.path();
+        if (path.extension().string() != ".json") continue;
+        std::string id = path.filename().string();
+        id = id.substr(0, id.length() - 5);
+        std::ifstream stream = std::ifstream(path);
+        Json::Value json;
+        json << stream;
+        if (!json.isMember("name")) continue;
+        std::cout << "Found theme " << json["name"].asString() << " (" << id << ")" << std::endl;
+        theme_list.push_back({ id, json["name"].asString() });
+    }
+}
+
 void saturn_imgui_init() {
+    saturn_load_themes();
     sdynos_imgui_init();
     smachinima_imgui_init();
     ssettings_imgui_init();
@@ -287,6 +454,12 @@ void saturn_imgui_handle_events(SDL_Event * event) {
                 configWindow.fps_changed = true;
             }
 
+            // this is for YOU, baihsense
+            // here's your crash key
+            //    - bup
+            if(event->key.keysym.sym == SDLK_SCROLLLOCK) {
+                imgui_update_theme();
+            }
             if(event->key.keysym.sym == SDLK_F9) {
                 DynOS_Gfx_GetPacks().Clear();
                 DynOS_Opt_Init();

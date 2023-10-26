@@ -24,6 +24,7 @@ extern "C" {
 #include "pc/controller/controller_sdl.h"
 #include "pc/controller/controller_keyboard.h"
 #include "audio/load.h"
+#include "engine/math_util.h"
 }
 
 #include "icons/IconsForkAwesome.h"
@@ -139,12 +140,22 @@ void ssettings_imgui_init() {
     if (configAudioMode == 1) gSoundMode = 3;
 }
 
+int current_theme_id = 0;
+
 void ssettings_imgui_update() {
-    const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
+    std::vector<const char*> theme_names = {};
+    for (int i = 0; i < theme_list.size(); i++) {
+        auto& entry = theme_list[i];
+        if (entry.first == editor_theme) current_theme_id = i;
+        theme_names.push_back(entry.second.c_str());
+    }
     ImGui::PushItemWidth(150);
-    ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
+    if (ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", &current_theme_id, theme_names.data(), theme_names.size())) {
+        configEditorThemeJson = string_hash(theme_list[current_theme_id].first.c_str(), 0, theme_list[current_theme_id].first.length());
+        imgui_update_theme();
+    }
     ImGui::PopItemWidth();
-    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
+    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme.");
 #ifdef DISCORDRPC
     ImGui::Checkbox(ICON_FK_DISCORD " Discord Activity Status", &configDiscordRPC);
     imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");

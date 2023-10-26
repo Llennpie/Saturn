@@ -52,6 +52,9 @@ extern int endFrameText;
 
 extern bool splash_finished;
 
+extern std::string editor_theme;
+extern std::vector<std::pair<std::string, std::string>> theme_list;
+
 extern "C" {
 #endif
     void saturn_imgui_init_backend(SDL_Window *, SDL_GLContext);
