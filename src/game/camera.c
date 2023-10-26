@@ -2710,6 +2710,8 @@ void move_mario_head_c_up(UNUSED struct Camera *c) {
     sCUpCameraPitch += (s16)(gPlayer1Controller->stickY * 10.f);
     sModeOffsetYaw -= (s16)(gPlayer1Controller->stickX * 10.f);
 
+    /* fuck marios neck he go to the hospital now lmfao
+
     // Bound looking up to nearly 80 degrees.
     if (sCUpCameraPitch > 0x38E3) {
         sCUpCameraPitch = 0x38E3;
@@ -2726,10 +2728,11 @@ void move_mario_head_c_up(UNUSED struct Camera *c) {
     if (sModeOffsetYaw < -0x5555) {
         sModeOffsetYaw = -0x5555;
     }
+    */
 
     // Give Mario's neck natural-looking constraints
-    sMarioCamState->headRotation[0] = sCUpCameraPitch * 3 / 4;
-    sMarioCamState->headRotation[1] = sModeOffsetYaw * 3 / 4;
+    sMarioCamState->headRotation[0] = sCUpCameraPitch /* * 3 / 4 */;
+    sMarioCamState->headRotation[1] = sModeOffsetYaw /* * 3 / 4 */;
 }
 
 /**
