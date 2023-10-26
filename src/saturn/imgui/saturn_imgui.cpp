@@ -425,7 +425,13 @@ void saturn_load_themes() {
         id = id.substr(0, id.length() - 5);
         std::ifstream stream = std::ifstream(path);
         Json::Value json;
-        json << stream;
+        try {
+            json << stream;
+        }
+        catch (std::runtime_error err) {
+            std::cout << "Error parsing theme " << id << std::endl;
+            continue;
+        }
         if (!json.isMember("name")) continue;
         std::cout << "Found theme " << json["name"].asString() << " (" << id << ")" << std::endl;
         theme_list.push_back({ id, json["name"].asString() });
