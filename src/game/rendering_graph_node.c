@@ -836,7 +836,7 @@ static void geo_process_mcomp_extra(struct GraphNodeAnimatedPart *node) {
  * parent node. It processes its children if it has them.
  */
 static void geo_process_level_display_list(struct GraphNodeDisplayList *node) {
-    if (autoChroma) return;
+    if (autoChroma && !autoChromaLevel) return;
 
     if (node->displayList != NULL) {
         geo_append_display_list(node->displayList, node->node.flags >> 8);

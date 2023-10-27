@@ -886,11 +886,9 @@ void saturn_imgui_update() {
                 windowCcEditor = false;
                 windowAnimPlayer = false;
 
-                // Auto-chroma
-                // Allows any level to become a customizable chroma key stage
                 for (int i = 0; i < 960; i++) {
-                    if (!autoChroma) gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
-                    else gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
+                    gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
+                    if (autoChroma && !autoChromaObjects) gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
                 }
             }
             ImGui::EndMainMenuBar();
