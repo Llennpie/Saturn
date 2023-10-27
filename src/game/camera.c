@@ -2710,25 +2710,24 @@ void move_mario_head_c_up(UNUSED struct Camera *c) {
     mario_headrot_pitch += (s16)(gPlayer1Controller->stickY * mario_headrot_speed);
     mario_headrot_yaw -= (s16)(gPlayer1Controller->stickX * mario_headrot_speed);
 
-    /* fuck marios neck he go to the hospital now lmfao
+    if (configCUpLimit) {
+        // Bound looking up to nearly 80 degrees.
+        if (mario_headrot_pitch > 0x38E3) {
+            mario_headrot_pitch = 0x38E3;
+        }
+        // Bound looking down to -45 degrees
+        if (mario_headrot_pitch < -0x2000) {
+            mario_headrot_pitch = -0x2000;
+        }
 
-    // Bound looking up to nearly 80 degrees.
-    if (mario_headrot_pitch > 0x38E3) {
-        mario_headrot_pitch = 0x38E3;
+        // Bound the camera yaw to +-120 degrees
+        if (mario_headrot_yaw > 0x5555) {
+            mario_headrot_yaw = 0x5555;
+        }
+        if (mario_headrot_yaw < -0x5555) {
+            mario_headrot_yaw = -0x5555;
+        }
     }
-    // Bound looking down to -45 degrees
-    if (mario_headrot_pitch < -0x2000) {
-        mario_headrot_pitch = -0x2000;
-    }
-
-    // Bound the camera yaw to +-120 degrees
-    if (mario_headrot_yaw > 0x5555) {
-        mario_headrot_yaw = 0x5555;
-    }
-    if (mario_headrot_yaw < -0x5555) {
-        mario_headrot_yaw = -0x5555;
-    }
-    */
 
     if (mario_headrot_yaw < -0x7FFF) mario_headrot_yaw += 65536;
     if (mario_headrot_yaw > 0x7FFF) mario_headrot_yaw -= 65536;

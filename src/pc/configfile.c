@@ -105,6 +105,7 @@ bool         configNoCamShake = false;
 bool         configNoButterflies = false;
 bool         configSaturnSplash = true;
 bool         configNoWater = false;
+bool         configCUpLimit = false;
 bool         configEnableCli = false;
 unsigned int configEditorThemeJson = 0x00384A4E; // hash of the "moon" string
 float        camera_fov = 50.0f;
@@ -186,6 +187,7 @@ static const struct ConfigOption options[] = {
     {.name = "no_butterflies", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoButterflies},
     {.name = "show_splash", .type = CONFIG_TYPE_BOOL, .uintValue = &configSaturnSplash},
     {.name = "no_water", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoWater},
+    {.name = "c_up_limit", .type = CONFIG_TYPE_BOOL, .uintValue = &configCUpLimit},
     {.name = "enable_cli", .type = CONFIG_TYPE_BOOL, .uintValue = &configEnableCli},
     {.name = "editor_theme_json", .type = CONFIG_TYPE_UINT, .uintValue = &configEditorThemeJson},
     {.name = "default_fov", .type = CONFIG_TYPE_FLOAT, .floatValue = &camera_fov},

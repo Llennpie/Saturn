@@ -987,11 +987,11 @@ void sdynos_imgui_menu() {
                 float fake_pitch = mario_headrot_pitch * 360 / 65536;
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
-                if (ImGuiKnobs::Knob("Yaw", &fake_yaw, -180.0f, 180.0f, 0.0f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
+                if (ImGuiKnobs::Knob("Yaw", &fake_yaw, configCUpLimit ? -120.0f : -180.0f, configCUpLimit ? 120.0f : 180.0f, 0.0f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
                     mario_headrot_yaw = fake_yaw * 65536 / 360;
                 }
                 ImGui::TableSetColumnIndex(1);
-                if (ImGuiKnobs::Knob("Pitch", &fake_pitch, -180.0f, 180.0f, 0.0f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
+                if (ImGuiKnobs::Knob("Pitch", &fake_pitch, configCUpLimit ? -45.0f : -180.0f, configCUpLimit ? 80.0f : 180.0f, 0.0f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
                     mario_headrot_pitch = fake_pitch * 65536 / 360;
                 }
                 ImGui::EndTable();
