@@ -157,7 +157,7 @@ void cmd_camera_follow(CommandContext context) {
 void cmd_timeline_delete(CommandContext context) {
     std::string id = arg_str("timeline");
     int frame = arg_int("frame");
-    if (k_frame_keys.find(id) == k_frame_keys.end()) return;
+    if (!saturn_timeline_exists(id.c_str())) return;
     if (frame == 0) {
         k_frame_keys.erase(id);
         return;
@@ -176,7 +176,7 @@ void cmd_timeline_delete(CommandContext context) {
 void cmd_timeline_curve(CommandContext context) {
     std::string id = arg_str("timeline");
     int frame = arg_int("frame");
-    if (k_frame_keys.find(id) == k_frame_keys.end()) return;
+    if (!saturn_timeline_exists(id.c_str())) return;
     int keyframe = -1;
     for (int i = 0; i < k_frame_keys[id].second.size(); i++) {
         if (k_frame_keys[id].second[i].position == frame) {

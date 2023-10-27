@@ -33,6 +33,7 @@ std::map<std::string, std::vector<std::string>> k_groups = {
     SATURN_KFGROUP_COLOR("k_1/2###leg_top_half_2", "Leg (Top), Shade"),
     SATURN_KFGROUP_COLOR("k_1/2###leg_bottom_half_1", "Leg (Bottom), Main"),
     SATURN_KFGROUP_COLOR("k_1/2###leg_bottom_half_2", "Leg (Bottom), Shade"),
+    { "Mario Head", { "k_mario_headrot_yaw", "k_mario_headrot_pitch" } },
 };
 
 #endif

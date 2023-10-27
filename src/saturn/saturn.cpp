@@ -119,6 +119,10 @@ bool autoChroma;
 
 u8 activatedToads = 0;
 
+f32 mario_headrot_yaw = 0;
+f32 mario_headrot_pitch = 0;
+f32 mario_headrot_speed = 10.0f;
+
 extern "C" {
 #include "game/camera.h"
 #include "game/area.h"
@@ -668,4 +672,8 @@ void saturn_on_splash_finish() {
 }
 s32 saturn_should_show_splash() {
     return configSaturnSplash;
+}
+
+bool saturn_timeline_exists(const char* name) {
+    return k_frame_keys.find(name) != k_frame_keys.end();
 }

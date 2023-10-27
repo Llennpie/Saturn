@@ -74,6 +74,13 @@ extern u8 activatedToads;
 
 extern u8 godmode_temp_off;
 
+extern f32 mario_headrot_yaw;
+extern f32 mario_headrot_pitch;
+extern f32 mario_headrot_speed;
+
+extern bool keyframe_playing;
+extern int k_previous_frame;
+
 #ifdef __cplusplus
 #include <string>
 #include <vector>
@@ -126,9 +133,7 @@ extern float* active_key_float_value;
 extern bool* active_key_bool_value;
 extern s32 active_data_type;
 extern int k_current_frame;
-extern int k_previous_frame;
 extern int k_curr_curve_type;
-extern bool keyframe_playing;
 extern int k_current_anim;
 extern int k_prev_anim;
 
@@ -169,6 +174,7 @@ extern "C" {
     const char* saturn_get_stage_name(int);
     void saturn_do_load();
     void saturn_on_splash_finish();
+    bool saturn_timeline_exists(const char*);
     s32 saturn_should_show_splash();
 #ifdef __cplusplus
 }

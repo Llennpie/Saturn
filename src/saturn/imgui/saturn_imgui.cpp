@@ -1090,7 +1090,7 @@ void saturn_imgui_update() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glUseProgram(last_program);
 
-    if (was_camera_frozen && !camera_frozen && k_frame_keys.find("k_c_camera_pos0") != k_frame_keys.end()) {
+    if (was_camera_frozen && !camera_frozen && saturn_timeline_exists("k_c_camera_pos0")) {
         k_frame_keys.erase("k_c_camera_pos0");
         k_frame_keys.erase("k_c_camera_pos1");
         k_frame_keys.erase("k_c_camera_pos2");
@@ -1117,7 +1117,7 @@ void saturn_keyframe_context_popout(Keyframe keyframe) {
 }
 
 void saturn_keyframe_float_popout(float* edit_value, string value_name, string id) {
-    bool contains = k_frame_keys.find(id) != k_frame_keys.end();
+    bool contains = saturn_timeline_exists(id.c_str());
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
@@ -1143,7 +1143,7 @@ void saturn_keyframe_float_popout(float* edit_value, string value_name, string i
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
 void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id) {
-    bool contains = k_frame_keys.find(id) != k_frame_keys.end();
+    bool contains = saturn_timeline_exists(id.c_str());
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
@@ -1169,7 +1169,7 @@ void saturn_keyframe_bool_popout(bool* edit_value, string value_name, string id)
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
 void saturn_keyframe_camera_popout(string value_name, string id) {
-    bool contains = k_frame_keys.find(id + "_pos0") != k_frame_keys.end();
+    bool contains = saturn_timeline_exists(id.c_str());
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
@@ -1216,7 +1216,7 @@ void saturn_keyframe_camera_popout(string value_name, string id) {
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
 void saturn_keyframe_color_popout(string value_name, string id, float* r, float* g, float* b) {
-    bool contains = k_frame_keys.find(id + "_r") != k_frame_keys.end();
+    bool contains = saturn_timeline_exists(id.c_str());
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
@@ -1252,9 +1252,44 @@ void saturn_keyframe_color_popout(string value_name, string id, float* r, float*
     }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
 }
+void saturn_keyframe_rotation_popout(string value_name, string id, float* yaw, float* pitch) {
+    bool contains = saturn_timeline_exists(id.c_str());
+
+    string buttonLabel = ICON_FK_LINK "###kb_" + id;
+
+    if (ImGui::Button(buttonLabel.c_str())) {
+        // ((id, name), (precision, value_ptr))
+        std::pair<std::pair<std::string, std::string>, std::pair<int, float*>> values[] = {
+            std::make_pair(std::make_pair("yaw", "Yaw"), std::make_pair(0, yaw)),
+            std::make_pair(std::make_pair("pitch", "Pitch"), std::make_pair(0, pitch)),
+        };
+        k_popout_open = true;
+        if (contains) {
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
+                k_frame_keys.erase(id + "_" + values[i].first.first);
+            }
+        }
+        else { // Add the timeline
+            for (int i = 0; i < IM_ARRAYSIZE(values); i++) {
+                KeyframeTimeline timeline = KeyframeTimeline();
+                timeline.dest = values[i].second.second;
+                timeline.name = value_name + " " + values[i].first.second;
+                timeline.forceWait = false;
+                timeline.precision = values[i].second.first;
+                Keyframe keyframe = Keyframe(0, InterpolationCurve::LINEAR);
+                keyframe.value = *values[i].second.second;
+                keyframe.timelineID = id + "_" + values[i].first.first;
+                k_frame_keys.insert({ id + "_" + values[i].first.first, std::make_pair(timeline, std::vector<Keyframe>{ keyframe }) });
+                k_current_frame = 0;
+                startFrame = 0;
+            }
+        }
+    }
+    imgui_bundled_tooltip(contains ? "Remove" : "Animate");
+}
 
 void saturn_keyframe_anim_popout(string value_name, string id) {
-    bool contains = k_frame_keys.find(id) != k_frame_keys.end();
+    bool contains = saturn_timeline_exists(id.c_str());
 
     string buttonLabel = ICON_FK_LINK "###kb_" + id;
 
