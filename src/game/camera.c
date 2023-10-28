@@ -2736,6 +2736,9 @@ void move_mario_head_c_up(UNUSED struct Camera *c) {
 
     sMarioCamState->headRotation[0] = mario_headrot_pitch;
     sMarioCamState->headRotation[1] = mario_headrot_yaw;
+
+    sModeOffsetYaw = mario_headrot_yaw;
+    sCUpCameraPitch = mario_headrot_pitch;
 }
 
 /**
