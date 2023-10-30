@@ -99,7 +99,7 @@ private:
             if (character == 0) break;
             if (character == 0x0D) continue;
             if (character == '\n') lineNum++;
-            if (is_invalid(character)) error("Invalid character", lineNum);
+            if (is_invalid(character)) continue;
             if (type == JSONTOKEN_NONE) {
                 if (is_whitespace(character)) continue;
                 else if (is_wordable(character)) {
@@ -237,7 +237,7 @@ private:
         return value;
     }
     void error(std::string msg, int line_num) {
-        std::cout << "JSON parse error (at " << std::to_string(line_num) << "): " << msg << std::endl;
+        std::cout << "JSON parse error (at line " << std::to_string(line_num) << "): " << msg << std::endl;
         throw std::runtime_error("Failed to parse JSON");
     }
 public:
@@ -284,7 +284,7 @@ public:
     }
     int size() {
         if (type == JSONVALUE_OBJECT) return obj.size();
-        if (type == JSONVALUE_OBJECT) return arr.size();
+        if (type == JSONVALUE_ARRAY) return arr.size();
         throw std::runtime_error("not a sizeable type");
     }
 };

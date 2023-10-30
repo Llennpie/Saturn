@@ -394,8 +394,8 @@ void saturn_read_mcomp_animation(string json_path) {
     // A mess
     if (root["looping"].asString() == "true") current_canim_looping = true;
     if (root["looping"].asString() == "false") current_canim_looping = false;
-    current_canim_length = std::stoi(root["length"].asString());
-    current_canim_nodes = std::stoi(root["nodes"].asString());
+    current_canim_length = root["length"].asInt();
+    current_canim_nodes = root["nodes"].asInt();
     current_canim_indices.clear();
     current_canim_values.clear();
     run_hex_array(root, "values");

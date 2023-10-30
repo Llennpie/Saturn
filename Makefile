@@ -11,7 +11,7 @@ default: all
 # by building with 'make SETTING=value'. 'make clean' may be required.
 
 # Build debug version
-DEBUG ?= 0
+DEBUG ?= 1
 # Version of the game to build. Forced to US because of DynOS
 VERSION = us
 # Graphics microcode used
