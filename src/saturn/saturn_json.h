@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <iterator>
 
 // jsoncpp was misbehaving with math_util.h
 // heres a custom json parser :)
@@ -280,6 +281,11 @@ public:
     bool isMember(std::string name) {
         if (type != JSONVALUE_OBJECT) throw std::runtime_error("not an object");
         return obj.find(name) != obj.end();
+    }
+    int size() {
+        if (type == JSONVALUE_OBJECT) return obj.size();
+        if (type == JSONVALUE_OBJECT) return arr.size();
+        throw std::runtime_error("not a sizeable type");
     }
 };
 

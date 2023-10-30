@@ -35,7 +35,7 @@ using namespace std;
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-#include <json/json.h>
+#include "saturn/saturn_json.h"
 
 bool is_replacing_exp;
 bool is_replacing_eyes;
@@ -420,7 +420,7 @@ string saturn_load_search(std::string folder_name) {
     if (file.good()) {
         // Begin reading
         Json::Value root;
-        file >> root;
+        root << file;
 
         return folder_name + " " + root["name"].asString() + " " + root["author"].asString();
     }
@@ -440,7 +440,7 @@ void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
     if (file.good()) {
         // Begin reading
         Json::Value root;
-        file >> root;
+        root << file;
 
         current_model_data.name = root["name"].asString();
         current_model_data.author = root["author"].asString();

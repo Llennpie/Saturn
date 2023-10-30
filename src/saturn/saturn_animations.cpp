@@ -32,7 +32,7 @@ using namespace std;
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-#include <json/json.h>
+#include "saturn/saturn_json.h"
 
 std::vector<string> canim_array;
 std::string current_anim_dir_path;
@@ -321,17 +321,16 @@ std::vector<u16> current_canim_indices;
 bool current_canim_has_extra;
 
 void run_hex_array(Json::Value root, string type) {
-    int i;
     string even_one, odd_one;
-    for (auto itr : root[type]) {
+    for (int i = 0; i < root[type].size(); i++) {
         if (i % 2 == 0) {
             // Run on even
-            even_one = itr.asString();
+            even_one = root[type][i].asString();
             even_one.erase(0, 2);
         } else {
             // Run on odd
             std::stringstream ss;
-            odd_one = itr.asString();
+            odd_one = root[type][i].asString();
             odd_one.erase(0, 2);
 
             string newValue = "0x" + even_one + odd_one;
@@ -343,7 +342,6 @@ void run_hex_array(Json::Value root, string type) {
             else
                 current_canim_indices.push_back(output);
         }
-        i++;
     }
 }
 
@@ -385,7 +383,7 @@ void saturn_read_mcomp_animation(string json_path) {
 
     // Begin reading
     Json::Value root;
-    file >> root;
+    root << file;
 
     current_canim_name = root["name"].asString();
     current_canim_author = root["author"].asString();
