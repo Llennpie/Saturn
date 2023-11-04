@@ -711,17 +711,7 @@ void set_cc_from_model(std::string ccPath) {
     }
 }
 
-void scan_cc_dir(std::string dir, int* out) {
-    for (const auto& entry : fs::directory_iterator(dir)) {
-        fs::path path = entry.path();
-        if (fs::is_directory(path)) scan_cc_dir(dir + path.filename().u8string() + "/", out);
-        else if (path.extension().u8string() == ".gs") *out++;
-    }
-}
-
 void saturn_refresh_cc_count() {
-    int count = 0;
-    scan_cc_dir("dynos/colorcodes/", &count);
-    cc_details = "" + std::to_string(count) + " color code";
-    if (count != 1) cc_details += "s";
+    cc_details = "" + std::to_string(cc_array.size()) + " color code";
+    if (cc_array.size() != 1) cc_details += "s";
 }
