@@ -105,7 +105,7 @@ std::map<std::string, std::pair<std::pair<void*, KeyframeType>, std::pair<bool, 
     SATURN_KFENTRY_FLOAT("k_gravity", gravity, "Gravity"),
     SATURN_KFENTRY_COLOR_VEC3F("k_light_col", gLightingColor, "Light Color"),
     SATURN_KFENTRY_COLOR("k_color", uiChromaColor, "Skybox Color"),
-    SATURN_KFENTRY_COLOR("k_1/2###hat_half_1", uiHatColor, "Hat, Main"),
+    /*SATURN_KFENTRY_COLOR("k_1/2###hat_half_1", uiHatColor, "Hat, Main"),
     SATURN_KFENTRY_COLOR("k_1/2###hat_half_2", uiHatShadeColor, "Hat, Shade"),
     SATURN_KFENTRY_COLOR("k_1/2###overalls_half_1", uiOverallsColor, "Overalls, Main"),
     SATURN_KFENTRY_COLOR("k_1/2###overalls_half_2", uiOverallsShadeColor, "Overalls, Shade"),
@@ -128,7 +128,7 @@ std::map<std::string, std::pair<std::pair<void*, KeyframeType>, std::pair<bool, 
     SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_1", uiLegTopColor, "Leg (Top), Main"),
     SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_2", uiLegTopShadeColor, "Leg (Top), Shade"),
     SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_1", uiLegBottomColor, "Leg (Bottom), Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_2", uiLegBottomShadeColor, "Leg (Bottom), Shade"),
+    SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_2", uiLegBottomShadeColor, "Leg (Bottom), Shade"),*/
     SATURN_KFENTRY_ANIM("k_mario_anim", "Animation"),
 };
 
