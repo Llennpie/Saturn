@@ -259,6 +259,13 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
+    // Non-model cap logo/emblem
+
+    if (show_vmario_emblem) {
+        if (texName == "actors/mario/no_m.rgba16")
+            return "actors/mario/mario_logo.rgba16";
+    }
+
     // AUTO-CHROMA
 
     // Overwrite skybox
