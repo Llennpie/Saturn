@@ -174,7 +174,10 @@ void saturn_update() {
         }
         if (keyResetter == 6) {
             if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_F2]) {
-                if (gMarioState->action == ACT_DEBUG_FREE_MOVE) set_mario_action(gMarioState, ACT_IDLE, 0);
+                if (gMarioState->action == ACT_DEBUG_FREE_MOVE) {
+                    reset_camera(gCamera);
+                    set_mario_action(gMarioState, ACT_IDLE, 0);
+                }
                 else set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
                 keyResetter = 0;
             }

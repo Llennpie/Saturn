@@ -272,7 +272,10 @@ void imgui_machinima_quick_options() {
 
     if (mario_exists) {
         if (ImGui::MenuItem(ICON_FK_PAPER_PLANE_O " Fly Mode",      "F2", gMarioState->action == ACT_DEBUG_FREE_MOVE)) {
-            if (gMarioState->action == ACT_DEBUG_FREE_MOVE) set_mario_action(gMarioState, ACT_IDLE, 0);
+            if (gMarioState->action == ACT_DEBUG_FREE_MOVE) {
+                reset_camera(gCamera);
+                set_mario_action(gMarioState, ACT_IDLE, 0);
+            }
             else set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
         }
         ImGui::Separator();
