@@ -8,10 +8,6 @@
 #include <string>
 #include <vector>
 
-extern bool any_packs_selected;
-extern std::string ui_mfolder_name;
-extern std::string ui_mfolder_path;
-
 extern bool is_gameshark_open;
 
 extern std::vector<std::string> choose_file_dialog(std::string windowTitle, std::vector<std::string> filetypes, bool multiselect);

@@ -15,6 +15,7 @@
 #include "saturn/libs/imgui/imgui-knobs.h"
 #include "saturn/saturn.h"
 #include "saturn/saturn_colors.h"
+#include "saturn/saturn_models.h"
 #include "saturn/saturn_textures.h"
 #include "saturn_imgui.h"
 #include "saturn_imgui_cc_editor.h"
@@ -43,10 +44,6 @@ string eye_name;
 int current_mouth_id = 0;
 string mouth_name;
 
-string ui_mfolder_name;
-string ui_mfolder_path;
-bool one_pack_selectable;
-bool any_packs_selected;
 int windowListSize = 325;
 
 bool using_custom_eyes;
@@ -142,70 +139,54 @@ void blink_cycle_preview(std::string label, int index, std::string eye_path, int
     }
 }
 
-void sdynos_imgui_init() {
-    RefreshColorCodeList();
 
-    saturn_load_eye_folder("");
 
-    model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
-    if (sDynosPacks.Count() != 1) model_details += "s";
-}
 
-void sdynos_imgui_menu() {
-    if (ImGui::BeginMenu(ICON_FK_USER_CIRCLE " Edit Avatar###menu_edit_avatar")) {
 
-        OpenCCSelector();
 
-        if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_v_cc")) {
-            auto selection3 = choose_file_dialog("Select a file", { "Color Code Files", "*.gs *.txt", "All Files", "*" }, true);
 
-            // Do something with selection
-            for (auto const &filename3 : selection3) {
-                saturn_copy_file(filename3, "dynos/colorcodes/");
-                RefreshColorCodeList();
-            }
-        }
 
-        ImGui::Text("Model Packs");
-        ImGui::SameLine(); imgui_bundled_help_marker(
-            "DynOS v1.1 by PeachyPeach\n\nThese are DynOS model packs, used for live model loading.\nPlace packs in /dynos/packs.");
+// new stuff
 
-        if (sDynosPacks.Count() >= 20) {
-            ImGui::InputTextWithHint("###model_search_text", ICON_FK_SEARCH " Search models...", modelSearchTerm, IM_ARRAYSIZE(modelSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
-        } else {
-            // If our model list is reloaded, and we now have less than 20 packs, this can cause filter issues if not reset to nothing
-            if (modelSearchTerm != "") strcpy(modelSearchTerm, "");
-        }
-        string modelSearchLower = modelSearchTerm;
-        std::transform(modelSearchLower.begin(), modelSearchLower.end(), modelSearchLower.begin(),
-            [](unsigned char c){ return std::tolower(c); });
+void OpenModelSelector() {
+    ImGui::Text("Model Packs");
+    ImGui::SameLine(); imgui_bundled_help_marker(
+        "DynOS v1.1 by PeachyPeach\n\nThese are DynOS model packs, used for live model loading.\nPlace packs in /dynos/packs.");
 
-        if (sDynosPacks.Count() <= 0) {
-            ImGui::TextDisabled("No model packs found.\nPlace model folders in\n/dynos/packs/.");
-        } else {
-            ImGui::BeginChild("###menu_model_selector", ImVec2(-FLT_MIN, 125), true);
-            for (int i = 0; i < sDynosPacks.Count(); i++) {
-                u64 _DirSep1 = sDynosPacks[i]->mPath.find_last_of('\\');
-                u64 _DirSep2 = sDynosPacks[i]->mPath.find_last_of('/');
-                if (_DirSep1++ == SysPath::npos) _DirSep1 = 0;
-                if (_DirSep2++ == SysPath::npos) _DirSep2 = 0;
+    // Model search when our list is 20 or more
+    if (model_list.size() >= 20) {
+        ImGui::InputTextWithHint("###model_search_text", ICON_FK_SEARCH " Search models...", modelSearchTerm, IM_ARRAYSIZE(modelSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
+    } else {
+        // If our model list is reloaded, and we now have less than 20 packs, this can cause filter issues if not reset to nothing
+        if (modelSearchTerm != "") strcpy(modelSearchTerm, "");
+    }
+    string modelSearchLower = modelSearchTerm;
+    std::transform(modelSearchLower.begin(), modelSearchLower.end(), modelSearchLower.begin(),
+        [](unsigned char c){ return std::tolower(c); });
 
-                std::string label = sDynosPacks[i]->mPath.substr(MAX(_DirSep1, _DirSep2));
+    if (model_list.size() <= 0) {
+        ImGui::TextDisabled("No model packs found.\nPlace model folders in\n/dynos/packs/.");
+    } else {
+        ImGui::BeginChild("###menu_model_selector", ImVec2(-FLT_MIN, 125), true);
+        for (int i = 0; i < model_list.size(); i++) {
+            Model model = model_list[i];
+            if (model.Active) {
                 bool is_selected = DynOS_Opt_GetValue(String("dynos_pack_%d", i));
 
                 // If we're searching, only include models with the search keyword in the name
                 // Also convert to lowercase
                 if (modelSearchLower != "") {
-                    string labelLower = saturn_load_search(label);
+                    std::string labelLower = model.SearchMeta();
                     std::transform(labelLower.begin(), labelLower.end(), labelLower.begin(),
                         [](unsigned char c1){ return std::tolower(c1); });
 
-                    if (labelLower.find(modelSearchLower) == string::npos) {
+                    if (labelLower.find(modelSearchLower) == std::string::npos) {
                         continue;
                     }
                 }
 
-                if (ImGui::Selectable(label.c_str(), &is_selected)) {
+                std::string packLabelId = model.FolderName + "###s_model_pack_" + std::to_string(i);
+                if (ImGui::Selectable(packLabelId.c_str(), &is_selected)) {
                     // Deselect other packs, but LSHIFT allows additive
                     for (int j = 0; j < sDynosPacks.Count(); j++) {
                         if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] == false)
@@ -213,26 +194,32 @@ void sdynos_imgui_menu() {
                     }
                             
                     DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
-                    ui_mfolder_name = label;
-                    ui_mfolder_path = sDynosPacks[i]->mPath;
+                    current_model = model;
 
+                    // Reset expressions
                     gfx_precache_textures();
-
-                    // Fetch model data
-                    saturn_load_model_data(label, false);
                     for (int i = 0; i < 8; i++) {
                         current_exp_index[i] = 0;
                     }
 
-                    if (is_selected && current_model_data.name != "")
-                        std::cout << "Loaded " << current_model_data.name << " by " << current_model_data.author << std::endl;
+                    if (is_selected) {
+                        std::cout << "Loaded " << model.Name << " by " << model.Author << std::endl;
 
-                    // Load model CCs
-
-                    RefreshModelColorCodeList();
-                    if (current_color_code.IsDefaultColors() || current_color_code.GameShark == last_model_cc_address) {
-                        ResetColorCode();
-                        last_model_cc_address = current_color_code.GameShark;
+                        // Load model CCs
+                        RefreshColorCodeList();
+                        if (is_selected && (current_color_code.IsDefaultColors() || last_model_cc_address == current_color_code.GameShark)) {
+                            ResetColorCode(true);
+                            last_model_cc_address = current_color_code.GameShark;
+                        }
+                    } else {
+                        if (!AnyModelsEnabled())
+                            current_model = Model();
+                        
+                        // Reset model CCs
+                        model_color_code_list.clear();
+                        RefreshColorCodeList();
+                        if (last_model_cc_address == current_color_code.GameShark)
+                            ResetColorCode(false);
                     }
 
                     // Reset blink cycle (if it exists)
@@ -244,92 +231,77 @@ void sdynos_imgui_menu() {
                         blink_eye_3_index = -1; blink_eye_3 = "";
                         force_blink = false;
                     }
-
-                    one_pack_selectable = false;
-                    for (int k = 0; k < sDynosPacks.Count(); k++) {
-                        if (DynOS_Opt_GetValue(String("dynos_pack_%d", k)))
-                            one_pack_selectable = true;
-                    }
-
-                    any_packs_selected = one_pack_selectable;
-                    if (!any_packs_selected) {
-                        model_color_code_list.clear();
-                        RefreshColorCodeList();
-
-                        if (last_model_cc_address == current_color_code.GameShark)
-                            ResetColorCode();
-
-                        // Reset model data
-
-                        ModelData blank;
-                        current_model_data = blank;
-                        using_model_eyes = false;
-                        cc_model_support = true;
-                        cc_spark_support = false;
-                        enable_torso_rotation = true;
-                    }
                 }
-                if (ImGui::BeginPopupContextItem()) {
-                    model_color_code_list.clear();
-                    model_color_code_list = GetColorCodeList(sDynosPacks[i]->mPath + "\\colorcodes");
+                std::string popupLabelId = "###menu_model_popup_" + std::to_string(i);
+                if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+                    ImGui::OpenPopup(popupLabelId.c_str());
+                if (ImGui::BeginPopup(popupLabelId.c_str())) {
+                    // Right-click menu
+                    if (model.Author.empty()) ImGui::Text(ICON_FK_FOLDER_OPEN_O " %s/", model.FolderName.c_str());
+                    else ImGui::Text(ICON_FK_FOLDER_OPEN " %s/", model.FolderName.c_str());
+                    imgui_bundled_tooltip(("/%s", model.FolderPath).c_str());
+                    ImGui::SameLine(); ImGui::TextDisabled(" Pack #%i", model.DynOSId + 1);
+
+                    std::vector<std::string> cc_list = GetColorCodeList(model.FolderPath + "/colorcodes");
                     has_open_any_model_cc = true;
-                    ImGui::Text("%s/", label.c_str());
-                    imgui_bundled_tooltip(("/dynos/packs/" + label).c_str());
-                    ImGui::BeginChild("###menu_model_ccs", ImVec2(125, 75), true);
-                    for (int n = 0; n < model_color_code_list.size(); n++) {
-                        const bool is_selected = (uiCcListId == ((n + 1) * -1) && sDynosPacks[i]->mPath == ui_mfolder_path);
-                        std::string label_name = model_color_code_list[n].substr(0, model_color_code_list[n].size() - 3);
 
-                        if (ImGui::Selectable(label_name.c_str(), is_selected)) {
-                            if (sDynosPacks[i]->mPath == ui_mfolder_path)
-                                uiCcListId = (n + 1) * -1;
-
-                            // Overwrite current color code
-                            current_color_code = LoadGSFile(model_color_code_list[n], sDynosPacks[i]->mPath + "\\colorcodes");
-                            ApplyColorCode(current_color_code);
-                            UpdateEditorFromPalette();
-                            last_model_cc_address = current_color_code.GameShark;
-                        }
-
-                        if (ImGui::BeginPopupContextItem()) {
-                            ImGui::Text("%s.gs", label_name.c_str());
-                            imgui_bundled_tooltip(("/dynos/packs/" + label + "/colorcodes/" + label_name + ".gs").c_str());
-                            ImGui::Separator();
-                            ImGui::TextDisabled("%i color code(s)", model_color_code_list.size());
-                            if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
-                                model_color_code_list.clear();
-                                model_color_code_list = GetColorCodeList(sDynosPacks[i]->mPath + "\\colorcodes");
-                                ImGui::CloseCurrentPopup();
-                            }
-                            ImGui::EndPopup();
-                        }
+                    if (model.HasColorCodeFolder() && cc_list.size() > 0) {
+                        // List of model color codes
+                        ImGui::BeginChild("###menu_model_ccs", ImVec2(-FLT_MIN, 75), true);
+                        OpenModelCCSelector(model, cc_list, "");
+                        ImGui::EndChild();
                     }
-                    ImGui::EndChild();
                     ImGui::Separator();
-                    ImGui::TextDisabled("%i model pack(s)", sDynosPacks.Count());
+                    ImGui::TextDisabled("%i model pack(s)", model_list.size());
                     if (ImGui::Button(ICON_FK_DOWNLOAD " Refresh Packs###refresh_dynos_packs")) {
                         sDynosPacks.Clear();
                         DynOS_Opt_Init();
-                        model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
-                        if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
+                        model_list = GetModelList("dynos/packs");
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::SameLine(); imgui_bundled_help_marker("WARNING: Experimental - this will probably lag the game.");
                     ImGui::EndPopup();
-                } else {
-                    if (has_open_any_model_cc) {
-                        has_open_any_model_cc = false;
-                        model_color_code_list.clear();
-                        model_color_code_list = GetColorCodeList(sDynosPacks[i]->mPath + "\\colorcodes");
-                    }
                 }
             }
-            ImGui::EndChild();
         }
+        ImGui::EndChild();
+    }
+}
+
+
+
+void sdynos_imgui_init() {
+    model_list = GetModelList("dynos/packs");
+    RefreshColorCodeList();
+
+    saturn_load_eye_folder("");
+
+    //model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
+    //if (sDynosPacks.Count() != 1) model_details += "s";
+}
+
+void sdynos_imgui_menu() {
+    if (ImGui::BeginMenu(ICON_FK_USER_CIRCLE " Edit Avatar###menu_edit_avatar")) {
+        // Color Code Selection
+        if (!support_color_codes || !current_model.ColorCodeSupport) ImGui::BeginDisabled();
+            OpenCCSelector();
+            // Open File Dialog
+            if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_v_cc")) {
+                auto selection3 = choose_file_dialog("Select a file", { "Color Code Files", "*.gs *.txt", "All Files", "*" }, true);
+                for (auto const &filename3 : selection3) {
+                    saturn_copy_file(filename3, "dynos/colorcodes/");
+                    RefreshColorCodeList();
+                }
+            }
+        if (!support_color_codes || !current_model.ColorCodeSupport) ImGui::EndDisabled();
+
+        // Model Selection
+        OpenModelSelector();
+
         ImGui::EndMenu();
     }
-    if (ImGui::MenuItem(ICON_FK_PAINT_BRUSH " Color Code Editor###menu_cc_editor", NULL, windowCcEditor, cc_model_support)) {
-        if (cc_model_support) {
+    if (ImGui::MenuItem(ICON_FK_PAINT_BRUSH " Color Code Editor###menu_cc_editor", NULL, windowCcEditor, support_color_codes & current_model.ColorCodeSupport)) {
+        if (support_color_codes && current_model.ColorCodeSupport) {
             windowAnimPlayer = false;
             windowChromaKey = false;
             windowCcEditor = !windowCcEditor;
@@ -343,23 +315,19 @@ void sdynos_imgui_menu() {
 
     ImGui::Separator();
 
-    if (ImGui::BeginMenu("Color Settings###menu_color", ((current_model_data.name != "" && current_model_data.cc_support == true) || current_model_data.name == "") || ((current_model_data.name != "" && current_model_data.spark_support == true) || current_model_data.name == ""))) {
-        // CC Compatibility - Allows colors to be edited for models that support it
-        if ((current_model_data.name != "" && current_model_data.cc_support == true) || current_model_data.name == "") {
-            ImGui::Checkbox("CC Compatibility", &cc_model_support);
-            ImGui::SameLine(); imgui_bundled_help_marker(
-                "Toggles color code compatibility for model packs that support it.");
-        }
-        // CometSPARK Support - When a model is present, allows SPARK colors to be edited for models that support it
-        if (any_packs_selected) {
-            if ((current_model_data.name != "" && current_model_data.spark_support == true) || current_model_data.name == "") {
-                ImGui::Checkbox("CometSPARK Support", &cc_spark_support);
-                ImGui::SameLine(); imgui_bundled_help_marker(
-                    "Grants a model extra color values. See the GitHub wiki for setup instructions.");
+    if (!current_model.ColorCodeSupport) ImGui::BeginDisabled();
+        ImGui::Checkbox("Color Code Support", &support_color_codes);
+        imgui_bundled_tooltip(
+            "Toggles color code features.");
+
+        if (!support_color_codes) ImGui::BeginDisabled();
+            if (current_model.SparkSupport) {
+                ImGui::Checkbox("CometSPARK Support", &support_spark);
+                imgui_bundled_tooltip(
+                    "Toggles SPARK features, which provides supported models with extra color values.");
             }
-        }
-        ImGui::EndMenu();
-    }
+        if (!support_color_codes) ImGui::EndDisabled();
+    if (!current_model.ColorCodeSupport) ImGui::EndDisabled();
 
     if (ImGui::BeginMenu("Misc.###menu_misc")) {
 
@@ -380,11 +348,11 @@ void sdynos_imgui_menu() {
                 ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
                 const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
                 ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
-                if (any_packs_selected) ImGui::BeginDisabled();
+                if (AnyModelsEnabled()) ImGui::BeginDisabled();
                 ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
                 imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
                 saturn_keyframe_bool_popout(&show_vmario_emblem, "M Cap Emblem", "k_v_cap_emblem");
-                if (any_packs_selected) ImGui::EndDisabled();
+                if (AnyModelsEnabled()) ImGui::EndDisabled();
 
                 ImGui::EndTabItem();
             }
@@ -522,18 +490,18 @@ void sdynos_imgui_menu() {
 
     ImGui::Separator();
 
-    if (current_model_data.name != "") {
+    if (!current_model.Author.empty()) {
 
         // Metadata
-        string metaLabelText = (ICON_FK_USER " " + current_model_data.name);
-        string metaDataText = "v" + current_model_data.version;
-        if (current_model_data.description != "")
-            metaDataText = "v" + current_model_data.version + "\n" + current_model_data.description;
+        string metaLabelText = (ICON_FK_USER " " + current_model.Name);
+        string metaDataText = "v" + current_model.Version;
+        if (current_model.Description != "")
+            metaDataText = "v" + current_model.Version + "\n" + current_model.Description;
 
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("###model_metadata", ImVec2(0, 45), true, ImGuiWindowFlags_NoScrollbar);
         ImGui::Text(metaLabelText.c_str()); imgui_bundled_tooltip(metaDataText.c_str());
-        ImGui::TextDisabled(("@ " + current_model_data.author).c_str());
+        ImGui::TextDisabled(("@ " + current_model.Author).c_str());
         ImGui::EndChild();
         ImGui::PopStyleVar();
 
@@ -546,7 +514,7 @@ void sdynos_imgui_menu() {
             if (current_eye_state < 4) current_eye_state = 4;
             else current_eye_state = 0;
         } 
-        if (!any_packs_selected) {
+        if (!AnyModelsEnabled()) {
             ImGui::SameLine(); imgui_bundled_help_marker(
                 "Place custom eye PNG textures in dynos/eyes.");
         }

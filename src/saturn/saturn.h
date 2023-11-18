@@ -144,8 +144,6 @@ extern int k_last_placed_frame;
 extern bool k_loop;
 extern bool k_animating_camera;
 
-extern std::string model_details;
-extern std::string cc_details;
 extern bool is_cc_editing;
 
 extern int autosaveDelay;

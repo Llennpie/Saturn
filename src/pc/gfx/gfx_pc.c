@@ -814,20 +814,19 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
             bool mario_skin = (r == 0x7f && g == 0x60 && b == 0x3c) | (r == 0x7E && g == 0x60 && b == 0x3C);
             bool mario_hair = (r == 0x39 && g == 0x03 && b == 0x00) | (r == 0x39 && g == 0x2 && b == 0x00);
             // Spark
-            bool mario_shirt = (r == 0x7f && g == 0x7f && b == 0x00) | (r == 0x7E && g == 0x7E && b == 0x00);
-            bool mario_shoulders = (r == 0x00 && g == 0x7f && b == 0x7f) | (r == 0x00 && g == 0x7E && b == 0x7E);
-            bool mario_arms = (r == 0x00 && g == 0x7f && b == 0x40) | (r == 0x00 && g == 0x7F && b == 0x3F);
-            bool mario_overalls_bottom = (r == 0x7f && g == 0x00 && b == 0x7f) | (r == 0x7E && g == 0x00 && b == 0x7E);
-            bool mario_legtop = (r == 0x7f && g == 0x00 && b == 0x40) | (r == 0x7F && g == 0x00 && b == 0x3F);
-            bool mario_legbottom = (r == 0x40 && g == 0x00 && b == 0x7f) | (r == 0x3F && g == 0x00 && b == 0x7F);
+            bool mario_shirt = ((r == 0x7f && g == 0x7f && b == 0x00) | (r == 0x7E && g == 0x7E && b == 0x00)) & support_spark;
+            bool mario_shoulders = ((r == 0x00 && g == 0x7f && b == 0x7f) | (r == 0x00 && g == 0x7E && b == 0x7E)) & support_spark;
+            bool mario_arms = ((r == 0x00 && g == 0x7f && b == 0x40) | (r == 0x00 && g == 0x7F && b == 0x3F)) & support_spark;
+            bool mario_overalls_bottom = ((r == 0x7f && g == 0x00 && b == 0x7f) | (r == 0x7E && g == 0x00 && b == 0x7E)) & support_spark;
+            bool mario_legtop = ((r == 0x7f && g == 0x00 && b == 0x40) | (r == 0x7F && g == 0x00 && b == 0x3F)) & support_spark;
+            bool mario_legbottom = ((r == 0x40 && g == 0x00 && b == 0x7f) | (r == 0x3F && g == 0x00 && b == 0x7F)) & support_spark;
 
             // Extras
             bool creator_mario_sideburn = (r == 0x73 && g == 0x06 && b == 0x00) | (r == 0x73 && g == 0x05 && b == 0x00);
-
             bool chroma_floor = (r == 0x3f && g == 0x31 && b == 0x19 && use_color_background || r == 0x3f && g == 0x32 && b == 0x19 && use_color_background);
 
             // Override them lazily
-            if (cc_model_support || chroma_floor) {
+            if (support_color_codes || chroma_floor) {
                 if (mario_hat) {
                     r = defaultColorHat.red[1];
                     g = defaultColorHat.green[1];
@@ -858,37 +857,35 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                     g = defaultColorHair.green[1];
                     b = defaultColorHair.blue[1];
                 }
-                if (cc_spark_support) {
-                    if (mario_shirt) {
-                        r = sparkColorShirt.red[1];
-                        g = sparkColorShirt.green[1];
-                        b = sparkColorShirt.blue[1];
-                    }
-                    if (mario_shoulders) {
-                        r = sparkColorShoulders.red[1];
-                        g = sparkColorShoulders.green[1];
-                        b = sparkColorShoulders.blue[1];
-                    }
-                    if (mario_arms) {
-                        r = sparkColorArms.red[1];
-                        g = sparkColorArms.green[1];
-                        b = sparkColorArms.blue[1];
-                    }
-                    if (mario_overalls_bottom) {
-                        r = sparkColorOverallsBottom.red[1];
-                        g = sparkColorOverallsBottom.green[1];
-                        b = sparkColorOverallsBottom.blue[1];
-                    }
-                    if (mario_legtop) {
-                        r = sparkColorLegTop.red[1];
-                        g = sparkColorLegTop.green[1];
-                        b = sparkColorLegTop.blue[1];
-                    }
-                    if (mario_legbottom) {
-                        r = sparkColorLegBottom.red[1];
-                        g = sparkColorLegBottom.green[1];
-                        b = sparkColorLegBottom.blue[1];
-                    }
+                if (mario_shirt) {
+                    r = sparkColorShirt.red[1];
+                    g = sparkColorShirt.green[1];
+                    b = sparkColorShirt.blue[1];
+                }
+                if (mario_shoulders) {
+                    r = sparkColorShoulders.red[1];
+                    g = sparkColorShoulders.green[1];
+                    b = sparkColorShoulders.blue[1];
+                }
+                if (mario_arms) {
+                    r = sparkColorArms.red[1];
+                    g = sparkColorArms.green[1];
+                    b = sparkColorArms.blue[1];
+                }
+                if (mario_overalls_bottom) {
+                    r = sparkColorOverallsBottom.red[1];
+                    g = sparkColorOverallsBottom.green[1];
+                    b = sparkColorOverallsBottom.blue[1];
+                }
+                if (mario_legtop) {
+                    r = sparkColorLegTop.red[1];
+                    g = sparkColorLegTop.green[1];
+                    b = sparkColorLegTop.blue[1];
+                }
+                if (mario_legbottom) {
+                    r = sparkColorLegBottom.red[1];
+                    g = sparkColorLegBottom.green[1];
+                    b = sparkColorLegBottom.blue[1];
                 }
                 if (creator_mario_sideburn) {
                     r = defaultColorHair.red[0];
@@ -915,7 +912,7 @@ static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *verti
                     int lightb = rsp.current_lights[i].col[2];
 
                     // Override these too
-                    if (cc_model_support || chroma_floor) {
+                    if (support_color_codes || chroma_floor) {
                         if (mario_hat) {
                             r += intensity * defaultColorHat.red[0];
                             g += intensity * defaultColorHat.green[0];

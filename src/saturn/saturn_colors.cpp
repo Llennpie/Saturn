@@ -22,7 +22,6 @@ extern "C" {
 #include "sm64.h"
 }
 
-using namespace std;
 #include <dirent.h>
 #include <filesystem>
 #include <fstream>
@@ -68,8 +67,11 @@ std::string HexifyColorTemplate(ColorTemplate &colorBodyPart) {
 ColorTemplate chromaColor                   {0,   0,   255, 255, 0,   0  };
 
 std::string last_model_cc_address;
-bool cc_model_support = true;
-bool cc_spark_support = false;
+
+/* Global toggle for Saturn's color code compatibility. True by default */
+bool support_color_codes = true;
+/* Global toggle for Saturn's SPARK extension. False by default */
+bool support_spark = true;
 
 void PasteGameShark(std::string GameShark) {
     std::istringstream f(GameShark);
@@ -119,38 +121,36 @@ void PasteGameShark(std::string GameShark) {
 
                 // (Optional) SPARK Addresses
 
-                if (current_color_code.IsSpark()) {
-                    // Shirt
-                    case 0x07ECB8:  sparkColorShirt.red[0] = value1;            sparkColorShirt.green[0] = value2;          break;
-                    case 0x07ECBA:  sparkColorShirt.blue[0] = value1;                                                       break;
-                    case 0x07ECB0:  sparkColorShirt.red[1] = value1;            sparkColorShirt.green[1] = value2;          break;
-                    case 0x07ECB2:  sparkColorShirt.blue[1] = value1;                                                       break;
-                    // Shoulders
-                    case 0x07ECD0:  sparkColorShoulders.red[0] = value1;        sparkColorShoulders.green[0] = value2;      break;
-                    case 0x07ECD2:  sparkColorShoulders.blue[0] = value1;                                                   break;
-                    case 0x07ECC8:  sparkColorShoulders.red[1] = value1;        sparkColorShoulders.green[1] = value2;      break;
-                    case 0x07ECCA:  sparkColorShoulders.blue[1] = value1;                                                   break;
-                    // Arms
-                    case 0x07ECE8:  sparkColorArms.red[0] = value1;             sparkColorArms.green[0] = value2;           break;
-                    case 0x07ECEA:  sparkColorArms.blue[0] = value1;                                                        break;
-                    case 0x07ECE0:  sparkColorArms.red[1] = value1;             sparkColorArms.green[1] = value2;           break;
-                    case 0x07ECE2:  sparkColorArms.blue[1] = value1;                                                        break;
-                    // Pelvis
-                    case 0x07ED00:  sparkColorOverallsBottom.red[0] = value1;   sparkColorOverallsBottom.green[0] = value2; break;
-                    case 0x07ED02:  sparkColorOverallsBottom.blue[0] = value1;                                              break;
-                    case 0x07ECF8:  sparkColorOverallsBottom.red[1] = value1;   sparkColorOverallsBottom.green[1] = value2; break;
-                    case 0x07ECFA:  sparkColorOverallsBottom.blue[1] = value1;                                              break;
-                    // Thighs
-                    case 0x07ED18:  sparkColorLegTop.red[0] = value1;           sparkColorLegTop.green[0] = value2;         break;
-                    case 0x07ED1A:  sparkColorLegTop.blue[0] = value1;                                                      break;
-                    case 0x07ED10:  sparkColorLegTop.red[1] = value1;           sparkColorLegTop.green[1] = value2;         break;
-                    case 0x07ED12:  sparkColorLegTop.blue[1] = value1;                                                      break;
-                    // Calves
-                    case 0x07ED30:  sparkColorLegBottom.red[0] = value1;        sparkColorLegBottom.green[0] = value2;      break;
-                    case 0x07ED32:  sparkColorLegBottom.blue[0] = value1;                                                   break;
-                    case 0x07ED28:  sparkColorLegBottom.red[1] = value1;        sparkColorLegBottom.green[1] = value2;      break;
-                    case 0x07ED2A:  sparkColorLegBottom.blue[1] = value1;                                                   break;
-                }
+                // Shirt
+                case 0x07ECB8:  sparkColorShirt.red[0] = value1;            sparkColorShirt.green[0] = value2;          break;
+                case 0x07ECBA:  sparkColorShirt.blue[0] = value1;                                                       break;
+                case 0x07ECB0:  sparkColorShirt.red[1] = value1;            sparkColorShirt.green[1] = value2;          break;
+                case 0x07ECB2:  sparkColorShirt.blue[1] = value1;                                                       break;
+                // Shoulders
+                case 0x07ECD0:  sparkColorShoulders.red[0] = value1;        sparkColorShoulders.green[0] = value2;      break;
+                case 0x07ECD2:  sparkColorShoulders.blue[0] = value1;                                                   break;
+                case 0x07ECC8:  sparkColorShoulders.red[1] = value1;        sparkColorShoulders.green[1] = value2;      break;
+                case 0x07ECCA:  sparkColorShoulders.blue[1] = value1;                                                   break;
+                // Arms
+                case 0x07ECE8:  sparkColorArms.red[0] = value1;             sparkColorArms.green[0] = value2;           break;
+                case 0x07ECEA:  sparkColorArms.blue[0] = value1;                                                        break;
+                case 0x07ECE0:  sparkColorArms.red[1] = value1;             sparkColorArms.green[1] = value2;           break;
+                case 0x07ECE2:  sparkColorArms.blue[1] = value1;                                                        break;
+                // Pelvis
+                case 0x07ED00:  sparkColorOverallsBottom.red[0] = value1;   sparkColorOverallsBottom.green[0] = value2; break;
+                case 0x07ED02:  sparkColorOverallsBottom.blue[0] = value1;                                              break;
+                case 0x07ECF8:  sparkColorOverallsBottom.red[1] = value1;   sparkColorOverallsBottom.green[1] = value2; break;
+                case 0x07ECFA:  sparkColorOverallsBottom.blue[1] = value1;                                              break;
+                // Thighs
+                case 0x07ED18:  sparkColorLegTop.red[0] = value1;           sparkColorLegTop.green[0] = value2;         break;
+                case 0x07ED1A:  sparkColorLegTop.blue[0] = value1;                                                      break;
+                case 0x07ED10:  sparkColorLegTop.red[1] = value1;           sparkColorLegTop.green[1] = value2;         break;
+                case 0x07ED12:  sparkColorLegTop.blue[1] = value1;                                                      break;
+                // Calves
+                case 0x07ED30:  sparkColorLegBottom.red[0] = value1;        sparkColorLegBottom.green[0] = value2;      break;
+                case 0x07ED32:  sparkColorLegBottom.blue[0] = value1;                                                   break;
+                case 0x07ED28:  sparkColorLegBottom.red[1] = value1;        sparkColorLegBottom.green[1] = value2;      break;
+                case 0x07ED2A:  sparkColorLegBottom.blue[1] = value1;                                                   break;
             }
         }
     }
@@ -164,17 +164,16 @@ void ApplyColorCode(ColorCode colorCode) {
     PasteGameShark(colorCode.GameShark);
 }
 
-std::vector<std::string> GetColorCodeList(std::string filePath) {
+std::vector<std::string> GetColorCodeList(std::string folderPath) {
     std::vector<std::string> cc_list;
 
-    if (filePath.find("/packs/") != std::string::npos) {
-        std::cout << filePath + "\\..\\default.gs" << std::endl;
-        if (fs::exists(filePath + "\\..\\default.gs")) {
+    if (folderPath.find("dynos/packs") != std::string::npos) {
+        if (fs::exists(folderPath + "/../default.gs")) {
             cc_list.push_back("../default.gs");
         }
         
-        if (fs::exists(filePath)) {
-            for (const auto & entry : fs::directory_iterator(filePath)) {
+        if (fs::exists(folderPath)) {
+            for (const auto & entry : fs::directory_iterator(folderPath)) {
                 fs::path path = entry.path();
 
                 if (path.filename().u8string() != "Mario") {
@@ -184,10 +183,10 @@ std::vector<std::string> GetColorCodeList(std::string filePath) {
             }
         }
     } else {
-        if (fs::exists(filePath)) {
+        if (fs::exists(folderPath)) {
             cc_list.push_back("Mario.gs");
 
-            for (const auto & entry : fs::directory_iterator(filePath)) {
+            for (const auto & entry : fs::directory_iterator(folderPath)) {
                 fs::path path = entry.path();
                 
                 if (fs::is_directory(path)) continue;
@@ -205,11 +204,18 @@ std::vector<std::string> GetColorCodeList(std::string filePath) {
 ColorCode LoadGSFile(std::string fileName, std::string filePath) {
     ColorCode colorCode;
 
+    if (fileName == "../default.gs") {
+        filePath = fs::path(filePath).parent_path().u8string();
+        fileName = "default.gs";
+    }
+
     if (fileName != "Mario.gs") {
-        std::ifstream file(filePath + "\\" + fileName, std::ios::in | std::ios::binary);
+        std::ifstream file(filePath + "/" + fileName, std::ios::in | std::ios::binary);
         if (file.good()) {
+            std::cout << "Loaded CC file: " << filePath << "/" << fileName << std::endl;
+
             // Read GS File
-            const std::size_t& size = std::filesystem::file_size(filePath + "\\" + fileName);
+            const std::size_t& size = std::filesystem::file_size(filePath + "/" + fileName);
             std::string content(size, '\0');
             file.read(content.data(), size);
             file.close();
@@ -217,27 +223,42 @@ ColorCode LoadGSFile(std::string fileName, std::string filePath) {
             // Write to CC
             colorCode.Name = fileName.substr(0, fileName.size() - 3);
             colorCode.GameShark = content;
-            colorCode.IsModel = (filePath.find("/packs/") != std::string::npos);
+            colorCode.IsModel = (filePath.find("dynos/packs") != std::string::npos);
 
         } else {
             // Load failed; Refresh active list
-            if (filePath.find("/packs/") != std::string::npos) model_color_code_list = GetColorCodeList(filePath);
+            std::cout << "Failed to load " << fileName.c_str() << std::endl;
+            if (filePath.find("dynos/packs") != std::string::npos) model_color_code_list = GetColorCodeList(filePath);
             else color_code_list = GetColorCodeList(filePath);
         }
     }
+
+    // Change conflicting file names
+    if (colorCode.Name == "Mario" || colorCode.Name == "default")
+        colorCode.Name = "Sample";
 
     return colorCode;
 }
 
 void SaveGSFile(ColorCode colorCode, std::string filePath) {
+    // Change conflicting file names
     if (colorCode.Name == "Mario" || colorCode.Name == "default")
         colorCode.Name = "Sample";
 
-    std::ofstream file(filePath + "\\" + colorCode.Name + ".gs");
+    // Create "/colorcodes" directory if it doesn't already exist
+    if (!fs::exists(filePath))
+        fs::create_directory(filePath + "/../colorcodes");
+
+    std::ofstream file(filePath + "/" + colorCode.Name + ".gs");
     file << colorCode.GameShark;
 }
 
+void DeleteGSFile(std::string filePath) {
+    if (fs::exists(filePath))
+        fs::remove(filePath);
+}
+
 void saturn_refresh_cc_count() {
-    cc_details = "" + std::to_string(model_color_code_list.size()) + " color code";
-    if (model_color_code_list.size() != 1) cc_details += "s";
+    //cc_details = "" + std::to_string(model_color_code_list.size()) + " color code";
+    //if (model_color_code_list.size() != 1) cc_details += "s";
 }

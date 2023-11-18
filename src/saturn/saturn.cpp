@@ -109,8 +109,6 @@ float k_c_rot1_incr;
 float k_c_rot2_incr;
 bool has_set_initial_k_frames;
 
-std::string model_details;
-std::string cc_details;
 bool is_cc_editing;
 
 bool autoChroma;
@@ -655,8 +653,8 @@ const char* saturn_get_stage_name(int courseNum) {
 void saturn_do_load() {
     if (!(save_file_get_flags() & SAVE_FLAG_TALKED_TO_ALL_TOADS)) DynOS_Gfx_GetPacks().Clear();
     DynOS_Opt_Init();
-    model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
-    if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
+    //model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+    //if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
     saturn_imgui_init();
     saturn_load_locations();
     saturn_launch_timer = 0;
