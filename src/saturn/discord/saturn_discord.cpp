@@ -8,6 +8,8 @@
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
+#include "saturn/saturn_colors.h"
+#include "saturn/saturn_models.h"
 #include "pc/controller/controller_keyboard.h"
 #include "data/dynos.cpp.h"
 #include <SDL2/SDL.h>
@@ -28,6 +30,9 @@ struct DiscordApplication app = { 0 };
 
 struct DiscordActivity gCurActivity;
 struct DiscordUser gCurUser = { 0 };
+
+std::string model_details;
+std::string cc_details;
 
 std::string discord_state;
 std::string discord_details;
@@ -90,10 +95,11 @@ void sdiscord_update() {
     app.core->run_callbacks(app.core);
 
     gCurActivity.type = DiscordActivityType_Playing;
-    if (model_details == "" || cc_details == "")
-        strcpy(gCurActivity.details, "Loading...");
-    else
-        strcpy(gCurActivity.details, (model_details + ", " + cc_details).c_str());
+
+    if (model_list.size() > 0 && color_code_list.size() > 0) {
+        strcpy(gCurActivity.details,    (std::to_string(model_list.size()) + " model pack(s), " +
+                                        std::to_string(color_code_list.size()) + " color code(s)").c_str());
+    }
 
     switch(gCurrLevelNum) {
         case LEVEL_SA:

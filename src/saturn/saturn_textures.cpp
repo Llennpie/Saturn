@@ -259,6 +259,13 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
+    // Non-model cap logo/emblem
+
+    if (show_vmario_emblem) {
+        if (texName == "actors/mario/no_m.rgba16")
+            return "actors/mario/mario_logo.rgba16";
+    }
+
     // AUTO-CHROMA
 
     // Overwrite skybox
@@ -469,17 +476,17 @@ void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
 
         if (root.isMember("cc_support")) {
             current_model_data.cc_support = root["cc_support"].asBool();
-            cc_model_support = current_model_data.cc_support;
+            //support_color_codes = current_model_data.cc_support;
         }
         
         if (root.isMember("spark_support")) {
             current_model_data.spark_support = root["spark_support"].asBool();
-            cc_spark_support = current_model_data.spark_support;
+            //support_spark = current_model_data.spark_support;
 
             // If SPARK is enabled, enable CC support too (it needs it to work)
             if (current_model_data.spark_support == true) {
                 current_model_data.cc_support = true;
-                cc_model_support = true;
+                //support_color_codes = true;
             }
         }
 

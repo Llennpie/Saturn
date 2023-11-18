@@ -221,63 +221,6 @@ void smachinima_imgui_init() {
     saturn_load_anim_folder("", &custom_anim_index);
 }
 
-void smachinima_imgui_update() {
-    ImGui::Checkbox("Machinima Camera", &camera_frozen);
-    if (configMCameraMode == 2) {
-        ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> LShift + Mouse Buttons");
-    } else if (configMCameraMode == 1) {
-        ImGui::SameLine(); imgui_bundled_help_marker("Pan Camera -> R + C-Buttons\nRaise/Lower Camera -> L + C-Buttons\nRotate Camera -> L + Crouch + C-Buttons");
-    } else if (configMCameraMode == 0) {
-        ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> Y/G/H/J\nRaise/Lower Camera -> T/U\nRotate Camera -> R + Y/G/H/J");
-    }
-    if (configMCameraMode == 0 && camera_frozen || configMCameraMode == 1 && camera_frozen) {
-        ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
-        imgui_bundled_tooltip("Controls the speed of the machinima camera while enabled. Default is 1.");
-    }
-
-    ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
-    imgui_bundled_tooltip("Controls the FOV of the in-game camera. Default is 50.\nKeybind -> N/M");
-    ImGui::Checkbox("Smooth###smooth_fov", &camera_fov_smooth);
-
-    if (mario_exists) {
-        ImGui::Dummy(ImVec2(0, 5));
-        ImGui::Text("Animations");
-        ImGui::Dummy(ImVec2(0, 5));
-
-        // Warp To Level
-
-        ImGui::Dummy(ImVec2(0, 5));
-    }
-
-    ImGui::Dummy(ImVec2(0, 5));
-
-    if (ImGui::BeginTable("table_quick_toggles", 2)) {
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("HUD", &configHUD);
-        imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("Shadows", &enable_shadows);
-        imgui_bundled_tooltip("Displays the shadows of various objects.");
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
-        imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
-        imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
-        if (mario_exists && gMarioState->action != ACT_FIRST_PERSON) {
-            ImGui::TableNextColumn();
-            if (ImGui::Button("Sleep")) {
-                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
-            }
-        }
-        ImGui::EndTable();
-    }
-    if (mario_exists) {
-        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
-        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
-    }
-}
-
 void imgui_machinima_quick_options() {
     if (ImGui::MenuItem(ICON_FK_CLOCK_O " Limit FPS",      "F4", limit_fps)) {
         limit_fps = !limit_fps;
@@ -285,9 +228,12 @@ void imgui_machinima_quick_options() {
     }
 
     if (mario_exists) {
-        if (ImGui::MenuItem(ICON_FK_PAPER_PLANE_O " Fly Mode",      "F2", gMarioState->action == ACT_DEBUG_FREE_MOVE, gMarioState->action == ACT_IDLE | gMarioState->action == ACT_DEBUG_FREE_MOVE)) {
-            if (gMarioState->action == ACT_IDLE) set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
-            else set_mario_action(gMarioState, ACT_IDLE, 0);
+        if (ImGui::MenuItem(ICON_FK_PAPER_PLANE_O " Fly Mode",      "F2", gMarioState->action == ACT_DEBUG_FREE_MOVE)) {
+            if (gMarioState->action == ACT_DEBUG_FREE_MOVE) {
+                reset_camera(gCamera);
+                set_mario_action(gMarioState, ACT_IDLE, 0);
+            }
+            else set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
         }
         ImGui::Separator();
 
@@ -362,9 +308,8 @@ void imgui_machinima_quick_options() {
         if (enable_time_freeze) enable_time_stop_including_mario();
         else disable_time_stop_including_mario();
     }
-    imgui_bundled_tooltip("Freezes everything excluding the camera.");
+    imgui_bundled_tooltip("Pauses all in-game movement, excluding the camera.");
     saturn_keyframe_bool_popout(&enable_time_freeze, "Time Freeze", "k_time_freeze");
-    imgui_bundled_tooltip("Freezes everything excluding the camera.");
     ImGui::Checkbox("Object Interactions", (bool*)&enable_dialogue);
     imgui_bundled_tooltip("Toggles interactions with some objects; This includes opening/closing doors, triggering dialogue when interacting with an NPC or readable sign, etc.");
     if (mario_exists) {

@@ -571,6 +571,7 @@ s32 act_debug_free_move(struct MarioState *m) {
         } else {
             action = ACT_IDLE;
         }
+        reset_camera(gCamera);
         set_mario_action(m, action, 0);
     }
 

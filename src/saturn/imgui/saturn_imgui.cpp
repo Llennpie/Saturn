@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "saturn/imgui/saturn_imgui_dynos.h"
+#include "saturn/imgui/saturn_imgui_cc_editor.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "saturn/imgui/saturn_imgui_settings.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
@@ -469,8 +470,8 @@ void saturn_imgui_handle_events(SDL_Event * event) {
             if(event->key.keysym.sym == SDLK_F9) {
                 DynOS_Gfx_GetPacks().Clear();
                 DynOS_Opt_Init();
-                model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
-                if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
+                //model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
+                //if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
 
                 if (gCurrLevelNum > 3 || !mario_exists)
                     DynOS_ReturnToMainMenu();
@@ -631,7 +632,7 @@ void saturn_keyframe_window() {
         for (auto& entry : k_frame_keys) {
             if (entry.second.first.name.find(", Main") != string::npos || entry.second.first.name.find(", Shade") != string::npos) {
                 // Apply color keyframes
-                apply_cc_from_editor();
+                //apply_cc_from_editor();
             }
         }
     }
@@ -960,18 +961,18 @@ void saturn_imgui_update() {
                 ImGui::Separator();
             }
 #endif
-            ImGui::Text(ICON_FK_FOLDER_OPEN " %s", model_details.c_str());
-            ImGui::Text(ICON_FK_FILE_TEXT " %s", cc_details.c_str());
+            ImGui::Text(ICON_FK_FOLDER_OPEN " %i model pack(s)", model_list.size());
+            ImGui::Text(ICON_FK_FILE_TEXT " %i color code(s)", color_code_list.size());
             ImGui::TextDisabled(ICON_FK_PICTURE_O " %i textures loaded", preloaded_textures_count);
 
             ImGui::End();
             ImGui::PopStyleColor();
         }
-        if (windowCcEditor) {
+        if (windowCcEditor && support_color_codes && current_model.ColorCodeSupport) {
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             ImGuiWindowFlags cce_flags = imgui_bundled_window_corner(0, 0, 0, 1.f);
             ImGui::Begin("Color Code Editor", &windowCcEditor, cce_flags);
-            imgui_dynos_cc_editor();
+            OpenCCEditor();
             ImGui::End();
             ImGui::PopStyleColor();
 
@@ -1079,7 +1080,7 @@ void saturn_imgui_update() {
         //ImGui::ShowDemoWindow();
     }
 
-    is_cc_editing = windowCcEditor;
+    is_cc_editing = windowCcEditor & support_color_codes & current_model.ColorCodeSupport;
 
     ImGui::Render();
     GLint last_program;
@@ -1098,7 +1099,7 @@ void saturn_imgui_update() {
     }
     was_camera_frozen = camera_frozen;
 
-    if (!is_gameshark_open) apply_cc_from_editor();
+    //if (!is_gameshark_open) apply_cc_from_editor();
 }
 
 /*
