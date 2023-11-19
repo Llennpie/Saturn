@@ -777,7 +777,7 @@ std::vector<Asset> assets = {
    { "gfx/textures/skyboxes/water.png", 2803376, 0, 131392, { -1 } },
    { "gfx/textures/skyboxes/ccm.png", 2854672, 0, 131392, { -1 } },
    { "gfx/textures/skyboxes/clouds.png", 2913232, 0, 84288, { -1 } },
-   //{ "gfx/textures/skyboxes/bitfs.png", 2949184, 0, 102720, { -1 } },
+   { "gfx/textures/skyboxes/bitfs.png", 2949184, 0, 102720, { -1 } },
    { "gfx/textures/skyboxes/wdw.png", 2974960, 0, 131392, { -1 } },
    { "gfx/textures/skyboxes/cloud_floor.png", 3045504, 0, 131392, { -1 } },
    { "gfx/textures/skyboxes/ssl.png", 3085536, 0, 131392, { -1 } },
@@ -1319,6 +1319,14 @@ std::vector<SaturnAsset> saturn_assets = {
     { "gfx/levels/intro/5_ring.rgba16.png", saturn_ring_rgba16, { 32, 32 } },
 };
 
+std::vector<int> bitfs_ptrtable = {
+    0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 8, 9, 10,11,12,13,14,15,
+    8, 9, 16,17,18,19,20,21,22,23,16,17,24,25,26,27,28,29,
+    30,31,24,25,32,33,34,35,36,37,38,39,32,33,40,41,42,43,
+    44,45,46,47,40,41,48,48,48,48,48,48,48,48,48,48,48,48,
+    48,48,48,48,48,48,48,48
+};
+
 enum FormatEnum {
     FMT_RGBA,
     FMT_IA,
@@ -1498,7 +1506,7 @@ unsigned char* raw2i(unsigned char* raw, int width, int height, int depth) {
     return img;
 }
 
-unsigned char* raw2skybox(unsigned char* raw, int len) {
+unsigned char* raw2skybox(unsigned char* raw, int len, int use_bitfs) {
     int table_index = len - 8 * 10 * 4;
     unsigned int table[80];
     for (int i = 0; i < 80; i++) {
@@ -1507,10 +1515,10 @@ unsigned char* raw2skybox(unsigned char* raw, int len) {
                    (raw[table_index + i * 4 + 2] <<  8) |
                     raw[table_index + i * 4 + 3];
     }
-    int base = table[0];
     unsigned char* skybox = (unsigned char*)malloc(80 * 32 * 32 * 4);
     for (int i = 0; i < 80; i++) {
-        table[i] -= base;
+        // for some reason the bitfs ptr table is completely fucked
+        table[i] = use_bitfs ? bitfs_ptrtable[i] * 0x800 : table[i] - table[0];
     }
     for (int i = 0; i < 80; i++) {
         decode_image(skybox + i * 32 * 32 * 4, raw + table[i], 32 * 32, {
@@ -1626,7 +1634,7 @@ int saturn_extract_rom() {
         unsigned char* buf = mio0[asset.mio0];
         if (tokens[tokens.size() - 1] == "png") {
             if (asset.metadata[0] == -1) {
-                unsigned char* img = raw2skybox(buf + asset.pos, asset.len);
+                unsigned char* img = raw2skybox(buf + asset.pos, asset.len, asset.path == "gfx/textures/skyboxes/bitfs.png");
                 skybox2png(tokens[0], img);
                 continue;
             }
