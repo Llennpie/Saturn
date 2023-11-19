@@ -2,17 +2,17 @@
 
 // 0x06009BA0
 ALIGNED8 static const u8 dorrie_seg6_texture_06009BA0[] = {
-#include "actors/dorrie/dorrie_eye.rgba16.inc.c"
+"actors/dorrie/dorrie_eye.rgba16.png"
 };
 
 // 0x06009DA0
 ALIGNED8 static const u8 dorrie_seg6_texture_06009DA0[] = {
-#include "actors/dorrie/dorrie_skin.rgba16.inc.c"
+"actors/dorrie/dorrie_skin.rgba16.png"
 };
 
 // 0x0600ADA0
 ALIGNED8 static const u8 dorrie_seg6_texture_0600ADA0[] = {
-#include "actors/dorrie/dorrie_tongue.rgba16.inc.c"
+"actors/dorrie/dorrie_tongue.rgba16.png"
 };
 
 // 0x0600B5A0

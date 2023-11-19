@@ -1,9 +1,10 @@
 #include "dynos.cpp.h"
 extern "C" {
 #include "geo_commands.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb/stb_image_write.h"
+#include "pc/pngutils.h"
 }
+
+#include <cassert>
 
 #define LAYER_FORCE                     0
 #define LAYER_OPAQUE                    1
@@ -340,7 +341,7 @@ static void ConvertTextureDataToPng(GfxData *aGfxData, TexData* aTexture) {
 
     // Convert to PNG
     s32 _PngLength = 0;
-    u8 *_PngData = stbi_write_png_to_mem(_Buffer, 0, aTexture->mRawWidth, aTexture->mRawHeight, 4, &_PngLength);
+    u8 *_PngData = pngutils_write_png_to_mem(_Buffer, 0, aTexture->mRawWidth, aTexture->mRawHeight, 4, &_PngLength);
     if (!_PngData || !_PngLength) {
         PrintError("  ERROR: Cannot convert texture to PNG");
         return;

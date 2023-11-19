@@ -7,13 +7,12 @@
 
 #include "saturn/saturn.h"
 #include "saturn/saturn_colors.h"
+#include "saturn/saturn_json.h"
 
 #include <filesystem>
 #include <fstream>
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
-
-#include <json/json.h>
 
 #include "data/dynos.cpp.h"
 
@@ -76,7 +75,7 @@ Model LoadModelData(std::string folderPath) {
         std::ifstream file(folderPath + "/model.json", std::ios::in | std::ios::binary);
         if (file.good()) {
             Json::Value root;
-            file >> root;
+            root << file;
 
             model.Name = root["name"].asString();
             model.Author = root["author"].asString();

@@ -10,10 +10,10 @@
 #include "make_const_nonconst.h"
 
 ALIGNED8 static const u8 logo_saturn_rgba16[] = {
-#include "levels/intro/4_saturn.rgba16.inc.c"
+"levels/intro/4_saturn.rgba16.png"
 };
 ALIGNED8 static const u8 logo_ring_rgba16[] = {
-#include "levels/intro/5_ring.rgba16.inc.c"
+"levels/intro/5_ring.rgba16.png"
 };
 
 Lights1 logo_f3dlite_material_009_lights = gdSPDefLights1(
@@ -4229,23 +4229,23 @@ static const Vtx intro_seg7_vertex_0700B460[] = {
 #ifdef VERSION_EU
 // 0x0700B4A0 - 0x0700B4A2
 ALIGNED8 static const u8 intro_seg7_texture_0700B4A0[] = {
-#include "levels/intro/2_eu_copyright.rgba16.inc.c"
+"levels/intro/2_eu_copyright.rgba16.png"
 };
 
 // 0x0700C4A0 - 0x0700D4A0
 ALIGNED8 static const u8 intro_seg7_texture_0700C4A0[] = {
-#include "levels/intro/3_eu_tm.rgba16.inc.c"
+"levels/intro/3_eu_tm.rgba16.png"
 };
 
 #else
 // 0x0700B4A0 - 0x0700B4A2
 ALIGNED8 static const u8 intro_seg7_texture_0700B4A0[] = {
-#include "levels/intro/2_copyright.rgba16.inc.c"
+"levels/intro/2_copyright.rgba16.png"
 };
 
 // 0x0700C4A0 - 0x0700D4A0
 ALIGNED8 static const u8 intro_seg7_texture_0700C4A0[] = {
-#include "levels/intro/3_tm.rgba16.inc.c"
+"levels/intro/3_tm.rgba16.png"
 };
 #endif
 

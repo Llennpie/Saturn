@@ -38,6 +38,7 @@
 
 #include "saturn/saturn.h"
 #include "saturn/discord/saturn_discord.h"
+#include "saturn/saturn_rom_extract.h"
 
 #ifdef DISCORDRPC
 #include "pc/discord/discordrpc.h"
@@ -302,6 +303,7 @@ void handle_segfault(int signal) {
 
 int main(int argc, char *argv[]) {
     signal(SIGSEGV, handle_segfault);
+    if (saturn_extract_rom()) return 1;
     parse_cli_opts(argc, argv);
     main_func();
     return 0;

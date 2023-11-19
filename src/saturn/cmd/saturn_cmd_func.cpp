@@ -195,12 +195,12 @@ void cmd_timeline_value_bool(CommandContext context) {
     place_keyframe(arg_str("timeline"), arg_int("frame"), *(float*)new int(arg_bin("value")));
 }
 void cmd_colorcode(CommandContext context) {
-    std::string orig_path = current_cc_path;
+    /*std::string orig_path = current_cc_path;
     current_cc_path = "";
     saturn_load_cc_directory();
     load_cc_file((char*)arg_str("path").c_str());
     current_cc_path = orig_path;
-    saturn_load_cc_directory();
+    saturn_load_cc_directory();*/
 }
 void cmd_warp_register(CommandContext context) {
     warp_to_level(arg_reg("lvlid"), 1, -1);

@@ -7,9 +7,10 @@
 #include <iostream>
 #include <map>
 #include <iterator>
+#include <sstream>
+#include <iomanip>
 
-// jsoncpp was misbehaving with math_util.h
-// heres a custom json parser :)
+#define pfx "Json Parser Error: "
 
 namespace Json {
     enum TokenType {
@@ -59,7 +60,7 @@ public:
         ptr++;
     }
     int get() {
-        if (ptr == len) throw std::runtime_error("EOF");
+        if (ptr == len) throw std::runtime_error(pfx "EOF");
         return ptr;
     }
     Increment(int length) {
@@ -78,11 +79,11 @@ public:
 
 class Json::Value {
 private:
-    std::map<std::string, Value> obj;
-    std::vector<Value> arr;
-    std::string str;
-    double num;
-    ValueType type;
+    std::map<std::string, Value> obj = {};
+    std::vector<Value> arr = {};
+    std::string str = "";
+    double num = 0;
+    ValueType type = JSONVALUE_NULL;
     std::vector<Token> tokenize(std::ifstream& stream) {
         std::vector<Token> tokens = {};
         TokenType type = JSONTOKEN_NONE;
@@ -185,6 +186,7 @@ private:
             value.obj = {};
             while (true) {
                 ptr->inc();
+                if (tokens[ptr->get()].type == JSONTOKEN_OBJ_CLOSE) break;
                 if (tokens[ptr->get()].type != JSONTOKEN_STRING_LITERAL) error("Expected json literal", tokens[ptr->get()].line_num);
                 std::string key = tokens[ptr->get()].value;
                 ptr->inc();
@@ -202,6 +204,7 @@ private:
             value.arr = {};
             while (true) {
                 ptr->inc();
+                if (tokens[ptr->get()].type == JSONTOKEN_ARR_CLOSE) break;
                 value.arr.push_back(parseValue(tokens, ptr));
                 if (tokens[ptr->get()].type == JSONTOKEN_COMMA) continue;
                 if (tokens[ptr->get()].type == JSONTOKEN_ARR_CLOSE) break;
@@ -238,54 +241,145 @@ private:
     }
     void error(std::string msg, int line_num) {
         std::cout << "JSON parse error (at line " << std::to_string(line_num) << "): " << msg << std::endl;
-        throw std::runtime_error("Failed to parse JSON");
+        throw std::runtime_error(pfx "Failed to parse JSON");
+    }
+    std::string escaped_str(std::string str) {
+        std::string escaped = "";
+        for (int i = 0; i < (int)str.length(); i++) {
+            if (str[i] == '\"') escaped += "\\\"";
+            else if (str[i] == '\\') escaped += "\\\\";
+            else if (str[i] == '\b') escaped += "\\b";
+            else if (str[i] == '\f') escaped += "\\f";
+            else if (str[i] == '\n') escaped += "\\n";
+            else if (str[i] == '\r') escaped += "\\r";
+            else if (str[i] == '\t') escaped += "\\t";
+            else if (str[i] >= 32 && str[i] <= 126) escaped += str[i];
+            else {
+                std::stringstream stream;
+                stream << std::hex << std::setw(4) << std::setfill('0') << (int)str[i];
+                escaped += stream.str();
+            }
+        }
+        return escaped;
+    }
+    std::string strnum(double x) {
+        int integer = (int)x;
+        if (x == integer) return std::to_string(integer);
+        return std::to_string(x);
     }
 public:
     Value operator [](std::string key) {
-        if (type != JSONVALUE_OBJECT) throw std::runtime_error("not an object");
-        if (!isMember(key)) throw std::runtime_error("key doesn't exist");
+        if (type != JSONVALUE_OBJECT) throw std::runtime_error(pfx "not an object");
+        if (!isMember(key)) throw std::runtime_error(pfx "key doesn't exist");
         return obj[key];
     }
     Value operator [](int index) {
-        if (type != JSONVALUE_ARRAY) throw std::runtime_error("not an array");
-        if (index < 0 || index >= arr.size()) throw std::runtime_error("index " + std::to_string(index) + " out of bounds, length: " + std::to_string(arr.size()));
+        if (type != JSONVALUE_ARRAY) throw std::runtime_error(pfx "not an array");
+        if (index < 0 || index >= (int)arr.size()) throw std::runtime_error(pfx "index " + std::to_string(index) + " out of bounds, length: " + std::to_string(arr.size()));
         return arr[index];
     }
     void operator<<(std::ifstream& stream) {
         auto tokenVec = tokenize(stream);
-        int numTokens = 0;
         Token* tokens = tokenVec.data();
         Increment increment = Increment(tokenVec.size());
         *this = parseValue(tokens, &increment);
     }
     int asInt() {
-        if (type != JSONVALUE_NUMBER) throw std::runtime_error("not a number");
+        if (type != JSONVALUE_NUMBER) throw std::runtime_error(pfx "not a number");
         return (int)num;
     }
     double asDouble() {
-        if (type != JSONVALUE_NUMBER) throw std::runtime_error("not a number");
+        if (type != JSONVALUE_NUMBER) throw std::runtime_error(pfx "not a number");
         return num;
     }
     float asFloat() {
-        if (type != JSONVALUE_NUMBER) throw std::runtime_error("not a number");
+        if (type != JSONVALUE_NUMBER) throw std::runtime_error(pfx "not a number");
         return (float)num;
     }
     std::string asString() {
-        if (type != JSONVALUE_STRING) throw std::runtime_error("not a string");
+        if (type != JSONVALUE_STRING) throw std::runtime_error(pfx "not a string");
         return str;
     }
     bool asBool() {
-        if (type != JSONVALUE_BOOL) throw std::runtime_error("not a bool");
+        if (type != JSONVALUE_BOOL) throw std::runtime_error(pfx "not a bool");
         return num != 0;
     }
     bool isMember(std::string name) {
-        if (type != JSONVALUE_OBJECT) throw std::runtime_error("not an object");
+        if (type != JSONVALUE_OBJECT) throw std::runtime_error(pfx "not an object");
         return obj.find(name) != obj.end();
     }
     int size() {
         if (type == JSONVALUE_OBJECT) return obj.size();
         if (type == JSONVALUE_ARRAY) return arr.size();
-        throw std::runtime_error("not a sizeable type");
+        throw std::runtime_error(pfx "not a sizeable type");
+    }
+    void put(std::string name, Json::Value value) {
+        if (type != JSONVALUE_OBJECT) throw std::runtime_error(pfx "not an object");
+        obj.insert({ name, value });
+    }
+    void put(Json::Value value) {
+        if (type != JSONVALUE_ARRAY) throw std::runtime_error(pfx "not an array");
+        arr.push_back(value);
+    }
+    auto array() {
+        if (type != JSONVALUE_ARRAY) throw std::runtime_error(pfx "not an array");
+        return arr;
+    }
+    auto object() {
+        if (type != JSONVALUE_OBJECT) throw std::runtime_error(pfx "not an object");
+        return obj;
+    }
+    std::string stringify() {
+        if (type == JSONVALUE_NUMBER) return strnum(num);
+        if (type == JSONVALUE_STRING) return "\"" + escaped_str(str) + "\"";
+        if (type == JSONVALUE_BOOL) return num != 0 ? "true" : "false";
+        if (type == JSONVALUE_ARRAY) {
+            std::string str = "";
+            for (auto& element : array()) {
+                str += "," + element.stringify();
+            }
+            if (str.length() != 0) str = str.substr(1, str.length() - 1);
+            return "[" + str + "]";
+        }
+        if (type == JSONVALUE_OBJECT) {
+            std::string str = "";
+            for (auto& element : object()) {
+                str += ",\"" + element.first + "\":" + element.second.stringify();
+            }
+            if (str.length() != 0) str = str.substr(1, str.length() - 1);
+            return "{" + str + "}";
+        }
+        return "null";
+    }
+    Value& toNull() {
+        type = JSONVALUE_NULL;
+        return *this;
+    }
+    Value& toNumber(double x) {
+        type = JSONVALUE_NUMBER;
+        num = x;
+        return *this;
+    }
+    Value& toBool(bool x) {
+        type = JSONVALUE_BOOL;
+        num = x;
+        return *this;
+    }
+    Value& toString(std::string x) {
+        type = JSONVALUE_STRING;
+        str = x;
+        return *this;
+    }
+    Value& toObject() {
+        type = JSONVALUE_OBJECT;
+        return *this;
+    }
+    Value& toArray() {
+        type = JSONVALUE_ARRAY;
+        return *this;
+    }
+    ValueType getType() {
+        return type;
     }
 };
 
@@ -294,5 +388,7 @@ public:
 #undef is_number
 #undef is_ignore
 #undef is_symbol
+
+#undef pfx
 
 #endif

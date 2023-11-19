@@ -20,17 +20,17 @@ static const Lights1 yoshi_seg5_lights_0501C488 = gdSPDefLights1(
 
 // 0x0501C4A0
 ALIGNED8 static const u8 yoshi_seg5_texture_0501C4A0[] = {
-#include "actors/yoshi/yoshi_eye.rgba16.inc.c"
+"actors/yoshi/yoshi_eye.rgba16.png"
 };
 
 // 0x0501C6A0
 ALIGNED8 static const u8 yoshi_seg5_texture_0501C6A0[] = {
-#include "actors/yoshi/yoshi_eye_blink.rgba16.inc.c"
+"actors/yoshi/yoshi_eye_blink.rgba16.png"
 };
 
 // 0x0501C8A0
 ALIGNED8 static const u8 yoshi_seg5_texture_0501C8A0[] = {
-#include "actors/yoshi/yoshi_nostril.rgba16.inc.c"
+"actors/yoshi/yoshi_nostril.rgba16.png"
 };
 
 // 0x0501CAA0
