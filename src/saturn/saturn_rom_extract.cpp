@@ -365,7 +365,7 @@ int saturn_extract_rom() {
                 data_len = file_processor[asset.path].first;
                 is_processed = true;
             }
-            std::ofstream out = std::ofstream(dst);
+            std::ofstream out = std::ofstream(dst, std::ios::binary);
             out.write((char*)out_data, data_len);
             out.close();
             if (is_processed) free(out_data);
