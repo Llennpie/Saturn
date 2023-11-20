@@ -73,22 +73,22 @@ UNUSED static const u64 spindrift_unused_1 = 1;
 
 // 0x050006D0
 ALIGNED8 static const u8 spindrift_seg5_texture_050006D0[] = {
-#include "actors/spindrift/spindrift_face.rgba16.inc.c"
+"actors/spindrift/spindrift_face.rgba16.png"
 };
 
 // 0x05000ED0
 ALIGNED8 static const u8 spindrift_seg5_texture_05000ED0[] = {
-#include "actors/spindrift/spindrift_petal.rgba16.inc.c"
+"actors/spindrift/spindrift_petal.rgba16.png"
 };
 
 // 0x050016D0
 ALIGNED8 static const u8 spindrift_seg5_texture_050016D0[] = {
-#include "actors/spindrift/spindrift_leaf.rgba16.inc.c"
+"actors/spindrift/spindrift_leaf.rgba16.png"
 };
 
 // 0x05001ED0
 ALIGNED8 static const u8 spindrift_seg5_texture_05001ED0[] = {
-#include "actors/spindrift/spindrift_head.rgba16.inc.c"
+"actors/spindrift/spindrift_head.rgba16.png"
 };
 
 // 0x050026D0

@@ -23,22 +23,22 @@ UNUSED static const u64 ukiki_unused_1 = 1;
 
 // 0x05007BC0
 ALIGNED8 static const u8 ukiki_seg5_texture_05007BC0[] = {
-#include "actors/ukiki/ukiki_face.rgba16.inc.c"
+"actors/ukiki/ukiki_face.rgba16.png"
 };
 
 // 0x05008BC0
 ALIGNED8 static const u8 ukiki_seg5_texture_05008BC0[] = {
-#include "actors/ukiki/ukiki_face_blink.rgba16.inc.c"
+"actors/ukiki/ukiki_face_blink.rgba16.png"
 };
 
 // 0x05009BC0
 ALIGNED8 static const u8 ukiki_seg5_texture_05009BC0[] = {
-#include "actors/ukiki/ukiki_butt.rgba16.inc.c"
+"actors/ukiki/ukiki_butt.rgba16.png"
 };
 
 // 0x0500A3C0
 ALIGNED8 static const u8 ukiki_seg5_texture_0500A3C0[] = {
-#include "actors/ukiki/ukiki_fur.rgba16.inc.c"
+"actors/ukiki/ukiki_fur.rgba16.png"
 };
 
 // 0x0500ABC0

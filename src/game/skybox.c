@@ -64,16 +64,98 @@ struct Skybox sSkyBoxInfo[2];
 
 typedef const u8 *const SkyboxTexture[80];
 
-extern SkyboxTexture bbh_skybox_ptrlist;
-extern SkyboxTexture bidw_skybox_ptrlist;
-extern SkyboxTexture bitfs_skybox_ptrlist;
-extern SkyboxTexture bits_skybox_ptrlist;
-extern SkyboxTexture ccm_skybox_ptrlist;
-extern SkyboxTexture cloud_floor_skybox_ptrlist;
-extern SkyboxTexture clouds_skybox_ptrlist;
-extern SkyboxTexture ssl_skybox_ptrlist;
-extern SkyboxTexture water_skybox_ptrlist;
-extern SkyboxTexture wdw_skybox_ptrlist;
+#define SKYTEX(id) \
+    "textures/skyboxes/" id ".0.rgba16.png", \
+    "textures/skyboxes/" id ".1.rgba16.png", \
+    "textures/skyboxes/" id ".2.rgba16.png", \
+    "textures/skyboxes/" id ".3.rgba16.png", \
+    "textures/skyboxes/" id ".4.rgba16.png", \
+    "textures/skyboxes/" id ".5.rgba16.png", \
+    "textures/skyboxes/" id ".6.rgba16.png", \
+    "textures/skyboxes/" id ".7.rgba16.png", \
+    "textures/skyboxes/" id ".8.rgba16.png", \
+    "textures/skyboxes/" id ".9.rgba16.png", \
+    "textures/skyboxes/" id ".10.rgba16.png", \
+    "textures/skyboxes/" id ".11.rgba16.png", \
+    "textures/skyboxes/" id ".12.rgba16.png", \
+    "textures/skyboxes/" id ".13.rgba16.png", \
+    "textures/skyboxes/" id ".14.rgba16.png", \
+    "textures/skyboxes/" id ".15.rgba16.png", \
+    "textures/skyboxes/" id ".16.rgba16.png", \
+    "textures/skyboxes/" id ".17.rgba16.png", \
+    "textures/skyboxes/" id ".18.rgba16.png", \
+    "textures/skyboxes/" id ".19.rgba16.png", \
+    "textures/skyboxes/" id ".20.rgba16.png", \
+    "textures/skyboxes/" id ".21.rgba16.png", \
+    "textures/skyboxes/" id ".22.rgba16.png", \
+    "textures/skyboxes/" id ".23.rgba16.png", \
+    "textures/skyboxes/" id ".24.rgba16.png", \
+    "textures/skyboxes/" id ".25.rgba16.png", \
+    "textures/skyboxes/" id ".26.rgba16.png", \
+    "textures/skyboxes/" id ".27.rgba16.png", \
+    "textures/skyboxes/" id ".28.rgba16.png", \
+    "textures/skyboxes/" id ".29.rgba16.png", \
+    "textures/skyboxes/" id ".30.rgba16.png", \
+    "textures/skyboxes/" id ".31.rgba16.png", \
+    "textures/skyboxes/" id ".32.rgba16.png", \
+    "textures/skyboxes/" id ".33.rgba16.png", \
+    "textures/skyboxes/" id ".34.rgba16.png", \
+    "textures/skyboxes/" id ".35.rgba16.png", \
+    "textures/skyboxes/" id ".36.rgba16.png", \
+    "textures/skyboxes/" id ".37.rgba16.png", \
+    "textures/skyboxes/" id ".38.rgba16.png", \
+    "textures/skyboxes/" id ".39.rgba16.png", \
+    "textures/skyboxes/" id ".40.rgba16.png", \
+    "textures/skyboxes/" id ".41.rgba16.png", \
+    "textures/skyboxes/" id ".42.rgba16.png", \
+    "textures/skyboxes/" id ".43.rgba16.png", \
+    "textures/skyboxes/" id ".44.rgba16.png", \
+    "textures/skyboxes/" id ".45.rgba16.png", \
+    "textures/skyboxes/" id ".46.rgba16.png", \
+    "textures/skyboxes/" id ".47.rgba16.png", \
+    "textures/skyboxes/" id ".48.rgba16.png", \
+    "textures/skyboxes/" id ".49.rgba16.png", \
+    "textures/skyboxes/" id ".50.rgba16.png", \
+    "textures/skyboxes/" id ".51.rgba16.png", \
+    "textures/skyboxes/" id ".52.rgba16.png", \
+    "textures/skyboxes/" id ".53.rgba16.png", \
+    "textures/skyboxes/" id ".54.rgba16.png", \
+    "textures/skyboxes/" id ".55.rgba16.png", \
+    "textures/skyboxes/" id ".56.rgba16.png", \
+    "textures/skyboxes/" id ".57.rgba16.png", \
+    "textures/skyboxes/" id ".58.rgba16.png", \
+    "textures/skyboxes/" id ".59.rgba16.png", \
+    "textures/skyboxes/" id ".60.rgba16.png", \
+    "textures/skyboxes/" id ".61.rgba16.png", \
+    "textures/skyboxes/" id ".62.rgba16.png", \
+    "textures/skyboxes/" id ".63.rgba16.png", \
+    "textures/skyboxes/" id ".64.rgba16.png", \
+    "textures/skyboxes/" id ".65.rgba16.png", \
+    "textures/skyboxes/" id ".66.rgba16.png", \
+    "textures/skyboxes/" id ".67.rgba16.png", \
+    "textures/skyboxes/" id ".68.rgba16.png", \
+    "textures/skyboxes/" id ".69.rgba16.png", \
+    "textures/skyboxes/" id ".70.rgba16.png", \
+    "textures/skyboxes/" id ".71.rgba16.png", \
+    "textures/skyboxes/" id ".72.rgba16.png", \
+    "textures/skyboxes/" id ".73.rgba16.png", \
+    "textures/skyboxes/" id ".74.rgba16.png", \
+    "textures/skyboxes/" id ".75.rgba16.png", \
+    "textures/skyboxes/" id ".76.rgba16.png", \
+    "textures/skyboxes/" id ".77.rgba16.png", \
+    "textures/skyboxes/" id ".78.rgba16.png", \
+    "textures/skyboxes/" id ".79.rgba16.png", \
+
+SkyboxTexture bbh_skybox_ptrlist = { SKYTEX("bbh") };
+SkyboxTexture bidw_skybox_ptrlist = { SKYTEX("bitdw") };
+SkyboxTexture bitfs_skybox_ptrlist = { SKYTEX("bitfs") };
+SkyboxTexture bits_skybox_ptrlist = { SKYTEX("bits") };
+SkyboxTexture ccm_skybox_ptrlist = { SKYTEX("ccm") };
+SkyboxTexture cloud_floor_skybox_ptrlist = { SKYTEX("cloud") };
+SkyboxTexture clouds_skybox_ptrlist = { SKYTEX("clouds") };
+SkyboxTexture ssl_skybox_ptrlist = { SKYTEX("ssl") };
+SkyboxTexture water_skybox_ptrlist = { SKYTEX("water") };
+SkyboxTexture wdw_skybox_ptrlist = { SKYTEX("wdw") };
 
 SkyboxTexture *sSkyboxTextures[10] = {
     &water_skybox_ptrlist,

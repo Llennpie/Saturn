@@ -28,11 +28,14 @@ extern void saturn_keyframe_bool_popout(bool* edit_value, std::string value_name
 extern void saturn_keyframe_camera_popout(std::string value_name, std::string id);
 extern void saturn_keyframe_color_popout(std::string value_name, std::string id, float* r, float* g, float* b);
 extern void saturn_keyframe_anim_popout(std::string value_name, std::string id);
+extern void saturn_keyframe_rotation_popout(std::string value_name, std::string id, float* yaw, float* pitch);
 
 template <typename T>
 extern void saturn_keyframe_popout(const T &edit_value, s32 data_type, std::string, std::string);
 
 extern void saturn_keyframe_context_popout(Keyframe keyframe);
+
+extern void saturn_keyframe_sort(std::vector<Keyframe>* keyframes);
 
 extern bool showMenu;
 extern int currentMenu;
@@ -49,6 +52,9 @@ extern uint32_t endFrame;
 extern int endFrameText;
 
 extern bool splash_finished;
+
+extern std::string editor_theme;
+extern std::vector<std::pair<std::string, std::string>> theme_list;
 
 extern "C" {
 #endif

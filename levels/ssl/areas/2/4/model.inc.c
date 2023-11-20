@@ -8,7 +8,7 @@ static const Lights1 ssl_lights_quicksand_pit = gdSPDefLights1(
 
 // 0x07004018 - 0x07004818
 ALIGNED8 const u8 ssl_quicksand[] = {
-#include "levels/ssl/7.rgba16.inc.c"
+"levels/ssl/7.rgba16.png"
 };
 
 // 0x07004818 - 0x07004860

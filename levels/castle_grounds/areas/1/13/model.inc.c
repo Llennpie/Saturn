@@ -1,5 +1,5 @@
 ALIGNED8 static const u8 castle_grounds_seg7_us_texture_0700EAE8[] = {
-#include "levels/castle_grounds/5.ia8.inc.c"
+"levels/castle_grounds/5.ia8.png"
 };
 
 // 0x0700F2E8

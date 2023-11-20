@@ -2707,29 +2707,38 @@ void move_mario_head_c_up(UNUSED struct Camera *c) {
     UNUSED s16 pitch = sCUpCameraPitch;
     UNUSED s16 yaw = sModeOffsetYaw;
 
-    sCUpCameraPitch += (s16)(gPlayer1Controller->stickY * 10.f);
-    sModeOffsetYaw -= (s16)(gPlayer1Controller->stickX * 10.f);
+    mario_headrot_pitch += (s16)(gPlayer1Controller->stickY * mario_headrot_speed);
+    mario_headrot_yaw -= (s16)(gPlayer1Controller->stickX * mario_headrot_speed);
 
-    // Bound looking up to nearly 80 degrees.
-    if (sCUpCameraPitch > 0x38E3) {
-        sCUpCameraPitch = 0x38E3;
-    }
-    // Bound looking down to -45 degrees
-    if (sCUpCameraPitch < -0x2000) {
-        sCUpCameraPitch = -0x2000;
+    if (configCUpLimit) {
+        // Bound looking up to nearly 80 degrees.
+        if (mario_headrot_pitch > 0x38E3) {
+            mario_headrot_pitch = 0x38E3;
+        }
+        // Bound looking down to -45 degrees
+        if (mario_headrot_pitch < -0x2000) {
+            mario_headrot_pitch = -0x2000;
+        }
+
+        // Bound the camera yaw to +-120 degrees
+        if (mario_headrot_yaw > 0x5555) {
+            mario_headrot_yaw = 0x5555;
+        }
+        if (mario_headrot_yaw < -0x5555) {
+            mario_headrot_yaw = -0x5555;
+        }
     }
 
-    // Bound the camera yaw to +-120 degrees
-    if (sModeOffsetYaw > 0x5555) {
-        sModeOffsetYaw = 0x5555;
-    }
-    if (sModeOffsetYaw < -0x5555) {
-        sModeOffsetYaw = -0x5555;
-    }
+    if (mario_headrot_yaw < -0x7FFF) mario_headrot_yaw += 65536;
+    if (mario_headrot_yaw > 0x7FFF) mario_headrot_yaw -= 65536;
+    if (mario_headrot_pitch < -0x7FFF) mario_headrot_pitch += 65536;
+    if (mario_headrot_pitch > 0x7FFF) mario_headrot_pitch -= 65536;
 
-    // Give Mario's neck natural-looking constraints
-    sMarioCamState->headRotation[0] = sCUpCameraPitch * 3 / 4;
-    sMarioCamState->headRotation[1] = sModeOffsetYaw * 3 / 4;
+    sMarioCamState->headRotation[0] = mario_headrot_pitch;
+    sMarioCamState->headRotation[1] = mario_headrot_yaw;
+
+    sModeOffsetYaw = mario_headrot_yaw;
+    sCUpCameraPitch = mario_headrot_pitch;
 }
 
 /**
@@ -2917,6 +2926,11 @@ void set_camera_mode(struct Camera *c, s16 mode, s16 frames) {
         sLakituDist = 0;
         sLakituPitch = 0;
         sAreaYawChange = 0;
+        if (!saturn_timeline_exists("k_mario_headrot_yaw")) {
+            mario_headrot_yaw = 0;
+            mario_headrot_pitch = 0;
+        }
+        else k_previous_frame = -1;
 
         sModeInfo.newMode = (mode != -1) ? mode : sModeInfo.lastMode;
         sModeInfo.lastMode = c->mode;

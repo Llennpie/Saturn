@@ -10,7 +10,7 @@ static const Vtx mushroom_1up_seg3_vertex_030295E8[] = {
 
 // 0x03029628
 ALIGNED8 static const u8 mushroom_1up_seg3_texture_03029628[] = {
-#include "actors/mushroom_1up/1-up_mushroom.rgba16.inc.c"
+"actors/mushroom_1up/1-up_mushroom.rgba16.png"
 };
 
 // 0x0302A628 - 0x0302A660

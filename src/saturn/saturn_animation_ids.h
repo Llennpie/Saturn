@@ -11,7 +11,7 @@
 
 #include <mario_animation_ids.h>
 
-extern std::map<std::pair<int, std::string>, int> sanim_movement = {
+inline std::map<std::pair<int, std::string>, int> sanim_movement = {
     // 0: Movement (50)
     { std::make_pair(0, "RUNNING"), MARIO_ANIM_RUNNING},
     { std::make_pair(1, "RUNNING_UNUSED"), MARIO_ANIM_RUNNING_UNUSED}, // unused duplicate, originally part 2?
@@ -65,7 +65,7 @@ extern std::map<std::pair<int, std::string>, int> sanim_movement = {
     { std::make_pair(49, "TWIRL_LAND"), MARIO_ANIM_TWIRL_LAND},
 };
 
-extern std::map<std::pair<int, std::string>, int> sanim_actions = {
+inline std::map<std::pair<int, std::string>, int> sanim_actions = {
     // 1: Actions (25)
     { std::make_pair(0, "FIRST_PUNCH"), MARIO_ANIM_FIRST_PUNCH},
     { std::make_pair(1, "SECOND_PUNCH"), MARIO_ANIM_SECOND_PUNCH},
@@ -94,7 +94,7 @@ extern std::map<std::pair<int, std::string>, int> sanim_actions = {
     { std::make_pair(24, "A_POSE"), MARIO_ANIM_A_POSE},
 };
 
-extern std::map<std::pair<int, std::string>, int> sanim_automatic = {
+inline std::map<std::pair<int, std::string>, int> sanim_automatic = {
     // 2 : Automatic (27)
     { std::make_pair(0, "IDLE_HEAD_LEFT"), MARIO_ANIM_IDLE_HEAD_LEFT},
     { std::make_pair(1, "IDLE_HEAD_RIGHT"), MARIO_ANIM_IDLE_HEAD_CENTER},
@@ -125,7 +125,7 @@ extern std::map<std::pair<int, std::string>, int> sanim_automatic = {
     { std::make_pair(26, "BEING_GRABBED"), MARIO_ANIM_BEING_GRABBED},
 };
 
-extern std::map<std::pair<int, std::string>, int> sanim_damagedeaths = {
+inline std::map<std::pair<int, std::string>, int> sanim_damagedeaths = {
     // 3 : Damage/Deaths (22)
     { std::make_pair(0, "SOFT_BACK_KB"), MARIO_ANIM_SOFT_BACK_KB},
     { std::make_pair(1, "SOFT_FRONT_KB"), MARIO_ANIM_SOFT_FRONT_KB},
@@ -151,7 +151,7 @@ extern std::map<std::pair<int, std::string>, int> sanim_damagedeaths = {
     { std::make_pair(21, "WATER_DYING"), MARIO_ANIM_WATER_DYING},
 };
 
-extern std::map<std::pair<int, std::string>, int> sanim_cutscenes = {
+inline std::map<std::pair<int, std::string>, int> sanim_cutscenes = {
     // 4 : Cutscenes (23)
     { std::make_pair(0, "STAR_DANCE"), MARIO_ANIM_STAR_DANCE},
     { std::make_pair(1, "RETURN_FROM_STAR_DANCE"), MARIO_ANIM_RETURN_FROM_STAR_DANCE},
@@ -178,7 +178,7 @@ extern std::map<std::pair<int, std::string>, int> sanim_cutscenes = {
     { std::make_pair(22, "QUICKLY_PUT_CAP_ON"), MARIO_ANIM_PUT_CAP_ON}, // unused
 };
 
-extern std::map<std::pair<int, std::string>, int> sanim_water = {
+inline std::map<std::pair<int, std::string>, int> sanim_water = {
     // 5 : Water (16)
     { std::make_pair(0, "WATER_IDLE"), MARIO_ANIM_WATER_IDLE},
     { std::make_pair(1, "SWIM_PART1"), MARIO_ANIM_SWIM_PART1},
@@ -198,7 +198,7 @@ extern std::map<std::pair<int, std::string>, int> sanim_water = {
     { std::make_pair(15, "WATER_ACTION_END_WITH_OBJ"), MARIO_ANIM_WATER_ACTION_END_WITH_OBJ}, // either swimming or flutterkicking
 };
 
-extern std::map<std::pair<int, std::string>, int> sanim_climbing = {
+inline std::map<std::pair<int, std::string>, int> sanim_climbing = {
     // 6 : Climbing (20)
     { std::make_pair(0, "IDLE_ON_POLE"), MARIO_ANIM_IDLE_ON_POLE},
     { std::make_pair(1, "GRAB_POLE_SHORT"), MARIO_ANIM_GRAB_POLE_SHORT},
@@ -222,7 +222,7 @@ extern std::map<std::pair<int, std::string>, int> sanim_climbing = {
     { std::make_pair(19, "MOVE_ON_WIRE_NET_LEFT"), MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT},
 };
 
-extern std::map<std::pair<int, std::string>, int> sanim_object = {
+inline std::map<std::pair<int, std::string>, int> sanim_object = {
     // 7 : Object (24)
     { std::make_pair(0, "IDLE_WITH_LIGHT_OBJ"), MARIO_ANIM_IDLE_WITH_LIGHT_OBJ},
     { std::make_pair(1, "PICK_UP_LIGHT_OBJ"), MARIO_ANIM_PICK_UP_LIGHT_OBJ},
@@ -251,16 +251,16 @@ extern std::map<std::pair<int, std::string>, int> sanim_object = {
 };
 
 // unused
-extern std::map<std::pair<int, std::string>, int> sanim_custom = {
+inline std::map<std::pair<int, std::string>, int> sanim_custom = {
     { std::make_pair(1, "A_POSE"), MARIO_ANIM_A_POSE},
 };
 
 // unused
-extern std::map<std::pair<int, std::string>, int> sanim_misc = {
+inline std::map<std::pair<int, std::string>, int> sanim_misc = {
     { std::make_pair(1, "A_POSE"), MARIO_ANIM_A_POSE},
 };
 
-extern std::vector<std::map<std::pair<int, std::string>, int>> sanim_maps = {
+inline std::vector<std::map<std::pair<int, std::string>, int>> sanim_maps = {
     sanim_movement,
     sanim_actions,
     sanim_automatic,
@@ -273,7 +273,7 @@ extern std::vector<std::map<std::pair<int, std::string>, int>> sanim_maps = {
     sanim_misc
 };
 
-extern std::map<int, int> saturn_anims_size = {
+inline std::map<int, int> saturn_anims_size = {
     { 0, 49 },
     { 1, 23 },
     { 2, 26 },

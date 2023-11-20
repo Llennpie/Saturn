@@ -32,6 +32,7 @@ extern "C" {
 #include "game/level_update.h"
 #include <mario_animation_ids.h>
 #include "pc/cheats.h"
+#include "include/sm64.h"
 }
 
 Array<PackData *> &sDynosPacks = DynOS_Gfx_GetPacks();
@@ -452,9 +453,6 @@ void sdynos_imgui_menu() {
         if (ImGui::BeginTable("misc_table", 2)) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Checkbox("Head Rotations", &enable_head_rotations);
-            imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
-            saturn_keyframe_bool_popout(&enable_head_rotations, "Head Rotations", "k_head_rot");
             ImGui::Checkbox("Dust Particles", &enable_dust_particles);
             imgui_bundled_tooltip("Displays dust particles when Mario moves.");
             ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
@@ -482,6 +480,34 @@ void sdynos_imgui_menu() {
             if (this_face_angle < -180) this_face_angle = 180;
 
             ImGui::EndTable();
+        }
+        if (mario_exists) if (ImGui::BeginMenu("Head Rotations")) {
+            ImGui::Checkbox("Enable", &enable_head_rotations);
+            imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
+            saturn_keyframe_bool_popout(&enable_head_rotations, "Head Rotations", "k_head_rot");
+            ImGui::Separator();
+            ImGui::Text("C-Up Settings");
+            if (gMarioState->action != ACT_FIRST_PERSON) ImGui::BeginDisabled();
+            ImGui::PushItemWidth(75);
+            ImGui::SliderFloat("Speed", &mario_headrot_speed, 0, 50, "%.1f");
+            ImGui::PopItemWidth();
+            if (ImGui::BeginTable("headrot_table", 2)) {
+                float fake_yaw = mario_headrot_yaw * 360 / 65536;
+                float fake_pitch = mario_headrot_pitch * 360 / 65536;
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+                if (ImGuiKnobs::Knob("Yaw", &fake_yaw, configCUpLimit ? -120.0f : -180.0f, configCUpLimit ? 120.0f : 180.0f, 0.0f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
+                    mario_headrot_yaw = fake_yaw * 65536 / 360;
+                }
+                ImGui::TableSetColumnIndex(1);
+                if (ImGuiKnobs::Knob("Pitch", &fake_pitch, configCUpLimit ? -45.0f : -180.0f, configCUpLimit ? 80.0f : 180.0f, 0.0f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
+                    mario_headrot_pitch = fake_pitch * 65536 / 360;
+                }
+                ImGui::EndTable();
+            }
+            saturn_keyframe_rotation_popout("Mario Head", "k_mario_headrot", &mario_headrot_yaw, &mario_headrot_pitch);
+            if (gMarioState->action != ACT_FIRST_PERSON) ImGui::EndDisabled();
+            ImGui::EndMenu();
         }
 
         ImGui::PopStyleVar();

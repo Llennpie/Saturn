@@ -35,6 +35,7 @@
 #include "thread6.h"
 #include "pc/configfile.h"
 #include "pc/cheats.h"
+#include "saturn/saturn.h"
 #ifdef BETTERCAMERA
 #include "bettercamera.h"
 #endif
@@ -1792,7 +1793,7 @@ s32 execute_mario_action(UNUSED struct Object *o) {
 
     if (Cheats.EnableCheats)
     {
-        if (Cheats.GodMode)
+        if (Cheats.GodMode && !godmode_temp_off)
             gMarioState->health = 0x880;
 
         if (Cheats.InfiniteLives && gMarioState->numLives < 99)

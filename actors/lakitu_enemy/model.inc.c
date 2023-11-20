@@ -21,27 +21,27 @@ UNUSED static const Lights1 lakitu_enemy_lights_unused2 = gdSPDefLights1(
 // Unreferenced texture
 // 0x0500ECE0
 ALIGNED8 static const u8 lakitu_enemy_seg5_texture_0500ECE0[] = {
-#include "actors/lakitu_enemy/lakitu_enemy_cloud_face_unused.rgba16.inc.c"
+"actors/lakitu_enemy/lakitu_enemy_cloud_face_unused.rgba16.png"
 };
 
 // 0x0500F4E0
 ALIGNED8 static const u8 lakitu_enemy_seg5_texture_0500F4E0[] = {
-#include "actors/lakitu_enemy/lakitu_enemy_eyes_open.rgba16.inc.c"
+"actors/lakitu_enemy/lakitu_enemy_eyes_open.rgba16.png"
 };
 
 // 0x050104E0
 ALIGNED8 static const u8 lakitu_enemy_seg5_texture_050104E0[] = {
-#include "actors/lakitu_enemy/lakitu_enemy_eyes_closed.rgba16.inc.c"
+"actors/lakitu_enemy/lakitu_enemy_eyes_closed.rgba16.png"
 };
 
 // 0x050114E0
 ALIGNED8 static const u8 lakitu_enemy_seg5_texture_050114E0[] = {
-#include "actors/lakitu_enemy/lakitu_enemy_shell.rgba16.inc.c"
+"actors/lakitu_enemy/lakitu_enemy_shell.rgba16.png"
 };
 
 // 0x05011CE0
 ALIGNED8 static const u8 lakitu_enemy_seg5_texture_05011CE0[] = {
-#include "actors/lakitu_enemy/lakitu_enemy_frown.rgba16.inc.c"
+"actors/lakitu_enemy/lakitu_enemy_frown.rgba16.png"
 };
 
 // 0x050124E0

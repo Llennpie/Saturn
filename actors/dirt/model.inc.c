@@ -33,7 +33,7 @@ static const Vtx dirt_seg3_vertex_0302BDC8[] = {
 
 // 0x0302BDF8
 ALIGNED8 static const u8 dirt_seg3_texture_0302BDF8[] = {
-#include "actors/dirt/dirt_particle.rgba16.inc.c"
+"actors/dirt/dirt_particle.rgba16.png"
 };
 
 // 0x0302BFF8 - 0x0302C028

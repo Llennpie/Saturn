@@ -14,12 +14,12 @@ UNUSED static const Lights1 clam_shell_lights_unused2 = gdSPDefLights1(
 
 // 0x05000030
 ALIGNED8 static const u8 clam_shell_seg5_texture_05000030[] = {
-#include "actors/clam_shell/clam_shell.rgba16.inc.c"
+"actors/clam_shell/clam_shell.rgba16.png"
 };
 
 // 0x05000830
 ALIGNED8 static const u8 clam_shell_seg5_texture_05000830[] = {
-#include "actors/clam_shell/clam_shell_mouth.rgba16.inc.c"
+"actors/clam_shell/clam_shell_mouth.rgba16.png"
 };
 
 // 0x05001030

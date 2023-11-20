@@ -35,7 +35,7 @@ using namespace std;
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-#include <json/json.h>
+#include "saturn/saturn_json.h"
 
 bool is_replacing_exp;
 bool is_replacing_eyes;
@@ -232,10 +232,10 @@ const void* saturn_bind_texture(const void* input) {
     // Overwrite the unused textures shown in eye switch options 3, 4, 5 and 6 with our custom ones
     if (eye_array.size() > 0 && is_replacing_eyes) {
         if (texName.find("saturn_eye") != string::npos ||
-            texName == "actors/mario/mario_eyes_left_unused.rgba16" ||
-            texName == "actors/mario/mario_eyes_right_unused.rgba16" ||
-            texName == "actors/mario/mario_eyes_up_unused.rgba16" ||
-            texName == "actors/mario/mario_eyes_down_unused.rgba16") {
+            texName == "actors/mario/mario_eyes_left_unused.rgba16.png" ||
+            texName == "actors/mario/mario_eyes_right_unused.rgba16.png" ||
+            texName == "actors/mario/mario_eyes_up_unused.rgba16.png" ||
+            texName == "actors/mario/mario_eyes_down_unused.rgba16.png") {
                 outputTexture = current_eye.c_str();
                 const void* output = static_cast<const void*>(outputTexture);
                 return output;
@@ -244,15 +244,15 @@ const void* saturn_bind_texture(const void* input) {
 
     // Non-model custom blink cycle
     if (force_blink && eye_array.size() > 0 && is_replacing_eyes) {
-        if (texName == "actors/mario/mario_eyes_center.rgba16" && blink_eye_1 != "") {
+        if (texName == "actors/mario/mario_eyes_center.rgba16.png" && blink_eye_1 != "") {
             outputTexture = blink_eye_1.c_str();
             const void* output = static_cast<const void*>(outputTexture);
             return output;
-        } else if (texName == "actors/mario/mario_eyes_half_closed.rgba16" && blink_eye_2 != "") {
+        } else if (texName == "actors/mario/mario_eyes_half_closed.rgba16.png" && blink_eye_2 != "") {
             outputTexture = blink_eye_2.c_str();
             const void* output = static_cast<const void*>(outputTexture);
             return output;
-        } else if (texName == "actors/mario/mario_eyes_closed.rgba16" && blink_eye_3 != "") {
+        } else if (texName == "actors/mario/mario_eyes_closed.rgba16.png" && blink_eye_3 != "") {
             outputTexture = blink_eye_3.c_str();
             const void* output = static_cast<const void*>(outputTexture);
             return output;
@@ -262,8 +262,8 @@ const void* saturn_bind_texture(const void* input) {
     // Non-model cap logo/emblem
 
     if (show_vmario_emblem) {
-        if (texName == "actors/mario/no_m.rgba16")
-            return "actors/mario/mario_logo.rgba16";
+        if (texName == "actors/mario/no_m.rgba16.png")
+            return "actors/mario/mario_logo.rgba16.png";
     }
 
     // AUTO-CHROMA
@@ -273,11 +273,11 @@ const void* saturn_bind_texture(const void* input) {
     if (autoChroma || gCurrLevelNum == LEVEL_SA) {
         if (use_color_background) {
             // Use white, recolorable textures for our color background
-            if (texName.find("textures/skybox_tiles/") != string::npos)
-                return "textures/saturn/white.rgba16";
+            if (texName.find("textures/skyboxes/") != string::npos)
+                return "textures/saturn/white.rgba16.png";
         } else {
             // Swapping skyboxes IDs
-            if (texName.find("textures/skybox_tiles/water") != string::npos) {
+            if (texName.find("textures/skyboxes/water") != string::npos) {
                 switch(gChromaKeyBackground) {
                     case 0: return static_cast<const void*>(texName.replace(22, 5, "water").c_str());
                     case 1: return static_cast<const void*>(texName.replace(22, 5, "bitfs").c_str());
@@ -290,9 +290,9 @@ const void* saturn_bind_texture(const void* input) {
                     case 8:
                         // "Above Clouds" recycles textures for its bottom layer
                         // See /us_pc/bin/clouds_skybox.c @ line 138
-                        if (texName == "textures/skybox_tiles/water.44.rgba16" ||
-                            texName == "textures/skybox_tiles/water.45.rgba16") {
-                                return "textures/skybox_tiles/clouds.40.rgba16";
+                        if (texName == "textures/skyboxes/water.44.rgba16.png" ||
+                            texName == "textures/skyboxes/water.45.rgba16.png") {
+                                return "textures/skyboxes/clouds.40.rgba16.png";
                             }
                         else {
                             return static_cast<const void*>(texName.replace(22, 5, "clouds").c_str());
@@ -307,7 +307,7 @@ const void* saturn_bind_texture(const void* input) {
             if (!autoChromaObjects) {
                 if (texName.find("castle_grounds_textures.0BC00.ia16") != string::npos ||
                     texName.find("butterfly_wing.rgba16") != string::npos) {
-                        return "textures/saturn/mario_logo.rgba16";
+                        return "textures/saturn/mario_logo.rgba16.png";
                 }
             }
             // Toggle level visibility
@@ -323,7 +323,7 @@ const void* saturn_bind_texture(const void* input) {
                         if (texName.find("segment2.11C58.rgba16") != string::npos ||
                             texName.find("segment2.12C58.rgba16") != string::npos ||
                             texName.find("segment2.13C58.rgba16") != string::npos) {
-                                return "textures/saturn/mario_logo.rgba16";
+                                return "textures/saturn/mario_logo.rgba16.png";
                         }
 
                 }
@@ -427,7 +427,7 @@ string saturn_load_search(std::string folder_name) {
     if (file.good()) {
         // Begin reading
         Json::Value root;
-        file >> root;
+        root << file;
 
         return folder_name + " " + root["name"].asString() + " " + root["author"].asString();
     }
@@ -447,7 +447,7 @@ void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
     if (file.good()) {
         // Begin reading
         Json::Value root;
-        file >> root;
+        root << file;
 
         current_model_data.name = root["name"].asString();
         current_model_data.author = root["author"].asString();
@@ -525,6 +525,29 @@ void saturn_load_model_data(std::string folder_name, bool refresh_textures) {
         enable_blink_cycle = false;
         if (root.isMember("custom_blink_cycle")) {
             enable_blink_cycle = root["custom_blink_cycle"].asBool();
+        }
+
+        // Default hand state for the model (optional)
+        if (root.isMember("default_hand_state")) {
+            std::string data = root["default_hand_state"].asString();
+            std::cout << "default_hand_state : " << data << std::endl;
+            if (data == "fists") scrollHandState = 0;
+            if (data == "open") scrollHandState = 1;
+            if (data == "peace") scrollHandState = 2;
+            if (data == "cap") scrollHandState = 3;
+            if (data == "wing") scrollHandState = 4;
+            if (data == "right_open") scrollHandState = 5;
+            gMarioState->marioBodyState->handState = scrollHandState;
+        }
+
+        // Default cap state for the model (optional)
+        if (root.isMember("default_cap_state")) {
+            std::string data = root["default_cap_state"].asString();
+            std::cout << "default_cap_state : " << data << std::endl;
+            if (data == "on") scrollCapState = 0;
+            if (data == "off") scrollCapState = 1;
+            if (data == "wing") scrollCapState = 2;
+            gMarioState->marioBodyState->capState = scrollCapState;
         }
     }
 

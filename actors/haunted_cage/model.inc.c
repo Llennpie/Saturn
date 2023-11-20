@@ -14,27 +14,27 @@ static const Lights1 haunted_cage_seg5_lights_0500C270 = gdSPDefLights1(
 
 // 0x0500C288
 ALIGNED8 static const u8 haunted_cage_seg5_texture_0500C288[] = {
-#include "actors/haunted_cage/bbh_cage_floor.rgba16.inc.c"
+"actors/haunted_cage/bbh_cage_floor.rgba16.png"
 };
 
 // 0x0500CA88
 ALIGNED8 static const u8 haunted_cage_seg5_texture_0500CA88[] = {
-#include "actors/haunted_cage/bbh_cage_double_ornament.rgba16.inc.c"
+"actors/haunted_cage/bbh_cage_double_ornament.rgba16.png"
 };
 
 // 0x0500D288
 ALIGNED8 static const u8 haunted_cage_seg5_texture_0500D288[] = {
-#include "actors/haunted_cage/bbh_cage_ornament.rgba16.inc.c"
+"actors/haunted_cage/bbh_cage_ornament.rgba16.png"
 };
 
 // 0x0500D688
 ALIGNED8 static const u8 haunted_cage_seg5_texture_0500D688[] = {
-#include "actors/haunted_cage/bbh_cage_wooden_base.rgba16.inc.c"
+"actors/haunted_cage/bbh_cage_wooden_base.rgba16.png"
 };
 
 // 0x0500DA88
 ALIGNED8 static const u8 haunted_cage_seg5_texture_0500DA88[] = {
-#include "actors/haunted_cage/bbh_cage_bars.rgba16.inc.c"
+"actors/haunted_cage/bbh_cage_bars.rgba16.png"
 };
 
 // possibly garbage. does not at all appear to be a texture and is unreferenced
@@ -42,7 +42,7 @@ ALIGNED8 static const u8 haunted_cage_seg5_texture_0500DA88[] = {
 // Big Boo's Haunt was a very very early level.
 // 0x0500E288
 ALIGNED8 static const u8 haunted_cage_seg5_texture_0500E288[] = {
-#include "actors/haunted_cage/bbh_cage_garbage.rgba16.inc.c"
+"actors/haunted_cage/bbh_cage_garbage.rgba16.png"
 };
 
 // 0x0500EA88
