@@ -164,13 +164,13 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 if (camera_fov >= 2.0f) camera_fov -= 2.f;
             }
 
-            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]) {
+            /*if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]) {
                 if (!saturn_disable_sm64_input()) {
                     if (event->key.keysym.sym >= SDLK_0 && event->key.keysym.sym <= SDLK_9) {
                         saturn_load_expression_number(event->key.keysym.sym);
                     }
                 };
-            }
+            }*/
 
         case SDL_MOUSEMOTION:
             SDL_Delay(2);

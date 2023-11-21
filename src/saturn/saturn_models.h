@@ -8,21 +8,38 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include "saturn/saturn_textures.h"
 
 class Model {
     public:
         /* Returns true if the model.json was successfully loaded */
         bool Active;
-        int DynOSId;
+        int DynOSId = -1;
 
+        std::string FolderName;
+        std::string FolderPath;
+
+        // Metadata
         std::string Name;
         std::string Author;
         std::string Version = "1.0.0"; // String, so version format can be anything
         std::string Description;
 
-        std::string FolderName;
-        std::string FolderPath;
+        // Expressions
+        std::vector<Texpression> Expressions;
+        bool CustomEyeSupport = true;
+        /* Returns true if the model uses the default /dynos/eyes/ folder for its eye expressions */
+        bool UsingVanillaEyes() {
+            // Always enabled for non-model Mario
+            if (this->DynOSId == -1) return (true);
+            else {
+                if (!std::filesystem::is_directory(this->FolderPath + "/expressions/eyes"))
+                    return (this->Active && this->CustomEyeSupport);
+            }
+            return false;
+        }
 
+        // Color Codes
         bool ColorCodeSupport = true;
         bool SparkSupport = false;
         /* Custom color labels as defined in the CC editor */
@@ -52,7 +69,6 @@ class Model {
 
         bool TorsoRotations = true;
 
-        bool CustomEyeSupport = true;
         bool CustomBlinkCycle;
 
         /* A loose cluster of the model's metadata strings, useful for search indexing */

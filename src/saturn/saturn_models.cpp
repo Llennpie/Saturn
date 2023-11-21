@@ -134,6 +134,9 @@ Model LoadModelData(std::string folderPath) {
             if (root.isMember("custom_blink_cycle"))
                 model.CustomBlinkCycle = root["custom_blink_cycle"].asBool();
 
+            // Other Expressions
+            model.Expressions = LoadExpressions(model.FolderPath);
+
             model.Active = true;
         }
     }
