@@ -13,6 +13,7 @@
 extern "C" {
 #include "pc/platform.h"
 #include "pc/pngutils.h"
+#include "pc/cliopts.h"
 }
 
 enum FormatEnum {
@@ -379,5 +380,6 @@ int saturn_extract_rom() {
     for (const auto& entry : mio0) {
         free(entry.second);
     }
+    if (gCLIOpts.ExtractOnly) return 1;
     return 0;
 }
