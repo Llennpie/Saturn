@@ -304,7 +304,11 @@ void handle_segfault(int signal) {
 int main(int argc, char *argv[]) {
     signal(SIGSEGV, handle_segfault);
     parse_cli_opts(argc, argv);
-    if (saturn_extract_rom()) return 1;
+    if (gCLIOpts.ExtractOnly) {
+        saturn_extract_rom(EXTRACT_TYPE_ALL);
+        return;
+    }
+    else saturn_extract_rom(EXTRACT_TYPE_SOUND | EXTRACT_TYPE_SATURN | EXTRACT_TYPE_FONT);
     main_func();
     return 0;
 }

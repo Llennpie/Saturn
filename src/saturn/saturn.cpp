@@ -18,6 +18,11 @@
 #include "data/dynos.cpp.h"
 #include "saturn/filesystem/saturn_registerfile.h"
 #include "saturn/cmd/saturn_cmd.h"
+#include "saturn/saturn_rom_extract.h"
+
+extern "C" {
+#include "audio/external.h"
+}
 
 bool mario_exists;
 
@@ -669,6 +674,7 @@ void saturn_do_load() {
     saturn_load_locations();
     saturn_launch_timer = 0;
     saturn_cmd_registers_load();
+    saturn_extract_rom(EXTRACT_TYPE_ALL);
 }
 void saturn_on_splash_finish() {
     splash_finished = true;
