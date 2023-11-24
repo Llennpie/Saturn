@@ -17,6 +17,7 @@
 #include "saturn/filesystem/saturn_locationfile.h"
 #include "data/dynos.cpp.h"
 #include "saturn/filesystem/saturn_registerfile.h"
+#include "saturn/filesystem/saturn_animfile.h"
 #include "saturn/cmd/saturn_cmd.h"
 #include "saturn/saturn_rom_extract.h"
 
@@ -674,6 +675,7 @@ void saturn_do_load() {
     saturn_load_locations();
     saturn_launch_timer = 0;
     saturn_cmd_registers_load();
+    saturn_load_favorite_anims();
     saturn_extract_rom(EXTRACT_TYPE_ALL);
 }
 void saturn_on_splash_finish() {

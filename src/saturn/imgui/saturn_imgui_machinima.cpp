@@ -18,6 +18,7 @@
 #include "saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
 #include "saturn/filesystem/saturn_locationfile.h"
+#include "saturn/filesystem/saturn_animfile.h"
 #include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
@@ -383,7 +384,8 @@ void imgui_machinima_animation_player() {
         ImGui::BeginDisabled();
 
     const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
-        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", ICON_FK_FILE_O " CUSTOM...", "All (209)"};
+        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", ICON_FK_FILE_O " CUSTOM...", "All (209)",
+        (std::string("Favorites (") + std::to_string(favorite_anims.size()) + ")").c_str() };
     int animArraySize = (canim_array.size() > 0) ? IM_ARRAYSIZE(anim_groups) : IM_ARRAYSIZE(anim_groups) - 1;
 
     ImGui::PushItemWidth(290);
@@ -405,14 +407,22 @@ void imgui_machinima_animation_player() {
                     current_anim_map = sanim_maps[9];
                     is_custom_anim = false;
 
+                    current_anim_map.clear();
                     for (int i; i < 8; i++) {
-                        current_anim_map.merge(sanim_maps[i]);
+                        for (auto& anim : sanim_maps[i]) {
+                            current_anim_map.insert(anim);
+                        }
                     }
                     current_sanim_index = current_anim_map.begin()->first.first;
                     current_sanim_name = current_anim_map.begin()->first.second;
                     current_sanim_id = current_anim_map.begin()->second;
                     anim_preview_name = current_sanim_name;
-
+                } else if (current_sanim_group_index == 10) {
+                    is_custom_anim = false;
+                    current_sanim_id = favorite_anims.size() == 0 ? MARIO_ANIM_A_POSE : favorite_anims[0];
+                    current_sanim_index = 0;
+                    current_sanim_name = saturn_animations_list[current_sanim_id];
+                    anim_preview_name = current_sanim_name;
                 } else {
                     current_anim_map = sanim_maps[current_sanim_group_index];
                     is_custom_anim = false;
@@ -535,6 +545,14 @@ void imgui_machinima_animation_player() {
                 }
             }
 
+            auto position = std::find(favorite_anims.begin(), favorite_anims.end(), i);
+            bool contains = position != favorite_anims.end();
+            if (ImGui::SmallButton((std::string(contains ? ICON_FK_STAR : ICON_FK_STAR_O) + "###" + std::to_string(i)).c_str())) {
+                if (contains) favorite_anims.erase(position);
+                else favorite_anims.push_back(i);
+                saturn_save_favorite_anims();
+            }
+            ImGui::SameLine();
             if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
                 current_sanim_index = i;
                 current_sanim_name = saturn_animations_list[i];
@@ -546,12 +564,41 @@ void imgui_machinima_animation_player() {
             if (is_selected)
                 ImGui::SetItemDefaultFocus();
         }
+    } else if (current_sanim_group_index == 10) {
+        int idx = 0;
+        for (int anim : favorite_anims) {
+            current_sanim_name = saturn_animations_list[anim];
+            const bool is_selected = (current_sanim_id == anim);
+            auto position = std::find(favorite_anims.begin(), favorite_anims.end(), anim);
+            if (ImGui::SmallButton((std::string(ICON_FK_STAR) + "###" + std::to_string(anim)).c_str())) {
+                favorite_anims.erase(position);
+                saturn_save_favorite_anims();
+            }
+            ImGui::SameLine();
+            if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                current_sanim_index = idx;
+                current_sanim_name = saturn_animations_list[anim];
+                current_sanim_id = anim;
+                k_current_anim = encode_animation();
+                place_keyframe_anim = true;
+            }
+            if (is_selected) ImGui::SetItemDefaultFocus();
+            idx++;
+        }
     } else {
         for (auto &[a,b]:current_anim_map) {
             current_sanim_index = a.first;
             current_sanim_name = a.second;
 
             const bool is_selected = (current_sanim_id == b);
+            auto position = std::find(favorite_anims.begin(), favorite_anims.end(), b);
+            bool contains = position != favorite_anims.end();
+            if (ImGui::SmallButton((std::string(contains ? ICON_FK_STAR : ICON_FK_STAR_O) + "###" + std::to_string(b)).c_str())) {
+                if (contains) favorite_anims.erase(position);
+                else favorite_anims.push_back(b);
+                saturn_save_favorite_anims();
+            }
+            ImGui::SameLine();
             if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
                 current_sanim_index = a.first;
                 current_sanim_name = a.second;
