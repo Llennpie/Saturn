@@ -8,6 +8,12 @@
 #include <iostream>
 #include "GL/glew.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <cstdlib>
+#endif
+
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
@@ -29,6 +35,7 @@
 extern "C" {
 #include "pc/gfx/gfx_pc.h"
 #include "pc/configfile.h"
+#include "pc/platform.h"
 #include "game/mario.h"
 #include "game/level_update.h"
 #include <mario_animation_ids.h>
@@ -60,6 +67,16 @@ bool is_gameshark_open;
 
 std::vector<std::string> choose_file_dialog(std::string windowTitle, std::vector<std::string> filetypes, bool multiselect) {
     return pfd::open_file(windowTitle, ".", filetypes, multiselect ? pfd::opt::multiselect : pfd::opt::none).result();
+}
+
+void open_directory(std::string path) {
+#if defined(_WIN32) // Windows
+    ShellExecute(NULL, L"open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(__APPLE__) // macOS
+    system(("open " + path).c_str());
+#else // Linux
+    system(("xdg-open " + path).c_str());
+#endif
 }
 
 // UI
@@ -478,6 +495,10 @@ void sdynos_imgui_menu() {
 
         ImGui::PopStyleVar();
         ImGui::EndMenu();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Open DynOS directory")) {
+        open_directory(std::string(sys_exe_path()) + "/dynos/");
     }
     ImGui::Separator();
 
