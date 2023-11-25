@@ -71,7 +71,7 @@ std::vector<std::string> choose_file_dialog(std::string windowTitle, std::vector
 
 void open_directory(std::string path) {
 #if defined(_WIN32) // Windows
-    ShellExecute(NULL, "open", ("\"" + path + "\"").c_str(), NULL, NULL, SW_SHOWNORMAL);
+    ShellExecuteA(NULL, "open", ("\"" + path + "\"").c_str(), NULL, NULL, SW_SHOWNORMAL);
 #elif defined(__APPLE__) // macOS
     system(("open \"" + path + "\"").c_str());
 #else // Linux
