@@ -20,6 +20,7 @@
 #include "saturn/filesystem/saturn_animfile.h"
 #include "saturn/cmd/saturn_cmd.h"
 #include "saturn/saturn_rom_extract.h"
+#include "saturn/saturn_timelines.h"
 
 extern "C" {
 #include "audio/external.h"
@@ -52,19 +53,16 @@ bool linkMarioScale = true;
 bool is_spinning;
 float spin_mult = 1.0f;
 
-bool is_custom_anim;
 bool using_chainer;
 int chainer_index;
-bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
-bool is_anim_looped = false;
-bool is_anim_hang = false;
-float anim_speed = 1.0f;
 int current_anim_frame;
 int current_anim_id;
 int current_anim_length;
+bool is_anim_playing = false;
 bool is_anim_paused = false;
 int paused_anim_frame;
+struct AnimationState current_animation = {};
 
 float this_face_angle;
 
@@ -91,9 +89,6 @@ int k_previous_frame = 0;
 int k_curr_curve_type = 0;
 
 int k_current_anim = -1;
-int k_prev_anim = -1;
-
-bool place_keyframe_anim = false;
 
 bool should_update_cam_from_keyframes = false;
 
@@ -204,7 +199,7 @@ void saturn_update() {
                 }
             }
             if (gPlayer1Controller->buttonPressed & R_JPAD) {
-                is_anim_looped = !is_anim_looped;
+                current_animation.loop = !current_animation.loop;
             }
         }
     }
@@ -327,7 +322,6 @@ void saturn_update() {
         if (end) {
             if (k_loop) mcam_timer = 0;
             else keyframe_playing = false;
-            k_prev_anim = -1;
             justFinished = true;
         }
 
@@ -352,21 +346,20 @@ void saturn_update() {
     // Animations
 
     if (mario_exists) {
-        if ((keyframe_playing || justFinished) && k_prev_anim != k_current_anim && k_current_anim != -1) anim_play_button(k_current_anim);
-        k_prev_anim = k_current_anim;
+        if ((keyframe_playing || justFinished) && k_current_anim != -1) anim_play_button();
 
         if (is_anim_paused) {
             gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
             gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
         } else if (is_anim_playing) {
-            if (is_anim_hang) {
+            if (current_animation.hang) {
                 if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1)) {
                     is_anim_paused = !is_anim_paused;
                 }
             }
 
             if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
-                if (is_anim_looped && !using_chainer) {
+                if (current_animation.loop && !using_chainer) {
                     gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
                     gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
                 } else {
@@ -392,8 +385,8 @@ void saturn_update() {
                 current_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
             }
 
-            if (anim_speed != 1.0f)
-                gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
+            if (current_animation.speed != 1.0f)
+                gMarioState->marioObj->header.gfx.unk38.animAccel = current_animation.speed * 65535;
 
             if (using_chainer && is_anim_playing) saturn_run_chainer();
         }
@@ -464,31 +457,39 @@ bool saturn_keyframe_apply(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    float value;
+    std::vector<float> values;
     bool last = true;
-    if (keyframes.size() == 1) value = keyframes[0].value;
+    if (keyframes.size() == 1) values = keyframes[0].value;
     else {
         int keyframe = 0;
         last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-        if (timeline.forceWait) value = keyframes[keyframe + (int)x].value;
-        else value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        for (int i = 0; i < keyframes[keyframe].value.size(); i++) {
+            values.push_back((keyframes[keyframe + 1].value[i] - keyframes[keyframe].value[i]) * x + keyframes[keyframe].value[i]);
+        }    
     }
-    if (timeline.type == KFTYPE_BOOL) *(bool*)timeline.dest = value >= 1;
-    if (timeline.type == KFTYPE_FLOAT) *(float*)timeline.dest = value;
-    if (timeline.type == KFTYPE_FLAGS) {
-        *(int*)timeline.dest = *(int*)&value;
+    if (timeline.type == KFTYPE_BOOL) *(bool*)timeline.dest = values[0] >= 1;
+    if (timeline.type == KFTYPE_FLOAT) *(float*)timeline.dest = values[0];
+    if (timeline.type == KFTYPE_ANIM) {
+        AnimationState* dest = (AnimationState*)timeline.dest;
+        dest->custom = values[0] >= 1;
+        dest->loop = values[1] >= 1;
+        dest->hang = values[2] >= 1;
+        dest->speed = values[3];
+        dest->id = values[4];
+        if (dest == &current_animation) {
+            if (is_anim_playing) {
+                is_anim_playing = false;
+                is_anim_paused = false;
+                using_chainer = false;
+                chainer_index = 0;
+            }
+            anim_play_button();
+        }
     }
+    if (timeline.type == KFTYPE_EXPRESSION) {};
 
     return last;
-}
-
-void flag_place_keyframe(std::string curr_id, std::string id, bool* doPlace, bool* out) {
-    if (*out) return;
-    if (curr_id == id && *doPlace) {
-        *doPlace = false;
-        *out = true;
-    }
 }
 
 // returns true if the value is the same as if the keyframe was applied
@@ -496,31 +497,39 @@ bool saturn_keyframe_matches(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    float expectedValue;
-    if (keyframes.size() == 1) expectedValue = keyframes[0].value;
+    std::vector<float> expectedValues;
+    if (keyframes.size() == 1) expectedValues = keyframes[0].value;
     else {
         int keyframe = 0;
         bool last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-        if (timeline.forceWait) expectedValue = keyframes[keyframe + (int)x].value;
-        else expectedValue = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        for (int i = 0; i < keyframes[keyframe].value.size(); i++) {
+            expectedValues.push_back((keyframes[keyframe + 1].value[i] - keyframes[keyframe].value[i]) * x + keyframes[keyframe].value[i]);
+        }
     }
     if (timeline.type == KFTYPE_BOOL) {
-        if (*(bool*)timeline.dest != expectedValue >= 1) return false;
+        if (*(bool*)timeline.dest != 0 != expectedValues[0] >= 1) return false;
         return true;
     }
     if (timeline.type == KFTYPE_FLOAT) {
         float value = *(float*)timeline.dest;
-        float distance = abs(value - expectedValue);
+        float distance = abs(value - expectedValues[0]);
         if (distance > pow(10, timeline.precision)) {
             if (id.find("cam") != string::npos) return !is_camera_moving;
             else return false;
         }
     }
-    if (timeline.type == KFTYPE_FLAGS) {
-        bool doPlace = false;
-        flag_place_keyframe(id, "k_mario_anim", &place_keyframe_anim, &doPlace);
-        return !doPlace;
+    if (timeline.type == KFTYPE_ANIM) {
+        AnimationState* value = (AnimationState*)timeline.dest;
+        float distance = abs(value->speed - expectedValues[3]);
+        if (value->custom != expectedValues[0] >= 1) return false;
+        if (value->loop != expectedValues[1] >= 1) return false;
+        if (value->hang != expectedValues[2] >= 1) return false;
+        if (distance > pow(10, timeline.precision)) return false;
+        if (value->id != expectedValues[4]) return false;
+    }
+    if (timeline.type == KFTYPE_EXPRESSION) {
+        
     }
 
     return true;
@@ -541,7 +550,6 @@ void saturn_play_keyframe() {
         k_last_passed_index = 0;
         k_distance_between = 0;
         k_current_anim = -1;
-        k_prev_anim = -1;
         mcam_timer = 0;
         keyframe_playing = true;
     } else {
@@ -677,6 +685,7 @@ void saturn_do_load() {
     saturn_cmd_registers_load();
     saturn_load_favorite_anims();
     saturn_extract_rom(EXTRACT_TYPE_ALL);
+    saturn_fill_data_table();
 }
 void saturn_on_splash_finish() {
     splash_finished = true;

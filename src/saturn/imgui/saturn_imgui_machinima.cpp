@@ -89,57 +89,16 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
     fade_into_special_warp(0,0);
 }
 
-int encode_animation() {
-    int encoded = 0;
-    encoded |= is_custom_anim << 31;
-    encoded |= is_anim_looped << 30;
-    encoded |= is_anim_hang << 29;
-    encoded |= (((int)(anim_speed * 1000) & 0x3FFF) << 14);
-    encoded |= (is_custom_anim ? custom_anim_index : current_sanim_id) & 0x3FFF;
-    return encoded;
-}
-void decode_animation(int raw) {
-    is_custom_anim = raw & (1 << 31);
-    is_anim_looped = raw & (1 << 30);
-    is_anim_hang = raw & (1 << 29);
-    anim_speed = ((raw >> 14) & 0x3FFF) / 1000.f;
-    current_sanim_id = raw & 0x3FFF;
-    if (is_custom_anim) {
-        current_sanim_group_index = 8;
-        current_sanim_id = selected_animation = MARIO_ANIM_A_POSE;
-        custom_anim_index = current_sanim_id;
-        current_sanim_name = canim_array[current_sanim_id];
-        anim_preview_name = current_sanim_name;
-        anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
-    }
-    else {
-        std::pair<int, std::string> animInfo;
-        for (auto& map : sanim_maps) {
-            for (auto& entry : map) {
-                if (entry.second == current_sanim_id) animInfo = entry.first;
-            }
-        }
-        current_sanim_index = animInfo.first;
-        current_sanim_name = animInfo.second;
-        anim_preview_name = current_sanim_name;
-        current_sanim_id = selected_animation = MarioAnimID(current_sanim_id);
-    }
-}
-
 void anim_play_button() {
+    if (current_animation.id == -1) return;
     current_anim_frame = 0;
-    if (is_custom_anim) {
+    if (current_animation.custom) {
         saturn_read_mcomp_animation(anim_preview_name);
-        saturn_play_animation(selected_animation);
+        saturn_play_animation(MarioAnimID(current_animation.id));
         saturn_play_custom_animation();
     } else {
-        saturn_play_animation(selected_animation);
+        saturn_play_animation(MarioAnimID(current_animation.id));
     }
-}
-
-void anim_play_button(int animation) {
-    decode_animation(animation);
-    anim_play_button();
 }
 
 void saturn_create_object(int model, const BehaviorScript* behavior, float x, float y, float z, s16 pitch, s16 yaw, s16 roll, int behParams) {
@@ -299,10 +258,10 @@ void imgui_machinima_quick_options() {
     ImGui::Separator();
     ImGui::Checkbox("HUD", &configHUD);
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-    saturn_keyframe_bool_popout(&configHUD, "HUD", "k_hud");
+    saturn_keyframe_popout("k_hud");
     ImGui::Checkbox("Shadows", &enable_shadows);
     imgui_bundled_tooltip("Displays the shadows of various objects.");
-    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
+    saturn_keyframe_popout("k_shadows");
     ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
     imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
     if (ImGui::Checkbox("Time Freeze", (bool*)&enable_time_freeze)) {
@@ -310,7 +269,7 @@ void imgui_machinima_quick_options() {
         else disable_time_stop_including_mario();
     }
     imgui_bundled_tooltip("Pauses all in-game movement, excluding the camera.");
-    saturn_keyframe_bool_popout(&enable_time_freeze, "Time Freeze", "k_time_freeze");
+    saturn_keyframe_popout("k_time_freeze");
     ImGui::Checkbox("Object Interactions", (bool*)&enable_dialogue);
     imgui_bundled_tooltip("Toggles interactions with some objects; This includes opening/closing doors, triggering dialogue when interacting with an NPC or readable sign, etc.");
     if (mario_exists) {
@@ -324,7 +283,7 @@ void imgui_machinima_quick_options() {
         ImGui::PushItemWidth(100);
         ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
         ImGui::SliderFloat("Gravity", &gravity, 0.f, 3.f);
-        saturn_keyframe_float_popout(&gravity, "Gravity", "k_gravity");
+        saturn_keyframe_popout("k_gravity");
         ImGui::PopItemWidth();
         
         if (ImGui::BeginMenu("Spawn Object")) {
@@ -395,20 +354,20 @@ void imgui_machinima_animation_player() {
             if (ImGui::Selectable(anim_groups[n], is_selected)) {
                 current_sanim_group_index = n;
                 if (current_sanim_group_index == 8) {
-                    is_custom_anim = true;
+                    current_animation.custom = true;
                     current_sanim_id = MARIO_ANIM_A_POSE;
 
                     current_sanim_name = canim_array[custom_anim_index];
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                 } else if (current_sanim_group_index == 9) {
                     current_anim_map = sanim_maps[9];
-                    is_custom_anim = false;
+                    current_animation.custom = false;
 
                     current_anim_map.clear();
-                    for (int i; i < 8; i++) {
+                    for (int i = 0; i < 8; i++) {
                         for (auto& anim : sanim_maps[i]) {
                             current_anim_map.insert(anim);
                         }
@@ -418,14 +377,14 @@ void imgui_machinima_animation_player() {
                     current_sanim_id = current_anim_map.begin()->second;
                     anim_preview_name = current_sanim_name;
                 } else if (current_sanim_group_index == 10) {
-                    is_custom_anim = false;
+                    current_animation.custom = false;
                     current_sanim_id = favorite_anims.size() == 0 ? MARIO_ANIM_A_POSE : favorite_anims[0];
                     current_sanim_index = 0;
                     current_sanim_name = saturn_animations_list[current_sanim_id];
                     anim_preview_name = current_sanim_name;
                 } else {
                     current_anim_map = sanim_maps[current_sanim_group_index];
-                    is_custom_anim = false;
+                    current_animation.custom = false;
                     current_sanim_index = current_anim_map.begin()->first.first;
                     current_sanim_name = current_anim_map.begin()->first.second;
                     current_sanim_id = current_anim_map.begin()->second;
@@ -485,27 +444,27 @@ void imgui_machinima_animation_player() {
                 custom_anim_index = i;
                 current_sanim_name = canim_array[i];
                 anim_preview_name = current_sanim_name;
-                is_anim_looped = current_canim_looping;
+                current_animation.loop = current_canim_looping;
                 // Remove .json extension
                 if (canim_array[i].find(".json") != string::npos) {
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                 } else if (canim_array[i].find("/") != string::npos) {
                     saturn_load_anim_folder(anim_preview_name, &custom_anim_index);
                     current_sanim_name = canim_array[custom_anim_index];
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                 }
                 // Stop anim
                 is_anim_playing = false;
                 is_anim_paused = false;
                 using_chainer = false;
                 chainer_index = 0;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
+                current_animation.custom = true;
+                current_animation.id = i;
             }
 
             if (ImGui::BeginPopupContextItem()) {
@@ -519,7 +478,7 @@ void imgui_machinima_animation_player() {
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -557,8 +516,8 @@ void imgui_machinima_animation_player() {
                 current_sanim_index = i;
                 current_sanim_name = saturn_animations_list[i];
                 current_sanim_id = i;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
+                current_animation.custom = false;
+                current_animation.id = i;
             }
 
             if (is_selected)
@@ -579,8 +538,8 @@ void imgui_machinima_animation_player() {
                 current_sanim_index = idx;
                 current_sanim_name = saturn_animations_list[anim];
                 current_sanim_id = anim;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
+                current_animation.custom = false;
+                current_animation.id = anim;
             }
             if (is_selected) ImGui::SetItemDefaultFocus();
             idx++;
@@ -604,8 +563,8 @@ void imgui_machinima_animation_player() {
                 current_sanim_name = a.second;
                 current_sanim_id = b;
                 anim_preview_name = current_sanim_name;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
+                current_animation.custom = false;
+                current_animation.id = b;
             }
 
             if (is_selected)
@@ -621,7 +580,7 @@ void imgui_machinima_animation_player() {
     ImGui::Separator();
 
     // Metadata
-    if (is_custom_anim && custom_anim_index != -1) {
+    if (current_animation.custom && custom_anim_index != -1) {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("###anim_metadata", ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 3), true, ImGuiWindowFlags_NoScrollbar);
         ImGui::Text(current_canim_name.c_str());
@@ -634,7 +593,7 @@ void imgui_machinima_animation_player() {
 
     // Player
     if (is_anim_playing) {
-        if (is_custom_anim) {
+        if (current_animation.custom) {
             ImGui::Text("Now Playing: %s", current_canim_name.c_str());
             string anim_credit1 = ("By " + current_canim_author);
             ImGui::SameLine(); imgui_bundled_help_marker(anim_credit1.c_str());
@@ -649,13 +608,14 @@ void imgui_machinima_animation_player() {
             using_chainer = false;
             chainer_index = 0;
         }
-        ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
-        ImGui::SameLine(); if (ImGui::Checkbox("Hang", &is_anim_hang))  if (!is_anim_hang) {
-                                                                            is_anim_playing = false;
-                                                                            is_anim_paused = false;
-                                                                            using_chainer = false;
-                                                                            chainer_index = 0;
-                                                                        }
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &current_animation.loop);
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Hang", &current_animation.hang) && !current_animation.hang) {
+            is_anim_playing = false;
+            is_anim_paused = false;
+            using_chainer = false;
+            chainer_index = 0;
+        }
         
         ImGui::PushItemWidth(150);
         ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length - 1);
@@ -666,17 +626,24 @@ void imgui_machinima_animation_player() {
         if (ImGui::Button("Play")) {
             anim_play_button();
         }
-        ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
-        ImGui::SameLine(); ImGui::Checkbox("Hang", &is_anim_hang);
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &current_animation.loop);
+        ImGui::SameLine(); ImGui::Checkbox("Hang", &current_animation.hang);
 
         ImGui::PushItemWidth(150);
-        ImGui::SliderFloat("Speed###anim_speed", &anim_speed, 0.1f, 2.0f);
+        ImGui::SliderFloat("Speed###anim_speed", &current_animation.speed, 0.1f, 2.0f);
         ImGui::PopItemWidth();
-        if (anim_speed != 1.0f) {
+        if (current_animation.speed != 1.0f) {
             if (ImGui::Button("Reset###reset_anim_speed"))
-                anim_speed = 1.0f;
+                current_animation.speed = 1.0f;
         }
     }
     if (keyframe_playing) ImGui::EndDisabled();
-    saturn_keyframe_anim_popout("Animation", "k_mario_anim");
+    saturn_keyframe_popout("k_mario_anim");
+    if (saturn_timeline_exists("k_mario_anim")) {
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FK_STOP "###kb_mario_anim_stop")) {
+            current_animation.id = -1;
+        }
+        imgui_bundled_tooltip("Select stop anim");
+    }
 }

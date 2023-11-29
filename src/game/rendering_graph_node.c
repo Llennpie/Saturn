@@ -818,7 +818,7 @@ static void geo_process_animated_part(struct GraphNodeAnimatedPart *node) {
  * but set in global variables. If an animated part is skipped, everything afterwards desyncs.
  */
 static void geo_process_mcomp_extra(struct GraphNodeAnimatedPart *node) {
-    if (is_anim_playing && is_custom_anim && current_canim_has_extra) {
+    if (is_anim_playing && current_animation.custom && current_canim_has_extra) {
         geo_process_animated_part(node);
     } else {
         if (node->displayList != NULL) {

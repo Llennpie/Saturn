@@ -12,6 +12,7 @@
 #include "saturn/imgui/saturn_imgui_chroma.h"
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "saturn/imgui/saturn_imgui_dynos.h"
+#include "saturn/saturn_models.h"
 extern "C" {
 #include "engine/geo_layout.h"
 #include "engine/math_util.h"
@@ -36,7 +37,9 @@ extern "C" {
 namespace fs = std::filesystem;
 #include "pc/fs/fs.h"
 
-#define SATURN_PROJECT_VERSION 2
+#include "saturn/saturn_timelines.h"
+
+#define SATURN_PROJECT_VERSION 3
 
 #define SATURN_PROJECT_IDENTIFIER           "STPJ"
 #define SATURN_PROJECT_GAME_IDENTIFIER      "GAME"
@@ -66,72 +69,6 @@ namespace fs = std::filesystem;
 #define SATURN_PROJECT_ENV_BIT_2                 (1 << 7)
 #define SATURN_PROJECT_WALKPOINT_MASK            0x7F
 
-#define SATURN_KFENTRY_BOOL(id, variable, name) { id, { { &variable, KFTYPE_BOOL }, { true, name } } }
-#define SATURN_KFENTRY_FLOAT(id, variable, name) { id, { { &variable, KFTYPE_FLOAT }, { false, name } } }
-#define SATURN_KFENTRY_ANIM(id, name) { id, { { &k_current_anim, KFTYPE_FLAGS }, { true, name } } }
-#define SATURN_KFENTRY_COLOR(id, variable, name) \
-    { id "_r", { { &variable.x, KFTYPE_FLOAT }, { false, name " R" } } },\
-    { id "_g", { { &variable.y, KFTYPE_FLOAT }, { false, name " G" } } },\
-    { id "_b", { { &variable.z, KFTYPE_FLOAT }, { false, name " B" } } }
-#define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) \
-    { id "_r", { { &variable[0], KFTYPE_FLOAT }, { false, name " R" } } },\
-    { id "_g", { { &variable[1], KFTYPE_FLOAT }, { false, name " G" } } },\
-    { id "_b", { { &variable[2], KFTYPE_FLOAT }, { false, name " B" } } }
-
-std::map<std::string, std::pair<std::pair<void*, KeyframeType>, std::pair<bool, std::string>>> timelineDataTable = {
-    SATURN_KFENTRY_BOOL("k_skybox_mode", use_color_background, "Skybox Mode"),
-    SATURN_KFENTRY_BOOL("k_shadows", enable_shadows, "Shadows"),
-    SATURN_KFENTRY_FLOAT("k_shade_x", world_light_dir1, "Mario Shade X"),
-    SATURN_KFENTRY_FLOAT("k_shade_y", world_light_dir2, "Mario Shade Y"),
-    SATURN_KFENTRY_FLOAT("k_shade_z", world_light_dir3, "Mario Shade Z"),
-    SATURN_KFENTRY_FLOAT("k_shade_t", world_light_dir4, "Mario Shade Tex"),
-    SATURN_KFENTRY_FLOAT("k_scale", marioScaleSizeX, "Mario Scale"),
-    SATURN_KFENTRY_FLOAT("k_scale_x", marioScaleSizeX, "Mario Scale X"),
-    SATURN_KFENTRY_FLOAT("k_scale_y", marioScaleSizeY, "Mario Scale Y"),
-    SATURN_KFENTRY_FLOAT("k_scale_z", marioScaleSizeZ, "Mario Scale Z"),
-    SATURN_KFENTRY_BOOL("k_head_rot", enable_head_rotations, "Head Rotations"),
-    SATURN_KFENTRY_BOOL("k_v_cap_emblem", show_vmario_emblem, "M Cap Emblem"),
-    SATURN_KFENTRY_FLOAT("k_angle", gMarioState->faceAngle[1], "Mario Angle"),
-    SATURN_KFENTRY_BOOL("k_hud", configHUD, "HUD"),
-    SATURN_KFENTRY_BOOL("k_time_freeze", enable_time_freeze, "Time Freeze"),
-    SATURN_KFENTRY_FLOAT("k_fov", camera_fov, "FOV"),
-    SATURN_KFENTRY_FLOAT("k_focus", camera_focus, "Follow"),
-    SATURN_KFENTRY_FLOAT("k_c_camera_pos0", freezecamPos[0], "Camera Pos X"),
-    SATURN_KFENTRY_FLOAT("k_c_camera_pos1", freezecamPos[1], "Camera Pos Y"),
-    SATURN_KFENTRY_FLOAT("k_c_camera_pos2", freezecamPos[2], "Camera Pos Z"),
-    SATURN_KFENTRY_FLOAT("k_c_camera_yaw", freezecamYaw, "Camera Yaw"),
-    SATURN_KFENTRY_FLOAT("k_c_camera_pitch", freezecamPitch, "Camera Pitch"),
-    SATURN_KFENTRY_FLOAT("k_c_camera_roll", freezecamRoll, "Camera Roll"),
-    SATURN_KFENTRY_FLOAT("k_gravity", gravity, "Gravity"),
-    SATURN_KFENTRY_COLOR_VEC3F("k_light_col", gLightingColor, "Light Color"),
-    SATURN_KFENTRY_COLOR("k_color", uiChromaColor, "Skybox Color"),
-    /*SATURN_KFENTRY_COLOR("k_1/2###hat_half_1", uiHatColor, "Hat, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###hat_half_2", uiHatShadeColor, "Hat, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###overalls_half_1", uiOverallsColor, "Overalls, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###overalls_half_2", uiOverallsShadeColor, "Overalls, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###gloves_half_1", uiGlovesColor, "Gloves, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###gloves_half_2", uiGlovesShadeColor, "Gloves, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###shoes_half_1", uiShoesColor, "Shoes, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###shoes_half_2", uiShoesShadeColor, "Shoes, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###skin_half_1", uiSkinColor, "Skin, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###skin_half_2", uiSkinShadeColor, "Skin, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###hair_half_1", uiHairColor, "Hair, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###hair_half_2", uiHairShadeColor, "Hair, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###shirt_half_1", uiShirtColor, "Shirt, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###shirt_half_2", uiShirtShadeColor, "Shirt, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###shoulders_half_1", uiShouldersColor, "Shoulders, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###shoulders_half_2", uiShouldersShadeColor, "Shoulders, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###arms_half_1", uiArmsColor, "Arms, Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###arms_half_2", uiArmsShadeColor, "Arms, Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###overalls_bottom_half_1", uiOverallsBottomColor, "Overalls (Bottom), Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###overalls_bottom_half_2", uiOverallsBottomShadeColor, "Overalls (Bottom), Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_1", uiLegTopColor, "Leg (Top), Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###leg_top_half_2", uiLegTopShadeColor, "Leg (Top), Shade"),
-    SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_1", uiLegBottomColor, "Leg (Bottom), Main"),
-    SATURN_KFENTRY_COLOR("k_1/2###leg_bottom_half_2", uiLegBottomShadeColor, "Leg (Bottom), Shade"),*/
-    SATURN_KFENTRY_ANIM("k_mario_anim", "Animation"),
-};
-
 std::string full_file_path(char* filename) {
     return std::string("dynos/projects/") + filename;
 }
@@ -152,7 +89,7 @@ void saturn_project_game_handler(SaturnFormatStream* stream, int version) {
     enable_shadows = flags & SATURN_PROJECT_FLAG_SHADOWS;
     enable_immunity = flags & SATURN_PROJECT_FLAG_INVULNERABILITY;
     enable_dialogue = flags & SATURN_PROJECT_FLAG_NPC_DIALOG;
-    is_anim_looped = flags & SATURN_PROJECT_FLAG_LOOP_ANIMATION;
+    current_animation.loop = flags & SATURN_PROJECT_FLAG_LOOP_ANIMATION;
     k_loop = flags & SATURN_PROJECT_FLAG_LOOP_TIMELINE;
     gLevelEnv = ((flags & SATURN_PROJECT_ENV_BIT_1) << 1) | (((walkpoint & SATURN_PROJECT_ENV_BIT_2) >> 7) & 1);
     run_speed = walkpoint & SATURN_PROJECT_WALKPOINT_MASK;
@@ -226,20 +163,27 @@ void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
     char id[256];
     saturn_format_read_string(stream, id, 256);
     id[255] = 0;
-    auto timelineConfig = timelineDataTable[id];
-    timeline.dest = timelineConfig.first.first;
-    timeline.type = timelineConfig.first.second;
-    timeline.forceWait = timelineConfig.second.first;
-    timeline.name = timelineConfig.second.second;
+    auto [dest, type, force_wait, name, precision, num_values] = timelineDataTable[id];
+    timeline.dest = dest;
+    timeline.type = type;
+    timeline.forceWait = force_wait;
+    timeline.name = name;
+    timeline.precision = precision;
+    timeline.numValues = num_values;
     k_frame_keys.insert({ std::string(id), { timeline, {} } });
 }
 
 void saturn_project_keyframe_handler(SaturnFormatStream* stream, int version) {
-    float value = saturn_format_read_float(stream);
-    u32 position = saturn_format_read_int32(stream);
-    InterpolationCurve curve = InterpolationCurve(saturn_format_read_int8(stream));
-    Keyframe keyframe = Keyframe((int)position, curve);
-    keyframe.value = value;
+    Keyframe keyframe = Keyframe();
+    if (version <= 2) keyframe.value.push_back(saturn_format_read_float(stream));
+    else {
+        int amount = saturn_format_read_int8(stream);
+        for (int i = 0; i < amount; i++) {
+            keyframe.value.push_back(saturn_format_read_float(stream));
+        }
+    }
+    keyframe.position = saturn_format_read_int32(stream);
+    keyframe.curve = InterpolationCurve(saturn_format_read_int8(stream));
     char id[256];
     saturn_format_read_string(stream, id, 256);
     id[254] = 0;
@@ -436,7 +380,7 @@ void saturn_save_project(char* filename) {
     if (enable_shadows) flags |= SATURN_PROJECT_FLAG_SHADOWS;
     if (enable_immunity) flags |= SATURN_PROJECT_FLAG_INVULNERABILITY;
     if (enable_dialogue) flags |= SATURN_PROJECT_FLAG_NPC_DIALOG;
-    if (is_anim_looped) flags |= SATURN_PROJECT_FLAG_LOOP_ANIMATION;
+    if (current_animation.loop) flags |= SATURN_PROJECT_FLAG_LOOP_ANIMATION;
     if (k_loop) flags |= SATURN_PROJECT_FLAG_LOOP_TIMELINE;
     if (gLevelEnv & 2) flags |= SATURN_PROJECT_ENV_BIT_1;
     if (gLevelEnv & 1) walkpoint |= SATURN_PROJECT_ENV_BIT_2;
@@ -626,7 +570,10 @@ void saturn_save_project(char* filename) {
         char* name = (char*)entry.first.c_str();
         for (Keyframe keyframe : entry.second.second) {
             saturn_format_new_section(&stream, SATURN_PROJECT_KEYFRAME_IDENTIFIER);
-            saturn_format_write_float(&stream, keyframe.value);
+            saturn_format_write_int8(&stream, keyframe.value.size());
+            for (int i = 0; i < keyframe.value.size(); i++) {
+                saturn_format_write_int32(&stream, keyframe.value[i]);
+            }
             saturn_format_write_int32(&stream, keyframe.position);
             saturn_format_write_int8(&stream, keyframe.curve);
             saturn_format_write_string(&stream, name);

@@ -9,9 +9,6 @@ extern bool enable_time_freeze;
 extern int current_sanim_id;
 
 extern void anim_play_button();
-extern void anim_play_button(int);
-extern int encode_animation();
-extern void decode_animation(int);
 extern void saturn_create_object(int, const BehaviorScript*, float, float, float, s16, s16, s16, int);
 
 #ifdef __cplusplus

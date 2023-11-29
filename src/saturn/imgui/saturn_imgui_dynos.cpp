@@ -335,20 +335,20 @@ void sdynos_imgui_menu() {
                 if (AnyModelsEnabled()) ImGui::BeginDisabled();
                 ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
                 imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
-                saturn_keyframe_bool_popout(&show_vmario_emblem, "M Cap Emblem", "k_v_cap_emblem");
+                saturn_keyframe_popout("k_v_cap_emblem");
                 if (AnyModelsEnabled()) ImGui::EndDisabled();
 
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Shading###tab_shading")) {
                 ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
-                saturn_keyframe_float_popout(&world_light_dir1, "Mario Shade X", "k_shade_x");
+                saturn_keyframe_popout("k_shade_x");
                 ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
-                saturn_keyframe_float_popout(&world_light_dir2, "Mario Shade Y", "k_shade_y");
+                saturn_keyframe_popout("k_shade_y");
                 ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
-                saturn_keyframe_float_popout(&world_light_dir3, "Mario Shade Z", "k_shade_z");
+                saturn_keyframe_popout("k_shade_z");
                 ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
-                saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
+                saturn_keyframe_popout("k_shade_t");
 
                 ImGui::ColorEdit4("Col###wlight_col", gLightingColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
                 
@@ -370,7 +370,7 @@ void sdynos_imgui_menu() {
                 }
 
                 ImGui::SameLine(); ImGui::Text("Col");
-                saturn_keyframe_color_popout("Light Color", "k_light_col", &gLightingColor[0], &gLightingColor[1], &gLightingColor[2]);
+                saturn_keyframe_popout("k_light_col");
 
                 if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
                     if (ImGui::Button("Reset###reset_wshading")) {
@@ -388,14 +388,14 @@ void sdynos_imgui_menu() {
             if (ImGui::BeginTabItem("Special###tab_special")) {
                 if (linkMarioScale) {
                     ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale", "k_scale");
+                    saturn_keyframe_popout("k_scale");
                 } else {
                     ImGui::SliderFloat("X###mscale_x", &marioScaleSizeX, -2.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale X", "k_scale_x");
+                    saturn_keyframe_popout("k_scale_x");
                     ImGui::SliderFloat("Y###mscale_y", &marioScaleSizeY, -2.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeY, "Mario Scale Y", "k_scale_y");
+                    saturn_keyframe_popout("k_scale_y");
                     ImGui::SliderFloat("Z###mscale_z", &marioScaleSizeZ, -2.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeZ, "Mario Scale Z", "k_scale_z");
+                    saturn_keyframe_popout("k_scale_z");
                 }
                 ImGui::Checkbox("Link###link_mario_scale", &linkMarioScale);
                 if (marioScaleSizeX != 1.f || marioScaleSizeY != 1.f || marioScaleSizeZ != 1.f) {
@@ -451,7 +451,7 @@ void sdynos_imgui_menu() {
                 } else if (!k_popout_open || keyframe_playing) {
                     this_face_angle = (float)gMarioState->faceAngle[1] / 182.04;
                 }
-                saturn_keyframe_float_popout(&this_face_angle, "Mario Angle", "k_angle");
+                saturn_keyframe_popout("k_angle");
             }
 
             ImGui::Checkbox("Spin###spin_angle", &is_spinning);
@@ -467,7 +467,7 @@ void sdynos_imgui_menu() {
         if (mario_exists) if (ImGui::BeginMenu("Head Rotations")) {
             ImGui::Checkbox("Enable", &enable_head_rotations);
             imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
-            saturn_keyframe_bool_popout(&enable_head_rotations, "Head Rotations", "k_head_rot");
+            saturn_keyframe_popout("k_head_rot");
             ImGui::Separator();
             ImGui::Text("C-Up Settings");
             if (gMarioState->action != ACT_FIRST_PERSON) ImGui::BeginDisabled();
@@ -488,7 +488,7 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndTable();
             }
-            saturn_keyframe_rotation_popout("Mario Head", "k_mario_headrot", &mario_headrot_yaw, &mario_headrot_pitch);
+            saturn_keyframe_popout("k_mario_headrot");
             if (gMarioState->action != ACT_FIRST_PERSON) ImGui::EndDisabled();
             ImGui::EndMenu();
         }

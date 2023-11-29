@@ -7,6 +7,7 @@
 #include <mario_animation_ids.h>
 #include <SDL2/SDL.h>
 #include "types.h"
+#include "saturn/saturn_animations.h"
 
 extern bool mario_exists;
 
@@ -37,18 +38,23 @@ extern bool linkMarioScale;
 extern bool is_spinning;
 extern float spin_mult;
 
-extern bool is_custom_anim;
+struct AnimationState {
+    bool custom;
+    bool hang;
+    bool loop;
+    float speed;
+    int id;
+};
+
 extern bool using_chainer;
 extern int chainer_index;
-extern bool is_anim_playing;
 extern enum MarioAnimID selected_animation;
-extern bool is_anim_looped;
-extern bool is_anim_hang;
-extern float anim_speed;
 extern int current_anim_frame;
 extern int current_anim_id;
 extern int current_anim_length;
+extern bool is_anim_playing;
 extern bool is_anim_paused;
+extern struct AnimationState current_animation;
 
 extern float this_face_angle;
 
@@ -97,8 +103,9 @@ enum InterpolationCurve {
 };
 enum KeyframeType {
     KFTYPE_FLOAT,
-    KFTYPE_FLAGS,
-    KFTYPE_BOOL
+    KFTYPE_BOOL,
+    KFTYPE_ANIM,
+    KFTYPE_EXPRESSION,
 };
 
 inline std::string curveNames[] = {
@@ -106,28 +113,23 @@ inline std::string curveNames[] = {
     "Sine",
     "Quadratic",
     "Cubic",
-    "Wait"
+    "Hold"
 };
 
-class Keyframe {
-    public:
-    float value;
+struct Keyframe {
+    std::vector<float> value;
     InterpolationCurve curve;
     int position;
     std::string timelineID;
-    Keyframe(int _position, InterpolationCurve _curve) {
-        position = _position;
-        curve = _curve;
-    }
 };
 
-class KeyframeTimeline {
-    public:
+struct KeyframeTimeline {
     void* dest = nullptr;
     KeyframeType type;
     std::string name;
     int precision;
     bool forceWait;
+    int numValues;
 };
 
 extern bool k_popout_open;
@@ -136,10 +138,6 @@ extern bool* active_key_bool_value;
 extern s32 active_data_type;
 extern int k_current_frame;
 extern int k_curr_curve_type;
-extern int k_current_anim;
-extern int k_prev_anim;
-
-extern bool place_keyframe_anim;
 
 extern std::map<std::string, std::pair<KeyframeTimeline, std::vector<Keyframe>>> k_frame_keys;
 

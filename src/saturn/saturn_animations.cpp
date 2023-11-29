@@ -409,7 +409,7 @@ void saturn_play_custom_animation() {
 }
 
 void saturn_run_chainer() {
-    if (is_anim_playing && is_custom_anim) {
+    if (is_anim_playing && current_animation.custom) {
         if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
             // Check if our next animation exists
             std::ifstream file_c1(current_anim_dir_path + chainer_name + "_" + std::to_string(chainer_index) + ".json");
@@ -420,7 +420,7 @@ void saturn_run_chainer() {
                 saturn_play_animation(MARIO_ANIM_A_POSE);
                 saturn_play_custom_animation();
             } else {
-                if (is_anim_looped) {
+                if (current_animation.loop) {
                     // Looping restarts from the beginning
                     is_anim_playing = false;
                     using_chainer = false;
