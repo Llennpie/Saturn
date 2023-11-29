@@ -128,9 +128,14 @@ struct KeyframeTimeline {
     KeyframeType type;
     std::string name;
     int precision;
-    bool forceWait;
     int numValues;
+    char behavior;
+    bool eventPlace;
 };
+
+#define KFBEH_DEFAULT 0
+#define KFBEH_FORCE_WAIT 1
+#define KFBEH_EVENT 2
 
 extern bool k_popout_open;
 extern float* active_key_float_value;
@@ -160,8 +165,7 @@ extern void saturn_paste_camera(void);
 extern bool saturn_keyframe_apply(std::string, int);
 extern bool saturn_keyframe_matches(std::string, int);
 
-extern double saturn_expression_encode();
-extern void saturn_expression_decode(double);
+extern void schedule_animation();
 
 extern "C" {
 #endif

@@ -56,7 +56,7 @@ void place_keyframe(std::string timelineID, int frame, int valueIndex, float val
     }
     if (index == -1) {
         Keyframe keyframe = Keyframe();
-        keyframe.curve = timeline.forceWait ? InterpolationCurve::WAIT : (prevKeyframeIndex == -1 ? InterpolationCurve::LINEAR : k_frame_keys[timelineID].second[prevKeyframeIndex].curve); 
+        keyframe.curve = timeline.behavior != KFBEH_DEFAULT ? InterpolationCurve::WAIT : (prevKeyframeIndex == -1 ? InterpolationCurve::LINEAR : k_frame_keys[timelineID].second[prevKeyframeIndex].curve); 
         keyframe.position = frame;
         for (int i = 0; i < timeline.numValues; i++) {
             keyframe.value.push_back(0);

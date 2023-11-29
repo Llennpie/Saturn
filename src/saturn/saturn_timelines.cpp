@@ -1,21 +1,25 @@
 #include "saturn/saturn_timelines.h"
 
-#define SATURN_KFENTRY_BOOL(id, variable, name) timelineDataTable.insert({ id, { &variable, KFTYPE_BOOL, true, name, 0, 1 } })
-#define SATURN_KFENTRY_FLOAT(id, variable, name) timelineDataTable.insert({ id, { &variable, KFTYPE_FLOAT, false, name, -2, 1 } })
-#define SATURN_KFENTRY_ANIM(id, name) timelineDataTable.insert({ id, { &current_animation, KFTYPE_ANIM, true, name, 0, 5 } })
-#define SATURN_KFENTRY_EXPRESSION(id, name) timelineDataTable.insert({ id, { &current_model, KFTYPE_EXPRESSION, true, name, 0, 1 } })
+#define DEFAULT 0
+#define FORCE_WAIT 1
+#define EVENT 2
+
+#define SATURN_KFENTRY_BOOL(id, variable, name) timelineDataTable.insert({ id, { &variable, KFTYPE_BOOL, KFBEH_FORCE_WAIT, name, 0, 1 } })
+#define SATURN_KFENTRY_FLOAT(id, variable, name) timelineDataTable.insert({ id, { &variable, KFTYPE_FLOAT, KFBEH_DEFAULT, name, -2, 1 } })
+#define SATURN_KFENTRY_ANIM(id, name) timelineDataTable.insert({ id, { &current_animation, KFTYPE_ANIM, KFBEH_EVENT, name, 0, 5 } })
+#define SATURN_KFENTRY_EXPRESSION(id, name) timelineDataTable.insert({ id, { &current_model, KFTYPE_EXPRESSION, KFBEH_EVENT, name, 0, 1 } })
 #define SATURN_KFENTRY_COLOR(id, variable, name) \
-    timelineDataTable.insert({ id "_r", { &variable.x, KFTYPE_FLOAT, false, name " R", 0, 1 } });\
-    timelineDataTable.insert({ id "_g", { &variable.y, KFTYPE_FLOAT, false, name " G", 0, 1 } });\
-    timelineDataTable.insert({ id "_b", { &variable.z, KFTYPE_FLOAT, false, name " B", 0, 1 } })
+    timelineDataTable.insert({ id "_r", { &variable.x, KFTYPE_FLOAT, KFBEH_DEFAULT, name " R", 0, 1 } });\
+    timelineDataTable.insert({ id "_g", { &variable.y, KFTYPE_FLOAT, KFBEH_DEFAULT, name " G", 0, 1 } });\
+    timelineDataTable.insert({ id "_b", { &variable.z, KFTYPE_FLOAT, KFBEH_DEFAULT, name " B", 0, 1 } })
 #define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) \
-    timelineDataTable.insert({ id "_r", { &variable[0], KFTYPE_FLOAT, false, name " R", 0, 1 } });\
-    timelineDataTable.insert({ id "_g", { &variable[1], KFTYPE_FLOAT, false, name " G", 0, 1 } });\
-    timelineDataTable.insert({ id "_b", { &variable[2], KFTYPE_FLOAT, false, name " B", 0, 1 } })
+    timelineDataTable.insert({ id "_r", { &variable[0], KFTYPE_FLOAT, KFBEH_DEFAULT, name " R", 0, 1 } });\
+    timelineDataTable.insert({ id "_g", { &variable[1], KFTYPE_FLOAT, KFBEH_DEFAULT, name " G", 0, 1 } });\
+    timelineDataTable.insert({ id "_b", { &variable[2], KFTYPE_FLOAT, KFBEH_DEFAULT, name " B", 0, 1 } })
 
-std::map<std::string, std::tuple<void*, KeyframeType, bool, std::string, int, int>> timelineDataTable = {};
+std::map<std::string, std::tuple<void*, KeyframeType, char, std::string, int, int>> timelineDataTable = {};
 
-// { id, { variable_ptr, type, force_wait, name, precision, num_values } }
+// { id, { variable_ptr, type, behavior, name, precision, num_values } }
 void saturn_fill_data_table() {
     SATURN_KFENTRY_BOOL("k_skybox_mode", use_color_background, "Skybox Mode");
     SATURN_KFENTRY_BOOL("k_shadows", enable_shadows, "Shadows");

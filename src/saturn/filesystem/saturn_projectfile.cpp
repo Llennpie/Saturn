@@ -163,10 +163,10 @@ void saturn_project_timeline_handler(SaturnFormatStream* stream, int version) {
     char id[256];
     saturn_format_read_string(stream, id, 256);
     id[255] = 0;
-    auto [dest, type, force_wait, name, precision, num_values] = timelineDataTable[id];
+    auto [dest, type, behavior, name, precision, num_values] = timelineDataTable[id];
     timeline.dest = dest;
     timeline.type = type;
-    timeline.forceWait = force_wait;
+    timeline.behavior = behavior;
     timeline.name = name;
     timeline.precision = precision;
     timeline.numValues = num_values;

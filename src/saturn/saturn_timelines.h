@@ -19,7 +19,7 @@ extern "C" {
 }
 
 extern void saturn_fill_data_table();
-extern std::map<std::string, std::tuple<void*, KeyframeType, bool, std::string, int, int>> timelineDataTable;
+extern std::map<std::string, std::tuple<void*, KeyframeType, char, std::string, int, int>> timelineDataTable;
 
 #define SATURN_KFGROUP_COLOR(id, name) { name, { id "_r", id "_g", id "_b" } }
 inline std::map<std::string, std::vector<std::string>> k_groups = {

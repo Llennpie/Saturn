@@ -638,12 +638,5 @@ void imgui_machinima_animation_player() {
         }
     }
     if (keyframe_playing) ImGui::EndDisabled();
-    saturn_keyframe_popout("k_mario_anim");
-    if (saturn_timeline_exists("k_mario_anim")) {
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FK_STOP "###kb_mario_anim_stop")) {
-            current_animation.id = -1;
-        }
-        imgui_bundled_tooltip("Select stop anim");
-    }
+    saturn_keyframe_popout_next_line("k_mario_anim");
 }

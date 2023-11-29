@@ -602,21 +602,27 @@ void saturn_keyframe_window() {
                 for (int i = 0; i < keyframes->size(); i++) {
                     if (k_current_frame >= (*keyframes)[i].position) keyframeIndex = i;
                 }
-                if ((*keyframes)[keyframeIndex].position == k_current_frame) {
+                bool create_new = keyframes->size() == 0;
+                InterpolationCurve curve = InterpolationCurve::WAIT;
+                if (!create_new) {
+                    create_new = (*keyframes)[keyframeIndex].position != k_current_frame;
+                    curve = (*keyframes)[keyframeIndex].curve;
+                }
+                if (create_new) saturn_create_keyframe(entry.first, curve);
+                else {
                     Keyframe* keyframe = &(*keyframes)[keyframeIndex];
                     if (timeline.type == KFTYPE_BOOL) (*keyframe).value[0] = *(bool*)timeline.dest;
                     if (timeline.type == KFTYPE_FLOAT) (*keyframe).value[0] = *(float*)timeline.dest;
                     if (timeline.type == KFTYPE_ANIM) {
                         AnimationState* anim_state = (AnimationState*)timeline.dest;
                         (*keyframe).value[0] = anim_state->custom;
-                        (*keyframe).value[0] = anim_state->loop;
-                        (*keyframe).value[0] = anim_state->hang;
-                        (*keyframe).value[0] = anim_state->speed;
-                        (*keyframe).value[0] = anim_state->id;
+                        (*keyframe).value[1] = anim_state->loop;
+                        (*keyframe).value[2] = anim_state->hang;
+                        (*keyframe).value[3] = anim_state->speed;
+                        (*keyframe).value[4] = anim_state->id;
                     }
-                    if (timeline.forceWait) (*keyframe).curve = InterpolationCurve::WAIT;
+                    if (timeline.behavior != KFBEH_DEFAULT) (*keyframe).curve = InterpolationCurve::WAIT;
                 }
-                else saturn_create_keyframe(entry.first, (*keyframes)[keyframeIndex].curve);
             }
             else saturn_keyframe_apply(entry.first, k_current_frame);
         }
@@ -1018,7 +1024,8 @@ void saturn_imgui_update() {
                 for (int i = 0; i < keyframes->size(); i++) {
                     if ((*keyframes)[i].position == k_context_popout_keyframe.position) index = i;
                 }
-                if (k_context_popout_keyframe.position == 0) ImGui::BeginDisabled();
+                bool isFirst = k_context_popout_keyframe.position == 0 && k_frame_keys[k_context_popout_keyframe.timelineID].first.behavior != KFBEH_EVENT;
+                if (isFirst) ImGui::BeginDisabled();
                 bool doDelete = false;
                 bool doCopy = false;
                 if (ImGui::MenuItem("Delete")) {
@@ -1028,12 +1035,12 @@ void saturn_imgui_update() {
                     doDelete = true;
                     doCopy = true;
                 }
-                if (k_context_popout_keyframe.position == 0) ImGui::EndDisabled();
+                if (isFirst) ImGui::EndDisabled();
                 if (ImGui::MenuItem("Copy to Pointer")) {
                     doCopy = true;
                 }
                 ImGui::Separator();
-                bool forceWait = k_frame_keys[k_context_popout_keyframe.timelineID].first.forceWait;
+                bool forceWait = k_frame_keys[k_context_popout_keyframe.timelineID].first.behavior != KFBEH_DEFAULT;
                 if (forceWait) ImGui::BeginDisabled();
                 for (int i = 0; i < IM_ARRAYSIZE(curveNames); i++) {
                     if (ImGui::MenuItem(curveNames[i].c_str(), NULL, k_context_popout_keyframe.curve == InterpolationCurve(i))) {
@@ -1158,27 +1165,43 @@ void saturn_keyframe_popout_next_line(std::vector<std::string> ids) {
     if (timelineDataTable.find(ids[0]) == timelineDataTable.end()) return;
     bool contains = saturn_timeline_exists(ids[0].c_str());
     std::string button_label = std::string(contains ? ICON_FK_TRASH : ICON_FK_LINK) + "###kb_" + ids[0];
+    bool event_button = false;
     if (ImGui::Button(button_label.c_str())) {
         k_popout_open = true;
         for (std::string id : ids) {
             if (contains) k_frame_keys.erase(id);
             else {
-                auto [ptr, type, force_wait, name, precision, num_values] = timelineDataTable[id];
+                auto [ptr, type, behavior, name, precision, num_values] = timelineDataTable[id];
                 KeyframeTimeline timeline = KeyframeTimeline();
                 timeline.dest = ptr;
                 timeline.type = type;
-                timeline.forceWait = force_wait;
+                timeline.behavior = behavior;
                 timeline.name = name;
                 timeline.precision = precision;
                 timeline.numValues = num_values;
                 k_current_frame = 0;
                 startFrame = 0;
                 k_frame_keys.insert({ id, { timeline, {} } });
-                saturn_create_keyframe(id, force_wait ? InterpolationCurve::WAIT : InterpolationCurve::LINEAR);
+                if (behavior != KFBEH_EVENT) saturn_create_keyframe(id, behavior == KFBEH_FORCE_WAIT ? InterpolationCurve::WAIT : InterpolationCurve::LINEAR);
             }
         }
     }
+    for (std::string id : ids) {
+        if (saturn_timeline_exists(id.c_str())) {
+            if (k_frame_keys[id].first.behavior == KFBEH_EVENT) event_button = true;
+        }
+    }
     imgui_bundled_tooltip(contains ? "Remove" : "Animate");
+    if (event_button && contains) {
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FK_PLUS "###kb_ev_place")) {
+            for (std::string id : ids) {
+                if (!saturn_timeline_exists(id.c_str())) continue;
+                k_frame_keys[id].first.eventPlace = true;
+            }
+        }
+        imgui_bundled_tooltip("Place Keyframe");
+    }
 }
 
 bool saturn_disable_sm64_input() {
