@@ -210,9 +210,13 @@ void OpenModelSelector() {
                     ImGui::OpenPopup(popupLabelId.c_str());
                 if (ImGui::BeginPopup(popupLabelId.c_str())) {
                     // Right-click menu
-                    if (model.Author.empty()) ImGui::Text(ICON_FK_FOLDER_OPEN_O " %s/", model.FolderName.c_str());
-                    else ImGui::Text(ICON_FK_FOLDER_OPEN " %s/", model.FolderName.c_str());
+                    if (model.Author.empty()) ImGui::Text(ICON_FK_FOLDER_O " %s/", model.FolderName.c_str());
+                    else ImGui::Text(ICON_FK_FOLDER " %s/", model.FolderName.c_str());
+
                     imgui_bundled_tooltip(("/%s", model.FolderPath).c_str());
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+                        open_directory(std::string(sys_exe_path()) + "/" + model.FolderPath + "/");
+
                     ImGui::SameLine(); ImGui::TextDisabled(" Pack #%i", model.DynOSId + 1);
 
                     std::vector<std::string> cc_list = GetColorCodeList(model.FolderPath + "/colorcodes");
@@ -239,6 +243,11 @@ void OpenModelSelector() {
             }
         }
         ImGui::EndChild();
+
+        // Open DynOS Folder Button
+
+        if (ImGui::Button(ICON_FK_FOLDER_OPEN_O " Open Packs Folder...###open_packs_folder"))
+            open_directory(std::string(sys_exe_path()) + "/dynos/packs/");
     }
 }
 
@@ -260,13 +269,8 @@ void sdynos_imgui_menu() {
         if (!support_color_codes || !current_model.ColorCodeSupport) ImGui::BeginDisabled();
             OpenCCSelector();
             // Open File Dialog
-            if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_v_cc")) {
-                auto selection3 = choose_file_dialog("Select a file", { "Color Code Files", "*.gs *.txt", "All Files", "*" }, true);
-                for (auto const &filename3 : selection3) {
-                    saturn_copy_file(filename3, "dynos/colorcodes/");
-                    RefreshColorCodeList();
-                }
-            }
+            if (ImGui::Button(ICON_FK_FILE_TEXT_O " Open CC Folder...###open_cc_folder"))
+                open_directory(std::string(sys_exe_path()) + "/dynos/colorcodes/");
         if (!support_color_codes || !current_model.ColorCodeSupport) ImGui::EndDisabled();
 
         // Model Selection
@@ -495,10 +499,6 @@ void sdynos_imgui_menu() {
 
         ImGui::PopStyleVar();
         ImGui::EndMenu();
-    }
-    ImGui::Separator();
-    if (ImGui::MenuItem("Open DynOS directory")) {
-        open_directory(std::string(sys_exe_path()) + "/dynos/");
     }
     ImGui::Separator();
 
