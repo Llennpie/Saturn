@@ -6,7 +6,7 @@
         "window_bg": [0.00, 0.00, 0.00, 0.85],
         "child_bg": [0.00, 0.00, 0.00, 0.00],
         "popup_bg": [0.11, 0.11, 0.14, 0.92],
-        "border": [0.50, 0.50, 0.50, 0.50],
+        "border": [1.00, 1.00, 1.00, 0.25],
         "border_shadow": [0.00, 0.00, 0.00, 0.00],
         "frame_bg": [0.43, 0.43, 0.43, 0.39],
         "frame_bg_hovered": [0.47, 0.47, 0.69, 0.40],
@@ -54,5 +54,11 @@
         "nav_windowing_highlight": [1.00, 1.00, 1.00, 0.70],
         "nav_windowing_dim_bg": [0.80, 0.80, 0.80, 0.20],
         "modal_window_dim_bg": [0.20, 0.20, 0.20, 0.35]
+    },
+    "style": {
+        "window_rounding": 2,
+        "child_rounding": 4,
+        "frame_rounding": 2,
+        "popup_rounding": 2
     }
 }
