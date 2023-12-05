@@ -2071,6 +2071,8 @@ void set_sequence_player_volume(s32 player, f32 volume) {
 }
 
 void play_music(u8 player, u16 seqArgs, u16 fadeTimer) {
+    if (gSequencePlayers[0].volumeScale == 0) return;
+
     u8 seqId = seqArgs & 0xff;
     u8 priority = seqArgs >> 8;
     u8 i;
