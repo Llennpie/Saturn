@@ -127,7 +127,7 @@ void OpenModelSelector() {
         // If our model list is reloaded, and we now have less than 20 packs, this can cause filter issues if not reset to nothing
         if (modelSearchTerm != "") strcpy(modelSearchTerm, "");
     }
-    string modelSearchLower = modelSearchTerm;
+    std::string modelSearchLower = modelSearchTerm;
     std::transform(modelSearchLower.begin(), modelSearchLower.end(), modelSearchLower.begin(),
         [](unsigned char c){ return std::tolower(c); });
 
@@ -140,14 +140,13 @@ void OpenModelSelector() {
             if (model.Active) {
                 bool is_selected = DynOS_Opt_GetValue(String("dynos_pack_%d", i));
 
-                // If we're searching, only include models with the search keyword in the name
+                // If we're searching, only include CCs with the search keyword in the name
                 // Also convert to lowercase
-                if (modelSearchLower != "") {
-                    std::string labelLower = model.SearchMeta();
-                    std::transform(labelLower.begin(), labelLower.end(), labelLower.begin(),
+                std::string label_name_lower = model.FolderName;
+                std::transform(label_name_lower.begin(), label_name_lower.end(), label_name_lower.begin(),
                         [](unsigned char c1){ return std::tolower(c1); });
-
-                    if (labelLower.find(modelSearchLower) == std::string::npos) {
+                if (modelSearchLower != "") {
+                    if (label_name_lower.find(modelSearchLower) == std::string::npos) {
                         continue;
                     }
                 }
