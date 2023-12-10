@@ -147,7 +147,7 @@ typedef const u8 *const SkyboxTexture[80];
     "textures/skyboxes/" id ".79.rgba16.png", \
 
 SkyboxTexture bbh_skybox_ptrlist = { SKYTEX("bbh") };
-SkyboxTexture bidw_skybox_ptrlist = { SKYTEX("bitdw") };
+SkyboxTexture bidw_skybox_ptrlist = { SKYTEX("bidw") };
 SkyboxTexture bitfs_skybox_ptrlist = { SKYTEX("bitfs") };
 SkyboxTexture bits_skybox_ptrlist = { SKYTEX("bits") };
 SkyboxTexture ccm_skybox_ptrlist = { SKYTEX("ccm") };
