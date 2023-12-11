@@ -24,6 +24,7 @@ extern "C" {
 #include "game/level_update.h"
 #include "sm64.h"
 #include "pc/gfx/gfx_pc.h"
+#include "levels/castle_inside/header.h"
 }
 
 using namespace std;
@@ -41,8 +42,8 @@ namespace fs = std::filesystem;
 bool custom_eyes_enabled;
 bool show_vmario_emblem;
 
-Texpression VanillaEyes;
-/* Loads textures from dynos/eyes/ into a global Texpression */
+Expression VanillaEyes;
+/* Loads textures from dynos/eyes/ into a global Expression */
 void LoadEyesFolder() {
     // Check if the dynos/eyes/ folder exists
     if (fs::is_directory("dynos/eyes")) {
@@ -55,7 +56,7 @@ void LoadEyesFolder() {
             // Only allow PNG files
             if (entry.path().extension() == ".png") {
                 TexturePath texture;
-                texture.FileName = entry.path().filename().u8string();
+                texture.FileName = entry.path().filename().generic_u8string();
                 texture.FilePath = entry.path().generic_u8string();
                 VanillaEyes.Textures.push_back(texture);
             }
@@ -65,7 +66,7 @@ void LoadEyesFolder() {
 
 
 /* Loads textures into an expression */
-std::vector<TexturePath> LoadExpressionTextures(Texpression expression) {
+std::vector<TexturePath> LoadExpressionTextures(Expression expression) {
     std::vector<TexturePath> textures;
 
     // Check if the expression's folder exists
@@ -75,7 +76,7 @@ std::vector<TexturePath> LoadExpressionTextures(Texpression expression) {
                 // Only allow PNG files
                 if (entry.path().extension() == ".png") {
                     TexturePath texture;
-                    texture.FileName = entry.path().filename().u8string();
+                    texture.FileName = entry.path().filename().generic_u8string();
                     texture.FilePath = entry.path().generic_u8string();
                     textures.push_back(texture);
                 }
@@ -86,8 +87,8 @@ std::vector<TexturePath> LoadExpressionTextures(Texpression expression) {
 }
 
 /* Loads an expression list into a specified model */
-std::vector<Texpression> LoadExpressions(std::string modelFolderPath) {
-    std::vector<Texpression> expressions_list;
+std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
+    std::vector<Expression> expressions_list;
 
     // Check if the model's /expressions folder exists
     if (fs::is_directory(fs::path(modelFolderPath + "/expressions"))) {
@@ -95,12 +96,12 @@ std::vector<Texpression> LoadExpressions(std::string modelFolderPath) {
             // Load individual expression folders
             if (fs::is_directory(entry.path())) {
 
-                Texpression expression;
-                expression.Name = entry.path().filename().u8string();
+                Expression expression;
+                expression.Name = entry.path().filename().generic_u8string();
                 if (expression.Name == "eye")
                     expression.Name = "eyes";
 
-                expression.FolderPath = entry.path().u8string();
+                expression.FolderPath = entry.path().generic_u8string();
                 // Load all PNG files
                 expression.Textures = LoadExpressionTextures(expression);
 
@@ -129,15 +130,13 @@ const void* saturn_bind_texture(const void* input) {
     
     std::string texName = inputTexture;
 
-    // Custom model expressions and eye textures
+    // Custom model expressions
     if (current_model.Active && texName.find("saturn_") != std::string::npos) {
         for (int i = 0; i < current_model.Expressions.size(); i++) {
-            Texpression expression = current_model.Expressions[i];
+            Expression expression = current_model.Expressions[i];
             // Checks if the incoming texture has the expression's "key"
             // This could be "saturn_eye", "saturn_mouth", etc.
-
             if (expression.PathHasReplaceKey(texName)) {
-                std::cout << texName << " -> " << expression.Textures[expression.CurrentIndex].GetRelativePath() << std::endl;
                 outputTexture = expression.Textures[expression.CurrentIndex].GetRelativePath().c_str();
                 const void* output = static_cast<const void*>(outputTexture);
                 return output;
@@ -145,8 +144,10 @@ const void* saturn_bind_texture(const void* input) {
         }
     }
 
+    // Vanilla eye textures
     if (custom_eyes_enabled && current_model.UsingVanillaEyes() && VanillaEyes.Textures.size() > 0) {
         if (texName.find("saturn_eye") != string::npos ||
+            // Unused vanilla textures
             texName == "actors/mario/mario_eyes_left_unused.rgba16.png" ||
             texName == "actors/mario/mario_eyes_right_unused.rgba16.png" ||
             texName == "actors/mario/mario_eyes_up_unused.rgba16.png" ||
@@ -192,27 +193,19 @@ const void* saturn_bind_texture(const void* input) {
                 return "textures/saturn/white.rgba16.png";
         } else {
             // Swapping skyboxes IDs
-            if (texName.find("textures/skyboxes/water") != string::npos) {
+            if (texName.find("textures/skyboxes/") != string::npos) {
+                std::string skybox_key = texName.substr(18, texName.find_first_of(".") - 18);
                 switch(gChromaKeyBackground) {
-                    case 0: return static_cast<const void*>(texName.replace(22, 5, "water").c_str());
-                    case 1: return static_cast<const void*>(texName.replace(22, 5, "bitfs").c_str());
-                    case 2: return static_cast<const void*>(texName.replace(22, 5, "wdw").c_str());
-                    case 3: return static_cast<const void*>(texName.replace(22, 5, "cloud_floor").c_str());
-                    case 4: return static_cast<const void*>(texName.replace(22, 5, "ccm").c_str());
-                    case 5: return static_cast<const void*>(texName.replace(22, 5, "ssl").c_str());
-                    case 6: return static_cast<const void*>(texName.replace(22, 5, "bbh").c_str());
-                    case 7: return static_cast<const void*>(texName.replace(22, 5, "bidw").c_str());
-                    case 8:
-                        // "Above Clouds" recycles textures for its bottom layer
-                        // See /us_pc/bin/clouds_skybox.c @ line 138
-                        if (texName == "textures/skyboxes/water.44.rgba16.png" ||
-                            texName == "textures/skyboxes/water.45.rgba16.png") {
-                                return "textures/skyboxes/clouds.40.rgba16.png";
-                            }
-                        else {
-                            return static_cast<const void*>(texName.replace(22, 5, "clouds").c_str());
-                        }
-                    case 9: return static_cast<const void*>(texName.replace(22, 5, "bits").c_str());
+                    case 0: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "water").c_str());
+                    case 1: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bitfs").c_str());
+                    case 2: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "wdw").c_str());
+                    case 3: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "cloud_floor").c_str());
+                    case 4: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "ccm").c_str());
+                    case 5: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "ssl").c_str());
+                    case 6: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bbh").c_str());
+                    case 7: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bidw").c_str());
+                    case 8: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "clouds").c_str());
+                    case 9: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bits").c_str());
                 }
             }
         }
@@ -243,9 +236,42 @@ const void* saturn_bind_texture(const void* input) {
 
                 }
             }
-            // To-do: Hide paintings as well (low priority)
         }
+
+        // Painting visibility
+        bob_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        ccm_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        wf_painting.alpha =         (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        jrb_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        lll_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        ssl_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        hmc_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        ddd_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        wdw_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        thi_tiny_painting.alpha =   (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        ttm_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        ttc_painting.alpha =        (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        sl_painting.alpha =         (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+        thi_huge_painting.alpha =   (autoChroma & !autoChromaObjects) ? 0x00 : 0xFF;
+
+        if (autoChroma && !autoChromaObjects)  bob_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  ccm_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  wf_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  jrb_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  lll_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  ssl_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  hmc_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  ddd_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  wdw_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  thi_tiny_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  ttm_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  ttc_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  sl_painting.state = 1;
+        if (autoChroma && !autoChromaObjects)  thi_huge_painting.state = 1;
     }
+
+    if (texName.find("textures/skyboxes/cloud.") != string::npos)
+        return static_cast<const void*>(texName.replace(18, 5, "cloud_floor").c_str());
 
     return input;
 }
