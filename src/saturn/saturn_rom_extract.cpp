@@ -1,5 +1,6 @@
 #include "saturn_rom_extract.h"
 #include "saturn_assets.h"
+#include "saturn.h"
 
 #include <filesystem>
 #include <utility>
@@ -326,6 +327,7 @@ bool saturn_extract_rom(int type) {
         pfd::message("ROM Extract Error", "Couldn't verify 'sm64.z64'.\n\nThe file may be corrupted, extended, or from the wrong region. Use an unmodified US version of SM64.", pfd::choice::ok);
         return false;
     }
+    extraction_progress = 0;
     std::ifstream stream = std::ifstream("sm64.z64", std::ios::binary);
     unsigned char* data = (unsigned char*)malloc(1024 * 1024 * 8);
     stream.read((char*)data, 1024 * 1024 * 8);
@@ -337,7 +339,9 @@ bool saturn_extract_rom(int type) {
         if (asset.mio0 == -1) mio0.insert({ -1, data });
         else mio0.insert({ asset.mio0, read_mio0(data + asset.mio0) });
     }
+    int count = 0;
     for (const auto& asset : assets) {
+        extraction_progress = count++ / (float)assets.size();
         if (std::find(todo.begin(), todo.end(), asset.path) == todo.end()) continue;
         currently_extracting = asset.path;
         std::istringstream iss = std::istringstream(asset.path);
@@ -398,6 +402,7 @@ bool saturn_extract_rom(int type) {
     for (const auto& entry : mio0) {
         free(entry.second);
     }
+    extraction_progress = 1;
     std::cout << "extraction finished" << std::endl;
     return true;
 }

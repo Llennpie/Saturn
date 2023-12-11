@@ -121,6 +121,7 @@ std::vector<Texpression> LoadExpressions(std::string modelFolderPath) {
     Handles texture replacement. Called from gfx_pc.c
 */
 const void* saturn_bind_texture(const void* input) {
+    if (input == nullptr) return input;
     const char* inputTexture = static_cast<const char*>(input);
     const char* outputTexture;
 

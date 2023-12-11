@@ -4,6 +4,8 @@
 #include "game/memory.h"
 #include "game/segment2.h"
 #include "game/segment7.h"
+#include "game/game_init.h"
+#include "game/ingame_menu.h"
 #include "intro_geo.h"
 #include "sm64.h"
 #include "textures.h"
@@ -11,6 +13,8 @@
 #include "prevent_bss_reordering.h"
 
 #include "gfx_dimensions.h"
+
+#include "saturn/saturn.h"
 
 // frame counts for the zoom in, hold, and zoom out of title model
 #define INTRO_STEPS_ZOOM_IN 10
@@ -121,6 +125,52 @@ Gfx *geo_title_screen(s32 sp50, struct GraphNode *sp54, UNUSED void *context) {
         gTitleZoomCounter++;
     }
     return displayList;
+}
+#define RGB24_TO_RGBA16(r, g, b, alphaBit) (((r) * 32 / 256) << 11) | (((g) * 32 / 256) << 6) | (((b) * 32 / 256) << 1) | ((alphaBit) & 1)
+#define gDPCreateRectangle(dl, r, g, b, a, x, y, w, h) \
+    gDPSetFillColor(dl, RGB24_TO_RGBA16(r, g, b, a)); \
+    gDPFillRectangle(dl, x, y, (x) + (w), (y) + (h))
+
+void ascii_to_sm64(char* out, int outlen, const char* in) {
+    int ptr = 0;
+    while (ptr < outlen) {
+        char character = in[ptr];
+        if (character == 0) break;
+        else if (character >= '0' && character <= '9') out[ptr] = character - '0';
+        else if (character >= 'A' && character <= 'Z') out[ptr] = character - 'A' + 10;
+        else if (character >= 'a' && character <= 'z') out[ptr] = character - 'a' + 36;
+        else if (character == '.') out[ptr] = DIALOG_CHAR_PERIOD;
+        else if (character == ',') out[ptr] = DIALOG_CHAR_COMMA;
+        else out[ptr] = DIALOG_CHAR_SPACE;
+        ptr++;
+    }
+    out[ptr] = DIALOG_CHAR_TERMINATOR;
+}
+
+Gfx *geo_intro_loading_screen(s32 sp50, struct GraphNode *sp54, UNUSED void *context) {
+    Gfx* displayList = NULL;
+    Gfx* displayListIter = NULL;
+    if (extraction_progress != 1) {
+        displayList = alloc_display_list(256 * sizeof(Gfx));
+        displayListIter = displayList;
+        float width = GFX_DIMENSIONS_FROM_RIGHT_EDGE(16) - GFX_DIMENSIONS_FROM_LEFT_EDGE(16);
+        gDPCreateRectangle(displayListIter++, 127, 127, 127, 1, GFX_DIMENSIONS_FROM_LEFT_EDGE(16), SCREEN_HEIGHT - 32, width                      , 16);
+        gDPCreateRectangle(displayListIter++, 255, 255, 255, 1, GFX_DIMENSIONS_FROM_LEFT_EDGE(16), SCREEN_HEIGHT - 32, width * extraction_progress, 16);
+        char extracting_assets[256];
+        char percentage[256];
+        char percentage_sm64[256];
+        snprintf(percentage, 255, "%d", (int)(extraction_progress * 100));
+        ascii_to_sm64(extracting_assets, 255, "EXTRACTING ASSETS");
+        ascii_to_sm64(percentage_sm64, 255, percentage);
+        gSPDisplayList(displayListIter++, dl_menu_ia8_text_begin);
+        gDPSetEnvColor(displayListIter++, 0, 0, 0, 255);
+        custom_dl_print_menu_generic_string(&displayListIter, GFX_DIMENSIONS_FROM_LEFT_EDGE(20), SCREEN_HEIGHT - 28, extracting_assets);
+        custom_dl_print_menu_generic_string(&displayListIter, GFX_DIMENSIONS_FROM_RIGHT_EDGE(20) - 18, SCREEN_HEIGHT - 28, percentage_sm64);
+        gSPDisplayList(displayListIter++, dl_menu_ia8_text_begin);
+        gSPEndDisplayList(displayListIter++);
+        return displayList;
+    }
+    return NULL;
 }
 
 Gfx *geo_fade_transition(s32 sp40, struct GraphNode *sp44, UNUSED void *context) {

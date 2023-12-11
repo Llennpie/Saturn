@@ -89,6 +89,10 @@ extern f32 mario_headrot_speed;
 extern bool keyframe_playing;
 extern int k_previous_frame;
 
+extern bool extract_thread_began;
+extern bool extraction_finished;
+extern float extraction_progress;
+
 #ifdef __cplusplus
 #include <string>
 #include <vector>

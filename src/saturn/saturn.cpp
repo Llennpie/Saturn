@@ -167,6 +167,10 @@ int keyResetter;
 
 u8 godmode_temp_off = false;
 
+bool extract_thread_began = false;
+bool extraction_finished = false;
+float extraction_progress = 1;
+
 extern void saturn_run_chainer();
 
 float key_increase_val(std::vector<float> vecfloat) {
@@ -681,8 +685,6 @@ const char* saturn_get_stage_name(int courseNum) {
     }
 }
 
-bool extract_thread_began = false;
-bool extraction_finished = false;
 std::thread extract_thread;
 
 s32 saturn_begin_extract_rom_thread() {
