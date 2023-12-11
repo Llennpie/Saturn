@@ -1373,11 +1373,7 @@ static void gfx_dp_set_scissor(uint32_t mode, uint32_t ulx, uint32_t uly, uint32
 }
 
 static void gfx_dp_set_texture_image(uint32_t format, uint32_t size, uint32_t width, const void* addr) {
-    //if (is_replacing_exp) {
-        rdp.texture_to_load.addr = saturn_bind_texture(addr);
-    //} else {
-    //    rdp.texture_to_load.addr = addr;
-    //}
+    rdp.texture_to_load.addr = saturn_bind_texture(addr);
     rdp.texture_to_load.siz = size;
 }
 
