@@ -1,0 +1,110 @@
+# Links to files that Saturn updater downloads during installation
+# Prefix lines with # for comments
+# Prefix lines with $ for Windows only files
+# Prefix lines with % for Linux only files
+# Prefix lines with @ for files for both operating systems
+# Use ./generate-dependencies.sh to create this dependency list
+
+$ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/lib/discordsdk/discord_game_sdk.dll
+% https://raw.githubusercontent.com/Llennpie/Saturn/legacy/lib/discordsdk/libdiscord_game_sdk.so
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/fonts/forkawesome-webfont.ttf
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/anim_favorites.bin
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/themes/legacy.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/themes/moon.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/themes/moviemaker.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/themes/dear.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/themes/light.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/themes/halflife.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/macros/.gitkeep
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/macros/test.stm
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/README.txt
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/projects/.gitkeep
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/anims/tilt-spaz.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Insane.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Cry.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Derp.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Depressed.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Happy.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Drunk.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Attacked.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Sad.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/README.txt
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Angry.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Squint.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Beg.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Wink.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Think.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Love.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Shocked.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Hoohoo.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/Toon.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/model.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_05959DD2_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_glasses_exmo3.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_cape_exmo3.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_eye_spark.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_5E0098B6_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_30105622_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/wing_tip.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_2D97FE62_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_D600EE37_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/geo_header.h
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_57C6BEA1_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_309406AF_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/metal.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_tail_exmo3.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_ears_exmo.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_DCA39DE3_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/ExMo3_Mario_B659FDC7_0_2_all.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/wing.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_mouth_exmo3.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/geo.inc.c
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/model.inc.c
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_hammer.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/mario/saturn_mustache_exmo3.rgba16.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/glasses/default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/glasses/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/hammer/default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/hammer/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/ears/default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/ears/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/mouths/open.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/mouths/joy.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/mouths/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/mouths/0straight.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/cape/default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/cape/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/eyes/up.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/eyes/unamused.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/eyes/question.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/tail/default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/X3/expressions/tail/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/mario_geo.bin
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/default.gs
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/model.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/sideburn/luigi.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/sideburn/0-default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/sideburn/lighter.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/sideburn/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mouth/2-open.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mouth/4-joy.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mouth/3-smile.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mouth/6-sad.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mouth/5-frown.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mouth/1-straight.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mouth/0-none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mustache/luigi.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mustache/0-default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/mustache/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/cap/0-default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/cap/saturn.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/cap/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/button/0-default.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/button/grey.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Creator Mario/expressions/button/none.png
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Shadow Mario/model.json
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Shadow Mario/mario/geo_header.h
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Shadow Mario/mario/geo.inc.c
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Shadow Mario/mario/model.inc.c
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/colorcodes/SMG4.gs
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/locations.bin
