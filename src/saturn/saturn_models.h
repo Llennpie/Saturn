@@ -16,7 +16,7 @@ class Model {
         bool Active;
         int DynOSId = -1;
 
-        std::string FolderName;
+        std::string FolderName = "Mario";
         std::string FolderPath;
 
         // Metadata
@@ -26,7 +26,7 @@ class Model {
         std::string Description;
 
         // Expressions
-        std::vector<Texpression> Expressions;
+        std::vector<Expression> Expressions;
         bool CustomEyeSupport = true;
         /* Returns true if the model uses the default /dynos/eyes/ folder for its eye expressions */
         bool UsingVanillaEyes() {
@@ -71,10 +71,12 @@ class Model {
 
         bool CustomBlinkCycle;
 
-        /* A loose cluster of the model's metadata strings, useful for search indexing */
+        /* A loose cluster of metadata strings, useful for search indexing */
         std::string SearchMeta() {
-            if (!this->Name.empty())
-                return (this->Name + "" + this->Author + this->FolderName); 
+            if (!this->Name.empty() && !this->Author.empty())
+                return (this->Name + this->Author + this->FolderName);
+
+            return this->FolderName;
         }
 };
 
