@@ -159,7 +159,7 @@ void OpenModelSelector() {
 
                 // If we're searching, only include CCs with the search keyword in the name
                 // Also convert to lowercase
-                std::string label_name_lower = model.FolderName;
+                std::string label_name_lower = model.SearchMeta();
                 std::transform(label_name_lower.begin(), label_name_lower.end(), label_name_lower.begin(),
                         [](unsigned char c1){ return std::tolower(c1); });
                 if (modelSearchLower != "") {
@@ -181,8 +181,8 @@ void OpenModelSelector() {
                     current_model = model;
 
                     // Load expressions
+                    current_model.Expressions.clear();
                     current_model.Expressions = LoadExpressions(current_model.FolderPath);
-                    gfx_precache_textures();
 
                     if (is_selected) {
                         std::cout << "Loaded " << model.Name << " by " << model.Author << std::endl;
@@ -511,6 +511,8 @@ void sdynos_imgui_menu() {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("###model_metadata", ImVec2(0, 45), true, ImGuiWindowFlags_NoScrollbar);
         ImGui::Text(metaLabelText.c_str()); imgui_bundled_tooltip(metaDataText.c_str());
+        if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+            open_directory(std::string(sys_exe_path()) + "/" + current_model.FolderPath + "/");
         ImGui::TextDisabled(("@ " + current_model.Author).c_str());
         ImGui::EndChild();
         ImGui::PopStyleVar();
@@ -527,7 +529,8 @@ void sdynos_imgui_menu() {
         if (!AnyModelsEnabled())
             imgui_bundled_tooltip("Place custom eye PNG textures in /dynos/eyes/.");
 
-        if (custom_eyes_enabled || current_model.Expressions.size() > 0) ImGui::Separator();
+        if ((custom_eyes_enabled && current_model.Expressions.size() > 0) || current_model.Expressions.size() > 1)
+            ImGui::Separator();
 
         // Expressions Selector
         OpenExpressionSelector();
