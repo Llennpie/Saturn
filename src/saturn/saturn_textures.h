@@ -21,7 +21,7 @@ public:
     }
 };
 
-class Texpression {
+class Expression {
 private:
     std::string ReplaceKey() {
         return "saturn_" + this->Name;
@@ -45,11 +45,11 @@ public:
 
 extern bool custom_eyes_enabled;
 
-extern Texpression VanillaEyes;
+extern Expression VanillaEyes;
 extern void LoadEyesFolder();
 
-std::vector<TexturePath> LoadExpressionTextures(Texpression);
-std::vector<Texpression> LoadExpressions(std::string);
+std::vector<TexturePath> LoadExpressionTextures(Expression);
+std::vector<Expression> LoadExpressions(std::string);
 
 void saturn_copy_file(std::string from, std::string to);
 void saturn_delete_file(std::string file);
