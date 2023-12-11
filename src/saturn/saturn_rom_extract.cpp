@@ -12,6 +12,7 @@
 #include "saturn/libs/portable-file-dialogs.h"
 
 extern "C" {
+#include "pc/pc_main.h"
 #include "pc/platform.h"
 #include "pc/pngutils.h"
 #include "pc/cliopts.h"
@@ -314,18 +315,19 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
     return ROM_NEED_EXTRACT;
 }
 
-bool saturn_extract_rom(int type) {
+int saturn_extract_rom(int type) {
     std::filesystem::path extract_dest = EXTRACT_PATH;
     std::vector<std::string> todo = {};
     int status = saturn_rom_status(extract_dest, &todo, type);
-    if (status == ROM_OK) return true;
+
+    if (status == ROM_OK) return ROM_OK;
     if (status == ROM_MISSING) {
-        pfd::message("ROM Extract Error", "Cannot find 'sm64.z64'.\n\nPut an unmodified, US version of SM64 into Saturn's executable directory and name it 'sm64.z64'.", pfd::choice::ok);
-        return false;
+        pfd::message("Missing ROM","Cannot find sm64.z64\n\nPlease place an unmodified, US Super Mario 64 ROM next to the .exe and name it \"sm64.z64\"", pfd::choice::ok);
+        return ROM_MISSING;
     }
     if (status == ROM_INVALID) {
-        pfd::message("ROM Extract Error", "Couldn't verify 'sm64.z64'.\n\nThe file may be corrupted, extended, or from the wrong region. Use an unmodified US version of SM64.", pfd::choice::ok);
-        return false;
+        pfd::message("Invalid ROM", "Couldn't verify sm64.z64\n\nThe file may be corrupted, extended, or from the wrong region. Use an unmodified US version of SM64", pfd::choice::ok);
+        return ROM_INVALID;
     }
     extraction_progress = 0;
     std::ifstream stream = std::ifstream("sm64.z64", std::ios::binary);
@@ -404,5 +406,5 @@ bool saturn_extract_rom(int type) {
     }
     extraction_progress = 1;
     std::cout << "extraction finished" << std::endl;
-    return true;
+    return ROM_OK;
 }
