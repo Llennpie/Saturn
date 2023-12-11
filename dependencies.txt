@@ -3,6 +3,7 @@
 # Prefix lines with $ for Windows only files
 # Prefix lines with % for Linux only files
 # Prefix lines with @ for files for both operating systems
+# Prefix lines with > to redirect downloaded file to a separate directory
 # Use ./generate-dependencies.sh to create this dependency list
 
 $ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/lib/discordsdk/discord_game_sdk.dll
@@ -108,3 +109,4 @@ $ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/lib/discordsdk/discor
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/packs/Shadow Mario/mario/model.inc.c
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/colorcodes/SMG4.gs
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/locations.bin
+> lib/discordsdk;.
