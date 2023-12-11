@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <thread>
 #include <map>
 #include <SDL2/SDL.h>
 
@@ -286,9 +287,9 @@ void saturn_update() {
         //configHUD = prev_quicks[2];
     }
 
-    saturn_launch_timer++;
+    if (splash_finished) saturn_launch_timer++;
     //std::cout << saturn_launch_timer << std::endl;
-    if (gCurrLevelNum == LEVEL_SA && saturn_launch_timer < 50) {
+    if (gCurrLevelNum == LEVEL_SA && saturn_launch_timer <= 1 && splash_finished) {
         gMarioState->faceAngle[1] = 0;
         if (gCamera) { // i hate the sm64 camera system aaaaaaaaaaaaaaaaaa
             float dist = 0;
@@ -680,6 +681,21 @@ const char* saturn_get_stage_name(int courseNum) {
     }
 }
 
+bool extract_thread_began = false;
+bool extraction_finished = false;
+std::thread extract_thread;
+
+s32 saturn_begin_extract_rom_thread() {
+    if (extract_thread_began) return extraction_finished;
+    extract_thread_began = true;
+    extraction_finished = false;
+    extract_thread = std::thread([]() {
+        saturn_extract_rom(EXTRACT_TYPE_ALL);
+        extraction_finished = true;
+    });
+    return false;
+}
+
 void saturn_do_load() {
     if (!(save_file_get_flags() & SAVE_FLAG_TALKED_TO_ALL_TOADS)) DynOS_Gfx_GetPacks().Clear();
     DynOS_Opt_Init();
@@ -690,7 +706,6 @@ void saturn_do_load() {
     saturn_launch_timer = 0;
     saturn_cmd_registers_load();
     saturn_load_favorite_anims();
-    saturn_extract_rom(EXTRACT_TYPE_ALL);
     saturn_fill_data_table();
 }
 void saturn_on_splash_finish() {

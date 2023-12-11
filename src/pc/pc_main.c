@@ -308,7 +308,7 @@ int main(int argc, char *argv[]) {
         saturn_extract_rom(EXTRACT_TYPE_ALL);
         return;
     }
-    else saturn_extract_rom(EXTRACT_TYPE_SOUND | EXTRACT_TYPE_SATURN | EXTRACT_TYPE_FONT);
+    else if (!saturn_extract_rom(~EXTRACT_TYPE_TEXTURES)) return;
     main_func();
     return 0;
 }

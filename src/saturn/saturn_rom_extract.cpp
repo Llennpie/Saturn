@@ -40,7 +40,7 @@ std::map<std::string, FormatTableEntry> format_table = {
     { "i8",     (FormatTableEntry){ FMT_I,    8  } }
 };
 
-#define EXTRACT_PATH "res"
+#define EXTRACT_PATH std::filesystem::path(sys_user_path()) / "res"
 
 struct mio0_header {
     unsigned int dest_size;
@@ -227,7 +227,7 @@ unsigned char* raw2skybox(unsigned char* raw, int len, int use_bitfs) {
 #undef CONST
 
 void write_png(std::string path, void* data, int width, int height, int depth) {
-    std::filesystem::path dst = std::filesystem::path(EXTRACT_PATH) / path;
+    std::filesystem::path dst = EXTRACT_PATH / path;
     std::filesystem::create_directories(dst.parent_path());
     std::cout << "exporting " << dst << std::endl;
     pngutils_write_png(std::filesystem::absolute(dst).u8string().c_str(), width, height, depth, data, 0);
@@ -263,14 +263,22 @@ unsigned char* file_processor_apply(unsigned char* data, std::pair<int, unsigned
 #define ROM_MISSING      2
 #define ROM_INVALID      3
 
+#define TEXTYPE_OTHER      0
+#define TEXTYPE_FONT       1
+#define TEXTYPE_TRANSITION 2
+
 int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::string>* todo, int type) {
     bool needs_extract = false;
     bool needs_rom = false;
     for (const auto& entry : assets) {
         if ((entry.metadata.size() == 0) && !(type & EXTRACT_TYPE_SOUND)) continue;
-        bool isFont = entry.path.find("font_graphics") != std::string::npos;
-        if (!isFont && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_TEXTURES)) continue;
-        if ( isFont && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_FONT    )) continue;
+        int textype = TEXTYPE_OTHER;
+        if (entry.path.find("font_graphics") != std::string::npos) textype = TEXTYPE_FONT;
+        if (entry.path.find("segment2.0F458.ia8") != std::string::npos ||
+            entry.path.find("segment2.0FC58.ia8") != std::string::npos) textype = TEXTYPE_FONT;
+        if (textype == TEXTYPE_OTHER      && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_TEXTURES  )) continue;
+        if (textype == TEXTYPE_FONT       && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_FONT      )) continue;
+        if (textype == TEXTYPE_TRANSITION && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_TRANSITION)) continue;
         if (entry.metadata.size() > 0 && entry.metadata[0] == -1) {
             bool missing = false;
             std::filesystem::path path = extract_dest / entry.path;
@@ -282,13 +290,13 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
             }
             if (missing) {
                 needs_extract = true;
-                todo->push_back(entry.path);
+                if (todo != nullptr) todo->push_back(entry.path);
             }
             continue;
         }
         if (!std::filesystem::exists(extract_dest / entry.path)) {
             needs_extract = true;
-            todo->push_back(entry.path);
+            if (todo != nullptr) todo->push_back(entry.path);
         }
     }
     needs_rom = needs_extract;
@@ -296,7 +304,7 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
         for (const auto& entry : saturn_assets) {
             if (!std::filesystem::exists(extract_dest / entry.path)) {
                 needs_extract = true;
-                todo->push_back(entry.path);
+                if (todo != nullptr) todo->push_back(entry.path);
             }
         }
     }
@@ -305,18 +313,18 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
     return ROM_NEED_EXTRACT;
 }
 
-void saturn_extract_rom(int type) {
+bool saturn_extract_rom(int type) {
     std::filesystem::path extract_dest = EXTRACT_PATH;
     std::vector<std::string> todo = {};
     int status = saturn_rom_status(extract_dest, &todo, type);
-    if (status == ROM_OK) return;
+    if (status == ROM_OK) return true;
     if (status == ROM_MISSING) {
         pfd::message("ROM Extract Error", "Cannot find 'sm64.z64'.\n\nPut an unmodified, US version of SM64 into Saturn's executable directory and name it 'sm64.z64'.", pfd::choice::ok);
-        return;
+        return false;
     }
     if (status == ROM_INVALID) {
         pfd::message("ROM Extract Error", "Couldn't verify 'sm64.z64'.\n\nThe file may be corrupted, extended, or from the wrong region. Use an unmodified US version of SM64.", pfd::choice::ok);
-        return;
+        return false;
     }
     std::ifstream stream = std::ifstream("sm64.z64", std::ios::binary);
     unsigned char* data = (unsigned char*)malloc(1024 * 1024 * 8);
@@ -360,7 +368,7 @@ void saturn_extract_rom(int type) {
             }
         }
         else {
-            std::filesystem::path dst = std::filesystem::path(EXTRACT_PATH) / asset.path;
+            std::filesystem::path dst = EXTRACT_PATH / asset.path;
             std::filesystem::create_directories(dst.parent_path());
             std::cout << "exporting " << dst << std::endl;
             unsigned char* out_data;
@@ -390,4 +398,6 @@ void saturn_extract_rom(int type) {
     for (const auto& entry : mio0) {
         free(entry.second);
     }
+    std::cout << "extraction finished" << std::endl;
+    return true;
 }
