@@ -501,10 +501,6 @@ void sdynos_imgui_menu() {
         ImGui::PopStyleVar();
         ImGui::EndMenu();
     }
-    ImGui::Separator();
-
-    ImGui::Text("Keyframe Expressions");
-    saturn_keyframe_popout_next_line("k_mario_expr");
 
     ImGui::Separator();
 
@@ -541,5 +537,10 @@ void sdynos_imgui_menu() {
 
         // Expressions Selector
         OpenExpressionSelector();
+
+        // Keyframing
+        if (custom_eyes_enabled ||
+            current_model.Expressions.size() > 0)
+                saturn_keyframe_popout_next_line("k_mario_expr");
     }
 }
