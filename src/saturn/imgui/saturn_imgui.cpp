@@ -621,6 +621,12 @@ void saturn_keyframe_window() {
                         (*keyframe).value[3] = anim_state->speed;
                         (*keyframe).value[4] = anim_state->id;
                     }
+                    if (timeline.type == KFTYPE_EXPRESSION) {
+                        Model* model = (Model*)timeline.dest;
+                        for (int i = 0; i < model->Expressions.size(); i++) {
+                            (*keyframe).value[i] = model->Expressions[i].CurrentIndex;
+                        }
+                    }
                     if (timeline.behavior != KFBEH_DEFAULT) (*keyframe).curve = InterpolationCurve::WAIT;
                 }
             }
@@ -1139,6 +1145,12 @@ void saturn_create_keyframe(std::string id, InterpolationCurve curve) {
         keyframe.value.push_back(anim_state->hang);
         keyframe.value.push_back(anim_state->speed);
         keyframe.value.push_back(anim_state->id);
+    }
+    if (timeline.type == KFTYPE_EXPRESSION) {
+        Model* model = (Model*)timeline.dest;
+        for (int i = 0; i < model->Expressions.size(); i++) {
+            keyframe.value.push_back(model->Expressions[i].CurrentIndex);
+        }
     }
     keyframe.curve = curve;
     k_frame_keys[id].second.push_back(keyframe);

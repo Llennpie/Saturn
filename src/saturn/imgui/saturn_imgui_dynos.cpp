@@ -501,6 +501,11 @@ void sdynos_imgui_menu() {
     }
     ImGui::Separator();
 
+    ImGui::Text("Keyframe expressions");
+    saturn_keyframe_popout_next_line("k_mario_expr");
+
+    ImGui::Separator();
+
     // Model Metadata
     if (!current_model.Author.empty()) {
         string metaLabelText = (ICON_FK_USER " " + current_model.Name);

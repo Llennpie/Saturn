@@ -489,6 +489,12 @@ bool saturn_keyframe_apply(std::string id, int frame) {
             chainer_index = 0;
             anim_play_button();
         }
+        if (timeline.type == KFTYPE_EXPRESSION) {
+            Model* dest = (Model*)timeline.dest;
+            for (int i = 0; i < keyframes[idx].value.size(); i++) {
+                dest->Expressions[i].CurrentIndex = keyframes[idx].value[i];
+            }
+        }
         return idx + 1 == keyframes.size();
     }
 
