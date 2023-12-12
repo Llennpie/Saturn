@@ -503,7 +503,7 @@ void sdynos_imgui_menu() {
     }
     ImGui::Separator();
 
-    ImGui::Text("Keyframe expressions");
+    ImGui::Text("Keyframe Expressions");
     saturn_keyframe_popout_next_line("k_mario_expr");
 
     ImGui::Separator();
