@@ -175,6 +175,8 @@ void OpenModelSelector() {
                         if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] == false)
                             DynOS_Opt_SetValue(String("dynos_pack_%d", j), false);
                     }
+
+                    if (saturn_timeline_exists("k_mario_expr")) k_frame_keys.erase("k_mario_expr");
                     
                     // Select model
                     DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
