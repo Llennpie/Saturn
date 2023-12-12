@@ -453,7 +453,7 @@ void sdynos_imgui_menu() {
             if (gMarioState) {
                 if (ImGuiKnobs::Knob("Angle", &this_face_angle, -180.f, 180.f, 0.f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
                     gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
-                } else if (!k_popout_open || keyframe_playing) {
+                } else if (!k_popout_focused || keyframe_playing) {
                     this_face_angle = (float)gMarioState->faceAngle[1] / 182.04;
                 }
                 saturn_keyframe_popout("k_angle");

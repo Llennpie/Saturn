@@ -630,7 +630,10 @@ void saturn_keyframe_window() {
                     if (timeline.behavior != KFBEH_DEFAULT) (*keyframe).curve = InterpolationCurve::WAIT;
                 }
             }
-            else saturn_keyframe_apply(entry.first, k_current_frame);
+            else {
+                if (k_popout_focused)
+                    saturn_keyframe_apply(entry.first, k_current_frame);
+            }
         }
     }
     ImGui::End();
@@ -640,7 +643,8 @@ void saturn_keyframe_window() {
         ImGui::SetWindowFocus(windowLabel.c_str());
     }
 
-    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_None)) {
+    k_popout_focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_None);
+    if (k_popout_focused) {
         for (auto& entry : k_frame_keys) {
             if (entry.second.first.name.find(", Main") != string::npos || entry.second.first.name.find(", Shade") != string::npos) {
                 // Apply color keyframes

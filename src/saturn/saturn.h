@@ -142,6 +142,7 @@ struct KeyframeTimeline {
 #define KFBEH_EVENT 2
 
 extern bool k_popout_open;
+extern bool k_popout_focused;
 extern float* active_key_float_value;
 extern bool* active_key_bool_value;
 extern s32 active_data_type;

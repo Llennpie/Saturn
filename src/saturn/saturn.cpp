@@ -90,6 +90,7 @@ bool* active_key_bool_value;
 s32 active_data_type = KEY_FLOAT;
 bool keyframe_playing;
 bool k_popout_open;
+bool k_popout_focused;
 int mcam_timer = 0;
 int k_current_frame = 0;
 int k_previous_frame = 0;
@@ -178,6 +179,19 @@ float key_increase_val(std::vector<float> vecfloat) {
     float this_val = vecfloat.at(k_last_passed_index);
 
     return (next_val - this_val) / k_distance_between;
+}
+
+bool timeline_has_id(std::string id) {
+    if (k_frame_keys.size() > 0) {
+        for (auto& entry : k_frame_keys) {
+            for (Keyframe keyframe : entry.second.second) {
+                if (keyframe.timelineID == id)
+                    return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // SATURN Machinima Functions
@@ -314,13 +328,16 @@ void saturn_update() {
     }
 
     // Keyframes
-    
+
+    if (!k_popout_open) k_popout_focused = false;
     if (keyframe_playing) {
-        // Prevents smoothing for sharper, more consistent panning
-        gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
-        gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
-        gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
-        gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
+        if (timeline_has_id("k_c_camera_pos0")) {
+            // Prevents smoothing for sharper, more consistent panning
+            gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
+            gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
+            gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
+            gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
+        }
         
         bool end = true;
         for (const auto& entry : k_frame_keys) {
@@ -331,7 +348,8 @@ void saturn_update() {
             else keyframe_playing = false;
         }
 
-        gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
+        if (timeline_has_id("k_angle"))
+            gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
 
         schroma_imgui_init();
 
