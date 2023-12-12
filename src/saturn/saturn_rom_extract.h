@@ -16,7 +16,7 @@ extern std::string currently_extracting;
 
 extern "C" {
 #endif
-    bool saturn_extract_rom(int type);
+    int saturn_extract_rom(int type);
 #ifdef __cplusplus
 }
 #endif

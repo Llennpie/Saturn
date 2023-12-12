@@ -304,11 +304,16 @@ void handle_segfault(int signal) {
 int main(int argc, char *argv[]) {
     signal(SIGSEGV, handle_segfault);
     parse_cli_opts(argc, argv);
+
+    // Extract assets
     if (gCLIOpts.ExtractOnly) {
         saturn_extract_rom(EXTRACT_TYPE_ALL);
-        return;
+        return 0;
+    } else {
+        int result = saturn_extract_rom(EXTRACT_TYPE_SOUND | EXTRACT_TYPE_SATURN | EXTRACT_TYPE_FONT);
+        // Start game
+        if (result == 0)
+            main_func();
     }
-    else if (!saturn_extract_rom(~EXTRACT_TYPE_TEXTURES)) return;
-    main_func();
     return 0;
 }
