@@ -118,15 +118,11 @@ std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
     return expressions_list;
 }
 
-/*
-    Handles texture replacement. Called from gfx_pc.c
-*/
-const void* saturn_bind_texture(const void* input) {
-    if (input == nullptr) return input;
+std::string saturn_bind_texture_internal(const void* input) {
     const char* inputTexture = static_cast<const char*>(input);
     const char* outputTexture;
 
-    if (input == (const void*)0x7365727574786574) return input;
+    if (input == (const void*)0x7365727574786574) return std::string(inputTexture);
     
     std::string texName = inputTexture;
 
@@ -137,9 +133,7 @@ const void* saturn_bind_texture(const void* input) {
             // Checks if the incoming texture has the expression's "key"
             // This could be "saturn_eye", "saturn_mouth", etc.
             if (expression.PathHasReplaceKey(texName)) {
-                outputTexture = expression.Textures[expression.CurrentIndex].GetRelativePath().c_str();
-                const void* output = static_cast<const void*>(outputTexture);
-                return output;
+                return expression.Textures[expression.CurrentIndex].GetRelativePath();
             }
         }
     }
@@ -152,9 +146,7 @@ const void* saturn_bind_texture(const void* input) {
             texName == "actors/mario/mario_eyes_right_unused.rgba16.png" ||
             texName == "actors/mario/mario_eyes_up_unused.rgba16.png" ||
             texName == "actors/mario/mario_eyes_down_unused.rgba16.png") {
-                outputTexture = VanillaEyes.Textures[VanillaEyes.CurrentIndex].GetRelativePath().c_str();
-                const void* output = static_cast<const void*>(outputTexture);
-                return output;
+                return VanillaEyes.Textures[VanillaEyes.CurrentIndex].GetRelativePath();
         }
     }
 
@@ -196,16 +188,16 @@ const void* saturn_bind_texture(const void* input) {
             if (texName.find("textures/skyboxes/") != string::npos) {
                 std::string skybox_key = texName.substr(18, texName.find_first_of(".") - 18);
                 switch(gChromaKeyBackground) {
-                    case 0: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "water").c_str());
-                    case 1: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bitfs").c_str());
-                    case 2: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "wdw").c_str());
-                    case 3: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "cloud_floor").c_str());
-                    case 4: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "ccm").c_str());
-                    case 5: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "ssl").c_str());
-                    case 6: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bbh").c_str());
-                    case 7: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bidw").c_str());
-                    case 8: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "clouds").c_str());
-                    case 9: return static_cast<const void*>(texName.replace(18, skybox_key.length(), "bits").c_str());
+                    case 0: return texName.replace(18, skybox_key.length(), "water");
+                    case 1: return texName.replace(18, skybox_key.length(), "bitfs");
+                    case 2: return texName.replace(18, skybox_key.length(), "wdw");
+                    case 3: return texName.replace(18, skybox_key.length(), "cloud_floor");
+                    case 4: return texName.replace(18, skybox_key.length(), "ccm");
+                    case 5: return texName.replace(18, skybox_key.length(), "ssl");
+                    case 6: return texName.replace(18, skybox_key.length(), "bbh");
+                    case 7: return texName.replace(18, skybox_key.length(), "bidw");
+                    case 8: return texName.replace(18, skybox_key.length(), "clouds");
+                    case 9: return texName.replace(18, skybox_key.length(), "bits");
                 }
             }
         }
@@ -271,9 +263,22 @@ const void* saturn_bind_texture(const void* input) {
     }
 
     if (texName.find("textures/skyboxes/cloud.") != string::npos)
-        return static_cast<const void*>(texName.replace(18, 5, "cloud_floor").c_str());
+        return texName.replace(18, 5, "cloud_floor");
 
-    return input;
+    return texName;
+}
+
+/*
+    Handles texture replacement. Called from gfx_pc.c
+*/
+std::map<std::string, std::string*> loaded_texture_paths = {};
+const void* saturn_bind_texture(const void* input) {
+    if (input == nullptr) return input;
+    std::string output = saturn_bind_texture_internal(input);
+    if (loaded_texture_paths.find(output) == loaded_texture_paths.end()) {
+        loaded_texture_paths.insert({ output, new std::string(output) });
+    }
+    return loaded_texture_paths[output]->c_str();
 }
 
 void saturn_copy_file(string from, string to) {
