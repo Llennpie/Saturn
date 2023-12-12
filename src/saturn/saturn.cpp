@@ -383,10 +383,10 @@ void saturn_update() {
                 }
             }
 
-            if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
+            /*if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
                 is_anim_playing = false;
                 is_anim_paused = false;
-            }
+            }*/
 
             current_anim_id = (int)gMarioState->marioObj->header.gfx.unk38.animID;
             if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON || gMarioState->action == ACT_DEBUG_FREE_MOVE) {
@@ -549,7 +549,7 @@ bool saturn_keyframe_matches(std::string id, int frame) {
 // Play Animation
 
 void saturn_play_animation(MarioAnimID anim) {
-    set_mario_animation(gMarioState, anim);
+    force_set_mario_animation(gMarioState, anim);
     //set_mario_anim_with_accel(gMarioState, anim, anim_speed * 65535);
     is_anim_playing = true;
 }

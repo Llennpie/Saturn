@@ -92,6 +92,7 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
 void anim_play_button() {
     if (current_animation.id == -1) return;
     current_anim_frame = 0;
+    is_anim_playing = true;
     if (current_animation.custom) {
         saturn_read_mcomp_animation(anim_preview_name);
         saturn_play_animation(MarioAnimID(current_animation.id));
