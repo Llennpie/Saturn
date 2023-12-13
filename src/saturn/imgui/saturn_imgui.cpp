@@ -1147,6 +1147,40 @@ void saturn_keyframe_show_kf_content(Keyframe keyframe) {
         buf[63] = 0;
         ImGui::Text(buf);
     }
+    if (timeline.type == KFTYPE_ANIM) {
+        std::string anim_name;
+        bool anim_custom = keyframe.value[0] >= 1;
+        bool anim_loop = keyframe.value[1] >= 1;
+        bool anim_hang = keyframe.value[2] >= 1;
+        float anim_speed = keyframe.value[3];
+        int anim_id = keyframe.value[4];
+        if (anim_custom) anim_name = canim_array[anim_id];
+        else anim_name = saturn_animations_list[anim_id];
+        ImGui::Text(anim_name.c_str());
+        ImGui::Checkbox("Looping###kf_content_looping", &anim_loop);
+        ImGui::Checkbox("Hanging###kf_content_hanging", &anim_hang);
+        char buf[64];
+        std::string fmt = timeline.precision >= 0 ? "%d" : ("%." + std::to_string(-timeline.precision) + "f");
+        snprintf(buf, 64, fmt.c_str(), anim_speed);
+        buf[63] = 0;
+        ImGui::Text(("Speed: " + std::string(buf)).c_str());
+    }
+    if (timeline.type == KFTYPE_EXPRESSION) {
+        for (int i = 0; i < keyframe.value.size(); i++) {
+            if (current_model.Expressions[i].Textures.size() == 2 && (
+                current_model.Expressions[i].Textures[0].FileName.find("default") != std::string::npos ||
+                current_model.Expressions[i].Textures[1].FileName.find("default") != std::string::npos
+            )) {
+                int   select_index = (current_model.Expressions[i].Textures[0].FileName.find("default") != std::string::npos) ? 0 : 1;
+                int deselect_index = (current_model.Expressions[i].Textures[0].FileName.find("default") != std::string::npos) ? 1 : 0;
+                bool is_selected = (current_model.Expressions[i].CurrentIndex == select_index);
+                ImGui::Checkbox((current_model.Expressions[i].Name + "###kf_content_expr").c_str(), &is_selected);
+            }
+            else {
+                ImGui::Text((current_model.Expressions[i].Textures[current_model.Expressions[i].CurrentIndex].FileName + " - " + current_model.Expressions[i].Name).c_str());
+            }
+        }
+    }
     ImVec2 window_pos = ImGui::GetMousePos();
     ImVec2 window_size = ImGui::GetWindowSize();
     window_pos.x -= window_size.x - 4;
