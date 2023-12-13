@@ -33,6 +33,7 @@ template <typename T>
 extern void saturn_keyframe_popout(const T &edit_value, s32 data_type, std::string, std::string);
 
 extern void saturn_keyframe_context_popout(Keyframe keyframe);
+extern void saturn_keyframe_show_kf_content(Keyframe keyframe);
 
 extern void saturn_keyframe_sort(std::vector<Keyframe>* keyframes);
 
@@ -54,6 +55,8 @@ extern bool splash_finished;
 
 extern std::string editor_theme;
 extern std::vector<std::pair<std::string, std::string>> theme_list;
+
+extern bool k_context_popout_open;
 
 extern "C" {
 #endif

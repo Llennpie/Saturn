@@ -189,8 +189,9 @@ namespace ImGui {
 
 		drawList->AddCircleFilled(pos + ImVec2{ 0, currentTimelineHeight / 2.f }, currentTimelineHeight / 3.0f, ColorConvertFloat4ToU32(color), 4);
 		
-		if (IsItemHovered() && IsMouseDown(ImGuiMouseButton_Right)) {
-			saturn_keyframe_context_popout(frame);
+		if (IsItemHovered()) {
+			if (IsMouseDown(ImGuiMouseButton_Right)) saturn_keyframe_context_popout(frame);
+			if (!k_context_popout_open) saturn_keyframe_show_kf_content(frame);
 		}
 
 		return true;

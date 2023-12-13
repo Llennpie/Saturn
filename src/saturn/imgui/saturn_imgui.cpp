@@ -1133,6 +1133,28 @@ void saturn_keyframe_context_popout(Keyframe keyframe) {
     k_context_popout_keyframe = keyframe;
 }
 
+void saturn_keyframe_show_kf_content(Keyframe keyframe) {
+    ImGui::Begin("###kf_content", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+    KeyframeTimeline timeline = k_frame_keys[keyframe.timelineID].first;
+    if (timeline.type == KFTYPE_BOOL) {
+        bool checked = keyframe.value[0] >= 1;
+        ImGui::Checkbox("###kf_content_checkbox", &checked);
+    }
+    if (timeline.type == KFTYPE_FLOAT) {
+        char buf[64];
+        std::string fmt = timeline.precision >= 0 ? "%d" : ("%." + std::to_string(-timeline.precision) + "f");
+        snprintf(buf, 64, fmt.c_str(), keyframe.value[0]);
+        buf[63] = 0;
+        ImGui::Text(buf);
+    }
+    ImVec2 window_pos = ImGui::GetMousePos();
+    ImVec2 window_size = ImGui::GetWindowSize();
+    window_pos.x -= window_size.x - 4;
+    window_pos.y += 4;
+    ImGui::SetWindowPos(window_pos);
+    ImGui::End();
+}
+
 void saturn_create_keyframe(std::string id, InterpolationCurve curve) {
     Keyframe keyframe = Keyframe();
     keyframe.position = k_current_frame;
