@@ -1022,8 +1022,6 @@ void saturn_imgui_update() {
             saturn_keyframe_window();
         }
         if (k_context_popout_open) {
-            ImGui::SetNextWindowBgAlpha(0.64f);
-            ImGui::SetNextWindowPos(k_context_popout_pos);
             if (ImGui::Begin("###kf_menu", &k_context_popout_open, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove)) {
                 vector<Keyframe>* keyframes = &k_frame_keys[k_context_popout_keyframe.timelineID].second;
                 int curve = -1;
@@ -1059,6 +1057,10 @@ void saturn_imgui_update() {
                 ImVec2 size = ImGui::GetWindowSize();
                 ImVec2 mouse = ImGui::GetMousePos();
                 if ((mouse.x < pos.x || mouse.y < pos.y || mouse.x >= pos.x + size.x || mouse.y >= pos.y + size.y) && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || ImGui::IsMouseClicked(ImGuiMouseButton_Right))) k_context_popout_open = false;
+                ImVec2 window_size = ImGui::GetWindowSize();
+                ImVec2 window_pos = k_context_popout_pos;
+                window_pos.x -= window_size.x;
+                ImGui::SetWindowPos(window_pos);
                 ImGui::End();
                 std::vector<std::string> affectedTimelines = find_timeline_group(k_context_popout_keyframe.timelineID);
                 for (std::string timeline : affectedTimelines) {
