@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <fstream>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -40,6 +41,7 @@ extern "C" {
 #include "src/game/interaction.h"
 #include "include/behavior_data.h"
 #include "game/object_helpers.h"
+#include "game/custom_level.h"
 }
 
 using namespace std;
@@ -63,6 +65,12 @@ bool enable_time_freeze = false;
 
 int current_location_index = 0;
 char location_name[256];
+
+float custom_level_scale = 100.f;
+bool is_custom_level_loaded = false;
+std::string custom_level_path;
+std::string custom_level_filename;
+std::string custom_level_dirname;
 
 s16 levelList[] = { 
     LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
@@ -150,29 +158,110 @@ void warp_to_level(int level, int area, int act = -1) {
     if (level != 0) enable_shadows = true;
     else enable_shadows = false;
 
+    s32 levelID = levelList[level];
+    s32 warpnode = 0x0A;
+
     switch (level) {
-        case 0:
-            DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, 0);
-            break;
         case 1:
-            warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
+            warpnode = 0x04;
             break;
         case 2:
-            warp_to(LEVEL_CASTLE, 0x01, 0x01);
+            if (area == 1) warpnode = 0x1E;
+            else warpnode = 0x10;
             break;
         case 3:
-            warp_to(LEVEL_CASTLE_COURTYARD, 0x01, 0x0B);
-            break;
-        default:
-            warp_to(levelList[level]);
+            warpnode = 0x0B;
             break;
     }
+
+    if (levelID != LEVEL_BOB && levelID != LEVEL_WF  && levelID != LEVEL_JRB &&
+        levelID != LEVEL_CCM && levelID != LEVEL_BBH && levelID != LEVEL_HMC &&
+        levelID != LEVEL_LLL && levelID != LEVEL_SSL && levelID != LEVEL_DDD &&
+        levelID != LEVEL_SL  && levelID != LEVEL_WDW && levelID != LEVEL_TTM &&
+        levelID != LEVEL_THI && levelID != LEVEL_TTC && levelID != LEVEL_RR  && levelID != LEVEL_SA) act = -1;
+
+    if (act == -1) warp_to(levelID, area, warpnode);
+    else DynOS_Warp_ToWarpNode(levelID, area, act, warpnode);
 }
 
 int get_saturn_level_id(int level) {
     for (int i = 0; i < IM_ARRAYSIZE(levelList); i++) {
         if (levelList[i] == level) return i;
     }
+}
+
+std::vector<std::string> split(std::string input, char character) {
+    std::vector<std::string> tokens = {};
+    std::string token = "";
+    for (int i = 0; i < input.length(); i++) {
+        if (input[i] == '\r') continue;
+        if (input[i] == character) {
+            tokens.push_back(token);
+            token = "";
+        }
+        else token += input[i];
+    }
+    tokens.push_back(token);
+    return tokens;
+}
+std::vector<std::vector<std::string>> tokenize(std::string input) {
+    std::vector<std::vector<std::string>> tokens = {};
+    auto lines = split(input, '\n');
+    for (auto line : lines) {
+        tokens.push_back(split(line, ' '));
+    }
+    return tokens;
+}
+
+void parse_materials(char* data, std::map<std::string, filesystem::path>* materials) {
+    auto tokens = tokenize(std::string(data));
+    std::string matname = "";
+    for (auto line : tokens) {
+        if (line[0] == "newmtl") matname = line[1];
+        if (line[0] == "map_Kd" && matname != "") {
+            std::string filename = std::filesystem::path(line[1]).filename().string();
+            std::filesystem::path raw = std::filesystem::path(line[1]);
+            std::filesystem::path path = raw.is_absolute() ? raw : std::filesystem::path(custom_level_path).parent_path() / raw;
+            materials->insert({ matname, path });
+        }
+    }
+}
+
+void parse_custom_level(char* data) {
+    auto tokens = tokenize(std::string(data));
+    custom_level_new();
+    std::vector<std::array<float, 3>> vertices = {};
+    std::vector<std::array<float, 2>> uv = {};
+    std::map<std::string, filesystem::path> materials = {};
+    for (auto line : tokens) {
+        if (line.size() == 0) continue;
+        if (line[0] == "mtllib") {
+            filesystem::path path = filesystem::absolute(std::filesystem::path(custom_level_dirname) / line[1]);
+            if (!filesystem::exists(path)) continue;
+            auto size = filesystem::file_size(path);
+            char* mtldata = (char*)malloc(size);
+            std::ifstream file = std::ifstream(path, std::ios::binary);
+            file.read(mtldata, size);
+            parse_materials(mtldata, &materials);
+            free(mtldata);
+        }
+        if (line[0] == "v") vertices.push_back({ std::stof(line[1]), std::stof(line[2]), std::stof(line[3]) });
+        if (line[0] == "vt") uv.push_back({ std::stof(line[1]), std::stof(line[2]) });
+        if (line[0] == "usemtl") {
+            if (materials.find(line[1]) == materials.end()) continue; 
+            custom_level_texture((char*)materials[line[1]].c_str());
+        }
+        if (line[0] == "f") {
+            for (int i = 1; i < line.size(); i++) {
+                auto indexes = split(line[i], '/');
+                int v = std::stoi(indexes[0]) - 1;
+                int vt = std::stoi(indexes[1]) - 1;
+                custom_level_vertex(vertices[v][0] * custom_level_scale, vertices[v][1] * custom_level_scale, vertices[v][2] * custom_level_scale, uv[vt][0] * 1024, uv[vt][1] * 1024);
+            }
+            custom_level_face();
+        }
+    }
+    custom_level_finish();
 }
 
 void smachinima_imgui_init() {
@@ -333,6 +422,37 @@ void imgui_machinima_quick_options() {
             ImGui::EndMenu();
         }
     }
+
+    if (ImGui::BeginMenu("Custom Level")) {
+            bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
+            ImGui::PushItemWidth(80);
+            ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
+            ImGui::PopItemWidth();
+            if (!is_custom_level_loaded || in_custom_level) ImGui::BeginDisabled();
+            if (ImGui::Button("Load Level")) {
+                auto size = filesystem::file_size(custom_level_path);
+                char* data = (char*)malloc(size);
+                std::ifstream file = std::ifstream((char*)custom_level_path.c_str(), std::ios::binary);
+                file.read(data, size);
+                parse_custom_level(data);
+                free(data);
+                warp_to_level(0, 3);
+            }
+            if (!is_custom_level_loaded || in_custom_level) ImGui::EndDisabled();
+            ImGui::SameLine();
+            if (ImGui::Button("Load .obj")) {
+                auto selection = choose_file_dialog("Select a model", { "Wavefront Model (.obj)", "*.obj", "All Files", "*" }, false);
+                if (selection.size() != 0) {
+                    filesystem::path path = selection[0];
+                    is_custom_level_loaded = true;
+                    custom_level_path = path.string();
+                    custom_level_dirname = path.parent_path().string();
+                    custom_level_filename = path.filename().string();
+                }
+            }
+            ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");
+            ImGui::EndMenu();
+        }
 }
 
 static char animSearchTerm[128];
