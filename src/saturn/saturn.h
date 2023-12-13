@@ -100,9 +100,9 @@ extern float extraction_progress;
 
 enum InterpolationCurve {
     LINEAR,
-    SINE,
-    QUADRATIC,
-    CUBIC,
+    SLOW,
+    FAST,
+    SMOOTH,
     WAIT
 };
 enum KeyframeType {
@@ -114,9 +114,9 @@ enum KeyframeType {
 
 inline std::string curveNames[] = {
     "Linear",
-    "Sine",
-    "Quadratic",
-    "Cubic",
+    "Start Slow",
+    "Start Fast",
+    "Smooth",
     "Hold"
 };
 

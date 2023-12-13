@@ -630,10 +630,7 @@ void saturn_keyframe_window() {
                     if (timeline.behavior != KFBEH_DEFAULT) (*keyframe).curve = InterpolationCurve::WAIT;
                 }
             }
-            else {
-                if (k_popout_focused)
-                    saturn_keyframe_apply(entry.first, k_current_frame);
-            }
+            else saturn_keyframe_apply(entry.first, k_current_frame);
         }
     }
     ImGui::End();

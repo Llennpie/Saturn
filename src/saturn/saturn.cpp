@@ -471,9 +471,9 @@ float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyfra
     // Interpolate, formulas from easings.net
     float x = (frame - keyframes[*keyframe].position) / (float)(keyframes[*keyframe + 1].position - keyframes[*keyframe].position);
     if (*last) x = 1;
-    else if (keyframes[*keyframe].curve == InterpolationCurve::SINE) x = -(cosf(3.141592f * x) - 1) / 2;
-    else if (keyframes[*keyframe].curve == InterpolationCurve::QUADRATIC) x = x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
-    else if (keyframes[*keyframe].curve == InterpolationCurve::CUBIC) x = x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
+    else if (keyframes[*keyframe].curve == InterpolationCurve::SLOW) x = x * x;
+    else if (keyframes[*keyframe].curve == InterpolationCurve::FAST) x = 1 - (1 - x) * (1 - x);
+    else if (keyframes[*keyframe].curve == InterpolationCurve::SMOOTH) x = x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
     else if (keyframes[*keyframe].curve == InterpolationCurve::WAIT) x = floor(x);
 
     return x;
