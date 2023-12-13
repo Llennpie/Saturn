@@ -1160,8 +1160,7 @@ void saturn_keyframe_show_kf_content(Keyframe keyframe) {
         ImGui::Checkbox("Looping###kf_content_looping", &anim_loop);
         ImGui::Checkbox("Hanging###kf_content_hanging", &anim_hang);
         char buf[64];
-        std::string fmt = timeline.precision >= 0 ? "%d" : ("%." + std::to_string(-timeline.precision) + "f");
-        snprintf(buf, 64, fmt.c_str(), anim_speed);
+        snprintf(buf, 64, "%.2f", anim_speed);
         buf[63] = 0;
         ImGui::Text(("Speed: " + std::string(buf)).c_str());
     }
