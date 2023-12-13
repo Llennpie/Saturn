@@ -110,6 +110,7 @@ enum KeyframeType {
     KFTYPE_BOOL,
     KFTYPE_ANIM,
     KFTYPE_EXPRESSION,
+    KFTYPE_COLOR,
 };
 
 inline std::string curveNames[] = {

@@ -503,24 +503,6 @@ uint32_t startFrame = 0;
 uint32_t endFrame = 60;
 int endFrameText = 60;
 
-std::vector<std::string> find_timeline_group(std::string timeline, std::string* out = nullptr) {
-    for (auto& entry : k_groups) {
-        if (std::find(entry.second.begin(), entry.second.end(), timeline) != entry.second.end()) {
-            if (out != nullptr) *out = entry.first;
-            return entry.second;
-        }
-    }
-    return { timeline };
-}
-
-bool saturn_keyframe_group_matches(std::string id, int frame) {
-    std::vector<std::string> group = find_timeline_group(id);
-    for (std::string timeline : group) {
-        if (!saturn_keyframe_matches(timeline, frame)) return false;
-    }
-    return true;
-}
-
 void saturn_keyframe_window() {
 #ifdef DISCORDRPC
     discord_state = "In-Game // Keyframing";
@@ -566,14 +548,9 @@ void saturn_keyframe_window() {
     uint32_t end = min(60, endFrame - startFrame) + startFrame;
 
     // Sequencer
-    std::vector<std::string> skip = {};
     if (ImGui::BeginNeoSequencer("Sequencer###k_sequencer", (uint32_t*)&k_current_frame, &startFrame, &end, ImVec2((end - startFrame) * 6, 0), ImGuiNeoSequencerFlags_HideZoom)) {
         for (auto& entry : k_frame_keys) {
-            if (std::find(skip.begin(), skip.end(), entry.first) != skip.end()) continue;
             std::string name = entry.second.first.name;
-            for (std::string groupMember : find_timeline_group(entry.first, &name)) {
-                skip.push_back(groupMember);
-            }
             if (ImGui::BeginNeoTimeline(name.c_str(), entry.second.second)) {
                 ImGui::EndNeoTimeLine();
             }
@@ -583,20 +560,11 @@ void saturn_keyframe_window() {
 
     // Keyframes
     if (!keyframe_playing) {
-        std::map<std::string, bool> shouldEditKeyframe = {};
-        for (auto& entry : k_frame_keys) {
-            if (shouldEditKeyframe.find(entry.first) != shouldEditKeyframe.end()) continue;
-            std::vector<std::string> group = find_timeline_group(entry.first);
-            bool doEdit = !saturn_keyframe_group_matches(entry.first, k_current_frame);
-            for (std::string groupEntry : group) {
-                shouldEditKeyframe.insert({ groupEntry, doEdit });
-            }
-        }
         for (auto& entry : k_frame_keys) {
             KeyframeTimeline timeline = entry.second.first;
             std::vector<Keyframe>* keyframes = &entry.second.second;
 
-            if (k_previous_frame == k_current_frame && shouldEditKeyframe[entry.first]) {
+            if (k_previous_frame == k_current_frame && !saturn_keyframe_matches(entry.first, k_current_frame)) {
                 // We create a keyframe here
                 int keyframeIndex = 0;
                 for (int i = 0; i < keyframes->size(); i++) {
@@ -626,6 +594,12 @@ void saturn_keyframe_window() {
                         for (int i = 0; i < model->Expressions.size(); i++) {
                             (*keyframe).value[i] = model->Expressions[i].CurrentIndex;
                         }
+                    }
+                    if (timeline.type == KFTYPE_COLOR) {
+                        float* color = (float*)timeline.dest;
+                        (*keyframe).value[0] = color[0];
+                        (*keyframe).value[1] = color[1];
+                        (*keyframe).value[2] = color[2];
                     }
                     if (timeline.behavior != KFBEH_DEFAULT) (*keyframe).curve = InterpolationCurve::WAIT;
                 }
@@ -1062,36 +1036,34 @@ void saturn_imgui_update() {
                 window_pos.x -= window_size.x;
                 ImGui::SetWindowPos(window_pos);
                 ImGui::End();
-                std::vector<std::string> affectedTimelines = find_timeline_group(k_context_popout_keyframe.timelineID);
-                for (std::string timeline : affectedTimelines) {
-                    keyframes = &k_frame_keys[timeline].second;
-                    if (curve != -1) {
-                        (*keyframes)[index].curve = InterpolationCurve(curve);
-                        k_context_popout_open = false;
-                        k_previous_frame = -1;
-                    }
-                    if (doCopy) {
-                        int hoverKeyframeIndex = -1;
-                        for (int i = 0; i < keyframes->size(); i++) {
-                            if ((*keyframes)[i].position == k_current_frame) hoverKeyframeIndex = i;
-                        }
-                        Keyframe copy = Keyframe();
-                        copy.position = k_current_frame;
-                        copy.curve = (*keyframes)[index].curve;
-                        copy.value = (*keyframes)[index].value;
-                        copy.timelineID = (*keyframes)[index].timelineID;
-                        if (hoverKeyframeIndex == -1) keyframes->push_back(copy);
-                        else (*keyframes)[hoverKeyframeIndex] = copy;
-                        k_context_popout_open = false;
-                        k_previous_frame = -1;
-                    }
-                    if (doDelete) {
-                        keyframes->erase(keyframes->begin() + index);
-                        k_context_popout_open = false;
-                        k_previous_frame = -1;
-                    }
-                    saturn_keyframe_sort(keyframes);
+                std::string timeline = k_context_popout_keyframe.timelineID;
+                keyframes = &k_frame_keys[timeline].second;
+                if (curve != -1) {
+                    (*keyframes)[index].curve = InterpolationCurve(curve);
+                    k_context_popout_open = false;
+                    k_previous_frame = -1;
                 }
+                if (doCopy) {
+                    int hoverKeyframeIndex = -1;
+                    for (int i = 0; i < keyframes->size(); i++) {
+                        if ((*keyframes)[i].position == k_current_frame) hoverKeyframeIndex = i;
+                    }
+                    Keyframe copy = Keyframe();
+                    copy.position = k_current_frame;
+                    copy.curve = (*keyframes)[index].curve;
+                    copy.value = (*keyframes)[index].value;
+                    copy.timelineID = (*keyframes)[index].timelineID;
+                    if (hoverKeyframeIndex == -1) keyframes->push_back(copy);
+                    else (*keyframes)[hoverKeyframeIndex] = copy;
+                    k_context_popout_open = false;
+                    k_previous_frame = -1;
+                }
+                if (doDelete) {
+                    keyframes->erase(keyframes->begin() + index);
+                    k_context_popout_open = false;
+                    k_previous_frame = -1;
+                }
+                saturn_keyframe_sort(keyframes);
             }
         }
 
@@ -1180,6 +1152,14 @@ void saturn_keyframe_show_kf_content(Keyframe keyframe) {
             }
         }
     }
+    if (timeline.type == KFTYPE_COLOR) {
+        ImVec4 color;
+        color.x = keyframe.value[0];
+        color.y = keyframe.value[1];
+        color.z = keyframe.value[2];
+        color.w = 1;
+        ImGui::ColorEdit4("Col###wlight_col", (float*)&color, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
+    }
     ImVec2 window_pos = ImGui::GetMousePos();
     ImVec2 window_size = ImGui::GetWindowSize();
     window_pos.x -= window_size.x - 4;
@@ -1210,6 +1190,12 @@ void saturn_create_keyframe(std::string id, InterpolationCurve curve) {
             keyframe.value.push_back(model->Expressions[i].CurrentIndex);
         }
     }
+    if (timeline.type == KFTYPE_COLOR) {
+        float* color = (float*)timeline.dest;
+        keyframe.value.push_back(color[0]);
+        keyframe.value.push_back(color[1]);
+        keyframe.value.push_back(color[2]);
+    }
     keyframe.curve = curve;
     k_frame_keys[id].second.push_back(keyframe);
     saturn_keyframe_sort(&k_frame_keys[id].second);
@@ -1221,8 +1207,7 @@ void saturn_keyframe_popout(std::string id) {
 }
 
 void saturn_keyframe_popout_next_line(std::string id) {
-    if (k_groups.find(id) == k_groups.end()) saturn_keyframe_popout_next_line(std::vector<std::string>{ id });
-    else saturn_keyframe_popout_next_line(k_groups[id]);
+    saturn_keyframe_popout_next_line(std::vector<std::string>{ id });
 }
 
 void saturn_keyframe_popout(std::vector<std::string> ids) {

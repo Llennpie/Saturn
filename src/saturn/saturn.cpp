@@ -529,6 +529,11 @@ bool saturn_keyframe_apply(std::string id, int frame) {
     }
     if (timeline.type == KFTYPE_BOOL) *(bool*)timeline.dest = values[0] >= 1;
     if (timeline.type == KFTYPE_FLOAT) *(float*)timeline.dest = values[0];
+    if (timeline.type == KFTYPE_COLOR) {
+        ((float*)timeline.dest)[0] = values[0];
+        ((float*)timeline.dest)[1] = values[1];
+        ((float*)timeline.dest)[2] = values[2];
+    }
 
     return last;
 }
@@ -558,12 +563,14 @@ bool saturn_keyframe_matches(std::string id, int frame) {
         if (*(bool*)timeline.dest != 0 != expectedValues[0] >= 1) return false;
         return true;
     }
-    if (timeline.type == KFTYPE_FLOAT) {
-        float value = *(float*)timeline.dest;
-        float distance = abs(value - expectedValues[0]);
-        if (distance > pow(10, timeline.precision)) {
-            if (id.find("cam") != string::npos) return !is_camera_moving;
-            else return false;
+    if (timeline.type == KFTYPE_FLOAT || timeline.type == KFTYPE_COLOR) {
+        for (int i = 0; i < (timeline.type == KFTYPE_FLOAT ? 1 : 3); i++) {
+            float value = ((float*)timeline.dest)[i];
+            float distance = abs(value - expectedValues[i]);
+            if (distance > pow(10, timeline.precision)) {
+                if (id.find("cam") != string::npos) return !is_camera_moving;
+                else return false;
+            }
         }
     }
 

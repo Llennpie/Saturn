@@ -8,14 +8,8 @@
 #define SATURN_KFENTRY_FLOAT(id, variable, name) timelineDataTable.insert({ id, { &variable, KFTYPE_FLOAT, KFBEH_DEFAULT, name, -2, 1 } })
 #define SATURN_KFENTRY_ANIM(id, name) timelineDataTable.insert({ id, { &current_animation, KFTYPE_ANIM, KFBEH_EVENT, name, 0, 5 } })
 #define SATURN_KFENTRY_EXPRESSION(id, name) timelineDataTable.insert({ id, { &current_model, KFTYPE_EXPRESSION, KFBEH_EVENT, name, 0, 1 } })
-#define SATURN_KFENTRY_COLOR(id, variable, name) \
-    timelineDataTable.insert({ id "_r", { &variable.x, KFTYPE_FLOAT, KFBEH_DEFAULT, name " R", 0, 1 } });\
-    timelineDataTable.insert({ id "_g", { &variable.y, KFTYPE_FLOAT, KFBEH_DEFAULT, name " G", 0, 1 } });\
-    timelineDataTable.insert({ id "_b", { &variable.z, KFTYPE_FLOAT, KFBEH_DEFAULT, name " B", 0, 1 } })
-#define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) \
-    timelineDataTable.insert({ id "_r", { &variable[0], KFTYPE_FLOAT, KFBEH_DEFAULT, name " R", 0, 1 } });\
-    timelineDataTable.insert({ id "_g", { &variable[1], KFTYPE_FLOAT, KFBEH_DEFAULT, name " G", 0, 1 } });\
-    timelineDataTable.insert({ id "_b", { &variable[2], KFTYPE_FLOAT, KFBEH_DEFAULT, name " B", 0, 1 } })
+#define SATURN_KFENTRY_COLOR_VEC3F(id, variable, name) timelineDataTable.insert({ id, { variable, KFTYPE_COLOR, KFBEH_DEFAULT, name, -4, 3 } })
+#define SATURN_KFENTRY_COLOR(id, variable, name) SATURN_KFENTRY_COLOR_VEC3F(id, &variable, name)
 
 std::map<std::string, std::tuple<void*, KeyframeType, char, std::string, int, int>> timelineDataTable = {};
 
