@@ -1134,7 +1134,7 @@ void saturn_keyframe_context_popout(Keyframe keyframe) {
 }
 
 void saturn_keyframe_show_kf_content(Keyframe keyframe) {
-    ImGui::Begin("###kf_content", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+    ImGui::BeginTooltip();
     KeyframeTimeline timeline = k_frame_keys[keyframe.timelineID].first;
     if (timeline.type == KFTYPE_BOOL) {
         bool checked = keyframe.value[0] >= 1;
@@ -1186,7 +1186,7 @@ void saturn_keyframe_show_kf_content(Keyframe keyframe) {
     window_pos.x -= window_size.x - 4;
     window_pos.y += 4;
     ImGui::SetWindowPos(window_pos);
-    ImGui::End();
+    ImGui::EndTooltip();
 }
 
 void saturn_create_keyframe(std::string id, InterpolationCurve curve) {
