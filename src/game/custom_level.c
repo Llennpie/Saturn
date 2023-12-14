@@ -85,8 +85,7 @@ void custom_level_face() {
 }
 
 void custom_level_texture(char* texpath) {
-    textures[tex_iter][0] = 1;
-    memcpy(textures[tex_iter] + 1, texpath, strlen(texpath) + 1);
+    memcpy(textures[tex_iter], texpath, strlen(texpath) + 1);
 	gDPSetTextureImage(geo_iter++, G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 1, textures[tex_iter]);
 	gDPSetTile(geo_iter++, G_IM_FMT_RGBA, G_IM_SIZ_16b_LOAD_BLOCK, 0, 0, 7, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0);
 	gDPLoadBlock(geo_iter++, 7, 0, 0, 1023, 256);

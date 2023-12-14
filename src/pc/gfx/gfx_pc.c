@@ -33,8 +33,6 @@
 
 #include "src/engine/geo_layout.h"
 
-#include "game/area.h"
-
 #define SUPPORT_CHECK(x) assert(x)
 
 // SCALE_M_N: upscale/downscale M-bit integer to N-bit
@@ -519,17 +517,7 @@ void load_texture(const char *fullpath) {
     int w, h;
     u64 imgsize = 0;
 
-    u8 *imgdata;
-    if (gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3) { // i hate the fs holy shit
-        FILE* file = fopen(fullpath + 5 /* gfx/\x01 */, "r");
-        fseek(file, 0, SEEK_END);
-        imgsize = ftell(file);
-        fseek(file, 0, SEEK_SET);
-        imgdata = (u8*)malloc(imgsize);
-        fread(imgdata, imgsize, 1, file);
-        fclose(file);
-    }
-    else imgdata = fs_load_file(fullpath, &imgsize);
+    u8 *imgdata = fs_load_file(fullpath, &imgsize);
     if (imgdata) {
         // TODO: implement stbi_callbacks or some shit instead of loading the whole texture
         u8 *data = stbi_load_from_memory(imgdata, imgsize, &w, &h, NULL, 4);
