@@ -8,6 +8,7 @@
 
 $ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/lib/discordsdk/discord_game_sdk.dll
 % https://raw.githubusercontent.com/Llennpie/Saturn/legacy/lib/discordsdk/libdiscord_game_sdk.so
+% https://raw.githubusercontent.com/Llennpie/Saturn/legacy/res/saturn-linuxicon.png
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/fonts/forkawesome-webfont.ttf
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/anim_favorites.bin
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/themes/legacy.json
@@ -19,6 +20,7 @@ $ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/lib/discordsdk/discor
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/macros/.gitkeep
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/macros/test.stm
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/README.txt
+@ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/projects/autosave.spj
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/projects/.gitkeep
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/anims/tilt-spaz.json
 @ https://raw.githubusercontent.com/Llennpie/Saturn/legacy/dynos/eyes/FluffaLuigi/Insane.png

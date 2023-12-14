@@ -4,7 +4,7 @@
 DIRS="dynos"
 EXTRA_FILES="fonts/forkawesome-webfont.ttf"
 EXTRA_FILES_WINDOWS="lib/discordsdk/discord_game_sdk.dll"
-EXTRA_FILES_LINUX="lib/discordsdk/libdiscord_game_sdk.so"
+EXTRA_FILES_LINUX="lib/discordsdk/libdiscord_game_sdk.so:res/saturn-linuxicon.png"
 REDIRECTS="lib/discordsdk;."
 
 REPO_OWNER="Llennpie"
