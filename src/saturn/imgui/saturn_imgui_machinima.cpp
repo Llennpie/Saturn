@@ -222,10 +222,11 @@ void parse_materials(char* data, std::map<std::string, filesystem::path>* materi
     for (auto line : tokens) {
         if (line[0] == "newmtl") matname = line[1];
         if (line[0] == "map_Kd" && matname != "") {
-            std::string path = std::to_string(textureIndex) + ".png";
+            std::string path = std::to_string(textureIndex++) + ".png";
             std::filesystem::path raw = std::filesystem::path(line[1]);
             std::filesystem::path src = raw.is_absolute() ? raw : std::filesystem::path(custom_level_path).parent_path() / raw;
             std::filesystem::path dst = customlvl_texdir / path;
+            std::filesystem::remove(dst);
             std::filesystem::copy_file(src, dst);
             materials->insert({ matname, "customlevel/" + path });
         }
@@ -237,7 +238,6 @@ void parse_custom_level(char* data) {
     textureIndex = 0;
     if (std::filesystem::exists(customlvl_texdir)) std::filesystem::remove_all(customlvl_texdir);
     std::filesystem::create_directories(customlvl_texdir);
-    gfx_precache_textures();
     custom_level_new();
     std::vector<std::array<float, 3>> vertices = {};
     std::vector<std::array<float, 2>> uv = {};
@@ -270,6 +270,7 @@ void parse_custom_level(char* data) {
             custom_level_face();
         }
     }
+    gfx_precache_textures();
     custom_level_finish();
 }
 
