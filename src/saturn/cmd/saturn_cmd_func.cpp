@@ -129,6 +129,12 @@ void cmd_mario_state_hands(CommandContext context) {
 void cmd_mario_state_cap(CommandContext context) {
     scrollCapState = arg_int("type");
 }
+void cmd_camera_freeze(CommandContext context) {
+    camera_frozen = true;
+}
+void cmd_camera_unfreeze(CommandContext context) {
+    camera_frozen = false;
+}
 void cmd_camera_pos(CommandContext context) {
     if (arg_int("operation") == 0) {
         freezecamPos[0] += arg_flt("x");
@@ -363,10 +369,8 @@ void cmd_if(CommandContext context) { no_cli;
     if (op == 5) cond = value1 <= value2;
     if (!cond) line += arg_int("line");
 }
-// todo: define values that can be read/written to by registers
-void cmd_register_set_from(CommandContext context) {}
-void cmd_register_set_constant(CommandContext context) {
-    arg_reg("register") = arg_int("value");
+void cmd_register_set(CommandContext context) {
+    arg_reg("register") = arg_val("value", "valuetype");
 }
 void cmd_register_assign(CommandContext context) {}
 void cmd_register_copy(CommandContext context) {
@@ -400,11 +404,8 @@ void cmd_goto(CommandContext context) { no_cli;
 void cmd_wait(CommandContext context) { no_cli;
     saturn_cmd_pause();
 }
-void cmd_alias_set_value(CommandContext context) {
-    aliases.insert({ arg_str("name"), arg_int("value") });
-}
-void cmd_alias_set_from(CommandContext context) {
-    aliases.insert({ arg_str("name"), arg_reg("value") });
+void cmd_alias_set(CommandContext context) {
+    aliases.insert({ arg_str("name"), arg_val("value", "valuetype") });
 }
 void cmd_alias_delete(CommandContext context) {
     if (aliases.find(arg_str("name")) == aliases.end()) return;

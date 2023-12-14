@@ -12,6 +12,8 @@ extern void cmd_mario_state_powerup(CommandContext context);
 extern void cmd_mario_state_eye(CommandContext context);
 extern void cmd_mario_state_hands(CommandContext context);
 extern void cmd_mario_state_cap(CommandContext context);
+extern void cmd_camera_freeze(CommandContext context);
+extern void cmd_camera_unfreeze(CommandContext context);
 extern void cmd_camera_pos(CommandContext context);
 extern void cmd_camera_angle(CommandContext context);
 extern void cmd_camera_fov(CommandContext context);
@@ -44,17 +46,14 @@ extern void cmd_location_save_register(CommandContext context);
 extern void cmd_environment(CommandContext context);
 extern void cmd_call(CommandContext context);
 extern void cmd_if(CommandContext context);
-extern void cmd_register_set_from(CommandContext context);
-extern void cmd_register_set_constant(CommandContext context);
+extern void cmd_register_set(CommandContext context);
 extern void cmd_register_assign(CommandContext context);
 extern void cmd_register_copy(CommandContext context);
 extern void cmd_register_show(CommandContext context);
 extern void cmd_operation(CommandContext context);
 extern void cmd_goto(CommandContext context);
 extern void cmd_wait(CommandContext context);
-extern void cmd_alias_set_value(CommandContext context);
-extern void cmd_alias_set_from(CommandContext context);
-extern void cmd_alias_delete(CommandContext context);
+extern void cmd_alias_set(CommandContext context);
 extern void cmd_kill(CommandContext context);
 
 #endif
