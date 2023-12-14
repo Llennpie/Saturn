@@ -54,6 +54,7 @@ extern void cmd_operation(CommandContext context);
 extern void cmd_goto(CommandContext context);
 extern void cmd_wait(CommandContext context);
 extern void cmd_alias_set(CommandContext context);
+extern void cmd_alias_delete(CommandContext context);
 extern void cmd_kill(CommandContext context);
 
 #endif

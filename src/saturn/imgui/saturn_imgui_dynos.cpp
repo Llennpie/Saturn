@@ -181,6 +181,7 @@ void OpenModelSelector() {
                     // Select model
                     DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
                     current_model = model;
+                    current_model_id = i;
 
                     // Load expressions
                     current_model.Expressions.clear();
@@ -196,8 +197,10 @@ void OpenModelSelector() {
                             last_model_cc_address = current_color_code.GameShark;
                         }
                     } else {
-                        if (!AnyModelsEnabled())
+                        if (!AnyModelsEnabled()) {
                             current_model = Model();
+                            current_model_id = -1;
+                        }
                         
                         // Reset model CCs
                         model_color_code_list.clear();

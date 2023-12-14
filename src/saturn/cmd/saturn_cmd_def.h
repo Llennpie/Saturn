@@ -284,7 +284,7 @@ extern const Command commands[] = { CMD_LITERALS(),
         CMD_LITERALS(),
             CMD_LITERAL("set"),
                 CMD_ARG_ARR("valuetype", "value\0from\0"),
-                CMD_ARG_INT("value")
+                CMD_ARG_INT("value"),
                 CMD_EXEC(cmd_alias_set),
             CMD_END(),
             CMD_LITERAL("delete"),

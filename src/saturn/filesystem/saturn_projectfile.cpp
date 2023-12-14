@@ -13,6 +13,7 @@
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/saturn_models.h"
+#include "data/dynos.cpp.h"
 extern "C" {
 #include "engine/geo_layout.h"
 #include "engine/math_util.h"
@@ -47,8 +48,8 @@ namespace fs = std::filesystem;
 #define SATURN_PROJECT_TIMELINE_IDENTIFIER  "TMLN"
 #define SATURN_PROJECT_KEYFRAME_IDENTIFIER  "KEFR"
 #define SATURN_PROJECT_CAMERA_IDENTIFIER    "CMRA"
-#define SATURN_PROJECT_COLORCODE_IDENTIFIER "COLR"
-#define SATURN_PROJECT_DONE_IDENTIFIER      "DONE"
+#define SATURN_PROJECT_COLORCODE_IDENTIFIER "COLR" // ver 3: deprecated
+#define SATURN_PROJECT_MARIO_IDENTIFIER     "MRIO"
 
 #define SATURN_PROJECT_FLAG_CAMERA_FROZEN        (1 << 15)
 #define SATURN_PROJECT_FLAG_CAMERA_SMOOTH        (1 << 14)
@@ -336,6 +337,25 @@ void saturn_project_colorcode_handler(SaturnFormatStream* stream, int version) {
     sparkColorLegBottom.blue[1] = saturn_format_read_int8(stream);
 }
 
+void saturn_project_mario_handler(SaturnFormatStream* stream, int version) {
+    saturn_project_colorcode_handler(stream, version);
+    current_model_id = saturn_format_read_int32(stream);
+    Array<PackData*> dynosPacks = DynOS_Gfx_GetPacks();
+    for (int i = 0; i < dynosPacks.Count(); i++) {
+        DynOS_Opt_SetValue(String("dynos_pack_%d", i), false);
+    }
+    if (current_model_id != -1) {
+        DynOS_Opt_SetValue(String("dynos_pack_%d", current_model_id), true);
+        current_model = model_list[current_model_id];
+        for (int i = 0; i < current_model.Expressions.size(); i++) {
+            current_model.Expressions[i].CurrentIndex = saturn_format_read_int32(stream);
+        }
+    }
+    else current_model = Model();
+    VanillaEyes.CurrentIndex = saturn_format_read_int32(stream);
+    custom_eyes_enabled = saturn_format_read_int8(stream);
+}
+
 void saturn_load_project(char* filename) {
     k_frame_keys.clear();
     saturn_format_input((char*)full_file_path(filename).c_str(), SATURN_PROJECT_IDENTIFIER, {
@@ -345,6 +365,7 @@ void saturn_load_project(char* filename) {
         { SATURN_PROJECT_KEYFRAME_IDENTIFIER, saturn_project_keyframe_handler },
         { SATURN_PROJECT_CAMERA_IDENTIFIER, saturn_project_camera_handler },
         { SATURN_PROJECT_COLORCODE_IDENTIFIER, saturn_project_colorcode_handler },
+        { SATURN_PROJECT_MARIO_IDENTIFIER, saturn_project_mario_handler },
     });
     std::cout << "Loaded project " << filename << std::endl;
 }
@@ -486,7 +507,7 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int16(&stream, gLakituState.yaw);
     saturn_format_write_int16(&stream, freezecamRoll);
     saturn_format_close_section(&stream);
-    saturn_format_new_section(&stream, SATURN_PROJECT_COLORCODE_IDENTIFIER);
+    saturn_format_new_section(&stream, SATURN_PROJECT_MARIO_IDENTIFIER);
     saturn_format_write_int8(&stream, defaultColorHat.red[0]);
     saturn_format_write_int8(&stream, defaultColorHat.green[0]);
     saturn_format_write_int8(&stream, defaultColorHat.blue[0]);
@@ -559,6 +580,14 @@ void saturn_save_project(char* filename) {
     saturn_format_write_int8(&stream, sparkColorLegBottom.red[1]);
     saturn_format_write_int8(&stream, sparkColorLegBottom.green[1]);
     saturn_format_write_int8(&stream, sparkColorLegBottom.blue[1]);
+    saturn_format_write_int32(&stream, current_model_id);
+    if (current_model_id != -1) {
+        for (int i = 0; i < current_model.Expressions.size(); i++) {
+            saturn_format_write_int32(&stream, current_model.Expressions[i].CurrentIndex);
+        }
+        saturn_format_write_int32(&stream, VanillaEyes.CurrentIndex);
+        saturn_format_write_int8(&stream, custom_eyes_enabled);
+    }
     saturn_format_close_section(&stream);
     for (auto& entry : k_frame_keys) {
         saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
