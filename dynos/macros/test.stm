@@ -1,5 +1,0 @@
-register 0 set constant 0
-operation 0 add constant 1
-register 0 show
-wait
-goto set constant 1

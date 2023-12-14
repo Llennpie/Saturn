@@ -84,6 +84,7 @@ sm64config.txt
 actors/mario_cap/mario_cap_logo.rgba16.png
 actors/mario/mario_logo.rgba16.png
 *.spj
+*.stm
 command_data.bin
 
 res/gfx
