@@ -58,6 +58,8 @@ ImVec4 uiLegBottomShadeColor =           ImVec4(64.0f / 255.0f, 0.0f / 255.0f, 1
 static char ccSearchTerm[128];
 bool has_open_any_model_cc;
 
+bool auto_onehalf = false;
+
 /*
 Update the "defaultColor" presets with our CC Editor colors.
 These values are directly used in gfx_pc.c to overwrite incoming lights.
@@ -524,6 +526,17 @@ void ColorPartBox(std::string name, const char* mainName, const char* shadeName,
 
     ImGui::Text(name.c_str());
 
+    if (ImGui::IsPopupOpen(ImGui::GetID((std::string(mainName) + "picker").c_str()), ImGuiPopupFlags_None) && auto_onehalf) {
+        shadeColorValue->x = floor(colorValue->x / 2.0f * 255.0f) / 255.0f;
+        shadeColorValue->y = floor(colorValue->y / 2.0f * 255.0f) / 255.0f;
+        shadeColorValue->z = floor(colorValue->z / 2.0f * 255.0f) / 255.0f;
+    }
+    if (ImGui::IsPopupOpen(ImGui::GetID((std::string(shadeName) + "picker").c_str()), ImGuiPopupFlags_None) && auto_onehalf) {
+        colorValue->x = floor(shadeColorValue->x * 2.0f * 255.0f) / 255.0f;
+        colorValue->y = floor(shadeColorValue->y * 2.0f * 255.0f) / 255.0f;
+        colorValue->z = floor(shadeColorValue->z * 2.0f * 255.0f) / 255.0f;
+    }
+
     if (ImGui::IsPopupOpen(ImGui::GetID((std::string(mainName) + "picker").c_str()), ImGuiPopupFlags_None) ||
         ImGui::IsPopupOpen(ImGui::GetID((std::string(shadeName) + "picker").c_str()), ImGuiPopupFlags_None)) {
 
@@ -589,6 +602,8 @@ void OpenCCEditor() {
     // Editor Tabs
 
     // Visual CC Editor
+    ImGui::Checkbox("Auto 1/2", &auto_onehalf);
+    imgui_bundled_tooltip("Automatically updates the shade color to be a darker version of the main color, and vice versa.");
     if (ImGui::BeginTabBar("###dynos_tabbar", ImGuiTabBarFlags_None)) {
         if (ImGui::BeginTabItem("Editor")) {
 
