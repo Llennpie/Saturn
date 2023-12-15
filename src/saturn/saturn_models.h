@@ -78,6 +78,10 @@ class Model {
 
             return this->FolderName;
         }
+        Model() {
+            LoadEyesFolder();
+            Expressions.insert(Expressions.begin(), VanillaEyes);
+        }
 };
 
 extern int current_model_id;
