@@ -114,8 +114,8 @@ std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
 
                 // Eyes will always appear first
                 if (expression.Name == "eyes") {
-                    // remove previous eyes expression
-                    expressions_list.erase(expressions_list.begin());
+                    // remove previous eyes expression, if it exists
+                    if (expressions_list.size() > 0) expressions_list.erase(expressions_list.begin());
 
                     expressions_list.insert(expressions_list.begin(), expression);
                 } else {
