@@ -222,7 +222,7 @@ void bhv_toad_message_init(void) {
         gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADED;
         gCurrentObject->oOpacity = 81;
     } else {
-        obj_mark_for_deletion(gCurrentObject);
+        //obj_mark_for_deletion(gCurrentObject);
     }
 }
 
