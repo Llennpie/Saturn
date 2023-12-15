@@ -247,15 +247,22 @@ void saturn_generate_file_tree(std::filesystem::path path, std::string extension
     }
 }
 
+int file_selector_height = 75;
+
 bool saturn_file_selector(std::filesystem::path path, std::filesystem::path* outpath, std::string extension, bool dirs) {
     bool result = false;
-    ImGui::BeginChild(("###file_selector_" + path.filename().string()).c_str(), ImVec2(165, 75), true);
+    ImGui::BeginChild(("###file_selector_" + path.filename().string()).c_str(), ImVec2(165, file_selector_height), true);
     saturn_generate_file_tree(path, extension, dirs, path.string(), [&](std::filesystem::path out) {
         *outpath = std::filesystem::relative(out, path);
         result = true;
     });
     ImGui::EndChild();
+    file_selector_height = 75;
     return result;
+}
+
+void saturn_file_selector_height(int height) {
+    file_selector_height = height;
 }
 
 #define JSON_VEC4(json, entry, dest) if (json.isMember(entry)) dest = ImVec4(json[entry][0].asFloat(), json[entry][1].asFloat(), json[entry][2].asFloat(), json[entry][3].asFloat())
