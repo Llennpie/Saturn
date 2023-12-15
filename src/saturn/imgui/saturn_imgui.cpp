@@ -218,24 +218,22 @@ void saturn_generate_file_tree(std::filesystem::path path, std::string extension
     }
     
     // sort
-    auto string_comparator = [](std::string a, std::string b) {
-        if (a == "../") return true;
-        if (b == "../") return false;
-        return a < b;
+    auto string_comparator = [](std::filesystem::path a, std::filesystem::path b) {
+        return a.string() < b.string();
     };
     std::sort(folders.begin(), folders.end(), string_comparator);
     std::sort(files.begin(), files.end(), string_comparator);
 
     // create the ui
     for (const auto& entry : folders) {
-        if (ImGui::TreeNode(entry.filename().c_str())) {
+        if (ImGui::TreeNode(entry.filename().string().c_str())) {
             saturn_generate_file_tree(entry, extension, dirs, basepath, callback);
             ImGui::TreePop();
         }
     }
     for (const auto& entry : files) {
         if (entry.extension().string() != ("." + extension) && !extension.empty()) continue;
-        std::string filename = entry.filename();
+        std::string filename = entry.filename().string();
         bool contains = last_selected_item.find(basepath) != last_selected_item.end();
         bool selected = false;
         if (contains) selected = (last_selected_item[basepath] == filename);
