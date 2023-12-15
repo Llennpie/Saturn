@@ -184,8 +184,8 @@ void OpenModelSelector() {
                     current_model_id = i;
 
                     // Load expressions
-                    current_model.Expressions.clear();
-                    current_model.Expressions = LoadExpressions(current_model.FolderPath);
+                    current_model.ClearExpressions();
+                    LoadExpressions(&current_model.Expressions, current_model.FolderPath);
 
                     if (is_selected) {
                         std::cout << "Loaded " << model.Name << " by " << model.Author << std::endl;

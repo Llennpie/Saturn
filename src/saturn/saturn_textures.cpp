@@ -94,8 +94,7 @@ std::vector<TexturePath> LoadExpressionTextures(Expression expression) {
 }
 
 /* Loads an expression list into a specified model */
-std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
-    std::vector<Expression> expressions_list;
+void LoadExpressions(std::vector<Expression>* expressions_list, std::string modelFolderPath) {
 
     // Check if the model's /expressions folder exists
     if (fs::is_directory(fs::path(modelFolderPath + "/expressions"))) {
@@ -115,17 +114,15 @@ std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
                 // Eyes will always appear first
                 if (expression.Name == "eyes") {
                     // remove previous eyes expression, if it exists
-                    if (expressions_list.size() > 0) expressions_list.erase(expressions_list.begin());
+                    expressions_list->erase(expressions_list->begin());
 
-                    expressions_list.insert(expressions_list.begin(), expression);
+                    expressions_list->insert(expressions_list->begin(), expression);
                 } else {
-                    expressions_list.push_back(expression);
+                    expressions_list->push_back(expression);
                 }
             }
         }
     }
-
-    return expressions_list;
 }
 
 std::map<std::string, std::string*> heap_strs = {};
@@ -168,7 +165,6 @@ const void* saturn_bind_texture(const void* input) {
             texName == "actors/mario/mario_eyes_right_unused.rgba16.png" ||
             texName == "actors/mario/mario_eyes_up_unused.rgba16.png" ||
             texName == "actors/mario/mario_eyes_down_unused.rgba16.png") {
-                std::cout << current_model.Expressions[0].Textures.size() << std::endl;
                 outputTexture = stack_to_heap(current_model.Expressions[0].Textures[current_model.Expressions[0].CurrentIndex].GetRelativePath())->c_str();
                 const void* output = static_cast<const void*>(outputTexture);
                 return output;

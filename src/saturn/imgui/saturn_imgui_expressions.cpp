@@ -108,8 +108,9 @@ void OpenEyeSelector(Expression* expression, std::string inPath) {
 void OpenExpressionSelector() {
     if (custom_eyes_enabled) {
         // Vanilla Eye Selector
-        if (current_model.UsingVanillaEyes())
+        if (current_model.UsingVanillaEyes()) {
             OpenEyeSelector(&current_model.Expressions[0], "dynos/eyes");
+        }
         else {
             // Model Eye Selector
             if (current_model.Expressions[0].Name == "eyes")

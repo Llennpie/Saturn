@@ -71,6 +71,7 @@ bool is_custom_level_loaded = false;
 std::string custom_level_path;
 std::string custom_level_filename;
 std::string custom_level_dirname;
+bool custom_level_flip_normals;
 
 s16 levelList[] = { 
     LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
@@ -225,6 +226,10 @@ void parse_materials(char* data, std::map<std::string, std::string>* materials) 
             std::string path = std::to_string(textureIndex++) + ".png";
             std::filesystem::path raw = std::filesystem::path(line[1]);
             std::filesystem::path src = raw.is_absolute() ? raw : std::filesystem::path(custom_level_path).parent_path() / raw;
+            if (!std::filesystem::exists(src)) {
+                materials->insert({ matname, "missingtex" });
+                continue;
+            }
             std::filesystem::path dst = customlvl_texdir / path;
             std::filesystem::remove(dst);
             std::filesystem::copy_file(src, dst);
@@ -254,8 +259,15 @@ void parse_custom_level(char* data) {
             parse_materials(mtldata, &materials);
             free(mtldata);
         }
-        if (line[0] == "v") vertices.push_back({ std::stof(line[1]), std::stof(line[2]), std::stof(line[3]) });
-        if (line[0] == "vt") uv.push_back({ std::stof(line[1]), std::stof(line[2]) });
+        if (line[0] == "v") vertices.push_back({
+            custom_level_flip_normals ? std::stof(line[2]) : std::stof(line[1]),
+            custom_level_flip_normals ? std::stof(line[1]) : std::stof(line[2]),
+            std::stof(line[3])
+        });
+        if (line[0] == "vt") uv.push_back({
+            std::stof(line[1]),
+            std::stof(line[2])
+        });
         if (line[0] == "usemtl") {
             if (materials.find(line[1]) == materials.end()) continue; 
             custom_level_texture((char*)materials[line[1]].c_str());
@@ -439,6 +451,7 @@ void imgui_machinima_quick_options() {
             ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
             ImGui::PopItemWidth();
             if (!is_custom_level_loaded || in_custom_level) ImGui::BeginDisabled();
+            ImGui::Checkbox("Flip Normals", &custom_level_flip_normals);
             if (ImGui::Button("Load Level")) {
                 auto size = filesystem::file_size(custom_level_path);
                 char* data = (char*)malloc(size);

@@ -78,9 +78,13 @@ class Model {
 
             return this->FolderName;
         }
-        Model() {
+        void ClearExpressions() {
             LoadEyesFolder();
+            Expressions.clear();
             Expressions.insert(Expressions.begin(), VanillaEyes);
+        }
+        Model() {
+            ClearExpressions();
         }
 };
 
