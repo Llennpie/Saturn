@@ -260,8 +260,8 @@ void parse_custom_level(char* data) {
             free(mtldata);
         }
         if (line[0] == "v") vertices.push_back({
-            custom_level_flip_normals ? std::stof(line[2]) : std::stof(line[1]),
-            custom_level_flip_normals ? std::stof(line[1]) : std::stof(line[2]),
+            std::stof(line[1]),
+            std::stof(line[2]),
             std::stof(line[3])
         });
         if (line[0] == "vt") uv.push_back({
@@ -274,7 +274,10 @@ void parse_custom_level(char* data) {
         }
         if (line[0] == "f") {
             for (int i = 1; i < line.size(); i++) {
-                auto indexes = split(line[i], '/');
+                int idx = i;
+                if      (custom_level_flip_normals && idx == 1) idx = 3;
+                else if (custom_level_flip_normals && idx == 3) idx = 1;
+                auto indexes = split(line[idx], '/');
                 int v = std::stoi(indexes[0]) - 1;
                 int vt = std::stoi(indexes[1]) - 1;
                 custom_level_vertex(vertices[v][0] * custom_level_scale, vertices[v][1] * custom_level_scale, vertices[v][2] * custom_level_scale, uv[vt][0] * 1024, uv[vt][1] * 1024);
