@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "saturn/imgui/saturn_file_browser.h"
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
@@ -324,11 +325,13 @@ void OpenCCSelector() {
         [](unsigned char c){ return std::tolower(c); });
     */
 
-    std::filesystem::path inPath = "dynos/colorcodes";
-    std::filesystem::path outPath;
+    std::string inPath = "dynos/colorcodes";
+    saturn_file_browser_filter_extension("gs");
     if (model_color_code_list.size() > 0 && current_model.HasColorCodeFolder()) inPath = current_model.FolderPath + "/colorcodes";
-    if (saturn_file_selector(inPath, &outPath, "gs", true)) {
-        ApplyColorCode(LoadGSFile(outPath.string(), inPath.string()));
+    else saturn_file_browser_item("Mario.gs");
+    saturn_file_browser_scan_directory(inPath);
+    if (saturn_file_browser_show("colorcodes")) {
+        ApplyColorCode(LoadGSFile(saturn_file_browser_get_selected().string(), inPath));
     }
 
     // UI list

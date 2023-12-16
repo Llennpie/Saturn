@@ -272,9 +272,6 @@ void sdynos_imgui_menu() {
         // Color Code Selection
         if (!support_color_codes || !current_model.ColorCodeSupport) ImGui::BeginDisabled();
             OpenCCSelector();
-            if (ImGui::Button(ICON_FK_UNDO " Reset CC###reset_cc_button")) {
-                ApplyColorCode(ColorCode());
-            }
             // Open File Dialog
             if (ImGui::Button(ICON_FK_FILE_TEXT_O " Open CC Folder...###open_cc_folder"))
                 open_directory(std::string(sys_exe_path()) + "/dynos/colorcodes/");

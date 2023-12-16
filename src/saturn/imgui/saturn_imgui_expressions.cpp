@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <string>
 
+#include "saturn/imgui/saturn_file_browser.h"
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
@@ -72,9 +73,11 @@ void OpenEyeSelector(Expression* expression, std::string inPath) {
         return;
     };
 
-    std::filesystem::path outPath;
-    saturn_file_selector_height(150);
-    if (saturn_file_selector(inPath, &outPath, "png", true)) {
+    saturn_file_browser_filter_extension("png");
+    saturn_file_browser_scan_directory(inPath);
+    saturn_file_browser_height(150);
+    if (saturn_file_browser_show("eyes")) {
+        std::filesystem::path outPath = saturn_file_browser_get_selected();
         int index = 0;
         for (auto& tex : expression->Textures) {
             if (std::filesystem::path(tex.FilePath) == outPath) break;
