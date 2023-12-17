@@ -66,31 +66,13 @@ void ShowExpressionContextMenu(Expression* expression, int id) {
 }
 
 /* A selection menu for a single Expression; A larger, one-click child window */
-void OpenEyeSelector(Expression* expression, std::string inPath) {
+void OpenEyeSelector(Expression* expression) {
     if (expression->Textures.size() <= 0) {
         ImGui::TextWrapped("No eye textures found. Place PNG files in /%s.", expression->FolderPath.c_str());
         return;
     };
 
-    std::filesystem::path outPath;
-    saturn_file_selector_height(150);
-    if (saturn_file_selector(inPath, &outPath, "png", true)) {
-        int index = 0;
-        for (auto& tex : expression->Textures) {
-            if (std::filesystem::path(tex.FilePath) == outPath) break;
-            index++;
-        }
-        if (index == expression->Textures.size()) {
-            TexturePath newtex;
-            outPath = inPath / outPath;
-            newtex.FileName = outPath.filename().string();
-            newtex.FilePath = outPath.string();
-            expression->Textures.push_back(newtex);
-        }
-        expression->CurrentIndex = index;
-    }
-
-    /*ImGui::BeginChild(("###menu_eye_%s", expression->Name.c_str()), ImVec2(200, 75), true);
+    ImGui::BeginChild(("###menu_eye_%s", expression->Name.c_str()), ImVec2(200, 75), true);
     for (int n = 0; n < expression->Textures.size(); n++) {
         bool is_selected = (expression->CurrentIndex == n);
         std::string entry_name = expression->Textures[n].FileName;
@@ -101,7 +83,7 @@ void OpenEyeSelector(Expression* expression, std::string inPath) {
         }
     }
     ImGui::EndChild();
-    ShowExpressionContextMenu(expression, 0);*/
+    ShowExpressionContextMenu(expression, 0);
 }
 
 /* Creates a nested expression selection menu for a model; Contains dropdown OR checkbox widgets */
@@ -109,11 +91,11 @@ void OpenExpressionSelector() {
     if (custom_eyes_enabled) {
         // Vanilla Eye Selector
         if (current_model.UsingVanillaEyes())
-            OpenEyeSelector(&VanillaEyes, "dynos/eyes");
+            OpenEyeSelector(&VanillaEyes);
         else {
             // Model Eye Selector
             if (current_model.Expressions[0].Name == "eyes")
-                OpenEyeSelector(&current_model.Expressions[0], current_model.Expressions[0].FolderPath);
+                OpenEyeSelector(&current_model.Expressions[0]);
         }
     }
 
