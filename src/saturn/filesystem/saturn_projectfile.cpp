@@ -351,10 +351,8 @@ void saturn_project_mario_handler(SaturnFormatStream* stream, int version) {
             current_model.Expressions[i].CurrentIndex = saturn_format_read_int32(stream);
         }
     }
-    else {
-        current_model = Model();
-        current_model.Expressions[0].CurrentIndex = saturn_format_read_int32(stream);
-    }
+    else current_model = Model();
+    VanillaEyes.CurrentIndex = saturn_format_read_int32(stream);
     custom_eyes_enabled = saturn_format_read_int8(stream);
 }
 
@@ -587,9 +585,9 @@ void saturn_save_project(char* filename) {
         for (int i = 0; i < current_model.Expressions.size(); i++) {
             saturn_format_write_int32(&stream, current_model.Expressions[i].CurrentIndex);
         }
+        saturn_format_write_int32(&stream, VanillaEyes.CurrentIndex);
+        saturn_format_write_int8(&stream, custom_eyes_enabled);
     }
-    else saturn_format_write_int32(&stream, current_model.Expressions[0].CurrentIndex); // eye tex
-    saturn_format_write_int8(&stream, custom_eyes_enabled);
     saturn_format_close_section(&stream);
     for (auto& entry : k_frame_keys) {
         saturn_format_new_section(&stream, SATURN_PROJECT_TIMELINE_IDENTIFIER);
