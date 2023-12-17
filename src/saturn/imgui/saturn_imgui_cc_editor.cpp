@@ -339,7 +339,7 @@ void OpenCCSelector() {
         std::string path = saturn_file_browser_get_selected().string();
         ColorCode cc;
         if (has_custom_cc && path.find(current_model.Name) == 0) {
-            if (path.find("default.gs") == current_model.Name,length() + 1) cc = LoadGSFile("default.gs", current_model.FolderPath);
+            if (path.find("default.gs") == current_model.Name.length() + 1) cc = LoadGSFile("default.gs", current_model.FolderPath);
             else cc = LoadGSFile(path.substr(current_model.Name.length() + 1), current_model.FolderPath + "/colorcodes");
         }
         else cc = LoadGSFile(path, "dynos/colorcodes");

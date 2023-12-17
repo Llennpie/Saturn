@@ -31,6 +31,11 @@ public:
         entries.push_back(FileBrowserEntry(name, true, this));
         return &entries[entries.size() - 1];
     }
+    void merge(FileBrowserEntry* entry) {
+        for (FileBrowserEntry& child : entry->entries) {
+            entries.push_back(child);
+        }
+    }
 };
 
 FileBrowserEntry root = FileBrowserEntry("root", true, nullptr);
@@ -40,6 +45,7 @@ std::filesystem::path selected_path;
 std::string extension_filter = "";
 std::map<std::string, char*> search_terms = {};
 std::map<std::string, std::string> selected_paths = {};
+std::map<std::filesystem::path, FileBrowserEntry*> scanned_folders = {};
 
 void saturn_file_browser_item(std::string item) {
     curr->add_file(item);
@@ -53,7 +59,13 @@ void saturn_file_browser_tree_node_end() {
     curr = curr->parent();
 }
 
-void saturn_file_browser_scan_directory(std::filesystem::path dir, bool recursive) {
+void saturn_file_browser_refresh_directory(std::filesystem::path dir) {
+    if (scanned_folders.find(dir) == scanned_folders.end()) return;
+    delete scanned_folders[dir];
+    scanned_folders.erase(dir);
+}
+
+void saturn_file_browser_scan_directory_internal(FileBrowserEntry* ftb, std::filesystem::path dir, bool recursive) {
     std::vector<std::string> dirs = {};
     std::vector<std::string> files = {};
     for (const auto& entry : std::filesystem::directory_iterator(dir)) {
@@ -74,13 +86,20 @@ void saturn_file_browser_scan_directory(std::filesystem::path dir, bool recursiv
     std::sort(dirs.begin(), dirs.end(), stringcomp);
     std::sort(files.begin(), files.end(), stringcomp);
     for (std::string dirname : dirs) {
-        saturn_file_browser_tree_node(dirname);
-        saturn_file_browser_scan_directory(dir / dirname, true);
-        saturn_file_browser_tree_node_end();
+        saturn_file_browser_scan_directory_internal(ftb->add_dir(dirname), dir / dirname, true);
     }
     for (std::string filename : files) {
-        saturn_file_browser_item(filename);
+        ftb->add_file(filename);
     }
+}
+
+void saturn_file_browser_scan_directory(std::filesystem::path dir, bool recursive) {
+    if (scanned_folders.find(dir) == scanned_folders.end()) {
+        FileBrowserEntry* entry = new FileBrowserEntry("root", true, nullptr);
+        saturn_file_browser_scan_directory_internal(entry, dir, recursive);
+        scanned_folders.insert({ dir, entry });
+    }
+    curr->merge(scanned_folders[dir]);
 }
 
 void saturn_file_browser_filter_extension(std::string extension) {
