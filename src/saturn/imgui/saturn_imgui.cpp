@@ -12,7 +12,6 @@
 #include "saturn/imgui/saturn_imgui_machinima.h"
 #include "saturn/imgui/saturn_imgui_settings.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
-#include "saturn/imgui/saturn_file_browser.h"
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
@@ -198,6 +197,87 @@ ImGuiWindowFlags imgui_bundled_window_corner(int corner, int width, int height, 
     }
 
     return window_flags;
+}
+
+std::map<std::string, std::string> last_selected_item = {};
+std::map<std::string, char*> file_browser_search = {};
+
+void saturn_generate_file_tree(std::filesystem::path path, std::string extension, bool dirs, char* search, std::string basepath, std::function<void(std::filesystem::path)> callback) {
+    std::vector<std::filesystem::path> folders = {};
+    std::vector<std::filesystem::path> files = {};
+    
+    auto lowercase = [](char c){ return std::tolower(c); };
+    std::string search_term = std::string(search);
+    std::transform(search_term.begin(), search_term.end(), search_term.begin(), lowercase);
+
+    // scan
+    if (dirs) {
+        for (const auto& item : std::filesystem::directory_iterator(path)) {
+            if (!std::filesystem::is_directory(item.path())) continue;
+            folders.push_back(item.path());
+        }
+    }
+    for (const auto& item : std::filesystem::directory_iterator(path)) {
+        if (std::filesystem::is_directory(item.path())) continue;
+        std::string filename = item.path().filename().string();
+        std::transform(filename.begin(), filename.end(), filename.begin(), lowercase);
+        if (filename.find(search_term) == std::string::npos) continue;
+        files.push_back(item.path());
+    }
+    
+    // sort
+    auto string_comparator = [](std::filesystem::path a, std::filesystem::path b) {
+        return a.string() < b.string();
+    };
+    std::sort(folders.begin(), folders.end(), string_comparator);
+    std::sort(files.begin(), files.end(), string_comparator);
+
+    // create the ui
+    for (const auto& entry : folders) {
+        if (ImGui::TreeNode(entry.filename().string().c_str())) {
+            saturn_generate_file_tree(entry, extension, dirs, search, basepath, callback);
+            ImGui::TreePop();
+        }
+    }
+    for (const auto& entry : files) {
+        if (entry.extension().string() != ("." + extension) && !extension.empty()) continue;
+        std::string filename = entry.filename().string();
+        bool contains = last_selected_item.find(basepath) != last_selected_item.end();
+        bool selected = false;
+        if (contains) selected = (last_selected_item[basepath] == filename);
+        if (ImGui::Selectable(filename.c_str(), &selected)) {
+            if (contains) last_selected_item[basepath] = filename;
+            else last_selected_item.insert({ basepath, filename });
+            callback(entry);
+        }
+    }
+}
+
+int file_selector_height = 75;
+
+bool saturn_file_selector(std::filesystem::path path, std::filesystem::path* outpath, std::string extension, bool dirs) {
+    bool result = false;
+    if (file_browser_search.find(path.string()) == file_browser_search.end()) {
+        char* search = (char*)malloc(256);
+        search[0] = 0;
+        file_browser_search.insert({ path.string(), search });
+    }
+    char* search = file_browser_search[path.string()];
+    ImGui::PushItemWidth(165);
+    ImGui::InputTextWithHint(("###file_selector_search_" + path.filename().string()).c_str(), ICON_FK_SEARCH " Search...", search, 256, ImGuiInputTextFlags_AutoSelectAll);
+    ImGui::PopItemWidth();
+    ImGui::BeginChild(("###file_selector_" + path.filename().string()).c_str(), ImVec2(165, file_selector_height), true);
+    saturn_generate_file_tree(path, extension, dirs, search, path.string(), [&](std::filesystem::path out) {
+        *outpath = std::filesystem::relative(out, path);
+        result = true;
+    });
+    ImGui::EndChild();
+    file_selector_height = 75;
+    return result;
+}
+
+void saturn_file_selector_height(int height) {
+    file_selector_height = height;
 }
 
 #define JSON_VEC4(json, entry, dest) if (json.isMember(entry)) dest = ImVec4(json[entry][0].asFloat(), json[entry][1].asFloat(), json[entry][2].asFloat(), json[entry][3].asFloat())
@@ -652,10 +732,9 @@ void saturn_imgui_update() {
                 ImGui::Separator();
 
                 if (ImGui::BeginMenu("Open Project")) {
-                    saturn_file_browser_filter_extension("spj");
-                    saturn_file_browser_scan_directory("dynos/projects");
-                    if (saturn_file_browser_show("project")) {
-                        std::string str = saturn_file_browser_get_selected().string();
+                    std::filesystem::path projectPath;
+                    if (saturn_file_selector("dynos/projects", &projectPath, "spj", false)) {
+                        std::string str = projectPath.string();
                         str = str.substr(0, str.length() - 4); // trim the extension
                         if (str.length() <= 256) memcpy(saturnProjectFilename, str.c_str(), str.length() + 1);
                         saturnProjectFilename[256] = 0;
@@ -686,9 +765,7 @@ void saturn_imgui_update() {
 
                 if (ImGui::BeginMenu(ICON_FK_CODE " Macros")) {
                     std::filesystem::path path;
-                    saturn_file_browser_filter_extension("stm");
-                    saturn_file_browser_scan_directory("dynos/macros");
-                    if (saturn_file_browser_show("macros")) selected_macro = path.string();
+                    if (saturn_file_selector("dynos/macros", &path, "stm", true)) selected_macro = path.string();
                     if (ImGui::Button("Run")) {
                         saturn_cmd_clear_registers();
                         saturn_cmd_eval_file(selected_macro);
