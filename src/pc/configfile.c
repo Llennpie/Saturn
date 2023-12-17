@@ -84,7 +84,7 @@ unsigned int configKeyPlayAnim[MAX_BINDS]   = { 0x0018,   0x100D,     VK_INVALID
 unsigned int configKeyLoopAnim[MAX_BINDS]   = { 0x0017,   0x100E,     VK_INVALID };
 unsigned int configKeyShowMenu[MAX_BINDS]   = { 0x003b,   0x1004,     VK_INVALID };
 #ifdef EXTERNAL_DATA
-bool configPrecacheRes = false;
+bool configPrecacheRes = true;
 #endif
 unsigned int configEditorTheme   = -1;
 unsigned int configMCameraMode   = 0; // keyboard is better
