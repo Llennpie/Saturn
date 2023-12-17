@@ -129,7 +129,9 @@ Model LoadModelData(std::string folderPath) {
             // Enabled by default, but authors can optionally disable the feature
             // If disabled, the "Custom Eyes" checkbox will be hidden from the menu
             if (root.isMember("eye_support"))
-                model.CustomEyeSupport = root["eye_support"].asBool();
+                model.CustomEyeSupport = root["eye_support"].asBool() && fs::is_directory(folderPath + "/expressions");
+            if (!model.CustomEyeSupport) custom_eyes_enabled = false;
+
             // EXPERIMENTAL: Custom Blink Cycle (optional)
             if (root.isMember("custom_blink_cycle"))
                 model.CustomBlinkCycle = root["custom_blink_cycle"].asBool();

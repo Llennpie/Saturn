@@ -33,8 +33,9 @@ class Model {
             // Always enabled for non-model Mario
             if (this->DynOSId == -1) return (true);
             else {
-                if (!std::filesystem::is_directory(this->FolderPath + "/expressions/eyes"))
-                    return (this->Active && this->CustomEyeSupport);
+                if (!std::filesystem::is_directory(this->FolderPath + "/expressions/eyes") &&
+                    !std::filesystem::is_directory(this->FolderPath + "/expressions/eye"))
+                        return (this->Active && this->CustomEyeSupport);
             }
             return false;
         }
@@ -77,6 +78,10 @@ class Model {
                 return (this->Name + this->Author + this->FolderName);
 
             return this->FolderName;
+        }
+
+        Model() {
+            LoadEyesFolder();
         }
 };
 

@@ -45,6 +45,7 @@ void ShowExpressionContextMenu(Expression* expression, int id) {
         // Refresh Textures
         if (ImGui::Button(ICON_FK_REFRESH " Refresh Textures###refresh_textures")) {
             expression->Textures = LoadExpressionTextures(*expression);
+            expression->Folders = LoadExpressionFolders(*expression);
             // We attempt to keep each currently-selected texture
             // If our index is out of bounds (e.g. PNG was deleted) reset it
             for (int i = 0; i < expression->Textures.size(); i++) {
@@ -65,6 +66,30 @@ void ShowExpressionContextMenu(Expression* expression, int id) {
     }
 }
 
+void RecursiveSelector(Expression* expression, int recurse_index, std::string parent_path) {
+    // Folders
+    for (int n = recurse_index; n < expression->Folders.size(); n++) {
+        TexturePath folder = expression->Folders[n];
+        if (folder.ParentPath() != parent_path &&
+            folder.ParentPath() != parent_path + "/") continue;
+
+        if (ImGui::TreeNode(folder.FileName.c_str())) {
+            RecursiveSelector(expression, recurse_index + 1, folder.FilePath);
+            ImGui::TreePop();
+        }
+    }
+    // Textures
+    for (int i = 0; i < expression->Textures.size(); i++) {
+        TexturePath texture = expression->Textures[i];
+        if (texture.ParentPath() != parent_path &&
+            texture.ParentPath() != parent_path + "/") continue;
+
+        if (ImGui::Selectable(texture.FileName.c_str(), expression->CurrentIndex == i)) {
+            expression->CurrentIndex = i;
+        }
+    }
+}
+
 /* A selection menu for a single Expression; A larger, one-click child window */
 void OpenEyeSelector(Expression* expression) {
     if (expression->Textures.size() <= 0) {
@@ -72,16 +97,8 @@ void OpenEyeSelector(Expression* expression) {
         return;
     };
 
-    ImGui::BeginChild(("###menu_eye_%s", expression->Name.c_str()), ImVec2(200, 75), true);
-    for (int n = 0; n < expression->Textures.size(); n++) {
-        bool is_selected = (expression->CurrentIndex == n);
-        std::string entry_name = expression->Textures[n].FileName;
-
-        if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
-            //gfx_precache_textures();
-            expression->CurrentIndex = n;
-        }
-    }
+    ImGui::BeginChild(("###menu_eye_%s", expression->Name.c_str()), ImVec2(200, 125), true);
+    RecursiveSelector(expression, 0, expression->FolderPath);
     ImGui::EndChild();
     ShowExpressionContextMenu(expression, 0);
 }
@@ -89,16 +106,12 @@ void OpenEyeSelector(Expression* expression) {
 /* Creates a nested expression selection menu for a model; Contains dropdown OR checkbox widgets */
 void OpenExpressionSelector() {
     if (custom_eyes_enabled) {
-        // Vanilla Eye Selector
-        if (current_model.UsingVanillaEyes())
-            OpenEyeSelector(&VanillaEyes);
-        else {
-            // Model Eye Selector
-            if (current_model.Expressions[0].Name == "eyes")
-                OpenEyeSelector(&current_model.Expressions[0]);
-        }
+        if (current_model.Expressions.size() > 0 && current_model.CustomEyeSupport)
+        // Model Eye Selector
+        OpenEyeSelector(&current_model.Expressions[0]);
     }
 
+    if (!current_model.Active) return;
     if (current_model.Expressions.size() > 1) {
         // Other Expressions
         if (current_model.Expressions.size() > 8) ImGui::BeginChild(("###menu_exp_model"), ImVec2(200, 190), false, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
@@ -128,15 +141,7 @@ void OpenExpressionSelector() {
             } else {
             // Use dropdown
                 if (ImGui::BeginCombo(label_name.c_str(), current_model.Expressions[i].Textures[current_model.Expressions[i].CurrentIndex].FileName.c_str(), ImGuiComboFlags_None)) {
-                    for (int n = 0; n < current_model.Expressions[i].Textures.size(); n++) {
-                        bool is_selected = (current_model.Expressions[i].CurrentIndex == n);
-                        std::string entry_name = current_model.Expressions[i].Textures[n].FileName;
-
-                        if (ImGui::Selectable(entry_name.c_str(), is_selected)) {
-                            //gfx_precache_textures();
-                            current_model.Expressions[i].CurrentIndex = n;
-                        }
-                    }
+                    RecursiveSelector(&current_model.Expressions[i], 0, current_model.Expressions[i].FolderPath);
                     ImGui::EndCombo();
                 }
                 ShowExpressionContextMenu(&current_model.Expressions[i], i);
