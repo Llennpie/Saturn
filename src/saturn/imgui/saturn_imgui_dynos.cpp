@@ -255,13 +255,11 @@ void OpenModelSelector() {
     }
 }
 
-
-
 void sdynos_imgui_init() {
+    LoadEyesFolder();
+
     model_list = GetModelList("dynos/packs");
     RefreshColorCodeList();
-
-    LoadEyesFolder();
 
     //model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
     //if (sDynosPacks.Count() != 1) model_details += "s";

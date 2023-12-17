@@ -79,7 +79,6 @@ class Model {
             return this->FolderName;
         }
         void ClearExpressions() {
-            LoadEyesFolder();
             Expressions.clear();
             Expressions.insert(Expressions.begin(), VanillaEyes);
         }
