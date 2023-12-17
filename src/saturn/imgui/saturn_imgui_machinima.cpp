@@ -216,7 +216,7 @@ std::vector<std::vector<std::string>> tokenize(std::string input) {
 int textureIndex = 0;
 std::filesystem::path customlvl_texdir = std::filesystem::path(sys_user_path()) / "res" / "gfx" / "customlevel";
 
-void parse_materials(char* data, std::map<std::string, std::string>* materials) {
+void parse_materials(char* data, std::map<std::string, filesystem::path>* materials) {
     auto tokens = tokenize(std::string(data));
     std::string matname = "";
     for (auto line : tokens) {
@@ -241,7 +241,7 @@ void parse_custom_level(char* data) {
     custom_level_new();
     std::vector<std::array<float, 3>> vertices = {};
     std::vector<std::array<float, 2>> uv = {};
-    std::map<std::string, std::string> materials = {};
+    std::map<std::string, filesystem::path> materials = {};
     for (auto line : tokens) {
         if (line.size() == 0) continue;
         if (line[0] == "mtllib") {
