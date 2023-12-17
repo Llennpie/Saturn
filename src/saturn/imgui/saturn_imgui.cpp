@@ -218,13 +218,7 @@ void saturn_generate_file_tree(std::filesystem::path path, std::string extension
     }
     
     // sort
-    auto string_comparator = [](std::string a, std::string b) {
-        if (a == "../") return true;
-        if (b == "../") return false;
-        return a < b;
-    };
-    std::sort(folders.begin(), folders.end(), string_comparator);
-    std::sort(files.begin(), files.end(), string_comparator);
+    // TODO: sort
 
     // create the ui
     for (const auto& entry : folders) {
