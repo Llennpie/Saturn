@@ -325,21 +325,13 @@ void OpenCCSelector() {
         [](unsigned char c){ return std::tolower(c); });
     */
 
+    std::string inPath = "dynos/colorcodes";
     saturn_file_browser_filter_extension("gs");
-    bool has_custom_cc = model_color_code_list.size() > 0 && current_model.HasColorCodeFolder();
-    if (has_custom_cc) {
-        saturn_file_browser_tree_node(current_model.Name);
-        saturn_file_browser_scan_directory(current_model.FolderPath + "/colorcodes");
-        saturn_file_browser_tree_node_end();
-    }
-    saturn_file_browser_item("Mario.gs");
-    saturn_file_browser_scan_directory("dynos/colorcodes");
+    if (model_color_code_list.size() > 0 && current_model.HasColorCodeFolder()) inPath = current_model.FolderPath + "/colorcodes";
+    else saturn_file_browser_item("Mario.gs");
+    saturn_file_browser_scan_directory(inPath);
     if (saturn_file_browser_show("colorcodes")) {
-        std::string path = saturn_file_browser_get_selected().string();
-        ColorCode cc;
-        if (has_custom_cc && path.find(current_model.Name) == 0) cc = LoadGSFile(path.substr(current_model.Name.length() + 1), current_model.FolderPath + "/colorcodes");
-        else cc = LoadGSFile(path, "dynos/colorcodes");
-        ApplyColorCode(cc);
+        ApplyColorCode(LoadGSFile(saturn_file_browser_get_selected().string(), inPath));
     }
 
     // UI list
