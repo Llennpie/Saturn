@@ -8,8 +8,6 @@
 #define MAX_BINDS  3
 #define MAX_VOLUME 127
 
-#define EXPERIMENTAL if (configExperimental)
-
 typedef struct {
     unsigned int x, y, w, h;
     bool vsync;
@@ -76,7 +74,6 @@ extern bool         configSaturnSplash;
 extern bool         configNoWater;
 extern bool         configCUpLimit;
 extern bool         configEnableCli;
-extern bool         configExperimental;
 extern unsigned int configEditorThemeJson;
 extern float        camera_fov;
 #ifdef BETTERCAMERA
