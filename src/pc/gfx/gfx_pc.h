@@ -31,7 +31,6 @@ void gfx_start_frame(void);
 void gfx_run(Gfx *commands);
 void gfx_end_frame(void);
 void gfx_precache_textures(void);
-void gfx_clear_texture_cache(void);
 void gfx_shutdown(void);
 
 extern int preloaded_textures_count;

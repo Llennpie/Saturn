@@ -571,10 +571,6 @@ static bool texname_to_texformat(const char *name, u8 *fmt, u8 *siz) {
 
 int preloaded_textures_count;
 
-void gfx_clear_texture_cache() {
-    memset(&gfx_texture_cache, 0, sizeof(gfx_texture_cache));
-}
-
 // calls import_texture() on every texture in the res folder
 // we can get the format and size from the texture files
 // and then cache them using gfx_texture_cache_lookup

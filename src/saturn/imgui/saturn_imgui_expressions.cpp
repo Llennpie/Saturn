@@ -51,7 +51,7 @@ void ShowExpressionContextMenu(Expression* expression, int id) {
                 if (expression->CurrentIndex > i || expression->CurrentIndex < i)
                     expression->CurrentIndex = 0;
             }
-            gfx_clear_texture_cache();
+            gfx_precache_textures();
             ImGui::CloseCurrentPopup();
         }
 

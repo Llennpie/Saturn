@@ -282,7 +282,7 @@ void parse_custom_level(char* data) {
             custom_level_face();
         }
     }
-    gfx_clear_texture_cache();
+    gfx_precache_textures();
     custom_level_finish();
 }
 
