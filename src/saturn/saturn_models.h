@@ -79,7 +79,6 @@ class Model {
 
             return this->FolderName;
         }
-
         Model() {
             LoadEyesFolder();
         }

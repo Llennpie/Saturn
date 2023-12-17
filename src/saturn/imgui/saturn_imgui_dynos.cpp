@@ -255,9 +255,9 @@ void OpenModelSelector() {
     }
 }
 
-
-
 void sdynos_imgui_init() {
+    LoadEyesFolder();
+
     model_list = GetModelList("dynos/packs");
     RefreshColorCodeList();
 
