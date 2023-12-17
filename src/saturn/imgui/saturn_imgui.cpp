@@ -200,16 +200,11 @@ ImGuiWindowFlags imgui_bundled_window_corner(int corner, int width, int height, 
 }
 
 std::map<std::string, std::string> last_selected_item = {};
-std::map<std::string, char*> file_browser_search = {};
 
-void saturn_generate_file_tree(std::filesystem::path path, std::string extension, bool dirs, char* search, std::string basepath, std::function<void(std::filesystem::path)> callback) {
+void saturn_generate_file_tree(std::filesystem::path path, std::string extension, bool dirs, std::string basepath, std::function<void(std::filesystem::path)> callback) {
     std::vector<std::filesystem::path> folders = {};
     std::vector<std::filesystem::path> files = {};
     
-    auto lowercase = [](char c){ return std::tolower(c); };
-    std::string search_term = std::string(search);
-    std::transform(search_term.begin(), search_term.end(), search_term.begin(), lowercase);
-
     // scan
     if (dirs) {
         for (const auto& item : std::filesystem::directory_iterator(path)) {
@@ -219,9 +214,6 @@ void saturn_generate_file_tree(std::filesystem::path path, std::string extension
     }
     for (const auto& item : std::filesystem::directory_iterator(path)) {
         if (std::filesystem::is_directory(item.path())) continue;
-        std::string filename = item.path().filename().string();
-        std::transform(filename.begin(), filename.end(), filename.begin(), lowercase);
-        if (filename.find(search_term) == std::string::npos) continue;
         files.push_back(item.path());
     }
     
@@ -235,7 +227,7 @@ void saturn_generate_file_tree(std::filesystem::path path, std::string extension
     // create the ui
     for (const auto& entry : folders) {
         if (ImGui::TreeNode(entry.filename().string().c_str())) {
-            saturn_generate_file_tree(entry, extension, dirs, search, basepath, callback);
+            saturn_generate_file_tree(entry, extension, dirs, basepath, callback);
             ImGui::TreePop();
         }
     }
@@ -257,17 +249,8 @@ int file_selector_height = 75;
 
 bool saturn_file_selector(std::filesystem::path path, std::filesystem::path* outpath, std::string extension, bool dirs) {
     bool result = false;
-    if (file_browser_search.find(path.string()) == file_browser_search.end()) {
-        char* search = (char*)malloc(256);
-        search[0] = 0;
-        file_browser_search.insert({ path.string(), search });
-    }
-    char* search = file_browser_search[path.string()];
-    ImGui::PushItemWidth(165);
-    ImGui::InputTextWithHint(("###file_selector_search_" + path.filename().string()).c_str(), ICON_FK_SEARCH " Search...", search, 256, ImGuiInputTextFlags_AutoSelectAll);
-    ImGui::PopItemWidth();
     ImGui::BeginChild(("###file_selector_" + path.filename().string()).c_str(), ImVec2(165, file_selector_height), true);
-    saturn_generate_file_tree(path, extension, dirs, search, path.string(), [&](std::filesystem::path out) {
+    saturn_generate_file_tree(path, extension, dirs, path.string(), [&](std::filesystem::path out) {
         *outpath = std::filesystem::relative(out, path);
         result = true;
     });
