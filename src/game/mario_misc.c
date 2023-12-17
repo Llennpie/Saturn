@@ -216,10 +216,14 @@ void bhv_toad_message_init(void) {
             }
             break;
     }
-    gCurrentObject->oToadMessageDialogId = dialogId;
-    gCurrentObject->oToadMessageRecentlyTalked = 0;
-    gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADED;
-    gCurrentObject->oOpacity = 81;
+    if (enoughStars) {
+        gCurrentObject->oToadMessageDialogId = dialogId;
+        gCurrentObject->oToadMessageRecentlyTalked = 0;
+        gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADED;
+        gCurrentObject->oOpacity = 81;
+    } else {
+        //obj_mark_for_deletion(gCurrentObject);
+    }
 }
 
 static void star_door_unlock_spawn_particles(s16 angleOffset) {
