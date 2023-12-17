@@ -60,7 +60,7 @@ std::vector<Model> GetModelList(std::string folderPath) {
 Loads metadata from a model folder's "model.json".
 */
 Model LoadModelData(std::string folderPath) {
-    Model model = Model();
+    Model model;
 
     if (fs::is_directory(folderPath)) {
         // Model folder exists
@@ -135,7 +135,7 @@ Model LoadModelData(std::string folderPath) {
                 model.CustomBlinkCycle = root["custom_blink_cycle"].asBool();
 
             // Other Expressions
-            LoadExpressions(&model.Expressions, model.FolderPath);
+            model.Expressions = LoadExpressions(model.FolderPath);
 
             model.Active = true;
         }

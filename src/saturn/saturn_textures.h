@@ -49,7 +49,7 @@ extern Expression VanillaEyes;
 extern void LoadEyesFolder();
 
 std::vector<TexturePath> LoadExpressionTextures(Expression);
-void LoadExpressions(std::vector<Expression>*, std::string);
+std::vector<Expression> LoadExpressions(std::string);
 
 void saturn_copy_file(std::string from, std::string to);
 void saturn_delete_file(std::string file);
