@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <map>
 #include <fstream>
-#include <functional>
 
 #include "saturn/imgui/saturn_imgui_dynos.h"
 #include "saturn/imgui/saturn_imgui_cc_editor.h"
@@ -117,9 +116,33 @@ bool splash_finished = false;
 std::string editor_theme = "moon";
 std::vector<std::pair<std::string, std::string>> theme_list = {};
 
+std::vector<std::string> macro_array = {};
+std::vector<std::string> macro_dir_stack = {};
+std::string current_macro_dir = "";
+int current_macro_id = -1;
+int current_macro_dir_count = 0;
 char cli_input[CLI_MAX_INPUT_SIZE];
 
 #include "saturn/saturn_timelines.h"
+
+void saturn_load_macros() {
+    std::string dir = "dynos/macros/" + current_macro_dir;
+    macro_array.clear();
+    current_macro_id = -1;
+    current_macro_dir_count = 1;
+    if (current_macro_dir != "") macro_array.push_back("../");
+    else current_macro_dir_count = 0;
+    for (auto& entry : filesystem::directory_iterator(dir)) {
+        if (!filesystem::is_directory(entry)) continue;
+        macro_array.push_back(entry.path().filename().u8string() + "/");
+        current_macro_dir_count++;
+    }
+    for (auto& entry : filesystem::directory_iterator(dir)) {
+        if (filesystem::is_directory(entry)) continue;
+        if (entry.path().extension().u8string() == ".stm")
+            macro_array.push_back(entry.path().filename().u8string());
+    }
+}
 
 // Bundled Components
 
@@ -197,59 +220,6 @@ ImGuiWindowFlags imgui_bundled_window_corner(int corner, int width, int height, 
     }
 
     return window_flags;
-}
-
-std::map<std::string, std::string> last_selected_item = {};
-
-void saturn_generate_file_tree(std::filesystem::path path, std::string extension, bool dirs, std::string basepath, std::function<void(std::filesystem::path)> callback) {
-    std::vector<std::filesystem::path> folders = {};
-    std::vector<std::filesystem::path> files = {};
-    
-    // scan
-    if (dirs) {
-        for (const auto& item : std::filesystem::directory_iterator(path)) {
-            if (!std::filesystem::is_directory(item.path())) continue;
-            folders.push_back(item.path());
-        }
-    }
-    for (const auto& item : std::filesystem::directory_iterator(path)) {
-        if (std::filesystem::is_directory(item.path())) continue;
-        files.push_back(item.path());
-    }
-    
-    // sort
-    // TODO: sort
-
-    // create the ui
-    for (const auto& entry : folders) {
-        if (ImGui::TreeNode(entry.filename().c_str())) {
-            saturn_generate_file_tree(entry, extension, dirs, basepath, callback);
-            ImGui::TreePop();
-        }
-    }
-    for (const auto& entry : files) {
-        if (entry.extension().string() != ("." + extension) && !extension.empty()) continue;
-        std::string filename = entry.filename();
-        bool contains = last_selected_item.find(basepath) != last_selected_item.end();
-        bool selected = false;
-        if (contains) selected = (last_selected_item[basepath] == filename);
-        if (ImGui::Selectable(filename.c_str(), &selected)) {
-            if (contains) last_selected_item[basepath] = filename;
-            else last_selected_item.insert({ basepath, filename });
-            callback(entry);
-        }
-    }
-}
-
-bool saturn_file_selector(std::filesystem::path path, std::filesystem::path* outpath, std::string extension, bool dirs) {
-    bool result = false;
-    ImGui::BeginChild(("###file_selector_" + path.filename().string()).c_str(), ImVec2(165, 75), true);
-    saturn_generate_file_tree(path, extension, dirs, path.string(), [&](std::filesystem::path out) {
-        *outpath = std::filesystem::relative(out, path);
-        result = true;
-    });
-    ImGui::EndChild();
-    return result;
 }
 
 #define JSON_VEC4(json, entry, dest) if (json.isMember(entry)) dest = ImVec4(json[entry][0].asFloat(), json[entry][1].asFloat(), json[entry][2].asFloat(), json[entry][3].asFloat())
@@ -476,6 +446,9 @@ void saturn_imgui_init() {
     sdynos_imgui_init();
     smachinima_imgui_init();
     ssettings_imgui_init();
+    
+    saturn_load_project_list();
+    saturn_load_macros();
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -682,8 +655,6 @@ void saturn_keyframe_window() {
 char saturnProjectFilename[257] = "Project";
 int current_project_id;
 
-std::string selected_macro = "";
-
 void saturn_imgui_update() {
     if (!splash_finished) return;
     ImGui_ImplOpenGL3_NewFrame();
@@ -704,13 +675,38 @@ void saturn_imgui_update() {
                 ImGui::Separator();
 
                 if (ImGui::BeginMenu("Open Project")) {
-                    std::filesystem::path projectPath;
-                    if (saturn_file_selector("dynos/projects", &projectPath, "spj", false)) {
-                        std::string str = projectPath.string();
-                        str = str.substr(0, str.length() - 4); // trim the extension
-                        if (str.length() <= 256) memcpy(saturnProjectFilename, str.c_str(), str.length() + 1);
-                        saturnProjectFilename[256] = 0;
+                    ImGui::BeginChild("###menu_model_ccs", ImVec2(165, 75), true);
+                    for (int n = 0; n < project_array.size(); n++) {
+                        const bool is_selected = (current_project_id == n);
+                        std::string spj_name = project_array[n].substr(0, project_array[n].size() - 4);
+
+                        if (ImGui::Selectable(spj_name.c_str(), is_selected)) {
+                            current_project_id = n;
+                            if (spj_name.length() <= 256);
+                                strcpy(saturnProjectFilename, spj_name.c_str());
+                            //saturn_load_project((char*)(spj_name + ".spj").c_str());
+                        }
+
+                        if (ImGui::BeginPopupContextItem()) {
+                            ImGui::Text("%s.spj", spj_name.c_str());
+                            imgui_bundled_tooltip(("/dynos/projects/" + spj_name + ".spj").c_str());
+                            if (spj_name != "autosave") {
+                                if (ImGui::SmallButton(ICON_FK_TRASH_O " Delete File")) {
+                                    saturn_delete_file(project_dir + spj_name + ".spj");
+                                    saturn_load_project_list();
+                                    ImGui::CloseCurrentPopup();
+                                } ImGui::SameLine(); imgui_bundled_help_marker("WARNING: This action is irreversible!");
+                            }
+                            ImGui::Separator();
+                            ImGui::TextDisabled("%i project(s)", project_array.size());
+                            if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
+                                saturn_load_project_list();
+                                ImGui::CloseCurrentPopup();
+                            }
+                            ImGui::EndPopup();
+                        }
                     }
+                    ImGui::EndChild();
                     ImGui::PushItemWidth(125);
                     ImGui::InputText(".spj###project_file_input", saturnProjectFilename, 256);
                     ImGui::PopItemWidth();
@@ -722,6 +718,7 @@ void saturn_imgui_update() {
                     if (in_custom_level) ImGui::BeginDisabled();
                     if (ImGui::Button(ICON_FA_SAVE " Save###project_file_save")) {
                         saturn_save_project((char*)(std::string(saturnProjectFilename) + ".spj").c_str());
+                        saturn_load_project_list();
                     }
                     if (in_custom_level) ImGui::EndDisabled();
                     ImGui::SameLine();
@@ -736,12 +733,40 @@ void saturn_imgui_update() {
                 ImGui::Separator();
 
                 if (ImGui::BeginMenu(ICON_FK_CODE " Macros")) {
-                    std::filesystem::path path;
-                    if (saturn_file_selector("dynos/macros", &path, "stm", true)) selected_macro = path.string();
+                    ImGui::BeginChild("###menu_macros", ImVec2(165, 75), true);
+                    for (int i = 0; i < macro_array.size(); i++) {
+                        std::string macro = macro_array[i];
+                        bool selected = false;
+                        if (filesystem::is_directory("dynos/macros/" + current_macro_dir + macro)) {
+                            if (ImGui::Selectable((std::string(ICON_FK_FOLDER " ") + macro).c_str(), &selected)) {
+                                if (macro == "../") {
+                                    current_macro_dir = macro_dir_stack[macro_dir_stack.size() - 1];
+                                    macro_dir_stack.pop_back();
+                                }
+                                else {
+                                    macro_dir_stack.push_back(current_macro_dir);
+                                    current_macro_dir += macro;
+                                }
+                                saturn_load_macros();
+                            }
+                        }
+                        else {
+                            selected = i == current_macro_id;
+                            if (ImGui::Selectable(macro.c_str(), &selected)) {
+                                current_macro_id = i;
+                            }
+                        }
+                    }
+                    ImGui::EndChild();
+                    if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
+                        saturn_load_macros();
+                    } ImGui::SameLine();
+                    if (current_macro_id == -1) ImGui::BeginDisabled();
                     if (ImGui::Button("Run")) {
                         saturn_cmd_clear_registers();
-                        saturn_cmd_eval_file(selected_macro);
+                        saturn_cmd_eval_file("dynos/macros/" + current_macro_dir + macro_array[current_macro_id]);
                     }
+                    if (current_macro_id == -1) ImGui::EndDisabled();
                     ImGui::SameLine();
                     imgui_bundled_help_marker("EXPERIMENTAL - Allows you to run commands and do stuff in bulk.\nCurrently has no debugging or documentation.");
                     ImGui::Checkbox("Command Line", &configEnableCli);

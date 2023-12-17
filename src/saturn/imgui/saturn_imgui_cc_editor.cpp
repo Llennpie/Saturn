@@ -307,9 +307,6 @@ void OpenCCSelector() {
     ImGui::SameLine(); imgui_bundled_help_marker(
         "These are GameShark color codes, which overwrite Mario's lights. Place GS files in dynos/colorcodes.");
 
-    /* Search feature temporarily removed
-       TODO: add it back
-
     // If we have 18 or more color codes, a search bar is added
     if (color_code_list.size() >= 18) {
         ImGui::InputTextWithHint("###cc_search_text", ICON_FK_SEARCH " Search color codes...", ccSearchTerm, IM_ARRAYSIZE(ccSearchTerm), ImGuiInputTextFlags_AutoSelectAll);
@@ -320,17 +317,9 @@ void OpenCCSelector() {
     std::string ccSearchLower = ccSearchTerm;
     std::transform(ccSearchLower.begin(), ccSearchLower.end(), ccSearchLower.begin(),
         [](unsigned char c){ return std::tolower(c); });
-    */
-
-    std::filesystem::path inPath = "dynos/colorcodes";
-    std::filesystem::path outPath;
-    if (model_color_code_list.size() > 0 && current_model.HasColorCodeFolder()) inPath = current_model.FolderPath + "/colorcodes";
-    if (saturn_file_selector(inPath, &outPath, "gs", true)) {
-        ApplyColorCode(LoadGSFile(outPath.string(), inPath.string()));
-    }
 
     // UI list
-    /*ImGui::BeginChild("###menu_cc_selector", ImVec2(-FLT_MIN, 100), true);
+    ImGui::BeginChild("###menu_cc_selector", ImVec2(-FLT_MIN, 100), true);
 
     //if (!ImGui::IsPopupOpen(0u, ImGuiPopupFlags_AnyPopupId)) {
         if (model_color_code_list.size() > 0 && current_model.HasColorCodeFolder()) {
@@ -409,7 +398,7 @@ void OpenCCSelector() {
             ImGui::EndPopup();
         }
     }
-    ImGui::EndChild();*/
+    ImGui::EndChild();
 }
 
 void ColorPartBox(std::string name, const char* mainName, const char* shadeName, ImVec4* colorValue, ImVec4* shadeColorValue, std::string id) {

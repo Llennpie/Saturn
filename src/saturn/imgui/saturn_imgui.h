@@ -37,8 +37,6 @@ extern void saturn_keyframe_show_kf_content(Keyframe keyframe);
 
 extern void saturn_keyframe_sort(std::vector<Keyframe>* keyframes);
 
-extern bool saturn_file_selector(std::filesystem::path path, std::filesystem::path* outpath, std::string extension, bool dirs);
-
 extern bool showMenu;
 extern int currentMenu;
 
