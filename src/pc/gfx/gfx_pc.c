@@ -1965,8 +1965,12 @@ void gfx_init(struct GfxWindowManagerAPI *wapi, struct GfxRenderingAPI *rapi, co
 
 #ifdef EXTERNAL_DATA
 void gfx_precache_textures(void) {
-    // preload all textures
-    fs_walk(FS_TEXTUREDIR, preload_texture, NULL, true);
+    // this is slow asf sometimes sooooo...
+
+    //fs_walk(FS_TEXTUREDIR, preload_texture, NULL, true);
+
+    // ...IM CLEARING THE CACHE INSTEAD XDDDDDDDD
+    memset(gfx_texture_cache, 0, sizeof(gfx_texture_cache));
 }
 #endif
 
