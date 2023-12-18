@@ -320,27 +320,18 @@ std::vector<s16> current_canim_values;
 std::vector<u16> current_canim_indices;
 bool current_canim_has_extra;
 
-void run_hex_array(Json::Value root, string type) {
+void run_hex_array(Json::Value array, std::vector<s16>* dest) {
     string even_one, odd_one;
-    for (int i = 0; i < root[type].size(); i++) {
+    for (int i = 0; i < array.size(); i++) {
         if (i % 2 == 0) {
             // Run on even
-            even_one = root[type][i].asString();
-            even_one.erase(0, 2);
+            even_one = array[i].asString();
         } else {
             // Run on odd
-            std::stringstream ss;
-            odd_one = root[type][i].asString();
-            odd_one.erase(0, 2);
+            odd_one = array[i].asString();
 
-            string newValue = "0x" + even_one + odd_one;
-            int output;
-            ss << std::hex << newValue;
-            ss >> output;
-            if (type == "values")
-                current_canim_values.push_back(output);
-            else
-                current_canim_indices.push_back(output);
+            int out = std::stoi(even_one, 0, 16) * 256 + std::stoi(odd_one, 0, 16);
+            dest->push_back(out);
         }
     }
 }
@@ -398,8 +389,8 @@ void saturn_read_mcomp_animation(string json_path) {
     current_canim_nodes = root["nodes"].asInt();
     current_canim_indices.clear();
     current_canim_values.clear();
-    run_hex_array(root, "values");
-    run_hex_array(root, "indices");
+    run_hex_array(root["values"], (std::vector<s16>*)&current_canim_values);
+    run_hex_array(root["indices"], (std::vector<s16>*)&current_canim_indices);
 
     return;
 }
@@ -418,7 +409,7 @@ void saturn_play_custom_animation() {
 }
 
 void saturn_run_chainer() {
-    if (is_anim_playing && is_custom_anim) {
+    if (is_anim_playing && current_animation.custom) {
         if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
             // Check if our next animation exists
             std::ifstream file_c1(current_anim_dir_path + chainer_name + "_" + std::to_string(chainer_index) + ".json");
@@ -429,7 +420,7 @@ void saturn_run_chainer() {
                 saturn_play_animation(MARIO_ANIM_A_POSE);
                 saturn_play_custom_animation();
             } else {
-                if (is_anim_looped) {
+                if (current_animation.loop) {
                     // Looping restarts from the beginning
                     is_anim_playing = false;
                     using_chainer = false;

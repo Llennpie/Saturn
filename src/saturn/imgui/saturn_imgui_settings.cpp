@@ -2,6 +2,8 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -25,6 +27,7 @@ extern "C" {
 #include "pc/controller/controller_keyboard.h"
 #include "audio/load.h"
 #include "engine/math_util.h"
+#include "pc/platform.h"
 }
 
 #include "icons/IconsForkAwesome.h"
@@ -160,6 +163,15 @@ void ssettings_imgui_update() {
     ImGui::Checkbox(ICON_FK_DISCORD " Discord Activity Status", &configDiscordRPC);
     imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
 #endif
+    std::filesystem::path no_updates_file = std::filesystem::path(sys_user_path()) / "no_updates";
+    bool pauseUpdates = std::filesystem::exists(no_updates_file);
+    if (ImGui::Checkbox("Pause Updates", &pauseUpdates)) {
+        if (pauseUpdates) {
+            std::ofstream stream = std::ofstream(no_updates_file);
+            stream.close();
+        }
+        else std::filesystem::remove(no_updates_file);
+    }
 
     ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Graphics")) {
@@ -218,6 +230,9 @@ void ssettings_imgui_update() {
         ImGui::PushItemWidth(150);
         ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
         ImGui::PopItemWidth();
+
+        ImGui::Checkbox("Precache textures", &configPrecacheRes);
+        imgui_bundled_tooltip("Loads all textures on startup. May delay the initialization.");
         
         if (configFps60) ImGui::Dummy(ImVec2(0, 5));
     }

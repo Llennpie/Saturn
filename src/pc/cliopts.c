@@ -22,6 +22,7 @@ static void print_help(void) {
     printf("%-20s\tStarts the game in full screen mode.\n", "--fullscreen");
     printf("%-20s\tSkips the Peach and Castle intro when starting a new game.\n", "--skip-intro");
     printf("%-20s\tStarts the game in windowed mode.\n", "--windowed");
+    printf("%-20s\tOnly extracts the assets, then quit.\n", "--only-extract");
 }
 
 static inline int arg_string(const char *name, const char *value, char *target) {
@@ -72,6 +73,9 @@ void parse_cli_opts(int argc, char* argv[]) {
 
         else if (strcmp(argv[i], "--savepath") == 0 && (i + 1) < argc)
             arg_string("--savepath", argv[++i], gCLIOpts.SavePath);
+
+        else if (strcmp(argv[i], "--only-extract") == 0) // Only extracts the assets, then quit
+            gCLIOpts.ExtractOnly = 1;
 
         // Print help
         else if (strcmp(argv[i], "--help") == 0) {

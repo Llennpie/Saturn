@@ -19,9 +19,24 @@ public:
     std::string GetRelativePath() {
         return "../../" + this->FilePath;//.substr(0, this->FilePath.size() - 4);
     }
+
+    /* Returns true if the entry is a subfolder */
+    bool IsFolder() {
+        return this->FileName.find(".png") == std::string::npos;
+    }
+    /* Returns a subfolder file count, or texture length */
+    int Size() {
+        if (this->IsFolder())
+            return std::distance(std::filesystem::directory_iterator(this->FilePath), std::filesystem::directory_iterator{}) - 1;
+        else
+            return FilePath.length();
+    }
+    std::string ParentPath() {
+        return FilePath.substr(0, this->FilePath.length() - this->FileName.length());
+    }
 };
 
-class Texpression {
+class Expression {
 private:
     std::string ReplaceKey() {
         return "saturn_" + this->Name;
@@ -30,6 +45,7 @@ public:
     std::string Name;
     std::string FolderPath;
     std::vector<TexturePath> Textures;
+    std::vector<TexturePath> Folders;
     /* The index of the current selected texture */
     int CurrentIndex = 0;
 
@@ -45,11 +61,12 @@ public:
 
 extern bool custom_eyes_enabled;
 
-extern Texpression VanillaEyes;
+extern Expression VanillaEyes;
 extern void LoadEyesFolder();
 
-std::vector<TexturePath> LoadExpressionTextures(Texpression);
-std::vector<Texpression> LoadExpressions(std::string);
+std::vector<TexturePath> LoadExpressionTextures(Expression);
+std::vector<TexturePath> LoadExpressionFolders(Expression);
+std::vector<Expression> LoadExpressions(std::string);
 
 void saturn_copy_file(std::string from, std::string to);
 void saturn_delete_file(std::string file);

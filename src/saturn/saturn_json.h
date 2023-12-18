@@ -181,62 +181,66 @@ private:
     }
     Value parseValue(Token* tokens, Increment* ptr) {
         Value value;
-        if (tokens[ptr->get()].type == JSONTOKEN_OBJ_OPEN) {
-            value.type = JSONVALUE_OBJECT;
-            value.obj = {};
-            while (true) {
+        switch (tokens[ptr->get()].type) {
+            case JSONTOKEN_OBJ_OPEN:
+                value.type = JSONVALUE_OBJECT;
+                value.obj = {};
+                while (true) {
+                    ptr->inc();
+                    if (tokens[ptr->get()].type == JSONTOKEN_OBJ_CLOSE) break;
+                    if (tokens[ptr->get()].type != JSONTOKEN_STRING_LITERAL) error("Expected json literal", tokens[ptr->get()].line_num);
+                    std::string key = tokens[ptr->get()].value;
+                    ptr->inc();
+                    if (tokens[ptr->get()].type != JSONTOKEN_COLON) error("Expected a colon", tokens[ptr->get()].line_num); 
+                    ptr->inc();
+                    value.obj.insert({ key, parseValue(tokens, ptr) });
+                    if (tokens[ptr->get()].type == JSONTOKEN_COMMA) continue;
+                    if (tokens[ptr->get()].type == JSONTOKEN_OBJ_CLOSE) break;
+                    error("Expected comma or end of object", tokens[ptr->get()].line_num); 
+                }
                 ptr->inc();
-                if (tokens[ptr->get()].type == JSONTOKEN_OBJ_CLOSE) break;
-                if (tokens[ptr->get()].type != JSONTOKEN_STRING_LITERAL) error("Expected json literal", tokens[ptr->get()].line_num);
-                std::string key = tokens[ptr->get()].value;
+                break;
+            case JSONTOKEN_ARR_OPEN:
+                value.type = JSONVALUE_ARRAY;
+                value.arr = {};
+                while (true) {
+                    ptr->inc();
+                    if (tokens[ptr->get()].type == JSONTOKEN_ARR_CLOSE) break;
+                    value.arr.push_back(parseValue(tokens, ptr));
+                    if (tokens[ptr->get()].type == JSONTOKEN_COMMA) continue;
+                    if (tokens[ptr->get()].type == JSONTOKEN_ARR_CLOSE) break;
+                    error("Expected comma or end of array", tokens[ptr->get()].line_num); 
+                }
                 ptr->inc();
-                if (tokens[ptr->get()].type != JSONTOKEN_COLON) error("Expected a colon", tokens[ptr->get()].line_num); 
+                break;
+            case JSONTOKEN_STRING_LITERAL:
+                value.type = JSONVALUE_STRING;
+                value.str = tokens[ptr->get()].value;
                 ptr->inc();
-                value.obj.insert({ key, parseValue(tokens, ptr) });
-                if (tokens[ptr->get()].type == JSONTOKEN_COMMA) continue;
-                if (tokens[ptr->get()].type == JSONTOKEN_OBJ_CLOSE) break;
-                error("Expected comma or end of object", tokens[ptr->get()].line_num); 
-            }
-            ptr->inc();
-        }
-        else if (tokens[ptr->get()].type == JSONTOKEN_ARR_OPEN) {
-            value.type = JSONVALUE_ARRAY;
-            value.arr = {};
-            while (true) {
+                break;
+            case JSONTOKEN_NUMBER:
+                value.type = JSONVALUE_NUMBER;
+                value.num = std::stod(tokens[ptr->get()].value);
                 ptr->inc();
-                if (tokens[ptr->get()].type == JSONTOKEN_ARR_CLOSE) break;
-                value.arr.push_back(parseValue(tokens, ptr));
-                if (tokens[ptr->get()].type == JSONTOKEN_COMMA) continue;
-                if (tokens[ptr->get()].type == JSONTOKEN_ARR_CLOSE) break;
-                error("Expected comma or end of array", tokens[ptr->get()].line_num); 
-            }
-            ptr->inc();
+                break;
+            case JSONTOKEN_TRUE:
+                value.type = JSONVALUE_BOOL;
+                value.num = 1;
+                ptr->inc();
+                break;
+            case JSONTOKEN_FALSE:
+                value.type = JSONVALUE_BOOL;
+                value.num = 0;
+                ptr->inc();
+                break;
+            case JSONTOKEN_NULL:
+                value.type = JSONVALUE_NULL;
+                ptr->inc();
+                break;
+            default:
+                error("Unexpected token", tokens[ptr->get()].line_num);
+                break;
         }
-        else if (tokens[ptr->get()].type == JSONTOKEN_STRING_LITERAL) {
-            value.type = JSONVALUE_STRING;
-            value.str = tokens[ptr->get()].value;
-            ptr->inc();
-        }
-        else if (tokens[ptr->get()].type == JSONTOKEN_NUMBER) {
-            value.type = JSONVALUE_NUMBER;
-            value.num = std::stod(tokens[ptr->get()].value);
-            ptr->inc();
-        }
-        else if (tokens[ptr->get()].type == JSONTOKEN_TRUE) {
-            value.type = JSONVALUE_BOOL;
-            value.num = 1;
-            ptr->inc();
-        }
-        else if (tokens[ptr->get()].type == JSONTOKEN_FALSE) {
-            value.type = JSONVALUE_BOOL;
-            value.num = 0;
-            ptr->inc();
-        }
-        else if (tokens[ptr->get()].type == JSONTOKEN_NULL) {
-            value.type = JSONVALUE_NULL;
-            ptr->inc();
-        }
-        else error("Unexpected token", tokens[ptr->get()].line_num);
         return value;
     }
     void error(std::string msg, int line_num) {
@@ -246,18 +250,22 @@ private:
     std::string escaped_str(std::string str) {
         std::string escaped = "";
         for (int i = 0; i < (int)str.length(); i++) {
-            if (str[i] == '\"') escaped += "\\\"";
-            else if (str[i] == '\\') escaped += "\\\\";
-            else if (str[i] == '\b') escaped += "\\b";
-            else if (str[i] == '\f') escaped += "\\f";
-            else if (str[i] == '\n') escaped += "\\n";
-            else if (str[i] == '\r') escaped += "\\r";
-            else if (str[i] == '\t') escaped += "\\t";
-            else if (str[i] >= 32 && str[i] <= 126) escaped += str[i];
-            else {
-                std::stringstream stream;
-                stream << std::hex << std::setw(4) << std::setfill('0') << (int)str[i];
-                escaped += stream.str();
+            switch (str[i]) {
+                case '\"': escaped += "\\\""; break;
+                case '\\': escaped += "\\\\"; break;
+                case '\b': escaped += "\\b"; break;
+                case '\f': escaped += "\\f"; break;
+                case '\n': escaped += "\\n"; break;
+                case '\r': escaped += "\\r"; break;
+                case '\t': escaped += "\\t"; break;
+                default:
+                    if (str[i] >= 32 && str[i] <= 126) escaped += str[i];
+                    else {
+                        std::stringstream stream;
+                        stream << std::hex << std::setw(4) << std::setfill('0') << (int)str[i];
+                        escaped += stream.str();
+                    }
+                    break;
             }
         }
         return escaped;
@@ -285,23 +293,27 @@ public:
         *this = parseValue(tokens, &increment);
     }
     int asInt() {
-        if (type != JSONVALUE_NUMBER) throw std::runtime_error(pfx "not a number");
-        return (int)num;
-    }
-    double asDouble() {
-        if (type != JSONVALUE_NUMBER) throw std::runtime_error(pfx "not a number");
-        return num;
+        return (int)asDouble();
     }
     float asFloat() {
-        if (type != JSONVALUE_NUMBER) throw std::runtime_error(pfx "not a number");
-        return (float)num;
+        return (float)asDouble();
+    }
+    double asDouble() {
+        if (type == JSONVALUE_STRING) return std::stod(str);
+        if (type == JSONVALUE_ARRAY) return arr.size();
+        if (type == JSONVALUE_OBJECT) return obj.size();
+        if (type == JSONVALUE_NULL) return false;
+        return num;
     }
     std::string asString() {
-        if (type != JSONVALUE_STRING) throw std::runtime_error(pfx "not a string");
-        return str;
+        if (type == JSONVALUE_STRING) return str;
+        return stringify();
     }
     bool asBool() {
-        if (type != JSONVALUE_BOOL) throw std::runtime_error(pfx "not a bool");
+        if (type == JSONVALUE_STRING) return str == "true";
+        if (type == JSONVALUE_ARRAY) return arr.size() != 0;
+        if (type == JSONVALUE_OBJECT) return obj.size() != 0;
+        if (type == JSONVALUE_NULL) return false;
         return num != 0;
     }
     bool isMember(std::string name) {

@@ -8,6 +8,12 @@
 #include <iostream>
 #include "GL/glew.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <cstdlib>
+#endif
+
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
@@ -29,6 +35,7 @@
 extern "C" {
 #include "pc/gfx/gfx_pc.h"
 #include "pc/configfile.h"
+#include "pc/platform.h"
 #include "game/mario.h"
 #include "game/level_update.h"
 #include <mario_animation_ids.h>
@@ -60,6 +67,16 @@ bool is_gameshark_open;
 
 std::vector<std::string> choose_file_dialog(std::string windowTitle, std::vector<std::string> filetypes, bool multiselect) {
     return pfd::open_file(windowTitle, ".", filetypes, multiselect ? pfd::opt::multiselect : pfd::opt::none).result();
+}
+
+void open_directory(std::string path) {
+#if defined(_WIN32) // Windows
+    ShellExecuteA(NULL, "open", ("\"" + path + "\"").c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(__APPLE__) // macOS
+    system(("open \"" + path + "\"").c_str());
+#else // Linux
+    system(("xdg-open \"" + path + "\"").c_str());
+#endif
 }
 
 // UI
@@ -142,7 +159,7 @@ void OpenModelSelector() {
 
                 // If we're searching, only include CCs with the search keyword in the name
                 // Also convert to lowercase
-                std::string label_name_lower = model.FolderName;
+                std::string label_name_lower = model.SearchMeta();
                 std::transform(label_name_lower.begin(), label_name_lower.end(), label_name_lower.begin(),
                         [](unsigned char c1){ return std::tolower(c1); });
                 if (modelSearchLower != "") {
@@ -158,14 +175,17 @@ void OpenModelSelector() {
                         if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] == false)
                             DynOS_Opt_SetValue(String("dynos_pack_%d", j), false);
                     }
+
+                    if (saturn_timeline_exists("k_mario_expr")) k_frame_keys.erase("k_mario_expr");
                     
                     // Select model
                     DynOS_Opt_SetValue(String("dynos_pack_%d", i), is_selected);
                     current_model = model;
+                    current_model_id = i;
 
                     // Load expressions
+                    current_model.Expressions.clear();
                     current_model.Expressions = LoadExpressions(current_model.FolderPath);
-                    gfx_precache_textures();
 
                     if (is_selected) {
                         std::cout << "Loaded " << model.Name << " by " << model.Author << std::endl;
@@ -177,8 +197,10 @@ void OpenModelSelector() {
                             last_model_cc_address = current_color_code.GameShark;
                         }
                     } else {
-                        if (!AnyModelsEnabled())
+                        if (!AnyModelsEnabled()) {
                             current_model = Model();
+                            current_model_id = -1;
+                        }
                         
                         // Reset model CCs
                         model_color_code_list.clear();
@@ -192,9 +214,13 @@ void OpenModelSelector() {
                     ImGui::OpenPopup(popupLabelId.c_str());
                 if (ImGui::BeginPopup(popupLabelId.c_str())) {
                     // Right-click menu
-                    if (model.Author.empty()) ImGui::Text(ICON_FK_FOLDER_OPEN_O " %s/", model.FolderName.c_str());
-                    else ImGui::Text(ICON_FK_FOLDER_OPEN " %s/", model.FolderName.c_str());
+                    if (model.Author.empty()) ImGui::Text(ICON_FK_FOLDER_O " %s/", model.FolderName.c_str());
+                    else ImGui::Text(ICON_FK_FOLDER " %s/", model.FolderName.c_str());
+
                     imgui_bundled_tooltip(("/%s", model.FolderPath).c_str());
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+                        open_directory(std::string(sys_exe_path()) + "/" + model.FolderPath + "/");
+
                     ImGui::SameLine(); ImGui::TextDisabled(" Pack #%i", model.DynOSId + 1);
 
                     std::vector<std::string> cc_list = GetColorCodeList(model.FolderPath + "/colorcodes");
@@ -221,16 +247,19 @@ void OpenModelSelector() {
             }
         }
         ImGui::EndChild();
+
+        // Open DynOS Folder Button
+
+        if (ImGui::Button(ICON_FK_FOLDER_OPEN_O " Open Packs Folder...###open_packs_folder"))
+            open_directory(std::string(sys_exe_path()) + "/dynos/packs/");
     }
 }
 
-
-
 void sdynos_imgui_init() {
+    LoadEyesFolder();
+
     model_list = GetModelList("dynos/packs");
     RefreshColorCodeList();
-
-    LoadEyesFolder();
 
     //model_details = "" + std::to_string(sDynosPacks.Count()) + " model pack";
     //if (sDynosPacks.Count() != 1) model_details += "s";
@@ -242,13 +271,8 @@ void sdynos_imgui_menu() {
         if (!support_color_codes || !current_model.ColorCodeSupport) ImGui::BeginDisabled();
             OpenCCSelector();
             // Open File Dialog
-            if (ImGui::Button(ICON_FK_FILE_TEXT_O " Add CC File...###add_v_cc")) {
-                auto selection3 = choose_file_dialog("Select a file", { "Color Code Files", "*.gs *.txt", "All Files", "*" }, true);
-                for (auto const &filename3 : selection3) {
-                    saturn_copy_file(filename3, "dynos/colorcodes/");
-                    RefreshColorCodeList();
-                }
-            }
+            if (ImGui::Button(ICON_FK_FILE_TEXT_O " Open CC Folder...###open_cc_folder"))
+                open_directory(std::string(sys_exe_path()) + "/dynos/colorcodes/");
         if (!support_color_codes || !current_model.ColorCodeSupport) ImGui::EndDisabled();
 
         // Model Selection
@@ -258,18 +282,13 @@ void sdynos_imgui_menu() {
     }
 
     // Color Code Editor
-    if (ImGui::BeginMenu(ICON_FK_PAINT_BRUSH " Color Code Editor###menu_cc_editor")) {
-        OpenCCEditor();
-        ImGui::EndMenu();
-    }
-
-    /*if (ImGui::MenuItem(ICON_FK_PAINT_BRUSH " Color Code Editor###menu_cc_editor", NULL, windowCcEditor, support_color_codes & current_model.ColorCodeSupport)) {
+    if (ImGui::MenuItem(ICON_FK_PAINT_BRUSH " Color Code Editor###menu_cc_editor", NULL, windowCcEditor, support_color_codes & current_model.ColorCodeSupport)) {
         if (support_color_codes && current_model.ColorCodeSupport) {
             windowAnimPlayer = false;
             windowChromaKey = false;
             windowCcEditor = !windowCcEditor;
         }
-    }*/
+    }
 
     // Animation Mixtape
     if (ImGui::MenuItem(ICON_FK_FILM " Animation Mixtape###menu_anim_player", NULL, windowAnimPlayer, mario_exists)) {
@@ -317,20 +336,20 @@ void sdynos_imgui_menu() {
                 if (AnyModelsEnabled()) ImGui::BeginDisabled();
                 ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
                 imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
-                saturn_keyframe_bool_popout(&show_vmario_emblem, "M Cap Emblem", "k_v_cap_emblem");
+                saturn_keyframe_popout("k_v_cap_emblem");
                 if (AnyModelsEnabled()) ImGui::EndDisabled();
 
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Shading###tab_shading")) {
                 ImGui::SliderFloat("X###wdir_x", &world_light_dir1, -2.f, 2.f);
-                saturn_keyframe_float_popout(&world_light_dir1, "Mario Shade X", "k_shade_x");
+                saturn_keyframe_popout("k_shade_x");
                 ImGui::SliderFloat("Y###wdir_y", &world_light_dir2, -2.f, 2.f);
-                saturn_keyframe_float_popout(&world_light_dir2, "Mario Shade Y", "k_shade_y");
+                saturn_keyframe_popout("k_shade_y");
                 ImGui::SliderFloat("Z###wdir_z", &world_light_dir3, -2.f, 2.f);
-                saturn_keyframe_float_popout(&world_light_dir3, "Mario Shade Z", "k_shade_z");
+                saturn_keyframe_popout("k_shade_z");
                 ImGui::SliderFloat("Tex###wdir_tex", &world_light_dir4, 1.f, 4.f);
-                saturn_keyframe_float_popout(&world_light_dir4, "Mario Shade Tex", "k_shade_t");
+                saturn_keyframe_popout("k_shade_t");
 
                 ImGui::ColorEdit4("Col###wlight_col", gLightingColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
                 
@@ -352,7 +371,7 @@ void sdynos_imgui_menu() {
                 }
 
                 ImGui::SameLine(); ImGui::Text("Col");
-                saturn_keyframe_color_popout("Light Color", "k_light_col", &gLightingColor[0], &gLightingColor[1], &gLightingColor[2]);
+                saturn_keyframe_popout("k_light_col");
 
                 if (world_light_dir1 != 0.f || world_light_dir2 != 0.f || world_light_dir3 != 0.f || world_light_dir4 != 1.f) {
                     if (ImGui::Button("Reset###reset_wshading")) {
@@ -370,14 +389,14 @@ void sdynos_imgui_menu() {
             if (ImGui::BeginTabItem("Special###tab_special")) {
                 if (linkMarioScale) {
                     ImGui::SliderFloat("Size###mscale_all", &marioScaleSizeX, 0.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale", "k_scale");
+                    saturn_keyframe_popout("k_scale");
                 } else {
                     ImGui::SliderFloat("X###mscale_x", &marioScaleSizeX, -2.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeX, "Mario Scale X", "k_scale_x");
+                    saturn_keyframe_popout("k_scale_x");
                     ImGui::SliderFloat("Y###mscale_y", &marioScaleSizeY, -2.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeY, "Mario Scale Y", "k_scale_y");
+                    saturn_keyframe_popout("k_scale_y");
                     ImGui::SliderFloat("Z###mscale_z", &marioScaleSizeZ, -2.f, 2.f);
-                    saturn_keyframe_float_popout(&marioScaleSizeZ, "Mario Scale Z", "k_scale_z");
+                    saturn_keyframe_popout("k_scale_z");
                 }
                 ImGui::Checkbox("Link###link_mario_scale", &linkMarioScale);
                 if (marioScaleSizeX != 1.f || marioScaleSizeY != 1.f || marioScaleSizeZ != 1.f) {
@@ -430,10 +449,10 @@ void sdynos_imgui_menu() {
             if (gMarioState) {
                 if (ImGuiKnobs::Knob("Angle", &this_face_angle, -180.f, 180.f, 0.f, "%.0f deg", ImGuiKnobVariant_Dot, 0.f, ImGuiKnobFlags_DragHorizontal)) {
                     gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
-                } else if (!k_popout_open || keyframe_playing) {
+                } else if (!k_popout_focused || keyframe_playing) {
                     this_face_angle = (float)gMarioState->faceAngle[1] / 182.04;
                 }
-                saturn_keyframe_float_popout(&this_face_angle, "Mario Angle", "k_angle");
+                saturn_keyframe_popout("k_angle");
             }
 
             ImGui::Checkbox("Spin###spin_angle", &is_spinning);
@@ -449,7 +468,7 @@ void sdynos_imgui_menu() {
         if (mario_exists) if (ImGui::BeginMenu("Head Rotations")) {
             ImGui::Checkbox("Enable", &enable_head_rotations);
             imgui_bundled_tooltip("Whether or not Mario's head rotates in his idle animation.");
-            saturn_keyframe_bool_popout(&enable_head_rotations, "Head Rotations", "k_head_rot");
+            saturn_keyframe_popout("k_head_rot");
             ImGui::Separator();
             ImGui::Text("C-Up Settings");
             if (gMarioState->action != ACT_FIRST_PERSON) ImGui::BeginDisabled();
@@ -470,7 +489,7 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndTable();
             }
-            saturn_keyframe_rotation_popout("Mario Head", "k_mario_headrot", &mario_headrot_yaw, &mario_headrot_pitch);
+            saturn_keyframe_popout("k_mario_headrot");
             if (gMarioState->action != ACT_FIRST_PERSON) ImGui::EndDisabled();
             ImGui::EndMenu();
         }
@@ -478,6 +497,7 @@ void sdynos_imgui_menu() {
         ImGui::PopStyleVar();
         ImGui::EndMenu();
     }
+
     ImGui::Separator();
 
     // Model Metadata
@@ -490,6 +510,8 @@ void sdynos_imgui_menu() {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("###model_metadata", ImVec2(0, 45), true, ImGuiWindowFlags_NoScrollbar);
         ImGui::Text(metaLabelText.c_str()); imgui_bundled_tooltip(metaDataText.c_str());
+        if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+            open_directory(std::string(sys_exe_path()) + "/" + current_model.FolderPath + "/");
         ImGui::TextDisabled(("@ " + current_model.Author).c_str());
         ImGui::EndChild();
         ImGui::PopStyleVar();
@@ -506,9 +528,15 @@ void sdynos_imgui_menu() {
         if (!AnyModelsEnabled())
             imgui_bundled_tooltip("Place custom eye PNG textures in /dynos/eyes/.");
 
-        if (custom_eyes_enabled || current_model.Expressions.size() > 0) ImGui::Separator();
+        if ((custom_eyes_enabled && current_model.Expressions.size() > 0) || current_model.Expressions.size() > 1)
+            ImGui::Separator();
 
         // Expressions Selector
         OpenExpressionSelector();
+
+        // Keyframing
+        if (custom_eyes_enabled ||
+            current_model.Expressions.size() > 0)
+                saturn_keyframe_popout_next_line("k_mario_expr");
     }
 }

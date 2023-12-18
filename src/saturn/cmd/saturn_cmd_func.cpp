@@ -23,6 +23,8 @@ extern "C" {
 #include "game/envfx_snow.h"
 }
 
+#include "saturn/saturn_timelines.h"
+
 #define arg_int(name) ((int)(uintptr_t)context[name])
 #define arg_flt(name) (*(float*)&context[name])
 #define arg_bin(name) ((int)(uintptr_t)context[name] != 0)
@@ -41,7 +43,7 @@ int get_obj_model_by_name(std::string name) {
     return MODEL_NONE;
 }
 
-void place_keyframe(std::string timelineID, int frame, float value) {
+void place_keyframe(std::string timelineID, int frame, int valueIndex, float value) {
     KeyframeTimeline timeline = k_frame_keys[timelineID].first;
     int index = -1;
     int prevKeyframeIndex = 0;
@@ -53,13 +55,18 @@ void place_keyframe(std::string timelineID, int frame, float value) {
         }
     }
     if (index == -1) {
-        Keyframe keyframe = Keyframe(frame, timeline.forceWait ? InterpolationCurve::WAIT : (prevKeyframeIndex == -1 ? InterpolationCurve::LINEAR : k_frame_keys[timelineID].second[prevKeyframeIndex].curve));
-        keyframe.value = value;
+        Keyframe keyframe = Keyframe();
+        keyframe.curve = timeline.behavior != KFBEH_DEFAULT ? InterpolationCurve::WAIT : (prevKeyframeIndex == -1 ? InterpolationCurve::LINEAR : k_frame_keys[timelineID].second[prevKeyframeIndex].curve); 
+        keyframe.position = frame;
+        for (int i = 0; i < timeline.numValues; i++) {
+            keyframe.value.push_back(0);
+        }
+        keyframe.value[valueIndex] = value;
         keyframe.timelineID = timelineID;
         k_frame_keys[timelineID].second.push_back(keyframe);
         saturn_keyframe_sort(&k_frame_keys[timelineID].second);
     }
-    else k_frame_keys[timelineID].second[index].value = value;
+    else k_frame_keys[timelineID].second[index].value[index] = value;
 }
 
 const BehaviorScript* get_obj_bhv_by_name(std::string name) {
@@ -121,6 +128,12 @@ void cmd_mario_state_hands(CommandContext context) {
 }
 void cmd_mario_state_cap(CommandContext context) {
     scrollCapState = arg_int("type");
+}
+void cmd_camera_freeze(CommandContext context) {
+    camera_frozen = true;
+}
+void cmd_camera_unfreeze(CommandContext context) {
+    camera_frozen = false;
 }
 void cmd_camera_pos(CommandContext context) {
     if (arg_int("operation") == 0) {
@@ -189,12 +202,16 @@ void cmd_timeline_curve(CommandContext context) {
     k_previous_frame = -1;
 }
 void cmd_timeline_value_float(CommandContext context) {
-    place_keyframe(arg_str("timeline"), arg_int("frame"), arg_flt("value"));
+    place_keyframe(arg_str("timeline"), arg_int("frame"), arg_int("index"), arg_flt("value"));
 }
 void cmd_timeline_value_bool(CommandContext context) {
-    place_keyframe(arg_str("timeline"), arg_int("frame"), *(float*)new int(arg_bin("value")));
+    place_keyframe(arg_str("timeline"), arg_int("frame"), arg_int("index"), *(float*)new int(arg_bin("value")));
 }
 void cmd_colorcode(CommandContext context) {
+    ColorCode cc = LoadGSFile(arg_str("path"), "dynos/colocodes");
+    ApplyColorCode(cc);
+
+    // thank you rise for the refactor 🙏
     /*std::string orig_path = current_cc_path;
     current_cc_path = "";
     saturn_load_cc_directory();
@@ -272,52 +289,37 @@ void cmd_object_constant_behparam(CommandContext context) {
         ((arg_int("behparam1") & 0xFF) << 24) | ((arg_int("behparam2") & 0xFF) << 16) | ((arg_int("behparam3") & 0xFF) << 8) | (arg_int("behparam4") & 0xFF)
     );
 }
-void cmd_animation_define(CommandContext context) {
-    is_custom_anim = false;
-    is_anim_looped = false;
-    is_anim_hang = false;
-    anim_speed = 1.0f;
-    current_sanim_id = saturn_anim_by_name(arg_str("anim"));
-    defined_animation = encode_animation();
+void cmd_animation(CommandContext context) {
+    current_animation.custom = arg_int("custom") != 0;
+    current_animation.loop = false;
+    current_animation.hang = false;
+    current_animation.speed = 1.0f;
+    current_animation.id = saturn_anim_by_name(arg_str("anim"));
+    anim_play_button();
 }
-void cmd_animation_define_speed(CommandContext context) {
-    is_custom_anim = false;
-    is_anim_looped = false;
-    is_anim_hang = false;
-    anim_speed = arg_flt("speed");
-    current_sanim_id = saturn_anim_by_name(arg_str("anim"));
-    defined_animation = encode_animation();
+void cmd_animation_speed(CommandContext context) {
+    current_animation.custom = arg_int("custom") != 0;
+    current_animation.loop = false;
+    current_animation.hang = false;
+    current_animation.speed = arg_flt("speed");
+    current_animation.id = saturn_anim_by_name(arg_str("anim"));
+    anim_play_button();
 }
-void cmd_animation_define_looping(CommandContext context) {
-    is_custom_anim = false;
-    is_anim_looped = arg_bin("looping");
-    is_anim_hang = false;
-    anim_speed = arg_flt("speed");
-    current_sanim_id = saturn_anim_by_name(arg_str("anim"));
-    defined_animation = encode_animation();
+void cmd_animation_looping(CommandContext context) {
+    current_animation.custom = arg_int("custom") != 0;
+    current_animation.loop = true;
+    current_animation.hang = false;
+    current_animation.speed = arg_flt("speed");
+    current_animation.id = saturn_anim_by_name(arg_str("anim"));
+    anim_play_button();
 }
-void cmd_animation_define_hanging(CommandContext context) {
-    is_custom_anim = false;
-    is_anim_looped = arg_bin("looping");
-    is_anim_looped = arg_bin("hanging");
-    anim_speed = arg_flt("speed");
-    current_sanim_id = saturn_anim_by_name(arg_str("anim"));
-    defined_animation = encode_animation();
-}
-void cmd_animation_define_store(CommandContext context) {
-    is_custom_anim = false;
-    is_anim_looped = arg_bin("looping");
-    is_anim_looped = arg_bin("hanging");
-    anim_speed = arg_flt("speed");
-    current_sanim_id = saturn_anim_by_name(arg_str("anim"));
-    arg_reg("register") = encode_animation();
-}
-void cmd_animation_play(CommandContext context) {
-    if (defined_animation == -1) return;
-    anim_play_button(defined_animation);
-}
-void cmd_animation_play_register(CommandContext context) {
-    anim_play_button(arg_reg("register"));
+void cmd_animation_hanging(CommandContext context) {
+    current_animation.custom = arg_int("custom") != 0;
+    current_animation.loop = false;
+    current_animation.hang = true;
+    current_animation.speed = arg_flt("speed");
+    current_animation.id = saturn_anim_by_name(arg_str("anim"));
+    anim_play_button();
 }
 void cmd_animation_stop(CommandContext context) {
     is_anim_playing = false;
@@ -367,10 +369,8 @@ void cmd_if(CommandContext context) { no_cli;
     if (op == 5) cond = value1 <= value2;
     if (!cond) line += arg_int("line");
 }
-// todo: define values that can be read/written to by registers
-void cmd_register_set_from(CommandContext context) {}
-void cmd_register_set_constant(CommandContext context) {
-    arg_reg("register") = arg_int("value");
+void cmd_register_set(CommandContext context) {
+    arg_reg("register") = arg_val("value", "valuetype");
 }
 void cmd_register_assign(CommandContext context) {}
 void cmd_register_copy(CommandContext context) {
@@ -404,11 +404,8 @@ void cmd_goto(CommandContext context) { no_cli;
 void cmd_wait(CommandContext context) { no_cli;
     saturn_cmd_pause();
 }
-void cmd_alias_set_value(CommandContext context) {
-    aliases.insert({ arg_str("name"), arg_int("value") });
-}
-void cmd_alias_set_from(CommandContext context) {
-    aliases.insert({ arg_str("name"), arg_reg("value") });
+void cmd_alias_set(CommandContext context) {
+    aliases.insert({ arg_str("name"), arg_val("value", "valuetype") });
 }
 void cmd_alias_delete(CommandContext context) {
     if (aliases.find(arg_str("name")) == aliases.end()) return;

@@ -452,7 +452,7 @@ void ColorPartBox(std::string name, const char* mainName, const char* shadeName,
         // Keyframes
         ImGui::Dummy(ImVec2(0, 15));
         std::string id2 = "k_" + id + "_1";
-        saturn_keyframe_color_popout(mainName, id2, &colorValue->x, &colorValue->y, &colorValue->z);
+        saturn_keyframe_popout(id2);
 
         ImGui::EndPopup();
     } ImGui::SameLine();
@@ -506,7 +506,7 @@ void ColorPartBox(std::string name, const char* mainName, const char* shadeName,
         // Keyframes
         ImGui::Dummy(ImVec2(0, 15));
         std::string id3 = "k_" + id + "_2";
-        saturn_keyframe_color_popout(shadeName, id3, &shadeColorValue->x, &shadeColorValue->y, &shadeColorValue->z);
+        saturn_keyframe_popout(id3);
 
         ImGui::EndPopup();
     } ImGui::SameLine();

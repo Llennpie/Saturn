@@ -1,5 +1,6 @@
 #include "saturn_rom_extract.h"
 #include "saturn_assets.h"
+#include "saturn.h"
 
 #include <filesystem>
 #include <utility>
@@ -11,9 +12,13 @@
 #include "saturn/libs/portable-file-dialogs.h"
 
 extern "C" {
+#include "pc/pc_main.h"
 #include "pc/platform.h"
 #include "pc/pngutils.h"
+#include "pc/cliopts.h"
 }
+
+std::string currently_extracting = "";
 
 enum FormatEnum {
     FMT_RGBA,
@@ -37,7 +42,7 @@ std::map<std::string, FormatTableEntry> format_table = {
     { "i8",     (FormatTableEntry){ FMT_I,    8  } }
 };
 
-#define EXTRACT_PATH "res"
+#define EXTRACT_PATH std::filesystem::path(sys_user_path()) / "res"
 
 struct mio0_header {
     unsigned int dest_size;
@@ -224,7 +229,7 @@ unsigned char* raw2skybox(unsigned char* raw, int len, int use_bitfs) {
 #undef CONST
 
 void write_png(std::string path, void* data, int width, int height, int depth) {
-    std::filesystem::path dst = std::filesystem::path(EXTRACT_PATH) / path;
+    std::filesystem::path dst = EXTRACT_PATH / path;
     std::filesystem::create_directories(dst.parent_path());
     std::cout << "exporting " << dst << std::endl;
     pngutils_write_png(std::filesystem::absolute(dst).u8string().c_str(), width, height, depth, data, 0);
@@ -260,10 +265,22 @@ unsigned char* file_processor_apply(unsigned char* data, std::pair<int, unsigned
 #define ROM_MISSING      2
 #define ROM_INVALID      3
 
-int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::string>* todo) {
+#define TEXTYPE_OTHER      0
+#define TEXTYPE_FONT       1
+#define TEXTYPE_TRANSITION 2
+
+int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::string>* todo, int type) {
     bool needs_extract = false;
     bool needs_rom = false;
     for (const auto& entry : assets) {
+        if ((entry.metadata.size() == 0) && !(type & EXTRACT_TYPE_SOUND)) continue;
+        int textype = TEXTYPE_OTHER;
+        if (entry.path.find("font_graphics") != std::string::npos) textype = TEXTYPE_FONT;
+        if (entry.path.find("segment2.0F458.ia8") != std::string::npos ||
+            entry.path.find("segment2.0FC58.ia8") != std::string::npos) textype = TEXTYPE_FONT;
+        if (textype == TEXTYPE_OTHER      && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_TEXTURES  )) continue;
+        if (textype == TEXTYPE_FONT       && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_FONT      )) continue;
+        if (textype == TEXTYPE_TRANSITION && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_TRANSITION)) continue;
         if (entry.metadata.size() > 0 && entry.metadata[0] == -1) {
             bool missing = false;
             std::filesystem::path path = extract_dest / entry.path;
@@ -275,20 +292,22 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
             }
             if (missing) {
                 needs_extract = true;
-                todo->push_back(entry.path);
+                if (todo != nullptr) todo->push_back(entry.path);
             }
             continue;
         }
         if (!std::filesystem::exists(extract_dest / entry.path)) {
             needs_extract = true;
-            todo->push_back(entry.path);
+            if (todo != nullptr) todo->push_back(entry.path);
         }
     }
     needs_rom = needs_extract;
-    for (const auto& entry : saturn_assets) {
-        if (!std::filesystem::exists(extract_dest / entry.path)) {
-            needs_extract = true;
-            todo->push_back(entry.path);
+    if (type & EXTRACT_TYPE_SATURN) {
+        for (const auto& entry : saturn_assets) {
+            if (!std::filesystem::exists(extract_dest / entry.path)) {
+                needs_extract = true;
+                if (todo != nullptr) todo->push_back(entry.path);
+            }
         }
     }
     if (!needs_extract) return ROM_OK;
@@ -296,19 +315,21 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
     return ROM_NEED_EXTRACT;
 }
 
-int saturn_extract_rom() {
+int saturn_extract_rom(int type) {
     std::filesystem::path extract_dest = EXTRACT_PATH;
     std::vector<std::string> todo = {};
-    int status = saturn_rom_status(extract_dest, &todo);
-    if (status == ROM_OK) return 0;
+    int status = saturn_rom_status(extract_dest, &todo, type);
+
+    if (status == ROM_OK) return ROM_OK;
     if (status == ROM_MISSING) {
-        pfd::message("ROM Extract Error", "Cannot find 'sm64.z64'.\n\nPut an unmodified, US version of SM64 into Saturn's executable directory and name it 'sm64.z64'.", pfd::choice::ok);
-        return 1;
+        pfd::message("Missing ROM","Cannot find sm64.z64\n\nPlease place an unmodified, US Super Mario 64 ROM next to the .exe and name it \"sm64.z64\"", pfd::choice::ok);
+        return ROM_MISSING;
     }
     if (status == ROM_INVALID) {
-        pfd::message("ROM Extract Error", "Couldn't verify 'sm64.z64'.\n\nThe file may be corrupted, extended, or from the wrong region. Use an unmodified US version of SM64.", pfd::choice::ok);
-        return 1;
+        pfd::message("Invalid ROM", "Couldn't verify sm64.z64\n\nThe file may be corrupted, extended, or from the wrong region. Use an unmodified US version of SM64", pfd::choice::ok);
+        return ROM_INVALID;
     }
+    extraction_progress = 0;
     std::ifstream stream = std::ifstream("sm64.z64", std::ios::binary);
     unsigned char* data = (unsigned char*)malloc(1024 * 1024 * 8);
     stream.read((char*)data, 1024 * 1024 * 8);
@@ -320,8 +341,11 @@ int saturn_extract_rom() {
         if (asset.mio0 == -1) mio0.insert({ -1, data });
         else mio0.insert({ asset.mio0, read_mio0(data + asset.mio0) });
     }
+    int count = 0;
     for (const auto& asset : assets) {
+        extraction_progress = count++ / (float)assets.size();
         if (std::find(todo.begin(), todo.end(), asset.path) == todo.end()) continue;
+        currently_extracting = asset.path;
         std::istringstream iss = std::istringstream(asset.path);
         std::vector<std::string> tokens = {};
         std::string token;
@@ -350,7 +374,7 @@ int saturn_extract_rom() {
             }
         }
         else {
-            std::filesystem::path dst = std::filesystem::path(EXTRACT_PATH) / asset.path;
+            std::filesystem::path dst = EXTRACT_PATH / asset.path;
             std::filesystem::create_directories(dst.parent_path());
             std::cout << "exporting " << dst << std::endl;
             unsigned char* out_data;
@@ -373,11 +397,14 @@ int saturn_extract_rom() {
     }
     for (const auto& asset : saturn_assets) {
         if (std::find(todo.begin(), todo.end(), asset.path) == todo.end()) continue;
+        currently_extracting = asset.path;
         unsigned char* img = raw2rgba(asset.data, asset.metadata[0], asset.metadata[1], 16);
         rgba2png(asset.path, img, asset.metadata[0], asset.metadata[1]);
     }
     for (const auto& entry : mio0) {
         free(entry.second);
     }
-    return 0;
+    extraction_progress = 1;
+    std::cout << "extraction finished" << std::endl;
+    return ROM_OK;
 }

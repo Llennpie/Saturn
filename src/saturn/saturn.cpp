@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <thread>
 #include <map>
 #include <SDL2/SDL.h>
 
@@ -17,7 +18,14 @@
 #include "saturn/filesystem/saturn_locationfile.h"
 #include "data/dynos.cpp.h"
 #include "saturn/filesystem/saturn_registerfile.h"
+#include "saturn/filesystem/saturn_animfile.h"
 #include "saturn/cmd/saturn_cmd.h"
+#include "saturn/saturn_rom_extract.h"
+#include "saturn/saturn_timelines.h"
+
+extern "C" {
+#include "audio/external.h"
+}
 
 bool mario_exists;
 
@@ -46,19 +54,22 @@ bool linkMarioScale = true;
 bool is_spinning;
 float spin_mult = 1.0f;
 
-bool is_custom_anim;
 bool using_chainer;
 int chainer_index;
-bool is_anim_playing = false;
 enum MarioAnimID selected_animation = MARIO_ANIM_BREAKDANCE;
-bool is_anim_looped = false;
-bool is_anim_hang = false;
-float anim_speed = 1.0f;
 int current_anim_frame;
 int current_anim_id;
 int current_anim_length;
+bool is_anim_playing = false;
 bool is_anim_paused = false;
 int paused_anim_frame;
+struct AnimationState current_animation = {
+    .custom = false,
+    .hang = false,
+    .loop = false,
+    .speed = 1,
+    .id = MarioAnimID::MARIO_ANIM_RUNNING,
+};
 
 float this_face_angle;
 
@@ -79,15 +90,13 @@ bool* active_key_bool_value;
 s32 active_data_type = KEY_FLOAT;
 bool keyframe_playing;
 bool k_popout_open;
+bool k_popout_focused;
 int mcam_timer = 0;
 int k_current_frame = 0;
 int k_previous_frame = 0;
 int k_curr_curve_type = 0;
 
 int k_current_anim = -1;
-int k_prev_anim = -1;
-
-bool place_keyframe_anim = false;
 
 bool should_update_cam_from_keyframes = false;
 
@@ -159,6 +168,10 @@ int keyResetter;
 
 u8 godmode_temp_off = false;
 
+bool extract_thread_began = false;
+bool extraction_finished = false;
+float extraction_progress = 1;
+
 extern void saturn_run_chainer();
 
 float key_increase_val(std::vector<float> vecfloat) {
@@ -166,6 +179,19 @@ float key_increase_val(std::vector<float> vecfloat) {
     float this_val = vecfloat.at(k_last_passed_index);
 
     return (next_val - this_val) / k_distance_between;
+}
+
+bool timeline_has_id(std::string id) {
+    if (k_frame_keys.size() > 0) {
+        for (auto& entry : k_frame_keys) {
+            for (Keyframe keyframe : entry.second.second) {
+                if (keyframe.timelineID == id)
+                    return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // SATURN Machinima Functions
@@ -198,7 +224,7 @@ void saturn_update() {
                 }
             }
             if (gPlayer1Controller->buttonPressed & R_JPAD) {
-                is_anim_looped = !is_anim_looped;
+                current_animation.loop = !current_animation.loop;
             }
         }
     }
@@ -279,9 +305,9 @@ void saturn_update() {
         //configHUD = prev_quicks[2];
     }
 
-    saturn_launch_timer++;
+    if (splash_finished) saturn_launch_timer++;
     //std::cout << saturn_launch_timer << std::endl;
-    if (gCurrLevelNum == LEVEL_SA && saturn_launch_timer < 50) {
+    if (gCurrLevelNum == LEVEL_SA && saturn_launch_timer <= 1 && splash_finished) {
         gMarioState->faceAngle[1] = 0;
         if (gCamera) { // i hate the sm64 camera system aaaaaaaaaaaaaaaaaa
             float dist = 0;
@@ -302,17 +328,16 @@ void saturn_update() {
     }
 
     // Keyframes
-    
-    bool justFinished = false;
-    if (keyframe_playing) {
-        mcam_timer++;
-        k_current_frame = (uint32_t)mcam_timer;
 
-        // Prevents smoothing for sharper, more consistent panning
-        gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
-        gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
-        gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
-        gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
+    if (!k_popout_open) k_popout_focused = false;
+    if (keyframe_playing) {
+        if (timeline_has_id("k_c_camera_pos0")) {
+            // Prevents smoothing for sharper, more consistent panning
+            gLakituState.focHSpeed = 15.f * camera_focus * 0.8f;
+            gLakituState.focVSpeed = 15.f * camera_focus * 0.3f;
+            gLakituState.posHSpeed = 15.f * camera_focus * 0.3f;
+            gLakituState.posVSpeed = 15.f * camera_focus * 0.3f;
+        }
         
         bool end = true;
         for (const auto& entry : k_frame_keys) {
@@ -321,13 +346,17 @@ void saturn_update() {
         if (end) {
             if (k_loop) mcam_timer = 0;
             else keyframe_playing = false;
-            k_prev_anim = -1;
-            justFinished = true;
         }
 
-        gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
+        if (timeline_has_id("k_angle"))
+            gMarioState->faceAngle[1] = (s16)(this_face_angle * 182.04f);
 
         schroma_imgui_init();
+
+        if (!end) {
+            mcam_timer++;
+            k_current_frame = (uint32_t)mcam_timer;
+        }
     }
 
     if (camera_frozen && keyframe_playing) {
@@ -346,21 +375,18 @@ void saturn_update() {
     // Animations
 
     if (mario_exists) {
-        if ((keyframe_playing || justFinished) && k_prev_anim != k_current_anim && k_current_anim != -1) anim_play_button(k_current_anim);
-        k_prev_anim = k_current_anim;
-
         if (is_anim_paused) {
             gMarioState->marioObj->header.gfx.unk38.animFrame = current_anim_frame;
             gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = current_anim_frame;
         } else if (is_anim_playing) {
-            if (is_anim_hang) {
+            if (current_animation.hang) {
                 if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1)) {
                     is_anim_paused = !is_anim_paused;
                 }
             }
 
             if (is_anim_past_frame(gMarioState, (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08) || is_anim_at_end(gMarioState)) {
-                if (is_anim_looped && !using_chainer) {
+                if (current_animation.loop && !using_chainer) {
                     gMarioState->marioObj->header.gfx.unk38.animFrame = 0;
                     gMarioState->marioObj->header.gfx.unk38.animFrameAccelAssist = 0;
                 } else {
@@ -375,10 +401,10 @@ void saturn_update() {
                 }
             }
 
-            if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
+            /*if (selected_animation != gMarioState->marioObj->header.gfx.unk38.animID) {
                 is_anim_playing = false;
                 is_anim_paused = false;
-            }
+            }*/
 
             current_anim_id = (int)gMarioState->marioObj->header.gfx.unk38.animID;
             if (gMarioState->action == ACT_IDLE || gMarioState->action == ACT_FIRST_PERSON || gMarioState->action == ACT_DEBUG_FREE_MOVE) {
@@ -386,8 +412,8 @@ void saturn_update() {
                 current_anim_length = (int)gMarioState->marioObj->header.gfx.unk38.curAnim->unk08 - 1;
             }
 
-            if (anim_speed != 1.0f)
-                gMarioState->marioObj->header.gfx.unk38.animAccel = anim_speed * 65535;
+            if (current_animation.speed != 1.0f)
+                gMarioState->marioObj->header.gfx.unk38.animAccel = current_animation.speed * 65535;
 
             if (using_chainer && is_anim_playing) saturn_run_chainer();
         }
@@ -423,9 +449,11 @@ void saturn_update() {
 
     // Autosave
 
-    if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
-    autosaveDelay--;
-    if (autosaveDelay == 0) saturn_save_project("autosave.spj");
+    if (gCurrLevelNum != LEVEL_SA || gCurrAreaIndex != 3) {
+        if (autosaveDelay <= 0) autosaveDelay = 30 * configAutosaveDelay;
+        autosaveDelay--;
+        if (autosaveDelay == 0) saturn_save_project("autosave.spj");
+    }
 }
 
 float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyframe, bool* last) {
@@ -445,9 +473,9 @@ float saturn_keyframe_setup_interpolation(std::string id, int frame, int* keyfra
     // Interpolate, formulas from easings.net
     float x = (frame - keyframes[*keyframe].position) / (float)(keyframes[*keyframe + 1].position - keyframes[*keyframe].position);
     if (*last) x = 1;
-    else if (keyframes[*keyframe].curve == InterpolationCurve::SINE) x = -(cosf(3.141592f * x) - 1) / 2;
-    else if (keyframes[*keyframe].curve == InterpolationCurve::QUADRATIC) x = x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
-    else if (keyframes[*keyframe].curve == InterpolationCurve::CUBIC) x = x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
+    else if (keyframes[*keyframe].curve == InterpolationCurve::SLOW) x = x * x;
+    else if (keyframes[*keyframe].curve == InterpolationCurve::FAST) x = 1 - (1 - x) * (1 - x);
+    else if (keyframes[*keyframe].curve == InterpolationCurve::SMOOTH) x = x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
     else if (keyframes[*keyframe].curve == InterpolationCurve::WAIT) x = floor(x);
 
     return x;
@@ -458,63 +486,94 @@ bool saturn_keyframe_apply(std::string id, int frame) {
     KeyframeTimeline timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    float value;
+    if (timeline.behavior == KFBEH_EVENT) {
+        if (!keyframe_playing) return true;
+        int idx = -1;
+        for (int i = 0; i < keyframes.size(); i++) {
+            if (keyframes[i].position == frame) {
+                idx = i;
+                break;
+            }
+        }
+        if (idx == -1) return keyframes.size() == 0;
+        if (timeline.type == KFTYPE_ANIM) {
+            AnimationState* dest = (AnimationState*)timeline.dest;
+            dest->custom = keyframes[idx].value[0] >= 1;
+            dest->loop = keyframes[idx].value[1] >= 1;
+            dest->hang = keyframes[idx].value[2] >= 1;
+            dest->speed = keyframes[idx].value[3];
+            dest->id = keyframes[idx].value[4];
+            is_anim_playing = false;
+            is_anim_paused = false;
+            using_chainer = false;
+            chainer_index = 0;
+            anim_play_button();
+        }
+        if (timeline.type == KFTYPE_EXPRESSION) {
+            Model* dest = (Model*)timeline.dest;
+            for (int i = 0; i < keyframes[idx].value.size(); i++) {
+                dest->Expressions[i].CurrentIndex = keyframes[idx].value[i];
+            }
+        }
+        return idx + 1 == keyframes.size();
+    }
+
+    std::vector<float> values;
     bool last = true;
-    if (keyframes.size() == 1) value = keyframes[0].value;
+    if (keyframes.size() == 1) values = keyframes[0].value;
     else {
         int keyframe = 0;
         last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-        if (timeline.forceWait) value = keyframes[keyframe + (int)x].value;
-        else value = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
+        for (int i = 0; i < keyframes[keyframe].value.size(); i++) {
+            values.push_back((keyframes[keyframe + 1].value[i] - keyframes[keyframe].value[i]) * x + keyframes[keyframe].value[i]);
+        }    
     }
-    if (timeline.type == KFTYPE_BOOL) *(bool*)timeline.dest = value >= 1;
-    if (timeline.type == KFTYPE_FLOAT) *(float*)timeline.dest = value;
-    if (timeline.type == KFTYPE_FLAGS) {
-        *(int*)timeline.dest = *(int*)&value;
+    if (timeline.type == KFTYPE_BOOL) *(bool*)timeline.dest = values[0] >= 1;
+    if (timeline.type == KFTYPE_FLOAT) *(float*)timeline.dest = values[0];
+    if (timeline.type == KFTYPE_COLOR) {
+        ((float*)timeline.dest)[0] = values[0];
+        ((float*)timeline.dest)[1] = values[1];
+        ((float*)timeline.dest)[2] = values[2];
     }
 
     return last;
 }
 
-void flag_place_keyframe(std::string curr_id, std::string id, bool* doPlace, bool* out) {
-    if (*out) return;
-    if (curr_id == id && *doPlace) {
-        *doPlace = false;
-        *out = true;
-    }
-}
-
 // returns true if the value is the same as if the keyframe was applied
 bool saturn_keyframe_matches(std::string id, int frame) {
-    KeyframeTimeline timeline = k_frame_keys[id].first;
+    KeyframeTimeline& timeline = k_frame_keys[id].first;
     std::vector<Keyframe> keyframes = k_frame_keys[id].second;
 
-    float expectedValue;
-    if (keyframes.size() == 1) expectedValue = keyframes[0].value;
+    if (timeline.behavior == KFBEH_EVENT) {
+        bool place = timeline.eventPlace;
+        timeline.eventPlace = false;
+        return !place;
+    }
+
+    std::vector<float> expectedValues;
+    if (keyframes.size() == 1) expectedValues = keyframes[0].value;
     else {
         int keyframe = 0;
         bool last = false;
         float x = saturn_keyframe_setup_interpolation(id, frame, &keyframe, &last);
-        if (timeline.forceWait) expectedValue = keyframes[keyframe + (int)x].value;
-        else expectedValue = (keyframes[keyframe + 1].value - keyframes[keyframe].value) * x + keyframes[keyframe].value;
-    }
-    if (timeline.type == KFTYPE_BOOL) {
-        if (*(bool*)timeline.dest != expectedValue >= 1) return false;
-        return true;
-    }
-    if (timeline.type == KFTYPE_FLOAT) {
-        float value = *(float*)timeline.dest;
-        float distance = abs(value - expectedValue);
-        if (distance > pow(10, timeline.precision)) {
-            if (id.find("cam") != string::npos) return !is_camera_moving;
-            else return false;
+        for (int i = 0; i < keyframes[keyframe].value.size(); i++) {
+            expectedValues.push_back((keyframes[keyframe + 1].value[i] - keyframes[keyframe].value[i]) * x + keyframes[keyframe].value[i]);
         }
     }
-    if (timeline.type == KFTYPE_FLAGS) {
-        bool doPlace = false;
-        flag_place_keyframe(id, "k_mario_anim", &place_keyframe_anim, &doPlace);
-        return !doPlace;
+    if (timeline.type == KFTYPE_BOOL) {
+        if (*(bool*)timeline.dest != 0 != expectedValues[0] >= 1) return false;
+        return true;
+    }
+    if (timeline.type == KFTYPE_FLOAT || timeline.type == KFTYPE_COLOR) {
+        for (int i = 0; i < (timeline.type == KFTYPE_FLOAT ? 1 : 3); i++) {
+            float value = ((float*)timeline.dest)[i];
+            float distance = abs(value - expectedValues[i]);
+            if (distance > pow(10, timeline.precision)) {
+                if (id.find("cam") != string::npos) return !is_camera_moving;
+                else return false;
+            }
+        }
     }
 
     return true;
@@ -523,7 +582,7 @@ bool saturn_keyframe_matches(std::string id, int frame) {
 // Play Animation
 
 void saturn_play_animation(MarioAnimID anim) {
-    set_mario_animation(gMarioState, anim);
+    force_set_mario_animation(gMarioState, anim);
     //set_mario_anim_with_accel(gMarioState, anim, anim_speed * 65535);
     is_anim_playing = true;
 }
@@ -534,8 +593,7 @@ void saturn_play_keyframe() {
     if (!keyframe_playing) {
         k_last_passed_index = 0;
         k_distance_between = 0;
-        k_current_anim = -1;
-        k_prev_anim = -1;
+        k_current_frame = 0;
         mcam_timer = 0;
         keyframe_playing = true;
     } else {
@@ -660,6 +718,19 @@ const char* saturn_get_stage_name(int courseNum) {
     }
 }
 
+std::thread extract_thread;
+
+s32 saturn_begin_extract_rom_thread() {
+    if (extract_thread_began) return extraction_finished;
+    extract_thread_began = true;
+    extraction_finished = false;
+    extract_thread = std::thread([]() {
+        saturn_extract_rom(EXTRACT_TYPE_ALL);
+        extraction_finished = true;
+    });
+    return false;
+}
+
 void saturn_do_load() {
     if (!(save_file_get_flags() & SAVE_FLAG_TALKED_TO_ALL_TOADS)) DynOS_Gfx_GetPacks().Clear();
     DynOS_Opt_Init();
@@ -669,6 +740,8 @@ void saturn_do_load() {
     saturn_load_locations();
     saturn_launch_timer = 0;
     saturn_cmd_registers_load();
+    saturn_load_favorite_anims();
+    saturn_fill_data_table();
 }
 void saturn_on_splash_finish() {
     splash_finished = true;
