@@ -231,9 +231,6 @@ void ssettings_imgui_update() {
         ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
         ImGui::PopItemWidth();
 
-        ImGui::Checkbox("Precache textures", &configPrecacheRes);
-        imgui_bundled_tooltip("Loads all textures on startup. May delay the initialization.");
-        
         if (configFps60) ImGui::Dummy(ImVec2(0, 5));
     }
     if (ImGui::CollapsingHeader("Audio")) {
