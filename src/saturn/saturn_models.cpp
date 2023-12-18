@@ -62,6 +62,11 @@ Loads metadata from a model folder's "model.json".
 Model LoadModelData(std::string folderPath) {
     Model model;
 
+    // Create "res/gfx" if it doesn't exist already
+    // This is required for expression loading
+    fs::create_directory("res");
+    fs::create_directory("res/gfx");
+
     if (fs::is_directory(folderPath)) {
         // Model folder exists
         model.FolderName = fs::path(folderPath).filename().u8string();
