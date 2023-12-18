@@ -164,16 +164,20 @@ const void* saturn_bind_texture(const void* input) {
     }
 
     // Vanilla eye textures
-    if (custom_eyes_enabled && current_model.UsingVanillaEyes() && current_model.Expressions[0].Textures.size() > 0) {
-        if (texName.find("saturn_eye") != string::npos ||
-            // Unused vanilla textures
-            texName == "actors/mario/mario_eyes_left_unused.rgba16.png" ||
-            texName == "actors/mario/mario_eyes_right_unused.rgba16.png" ||
-            texName == "actors/mario/mario_eyes_up_unused.rgba16.png" ||
-            texName == "actors/mario/mario_eyes_down_unused.rgba16.png") {
-                outputTexture = stack_to_heap(current_model.Expressions[0].Textures[current_model.Expressions[0].CurrentIndex].GetRelativePath())->c_str();
-                const void* output = static_cast<const void*>(outputTexture);
-                return output;
+    if (current_model.Expressions.size() > 0) {
+        if (custom_eyes_enabled && current_model.UsingVanillaEyes() && current_model.Expressions[0].Name == "eyes") {
+            if (texName.find("saturn_eye") != string::npos ||
+                // Unused vanilla textures
+                texName == "actors/mario/mario_eyes_left_unused.rgba16.png" ||
+                texName == "actors/mario/mario_eyes_right_unused.rgba16.png" ||
+                texName == "actors/mario/mario_eyes_up_unused.rgba16.png" ||
+                texName == "actors/mario/mario_eyes_down_unused.rgba16.png") {
+                    if (current_model.Expressions[0].Textures.size() > 0) {
+                        outputTexture = stack_to_heap(current_model.Expressions[0].Textures[current_model.Expressions[0].CurrentIndex].GetRelativePath())->c_str();
+                        const void* output = static_cast<const void*>(outputTexture);
+                        return output;
+                    }
+            }
         }
     }
 
