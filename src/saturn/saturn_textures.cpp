@@ -128,7 +128,8 @@ void LoadEyesFolder() {
         VanillaEyes.Textures = LoadExpressionTextures(VanillaEyes);
         VanillaEyes.Folders = LoadExpressionFolders(VanillaEyes);
     }
-    current_model.Expressions.insert(current_model.Expressions.begin(), VanillaEyes);
+    if (current_model.Expressions.size() == 0) current_model.Expressions.push_back(VanillaEyes);
+    else if (current_model.UsingVanillaEyes()) current_model.Expressions[0] = VanillaEyes;
 }
 
 std::map<std::string, std::string*> heap_strs = {};
