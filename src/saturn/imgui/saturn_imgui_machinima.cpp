@@ -433,36 +433,36 @@ void imgui_machinima_quick_options() {
         }
     }
 
-    if (ImGui::BeginMenu("Custom Level")) {
-            bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
-            ImGui::PushItemWidth(80);
-            ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
-            ImGui::PopItemWidth();
-            if (!is_custom_level_loaded || in_custom_level) ImGui::BeginDisabled();
-            if (ImGui::Button("Load Level")) {
-                auto size = filesystem::file_size(custom_level_path);
-                char* data = (char*)malloc(size);
-                std::ifstream file = std::ifstream((char*)custom_level_path.c_str(), std::ios::binary);
-                file.read(data, size);
-                parse_custom_level(data);
-                free(data);
-                warp_to_level(0, 3);
-            }
-            if (!is_custom_level_loaded || in_custom_level) ImGui::EndDisabled();
-            ImGui::SameLine();
-            if (ImGui::Button("Load .obj")) {
-                auto selection = choose_file_dialog("Select a model", { "Wavefront Model (.obj)", "*.obj", "All Files", "*" }, false);
-                if (selection.size() != 0) {
-                    filesystem::path path = selection[0];
-                    is_custom_level_loaded = true;
-                    custom_level_path = path.string();
-                    custom_level_dirname = path.parent_path().string();
-                    custom_level_filename = path.filename().string();
-                }
-            }
-            ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");
-            ImGui::EndMenu();
+    /*if (ImGui::BeginMenu("Custom Level")) {
+        bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
+        ImGui::PushItemWidth(80);
+        ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
+        ImGui::PopItemWidth();
+        if (!is_custom_level_loaded || in_custom_level) ImGui::BeginDisabled();
+        if (ImGui::Button("Load Level")) {
+            auto size = filesystem::file_size(custom_level_path);
+            char* data = (char*)malloc(size);
+            std::ifstream file = std::ifstream((char*)custom_level_path.c_str(), std::ios::binary);
+            file.read(data, size);
+            parse_custom_level(data);
+            free(data);
+            warp_to_level(0, 3);
         }
+        if (!is_custom_level_loaded || in_custom_level) ImGui::EndDisabled();
+        ImGui::SameLine();
+        if (ImGui::Button("Load .obj")) {
+            auto selection = choose_file_dialog("Select a model", { "Wavefront Model (.obj)", "*.obj", "All Files", "*" }, false);
+            if (selection.size() != 0) {
+                filesystem::path path = selection[0];
+                is_custom_level_loaded = true;
+                custom_level_path = path.string();
+                custom_level_dirname = path.parent_path().string();
+                custom_level_filename = path.filename().string();
+            }
+        }
+        ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");
+        ImGui::EndMenu();
+    }*/
 }
 
 static char animSearchTerm[128];
