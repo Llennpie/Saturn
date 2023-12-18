@@ -58,6 +58,8 @@ ImVec4 uiLegBottomShadeColor =           ImVec4(64.0f / 255.0f, 0.0f / 255.0f, 1
 static char ccSearchTerm[128];
 bool has_open_any_model_cc;
 
+bool auto_shading;
+
 /*
 Update the "defaultColor" presets with our CC Editor colors.
 These values are directly used in gfx_pc.c to overwrite incoming lights.
@@ -513,6 +515,19 @@ void ColorPartBox(std::string name, const char* mainName, const char* shadeName,
 
     ImGui::Text(name.c_str());
 
+    if (ImGui::IsPopupOpen(ImGui::GetID((std::string(mainName)  + "picker").c_str()), ImGuiPopupFlags_None) && auto_shading) {
+        shadeColorValue->x = colorValue->x / 2;
+        shadeColorValue->y = colorValue->y / 2;
+        shadeColorValue->z = colorValue->z / 2;
+        UpdatePaletteFromEditor();
+    }
+    if (ImGui::IsPopupOpen(ImGui::GetID((std::string(shadeName) + "picker").c_str()), ImGuiPopupFlags_None) && auto_shading) {
+        colorValue->x = shadeColorValue->x * 2;
+        colorValue->y = shadeColorValue->y * 2;
+        colorValue->z = shadeColorValue->z * 2;
+        UpdatePaletteFromEditor();
+    }
+
     if (ImGui::IsPopupOpen(ImGui::GetID((std::string(mainName) + "picker").c_str()), ImGuiPopupFlags_None) ||
         ImGui::IsPopupOpen(ImGui::GetID((std::string(shadeName) + "picker").c_str()), ImGuiPopupFlags_None)) {
 
@@ -578,6 +593,8 @@ void OpenCCEditor() {
     // Editor Tabs
 
     // Visual CC Editor
+    ImGui::Checkbox("Auto 1/2", &auto_shading);
+    imgui_bundled_tooltip("Automatically adjusts the shading for their respecive body parts.");
     if (ImGui::BeginTabBar("###dynos_tabbar", ImGuiTabBarFlags_None)) {
         if (ImGui::BeginTabItem("Editor")) {
 
