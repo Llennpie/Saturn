@@ -335,6 +335,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Shows a Saturn splash screen on startup.");
         ImGui::SliderInt("###autosave_delay_slider", (int*)&configAutosaveDelay, 10, 600, "Autosave Delay: %ds");
         imgui_bundled_tooltip("Delay between each project autosave.");
+        ImGui::Checkbox("Unstable Features", &configUnstableFeatures);
+        imgui_bundled_tooltip("Enables features that are not stable enough for an official release.\nThese features are marked with a (!)");
         //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
         //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
         //ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);

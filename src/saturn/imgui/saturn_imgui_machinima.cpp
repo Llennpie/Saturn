@@ -215,6 +215,7 @@ std::vector<std::vector<std::string>> tokenize(std::string input) {
 
 int textureIndex = 0;
 std::filesystem::path customlvl_texdir = std::filesystem::path(sys_user_path()) / "res" / "gfx" / "customlevel";
+bool custom_level_flip_normals = false;
 
 void parse_materials(char* data, std::map<std::string, filesystem::path>* materials) {
     auto tokens = tokenize(std::string(data));
@@ -262,7 +263,10 @@ void parse_custom_level(char* data) {
         }
         if (line[0] == "f") {
             for (int i = 1; i < line.size(); i++) {
-                auto indexes = split(line[i], '/');
+                int idx = i;
+                if      (custom_level_flip_normals && idx == 1) idx = 3;
+                else if (custom_level_flip_normals && idx == 3) idx = 1;
+                auto indexes = split(line[idx], '/');
                 int v = std::stoi(indexes[0]) - 1;
                 int vt = std::stoi(indexes[1]) - 1;
                 custom_level_vertex(vertices[v][0] * custom_level_scale, vertices[v][1] * custom_level_scale, vertices[v][2] * custom_level_scale, uv[vt][0] * 1024, uv[vt][1] * 1024);
@@ -433,7 +437,8 @@ void imgui_machinima_quick_options() {
         }
     }
 
-    /*if (ImGui::BeginMenu("Custom Level")) {
+    UNSTABLE
+    if (ImGui::BeginMenu("(!) Custom Level")) {
         bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
         ImGui::PushItemWidth(80);
         ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
@@ -462,7 +467,7 @@ void imgui_machinima_quick_options() {
         }
         ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");
         ImGui::EndMenu();
-    }*/
+    }
 }
 
 static char animSearchTerm[128];

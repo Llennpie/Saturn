@@ -9,6 +9,8 @@
 #include <string>
 #include "saturn/saturn.h"
 
+#define UNSTABLE if (configUnstableFeatures)
+
 extern void imgui_update_theme();
 extern void imgui_bundled_tooltip(const char*);
 extern void imgui_bundled_help_marker(const char*);
