@@ -917,3 +917,11 @@ s32 anim_spline_poll(Vec3f result) {
 
     return hasEnded;
 }
+
+u32 string_hash(const char* str, int off, int len) {
+    u32 out = 0;
+    for (int i = 0; i < len; i++) {
+        out += 31 * out + (int)(u8)(str[i + off]);
+    }
+    return out;
+}

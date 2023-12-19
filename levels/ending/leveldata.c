@@ -14,32 +14,32 @@
 
 // 0x07023000 - 0x07023FFF
 ALIGNED8 static const u8 cake_end_texture_eu_35[] = {
-#include "levels/ending/eu_023000.rgba16.inc.c"
+"levels/ending/eu_023000.rgba16.png"
 };
 
 // 0x07024000 - 0x07024FFF
 ALIGNED8 static const u8 cake_end_texture_eu_36[] = {
-#include "levels/ending/eu_024000.rgba16.inc.c"
+"levels/ending/eu_024000.rgba16.png"
 };
 
 // 0x07025000 - 0x07025FFF
 ALIGNED8 static const u8 cake_end_texture_eu_37[] = {
-#include "levels/ending/eu_025000.rgba16.inc.c"
+"levels/ending/eu_025000.rgba16.png"
 };
 
 // 0x07026000 - 0x07026FFF
 ALIGNED8 static const u8 cake_end_texture_eu_38[] = {
-#include "levels/ending/eu_026000.rgba16.inc.c"
+"levels/ending/eu_026000.rgba16.png"
 };
 
 // 0x07027000 - 0x07027FFF
 ALIGNED8 static const u8 cake_end_texture_eu_39[] = {
-#include "levels/ending/eu_027000.rgba16.inc.c"
+"levels/ending/eu_027000.rgba16.png"
 };
 
 // 0x07028000 - 0x07028FFF
 ALIGNED8 static const u8 cake_end_texture_eu_40[] = {
-#include "levels/ending/eu_028000.rgba16.inc.c"
+"levels/ending/eu_028000.rgba16.png"
 };
 
 // 0x07029000 - 0x070296D8
@@ -248,7 +248,54 @@ const Gfx dl_cake_end_screen_eu_070297D8[] = {
 // VERSION_EU
 #else
 
-#include "levels/ending/cake.inc.c"
+ALIGNED8 static const u8 cake_end_texture_0[] = "levels/ending/cake_0.png"; 
+ALIGNED8 static const u8 cake_end_texture_1[] = "levels/ending/cake_1.png";
+ALIGNED8 static const u8 cake_end_texture_2[] = "levels/ending/cake_2.png";
+ALIGNED8 static const u8 cake_end_texture_3[] = "levels/ending/cake_3.png";
+ALIGNED8 static const u8 cake_end_texture_4[] = "levels/ending/cake_4.png";
+ALIGNED8 static const u8 cake_end_texture_5[] = "levels/ending/cake_5.png";
+ALIGNED8 static const u8 cake_end_texture_6[] = "levels/ending/cake_6.png";
+ALIGNED8 static const u8 cake_end_texture_7[] = "levels/ending/cake_7.png";
+ALIGNED8 static const u8 cake_end_texture_8[] = "levels/ending/cake_8.png";
+ALIGNED8 static const u8 cake_end_texture_9[] = "levels/ending/cake_9.png";
+ALIGNED8 static const u8 cake_end_texture_10[] = "levels/ending/cake_10.png"; 
+ALIGNED8 static const u8 cake_end_texture_11[] = "levels/ending/cake_11.png";
+ALIGNED8 static const u8 cake_end_texture_12[] = "levels/ending/cake_12.png";
+ALIGNED8 static const u8 cake_end_texture_13[] = "levels/ending/cake_13.png";
+ALIGNED8 static const u8 cake_end_texture_14[] = "levels/ending/cake_14.png";
+ALIGNED8 static const u8 cake_end_texture_15[] = "levels/ending/cake_15.png";
+ALIGNED8 static const u8 cake_end_texture_16[] = "levels/ending/cake_16.png";
+ALIGNED8 static const u8 cake_end_texture_17[] = "levels/ending/cake_17.png";
+ALIGNED8 static const u8 cake_end_texture_18[] = "levels/ending/cake_18.png";
+ALIGNED8 static const u8 cake_end_texture_19[] = "levels/ending/cake_19.png";
+ALIGNED8 static const u8 cake_end_texture_20[] = "levels/ending/cake_20.png"; 
+ALIGNED8 static const u8 cake_end_texture_21[] = "levels/ending/cake_21.png";
+ALIGNED8 static const u8 cake_end_texture_22[] = "levels/ending/cake_22.png";
+ALIGNED8 static const u8 cake_end_texture_23[] = "levels/ending/cake_23.png";
+ALIGNED8 static const u8 cake_end_texture_24[] = "levels/ending/cake_24.png";
+ALIGNED8 static const u8 cake_end_texture_25[] = "levels/ending/cake_25.png";
+ALIGNED8 static const u8 cake_end_texture_26[] = "levels/ending/cake_26.png";
+ALIGNED8 static const u8 cake_end_texture_27[] = "levels/ending/cake_27.png";
+ALIGNED8 static const u8 cake_end_texture_28[] = "levels/ending/cake_28.png";
+ALIGNED8 static const u8 cake_end_texture_29[] = "levels/ending/cake_29.png";
+ALIGNED8 static const u8 cake_end_texture_30[] = "levels/ending/cake_30.png"; 
+ALIGNED8 static const u8 cake_end_texture_31[] = "levels/ending/cake_31.png";
+ALIGNED8 static const u8 cake_end_texture_32[] = "levels/ending/cake_32.png";
+ALIGNED8 static const u8 cake_end_texture_33[] = "levels/ending/cake_33.png";
+ALIGNED8 static const u8 cake_end_texture_34[] = "levels/ending/cake_34.png";
+ALIGNED8 static const u8 cake_end_texture_35[] = "levels/ending/cake_35.png";
+ALIGNED8 static const u8 cake_end_texture_36[] = "levels/ending/cake_36.png";
+ALIGNED8 static const u8 cake_end_texture_37[] = "levels/ending/cake_37.png";
+ALIGNED8 static const u8 cake_end_texture_38[] = "levels/ending/cake_38.png";
+ALIGNED8 static const u8 cake_end_texture_39[] = "levels/ending/cake_39.png";
+ALIGNED8 static const u8 cake_end_texture_40[] = "levels/ending/cake_40.png"; 
+ALIGNED8 static const u8 cake_end_texture_41[] = "levels/ending/cake_41.png";
+ALIGNED8 static const u8 cake_end_texture_42[] = "levels/ending/cake_42.png";
+ALIGNED8 static const u8 cake_end_texture_43[] = "levels/ending/cake_43.png";
+ALIGNED8 static const u8 cake_end_texture_44[] = "levels/ending/cake_44.png";
+ALIGNED8 static const u8 cake_end_texture_45[] = "levels/ending/cake_45.png";
+ALIGNED8 static const u8 cake_end_texture_46[] = "levels/ending/cake_46.png";
+ALIGNED8 static const u8 cake_end_texture_47[] = "levels/ending/cake_47.png";
 
 // 0x07025800 - 0x07025840
 static const Vtx cake_end_vertex_07025800[] = {

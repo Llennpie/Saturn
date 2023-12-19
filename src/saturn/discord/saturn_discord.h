@@ -28,6 +28,9 @@ extern struct DiscordUser gCurUser;
 
 extern std::string discord_state;
 
+extern std::string model_details;
+extern std::string cc_details;
+
 extern "C" {
 #endif
     void sdiscord_init(void);

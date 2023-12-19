@@ -74,7 +74,7 @@ void schroma_imgui_update() {
     }
 
     ImGui::Checkbox("Color Skybox", &use_color_background);
-    saturn_keyframe_bool_popout(&use_color_background, "Skybox Mode", "k_skybox_mode");
+    saturn_keyframe_popout("k_skybox_mode");
 
     if (use_color_background) {
         ImGui::ColorEdit4("Chroma Key Color", (float*)&uiChromaColor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoOptions);
@@ -93,7 +93,7 @@ void schroma_imgui_update() {
         set_chroma_color();
 
         ImGui::SameLine(); ImGui::Text("Color");
-        saturn_keyframe_color_popout("Skybox Color", "k_color", &uiChromaColor.x, &uiChromaColor.y, &uiChromaColor.z);
+        saturn_keyframe_popout("k_color");
         if (gCurrLevelNum == LEVEL_SA) {
             if (ImGui::Checkbox("Render Floor", &renderFloor))
                 chromaRequireReload = true;
@@ -119,7 +119,7 @@ void schroma_imgui_update() {
     ImGui::Dummy(ImVec2(0, 5));
 
     ImGui::Checkbox("Shadows###chroma_shadows", &enable_shadows);
-    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
+    saturn_keyframe_popout("k_shadows");
     ImGui::Checkbox("Dust Particles###chroma_dust", &enable_dust_particles);
     imgui_bundled_tooltip("Displays dust particles when Mario moves; Better to leave off when chroma keying.");
     

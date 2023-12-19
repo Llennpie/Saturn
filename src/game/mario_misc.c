@@ -371,7 +371,7 @@ Gfx *geo_switch_mario_eyes(s32 callContext, struct GraphNode *node, UNUSED Mat4 
     s16 blinkFrame;
 
     if (callContext == GEO_CONTEXT_RENDER) {
-        if (bodyState->eyeState == 0 || force_blink == true) {
+        if (bodyState->eyeState == 0) { // force_blink
             blinkFrame = ((switchCase->numCases * 32 + gAreaUpdateCounter) >> 1) & 0x1F;
             if (blinkFrame < 7) {
                 switchCase->selectedCase = gMarioBlinkAnimation[blinkFrame];

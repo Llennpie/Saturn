@@ -8,12 +8,12 @@ static const Lights1 springboard_seg5_lights_05000000 = gdSPDefLights1(
 
 // 0x05000018
 ALIGNED8 static const u8 springboard_seg5_texture_05000018[] = {
-#include "actors/springboard/springboard_top_unused.rgba16.inc.c"
+"actors/springboard/springboard_top_unused.rgba16.png"
 };
 
 // 0x05000818
 ALIGNED8 static const u8 springboard_seg5_texture_05000818[] = {
-#include "actors/springboard/springboard_base_unused.rgba16.inc.c"
+"actors/springboard/springboard_base_unused.rgba16.png"
 };
 
 // 0x05001018

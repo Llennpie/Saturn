@@ -2,32 +2,32 @@
 
 // 0x06000000
 ALIGNED8 static const u8 lakitu_seg6_texture_06000000[] = {
-#include "actors/lakitu_cameraman/lakitu_cameraman_cloud_face_unused.rgba16.inc.c"
+"actors/lakitu_cameraman/lakitu_cameraman_cloud_face_unused.rgba16.png"
 };
 
 // 0x06000800
 ALIGNED8 static const u8 lakitu_seg6_texture_06000800[] = {
-#include "actors/lakitu_cameraman/lakitu_cameraman_eyes_open.rgba16.inc.c"
+"actors/lakitu_cameraman/lakitu_cameraman_eyes_open.rgba16.png"
 };
 
 // 0x06001800
 ALIGNED8 static const u8 lakitu_seg6_texture_06001800[] = {
-#include "actors/lakitu_cameraman/lakitu_cameraman_eyes_closed.rgba16.inc.c"
+"actors/lakitu_cameraman/lakitu_cameraman_eyes_closed.rgba16.png"
 };
 
 // 0x06002800
 ALIGNED8 static const u8 lakitu_seg6_texture_06002800[] = {
-#include "actors/lakitu_cameraman/lakitu_cameraman_shell.rgba16.inc.c"
+"actors/lakitu_cameraman/lakitu_cameraman_shell.rgba16.png"
 };
 
 // 0x06003000
 ALIGNED8 static const u8 lakitu_seg6_texture_06003000[] = {
-#include "actors/lakitu_cameraman/lakitu_cameraman_frown.rgba16.inc.c"
+"actors/lakitu_cameraman/lakitu_cameraman_frown.rgba16.png"
 };
 
 // 0x06003800
 ALIGNED8 static const u8 lakitu_seg6_texture_06003800[] = {
-#include "actors/lakitu_cameraman/lakitu_camera_lens.rgba16.inc.c"
+"actors/lakitu_cameraman/lakitu_camera_lens.rgba16.png"
 };
 
 // 0x06003A00

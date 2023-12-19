@@ -18,7 +18,7 @@ static const Vtx white_particle_small_unused_vertex[] = {
 
 // 0x04032780
 ALIGNED8 static const u8 white_particle_small_texture[] = {
-#include "actors/white_particle_small/small_snow_particle.rgba16.inc.c"
+"actors/white_particle_small/small_snow_particle.rgba16.png"
 };
 
 // 0x04032980 - 0x040329E0

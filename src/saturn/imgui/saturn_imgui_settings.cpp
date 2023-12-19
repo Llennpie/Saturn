@@ -2,6 +2,8 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -24,6 +26,8 @@ extern "C" {
 #include "pc/controller/controller_sdl.h"
 #include "pc/controller/controller_keyboard.h"
 #include "audio/load.h"
+#include "engine/math_util.h"
+#include "pc/platform.h"
 }
 
 #include "icons/IconsForkAwesome.h"
@@ -139,16 +143,35 @@ void ssettings_imgui_init() {
     if (configAudioMode == 1) gSoundMode = 3;
 }
 
+int current_theme_id = 0;
+
 void ssettings_imgui_update() {
-    const char* mThemeSettings[] = { "Legacy", "Moon", "Half-Life", "Movie Maker", "Dear" };
+    std::vector<const char*> theme_names = {};
+    for (int i = 0; i < theme_list.size(); i++) {
+        auto& entry = theme_list[i];
+        if (entry.first == editor_theme) current_theme_id = i;
+        theme_names.push_back(entry.second.c_str());
+    }
     ImGui::PushItemWidth(150);
-    ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", (int*)&configEditorTheme, mThemeSettings, IM_ARRAYSIZE(mThemeSettings));
+    if (ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", &current_theme_id, theme_names.data(), theme_names.size())) {
+        configEditorThemeJson = string_hash(theme_list[current_theme_id].first.c_str(), 0, theme_list[current_theme_id].first.length());
+        imgui_update_theme();
+    }
     ImGui::PopItemWidth();
-    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme. Requires restart.");
+    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme.");
 #ifdef DISCORDRPC
     ImGui::Checkbox(ICON_FK_DISCORD " Discord Activity Status", &configDiscordRPC);
     imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
 #endif
+    std::filesystem::path no_updates_file = std::filesystem::path(sys_user_path()) / "no_updates";
+    bool pauseUpdates = std::filesystem::exists(no_updates_file);
+    if (ImGui::Checkbox("Pause Updates", &pauseUpdates)) {
+        if (pauseUpdates) {
+            std::ofstream stream = std::ofstream(no_updates_file);
+            stream.close();
+        }
+        else std::filesystem::remove(no_updates_file);
+    }
 
     ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Graphics")) {
@@ -207,7 +230,7 @@ void ssettings_imgui_update() {
         ImGui::PushItemWidth(150);
         ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
         ImGui::PopItemWidth();
-        
+
         if (configFps60) ImGui::Dummy(ImVec2(0, 5));
     }
     if (ImGui::CollapsingHeader("Audio")) {
@@ -298,6 +321,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Hides butterflies.");
         ImGui::Checkbox("Disable Water Controls", &configNoWater);
         imgui_bundled_tooltip("Makes it so you have non-water controls in water.");
+        ImGui::Checkbox("Disable Neck Breaks", &configCUpLimit);
+        imgui_bundled_tooltip("Limits the C-Up head rotations, just like in vanilla.\nMario's neck will be happy.");
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);
@@ -310,6 +335,8 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Shows a Saturn splash screen on startup.");
         ImGui::SliderInt("###autosave_delay_slider", (int*)&configAutosaveDelay, 10, 600, "Autosave Delay: %ds");
         imgui_bundled_tooltip("Delay between each project autosave.");
+        ImGui::Checkbox("Unstable Features", &configUnstableFeatures);
+        imgui_bundled_tooltip("Enables features that are not stable enough for an official release.\nThese features are marked with a (!)");
         //ImGui::Checkbox("Auto-apply model default CC", &configEditorAutoModelCc);
         //imgui_bundled_tooltip("If enabled, a model-unique color code (if present) will automatically be assigned when selecting a model.");
         //ImGui::Checkbox("Always show chroma options", &configEditorAlwaysChroma);

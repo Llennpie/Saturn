@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
+#include <fstream>
 
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
@@ -18,6 +19,7 @@
 #include "saturn_imgui.h"
 #include "saturn/imgui/saturn_imgui_chroma.h"
 #include "saturn/filesystem/saturn_locationfile.h"
+#include "saturn/filesystem/saturn_animfile.h"
 #include "pc/controller/controller_keyboard.h"
 #include <SDL2/SDL.h>
 
@@ -39,6 +41,7 @@ extern "C" {
 #include "src/game/interaction.h"
 #include "include/behavior_data.h"
 #include "game/object_helpers.h"
+#include "game/custom_level.h"
 }
 
 using namespace std;
@@ -62,6 +65,12 @@ bool enable_time_freeze = false;
 
 int current_location_index = 0;
 char location_name[256];
+
+float custom_level_scale = 100.f;
+bool is_custom_level_loaded = false;
+std::string custom_level_path;
+std::string custom_level_filename;
+std::string custom_level_dirname;
 
 s16 levelList[] = { 
     LEVEL_SA, LEVEL_CASTLE_GROUNDS, LEVEL_CASTLE, LEVEL_CASTLE_COURTYARD, LEVEL_BOB, 
@@ -88,57 +97,31 @@ void warp_to(s16 destLevel, s16 destArea = 0x01, s16 destWarpNode = 0x0A) {
     fade_into_special_warp(0,0);
 }
 
-int encode_animation() {
-    int encoded = 0;
-    encoded |= is_custom_anim << 31;
-    encoded |= is_anim_looped << 30;
-    encoded |= is_anim_hang << 29;
-    encoded |= (((int)(anim_speed * 1000) & 0x3FFF) << 14);
-    encoded |= (is_custom_anim ? custom_anim_index : current_sanim_id) & 0x3FFF;
-    return encoded;
-}
-void decode_animation(int raw) {
-    is_custom_anim = raw & (1 << 31);
-    is_anim_looped = raw & (1 << 30);
-    is_anim_hang = raw & (1 << 29);
-    anim_speed = ((raw >> 14) & 0x3FFF) / 1000.f;
-    current_sanim_id = raw & 0x3FFF;
-    if (is_custom_anim) {
-        current_sanim_group_index = 8;
-        current_sanim_id = selected_animation = MARIO_ANIM_A_POSE;
-        custom_anim_index = current_sanim_id;
-        current_sanim_name = canim_array[current_sanim_id];
-        anim_preview_name = current_sanim_name;
-        anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
-    }
-    else {
-        std::pair<int, std::string> animInfo;
-        for (auto& map : sanim_maps) {
-            for (auto& entry : map) {
-                if (entry.second == current_sanim_id) animInfo = entry.first;
-            }
-        }
-        current_sanim_index = animInfo.first;
-        current_sanim_name = animInfo.second;
-        anim_preview_name = current_sanim_name;
-        current_sanim_id = selected_animation = MarioAnimID(current_sanim_id);
-    }
-}
-
 void anim_play_button() {
+    if (current_animation.id == -1) return;
     current_anim_frame = 0;
-    if (is_custom_anim) {
+    is_anim_playing = true;
+    if (current_animation.custom) {
         saturn_read_mcomp_animation(anim_preview_name);
-        saturn_play_animation(selected_animation);
+        saturn_play_animation(MarioAnimID(current_animation.id));
         saturn_play_custom_animation();
     } else {
-        saturn_play_animation(selected_animation);
+        saturn_play_animation(MarioAnimID(current_animation.id));
     }
 }
 
-void anim_play_button(int animation) {
-    decode_animation(animation);
-    anim_play_button();
+void saturn_create_object(int model, const BehaviorScript* behavior, float x, float y, float z, s16 pitch, s16 yaw, s16 roll, int behParams) {
+    Object* obj = spawn_object(gMarioState->marioObj, model, behavior);
+    obj->oPosX = x;
+    obj->oPosY = y;
+    obj->oPosZ = z;
+    obj->oHomeX = x;
+    obj->oHomeY = y;
+    obj->oHomeZ = z;
+    obj->oFaceAnglePitch = pitch;
+    obj->oFaceAngleYaw = yaw;
+    obj->oFaceAngleRoll = roll;
+    obj->oBehParams = behParams;
 }
 
 void smachinima_imgui_controls(SDL_Event * event) {
@@ -150,13 +133,13 @@ void smachinima_imgui_controls(SDL_Event * event) {
                 if (camera_fov >= 2.0f) camera_fov -= 2.f;
             }
 
-            if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]) {
+            /*if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT]) {
                 if (!saturn_disable_sm64_input()) {
                     if (event->key.keysym.sym >= SDLK_0 && event->key.keysym.sym <= SDLK_9) {
                         saturn_load_expression_number(event->key.keysym.sym);
                     }
                 };
-            }
+            }*/
 
         case SDL_MOUSEMOTION:
             SDL_Delay(2);
@@ -175,29 +158,124 @@ void warp_to_level(int level, int area, int act = -1) {
     if (level != 0) enable_shadows = true;
     else enable_shadows = false;
 
+    s32 levelID = levelList[level];
+    s32 warpnode = 0x0A;
+
     switch (level) {
-        case 0:
-            DynOS_Warp_ToLevel(LEVEL_SA, (s32)currentChromaArea, 0);
-            break;
         case 1:
-            warp_to(LEVEL_CASTLE_GROUNDS, 0x01, 0x04);
+            warpnode = 0x04;
             break;
         case 2:
-            warp_to(LEVEL_CASTLE, 0x01, 0x01);
+            if (area == 1) warpnode = 0x1E;
+            else warpnode = 0x10;
             break;
         case 3:
-            warp_to(LEVEL_CASTLE_COURTYARD, 0x01, 0x0B);
-            break;
-        default:
-            warp_to(levelList[level]);
+            warpnode = 0x0B;
             break;
     }
+
+    if (levelID != LEVEL_BOB && levelID != LEVEL_WF  && levelID != LEVEL_JRB &&
+        levelID != LEVEL_CCM && levelID != LEVEL_BBH && levelID != LEVEL_HMC &&
+        levelID != LEVEL_LLL && levelID != LEVEL_SSL && levelID != LEVEL_DDD &&
+        levelID != LEVEL_SL  && levelID != LEVEL_WDW && levelID != LEVEL_TTM &&
+        levelID != LEVEL_THI && levelID != LEVEL_TTC && levelID != LEVEL_RR  && levelID != LEVEL_SA) act = -1;
+
+    if (act == -1) warp_to(levelID, area, warpnode);
+    else DynOS_Warp_ToWarpNode(levelID, area, act, warpnode);
 }
 
 int get_saturn_level_id(int level) {
     for (int i = 0; i < IM_ARRAYSIZE(levelList); i++) {
         if (levelList[i] == level) return i;
     }
+}
+
+std::vector<std::string> split(std::string input, char character) {
+    std::vector<std::string> tokens = {};
+    std::string token = "";
+    for (int i = 0; i < input.length(); i++) {
+        if (input[i] == '\r') continue;
+        if (input[i] == character) {
+            tokens.push_back(token);
+            token = "";
+        }
+        else token += input[i];
+    }
+    tokens.push_back(token);
+    return tokens;
+}
+std::vector<std::vector<std::string>> tokenize(std::string input) {
+    std::vector<std::vector<std::string>> tokens = {};
+    auto lines = split(input, '\n');
+    for (auto line : lines) {
+        tokens.push_back(split(line, ' '));
+    }
+    return tokens;
+}
+
+int textureIndex = 0;
+std::filesystem::path customlvl_texdir = std::filesystem::path(sys_user_path()) / "res" / "gfx" / "customlevel";
+bool custom_level_flip_normals = false;
+
+void parse_materials(char* data, std::map<std::string, filesystem::path>* materials) {
+    auto tokens = tokenize(std::string(data));
+    std::string matname = "";
+    for (auto line : tokens) {
+        if (line[0] == "newmtl") matname = line[1];
+        if (line[0] == "map_Kd" && matname != "") {
+            std::string path = std::to_string(textureIndex++) + ".png";
+            std::filesystem::path raw = std::filesystem::path(line[1]);
+            std::filesystem::path src = raw.is_absolute() ? raw : std::filesystem::path(custom_level_path).parent_path() / raw;
+            std::filesystem::path dst = customlvl_texdir / path;
+            std::filesystem::remove(dst);
+            std::filesystem::copy_file(src, dst);
+            materials->insert({ matname, "customlevel/" + path });
+        }
+    }
+}
+
+void parse_custom_level(char* data) {
+    auto tokens = tokenize(std::string(data));
+    textureIndex = 0;
+    if (std::filesystem::exists(customlvl_texdir)) std::filesystem::remove_all(customlvl_texdir);
+    std::filesystem::create_directories(customlvl_texdir);
+    custom_level_new();
+    std::vector<std::array<float, 3>> vertices = {};
+    std::vector<std::array<float, 2>> uv = {};
+    std::map<std::string, filesystem::path> materials = {};
+    for (auto line : tokens) {
+        if (line.size() == 0) continue;
+        if (line[0] == "mtllib") {
+            filesystem::path path = filesystem::absolute(std::filesystem::path(custom_level_dirname) / line[1]);
+            if (!filesystem::exists(path)) continue;
+            auto size = filesystem::file_size(path);
+            char* mtldata = (char*)malloc(size);
+            std::ifstream file = std::ifstream(path, std::ios::binary);
+            file.read(mtldata, size);
+            parse_materials(mtldata, &materials);
+            free(mtldata);
+        }
+        if (line[0] == "v") vertices.push_back({ std::stof(line[1]), std::stof(line[2]), std::stof(line[3]) });
+        if (line[0] == "vt") uv.push_back({ std::stof(line[1]), std::stof(line[2]) });
+        if (line[0] == "usemtl") {
+            if (materials.find(line[1]) == materials.end()) continue; 
+            custom_level_texture((char*)materials[line[1]].c_str());
+        }
+        if (line[0] == "f") {
+            for (int i = 1; i < line.size(); i++) {
+                int idx = i;
+                if      (custom_level_flip_normals && idx == 1) idx = 3;
+                else if (custom_level_flip_normals && idx == 3) idx = 1;
+                auto indexes = split(line[idx], '/');
+                int v = std::stoi(indexes[0]) - 1;
+                int vt = std::stoi(indexes[1]) - 1;
+                custom_level_vertex(vertices[v][0] * custom_level_scale, vertices[v][1] * custom_level_scale, vertices[v][2] * custom_level_scale, uv[vt][0] * 1024, uv[vt][1] * 1024);
+            }
+            custom_level_face();
+        }
+    }
+    gfx_precache_textures();
+    custom_level_finish();
 }
 
 void smachinima_imgui_init() {
@@ -207,63 +285,6 @@ void smachinima_imgui_init() {
     saturn_load_anim_folder("", &custom_anim_index);
 }
 
-void smachinima_imgui_update() {
-    ImGui::Checkbox("Machinima Camera", &camera_frozen);
-    if (configMCameraMode == 2) {
-        ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> LShift + Mouse Buttons");
-    } else if (configMCameraMode == 1) {
-        ImGui::SameLine(); imgui_bundled_help_marker("Pan Camera -> R + C-Buttons\nRaise/Lower Camera -> L + C-Buttons\nRotate Camera -> L + Crouch + C-Buttons");
-    } else if (configMCameraMode == 0) {
-        ImGui::SameLine(); imgui_bundled_help_marker("Move Camera -> Y/G/H/J\nRaise/Lower Camera -> T/U\nRotate Camera -> R + Y/G/H/J");
-    }
-    if (configMCameraMode == 0 && camera_frozen || configMCameraMode == 1 && camera_frozen) {
-        ImGui::SliderFloat("Speed", &camVelSpeed, 0.0f, 2.0f);
-        imgui_bundled_tooltip("Controls the speed of the machinima camera while enabled. Default is 1.");
-    }
-
-    ImGui::SliderFloat("FOV", &camera_fov, 0.0f, 100.0f);
-    imgui_bundled_tooltip("Controls the FOV of the in-game camera. Default is 50.\nKeybind -> N/M");
-    ImGui::Checkbox("Smooth###smooth_fov", &camera_fov_smooth);
-
-    if (mario_exists) {
-        ImGui::Dummy(ImVec2(0, 5));
-        ImGui::Text("Animations");
-        ImGui::Dummy(ImVec2(0, 5));
-
-        // Warp To Level
-
-        ImGui::Dummy(ImVec2(0, 5));
-    }
-
-    ImGui::Dummy(ImVec2(0, 5));
-
-    if (ImGui::BeginTable("table_quick_toggles", 2)) {
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("HUD", &configHUD);
-        imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("Shadows", &enable_shadows);
-        imgui_bundled_tooltip("Displays the shadows of various objects.");
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
-        imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("NPC Dialogue", (bool*)&enable_dialogue);
-        imgui_bundled_tooltip("Whether or not to trigger dialogue when interacting with an NPC or readable sign.");
-        if (mario_exists && gMarioState->action != ACT_FIRST_PERSON) {
-            ImGui::TableNextColumn();
-            if (ImGui::Button("Sleep")) {
-                set_mario_action(gMarioState, ACT_START_SLEEPING, 0);
-            }
-        }
-        ImGui::EndTable();
-    }
-    if (mario_exists) {
-        const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };
-        ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
-    }
-}
-
 void imgui_machinima_quick_options() {
     if (ImGui::MenuItem(ICON_FK_CLOCK_O " Limit FPS",      "F4", limit_fps)) {
         limit_fps = !limit_fps;
@@ -271,9 +292,12 @@ void imgui_machinima_quick_options() {
     }
 
     if (mario_exists) {
-        if (ImGui::MenuItem(ICON_FK_PAPER_PLANE_O " Fly Mode",      "F2", gMarioState->action == ACT_DEBUG_FREE_MOVE, gMarioState->action == ACT_IDLE | gMarioState->action == ACT_DEBUG_FREE_MOVE)) {
-            if (gMarioState->action == ACT_IDLE) set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
-            else set_mario_action(gMarioState, ACT_IDLE, 0);
+        if (ImGui::MenuItem(ICON_FK_PAPER_PLANE_O " Fly Mode",      "F2", gMarioState->action == ACT_DEBUG_FREE_MOVE)) {
+            if (gMarioState->action == ACT_DEBUG_FREE_MOVE) {
+                reset_camera(gCamera);
+                set_mario_action(gMarioState, ACT_IDLE, 0);
+            }
+            else set_mario_action(gMarioState, ACT_DEBUG_FREE_MOVE, 0);
         }
         ImGui::Separator();
 
@@ -338,18 +362,18 @@ void imgui_machinima_quick_options() {
     ImGui::Separator();
     ImGui::Checkbox("HUD", &configHUD);
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
-    saturn_keyframe_bool_popout(&configHUD, "HUD", "k_hud");
+    saturn_keyframe_popout("k_hud");
     ImGui::Checkbox("Shadows", &enable_shadows);
     imgui_bundled_tooltip("Displays the shadows of various objects.");
-    saturn_keyframe_bool_popout(&enable_shadows, "Shadows", "k_shadows");
+    saturn_keyframe_popout("k_shadows");
     ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
     imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
     if (ImGui::Checkbox("Time Freeze", (bool*)&enable_time_freeze)) {
         if (enable_time_freeze) enable_time_stop_including_mario();
         else disable_time_stop_including_mario();
     }
-    saturn_keyframe_bool_popout(&enable_time_freeze, "Time Freeze", "k_time_freeze");
-    imgui_bundled_tooltip("Freezes everything excluding the camera.");
+    imgui_bundled_tooltip("Pauses all in-game movement, excluding the camera.");
+    saturn_keyframe_popout("k_time_freeze");
     ImGui::Checkbox("Object Interactions", (bool*)&enable_dialogue);
     imgui_bundled_tooltip("Toggles interactions with some objects; This includes opening/closing doors, triggering dialogue when interacting with an NPC or readable sign, etc.");
     if (mario_exists) {
@@ -363,7 +387,7 @@ void imgui_machinima_quick_options() {
         ImGui::PushItemWidth(100);
         ImGui::Combo("Environment###env_dropdown", (int*)&gLevelEnv, mEnvSettings, IM_ARRAYSIZE(mEnvSettings));
         ImGui::SliderFloat("Gravity", &gravity, 0.f, 3.f);
-        saturn_keyframe_float_popout(&gravity, "Gravity", "k_gravity");
+        saturn_keyframe_popout("k_gravity");
         ImGui::PopItemWidth();
         
         if (ImGui::BeginMenu("Spawn Object")) {
@@ -402,20 +426,47 @@ void imgui_machinima_quick_options() {
             ImGui::InputInt4("###obj_beh_params", obj_beh_params);
             ImGui::Separator();
             if (ImGui::Button("Spawn Object")) {
-                Object* obj = spawn_object(gMarioState->marioObj, obj_models[obj_model].second, obj_behaviors[obj_beh].second);
-                obj->oPosX = obj_pos[0];
-                obj->oPosY = obj_pos[1];
-                obj->oPosZ = obj_pos[2];
-                obj->oHomeX = obj_pos[0];
-                obj->oHomeY = obj_pos[1];
-                obj->oHomeZ = obj_pos[2];
-                obj->oFaceAnglePitch = obj_rot[0];
-                obj->oFaceAngleYaw = obj_rot[1];
-                obj->oFaceAngleRoll = obj_rot[2];
-                obj->oBehParams = ((obj_beh_params[0] & 0xFF) << 24) | ((obj_beh_params[1] & 0xFF) << 16) | ((obj_beh_params[2] & 0xFF) << 8) | (obj_beh_params[3] & 0xFF);
+                saturn_create_object(
+                    obj_models[obj_model].second, obj_behaviors[obj_beh].second,
+                    obj_pos[0], obj_pos[1], obj_pos[2],
+                    obj_rot[0], obj_rot[1], obj_rot[2],
+                    ((obj_beh_params[0] & 0xFF) << 24) | ((obj_beh_params[1] & 0xFF) << 16) | ((obj_beh_params[2] & 0xFF) << 8) | (obj_beh_params[3] & 0xFF)
+                );
             }
             ImGui::EndMenu();
         }
+    }
+
+    UNSTABLE
+    if (ImGui::BeginMenu("(!) Custom Level")) {
+        bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
+        ImGui::PushItemWidth(80);
+        ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
+        ImGui::PopItemWidth();
+        if (!is_custom_level_loaded || in_custom_level) ImGui::BeginDisabled();
+        if (ImGui::Button("Load Level")) {
+            auto size = filesystem::file_size(custom_level_path);
+            char* data = (char*)malloc(size);
+            std::ifstream file = std::ifstream((char*)custom_level_path.c_str(), std::ios::binary);
+            file.read(data, size);
+            parse_custom_level(data);
+            free(data);
+            warp_to_level(0, 3);
+        }
+        if (!is_custom_level_loaded || in_custom_level) ImGui::EndDisabled();
+        ImGui::SameLine();
+        if (ImGui::Button("Load .obj")) {
+            auto selection = choose_file_dialog("Select a model", { "Wavefront Model (.obj)", "*.obj", "All Files", "*" }, false);
+            if (selection.size() != 0) {
+                filesystem::path path = selection[0];
+                is_custom_level_loaded = true;
+                custom_level_path = path.string();
+                custom_level_dirname = path.parent_path().string();
+                custom_level_filename = path.filename().string();
+            }
+        }
+        ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");
+        ImGui::EndMenu();
     }
 }
 
@@ -428,7 +479,8 @@ void imgui_machinima_animation_player() {
         ImGui::BeginDisabled();
 
     const char* anim_groups[] = { "Movement (50)", "Actions (25)", "Automatic (27)", "Damage/Deaths (22)",
-        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", ICON_FK_FILE_O " CUSTOM...", "All (209)"};
+        "Cutscenes (23)", "Water (16)", "Climbing (20)", "Object (24)", ICON_FK_FILE_O " CUSTOM...", "All (209)",
+        (std::string("Favorites (") + std::to_string(favorite_anims.size()) + ")").c_str() };
     int animArraySize = (canim_array.size() > 0) ? IM_ARRAYSIZE(anim_groups) : IM_ARRAYSIZE(anim_groups) - 1;
 
     ImGui::PushItemWidth(290);
@@ -438,29 +490,37 @@ void imgui_machinima_animation_player() {
             if (ImGui::Selectable(anim_groups[n], is_selected)) {
                 current_sanim_group_index = n;
                 if (current_sanim_group_index == 8) {
-                    is_custom_anim = true;
+                    current_animation.custom = true;
                     current_sanim_id = MARIO_ANIM_A_POSE;
 
                     current_sanim_name = canim_array[custom_anim_index];
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                 } else if (current_sanim_group_index == 9) {
                     current_anim_map = sanim_maps[9];
-                    is_custom_anim = false;
+                    current_animation.custom = false;
 
-                    for (int i; i < 8; i++) {
-                        current_anim_map.merge(sanim_maps[i]);
+                    current_anim_map.clear();
+                    for (int i = 0; i < 8; i++) {
+                        for (auto& anim : sanim_maps[i]) {
+                            current_anim_map.insert(anim);
+                        }
                     }
                     current_sanim_index = current_anim_map.begin()->first.first;
                     current_sanim_name = current_anim_map.begin()->first.second;
                     current_sanim_id = current_anim_map.begin()->second;
                     anim_preview_name = current_sanim_name;
-
+                } else if (current_sanim_group_index == 10) {
+                    current_animation.custom = false;
+                    current_sanim_id = favorite_anims.size() == 0 ? MARIO_ANIM_A_POSE : favorite_anims[0];
+                    current_sanim_index = 0;
+                    current_sanim_name = saturn_animations_list[current_sanim_id];
+                    anim_preview_name = current_sanim_name;
                 } else {
                     current_anim_map = sanim_maps[current_sanim_group_index];
-                    is_custom_anim = false;
+                    current_animation.custom = false;
                     current_sanim_index = current_anim_map.begin()->first.first;
                     current_sanim_name = current_anim_map.begin()->first.second;
                     current_sanim_id = current_anim_map.begin()->second;
@@ -520,27 +580,27 @@ void imgui_machinima_animation_player() {
                 custom_anim_index = i;
                 current_sanim_name = canim_array[i];
                 anim_preview_name = current_sanim_name;
-                is_anim_looped = current_canim_looping;
+                current_animation.loop = current_canim_looping;
                 // Remove .json extension
                 if (canim_array[i].find(".json") != string::npos) {
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                 } else if (canim_array[i].find("/") != string::npos) {
                     saturn_load_anim_folder(anim_preview_name, &custom_anim_index);
                     current_sanim_name = canim_array[custom_anim_index];
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                 }
                 // Stop anim
                 is_anim_playing = false;
                 is_anim_paused = false;
                 using_chainer = false;
                 chainer_index = 0;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
+                current_animation.custom = true;
+                current_animation.id = i;
             }
 
             if (ImGui::BeginPopupContextItem()) {
@@ -554,7 +614,7 @@ void imgui_machinima_animation_player() {
                     anim_preview_name = current_sanim_name;
                     anim_preview_name = anim_preview_name.substr(0, anim_preview_name.size() - 5);
                     saturn_read_mcomp_animation(anim_preview_name);
-                    is_anim_looped = current_canim_looping;
+                    current_animation.loop = current_canim_looping;
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -580,16 +640,45 @@ void imgui_machinima_animation_player() {
                 }
             }
 
+            auto position = std::find(favorite_anims.begin(), favorite_anims.end(), i);
+            bool contains = position != favorite_anims.end();
+            if (ImGui::SmallButton((std::string(contains ? ICON_FK_STAR : ICON_FK_STAR_O) + "###" + std::to_string(i)).c_str())) {
+                if (contains) favorite_anims.erase(position);
+                else favorite_anims.push_back(i);
+                saturn_save_favorite_anims();
+            }
+            ImGui::SameLine();
             if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
                 current_sanim_index = i;
                 current_sanim_name = saturn_animations_list[i];
                 current_sanim_id = i;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
+                current_animation.custom = false;
+                current_animation.id = i;
             }
 
             if (is_selected)
                 ImGui::SetItemDefaultFocus();
+        }
+    } else if (current_sanim_group_index == 10) {
+        int idx = 0;
+        for (int anim : favorite_anims) {
+            current_sanim_name = saturn_animations_list[anim];
+            const bool is_selected = (current_sanim_id == anim);
+            auto position = std::find(favorite_anims.begin(), favorite_anims.end(), anim);
+            if (ImGui::SmallButton((std::string(ICON_FK_STAR) + "###" + std::to_string(anim)).c_str())) {
+                favorite_anims.erase(position);
+                saturn_save_favorite_anims();
+            }
+            ImGui::SameLine();
+            if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
+                current_sanim_index = idx;
+                current_sanim_name = saturn_animations_list[anim];
+                current_sanim_id = anim;
+                current_animation.custom = false;
+                current_animation.id = anim;
+            }
+            if (is_selected) ImGui::SetItemDefaultFocus();
+            idx++;
         }
     } else {
         for (auto &[a,b]:current_anim_map) {
@@ -597,13 +686,21 @@ void imgui_machinima_animation_player() {
             current_sanim_name = a.second;
 
             const bool is_selected = (current_sanim_id == b);
+            auto position = std::find(favorite_anims.begin(), favorite_anims.end(), b);
+            bool contains = position != favorite_anims.end();
+            if (ImGui::SmallButton((std::string(contains ? ICON_FK_STAR : ICON_FK_STAR_O) + "###" + std::to_string(b)).c_str())) {
+                if (contains) favorite_anims.erase(position);
+                else favorite_anims.push_back(b);
+                saturn_save_favorite_anims();
+            }
+            ImGui::SameLine();
             if (ImGui::Selectable(current_sanim_name.c_str(), is_selected)) {
                 current_sanim_index = a.first;
                 current_sanim_name = a.second;
                 current_sanim_id = b;
                 anim_preview_name = current_sanim_name;
-                k_current_anim = encode_animation();
-                place_keyframe_anim = true;
+                current_animation.custom = false;
+                current_animation.id = b;
             }
 
             if (is_selected)
@@ -619,7 +716,7 @@ void imgui_machinima_animation_player() {
     ImGui::Separator();
 
     // Metadata
-    if (is_custom_anim && custom_anim_index != -1) {
+    if (current_animation.custom && custom_anim_index != -1) {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
         ImGui::BeginChild("###anim_metadata", ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 3), true, ImGuiWindowFlags_NoScrollbar);
         ImGui::Text(current_canim_name.c_str());
@@ -632,7 +729,7 @@ void imgui_machinima_animation_player() {
 
     // Player
     if (is_anim_playing) {
-        if (is_custom_anim) {
+        if (current_animation.custom) {
             ImGui::Text("Now Playing: %s", current_canim_name.c_str());
             string anim_credit1 = ("By " + current_canim_author);
             ImGui::SameLine(); imgui_bundled_help_marker(anim_credit1.c_str());
@@ -647,13 +744,14 @@ void imgui_machinima_animation_player() {
             using_chainer = false;
             chainer_index = 0;
         }
-        ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
-        ImGui::SameLine(); if (ImGui::Checkbox("Hang", &is_anim_hang))  if (!is_anim_hang) {
-                                                                            is_anim_playing = false;
-                                                                            is_anim_paused = false;
-                                                                            using_chainer = false;
-                                                                            chainer_index = 0;
-                                                                        }
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &current_animation.loop);
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Hang", &current_animation.hang) && !current_animation.hang) {
+            is_anim_playing = false;
+            is_anim_paused = false;
+            using_chainer = false;
+            chainer_index = 0;
+        }
         
         ImGui::PushItemWidth(150);
         ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length - 1);
@@ -664,17 +762,17 @@ void imgui_machinima_animation_player() {
         if (ImGui::Button("Play")) {
             anim_play_button();
         }
-        ImGui::SameLine(); ImGui::Checkbox("Loop", &is_anim_looped);
-        ImGui::SameLine(); ImGui::Checkbox("Hang", &is_anim_hang);
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &current_animation.loop);
+        ImGui::SameLine(); ImGui::Checkbox("Hang", &current_animation.hang);
 
         ImGui::PushItemWidth(150);
-        ImGui::SliderFloat("Speed###anim_speed", &anim_speed, 0.1f, 2.0f);
+        ImGui::SliderFloat("Speed###anim_speed", &current_animation.speed, 0.1f, 2.0f);
         ImGui::PopItemWidth();
-        if (anim_speed != 1.0f) {
+        if (current_animation.speed != 1.0f) {
             if (ImGui::Button("Reset###reset_anim_speed"))
-                anim_speed = 1.0f;
+                current_animation.speed = 1.0f;
         }
     }
     if (keyframe_playing) ImGui::EndDisabled();
-    saturn_keyframe_anim_popout("Animation", "k_mario_anim");
+    saturn_keyframe_popout_next_line("k_mario_anim");
 }

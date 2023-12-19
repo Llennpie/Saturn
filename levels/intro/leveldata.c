@@ -10,40 +10,47 @@
 #include "make_const_nonconst.h"
 
 ALIGNED8 static const u8 logo_saturn_rgba16[] = {
-#include "levels/intro/4_saturn.rgba16.inc.c"
+"levels/intro/4_saturn.rgba16.png"
 };
 ALIGNED8 static const u8 logo_ring_rgba16[] = {
-#include "levels/intro/5_ring.rgba16.inc.c"
+"levels/intro/5_ring.rgba16.png"
 };
 
 Lights1 logo_f3dlite_material_009_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x7F,
 	0xFF, 0xFF, 0xFF, 0x28, 0x28, 0x28);
 
+// 3D Border
 Lights1 logo_f3dlite_material_lights = gdSPDefLights1(
 	0x5C, 0x41, 0x0,
 	0xBC, 0x89, 0x0, 0x28, 0x28, 0x28);
 
+// T
 Lights1 logo_f3dlite_material_003_lights = gdSPDefLights1(
 	0x1, 0x7F, 0x1,
 	0x2, 0xFF, 0x2, 0x28, 0x28, 0x28);
 
+// R
 Lights1 logo_f3dlite_material_005_lights = gdSPDefLights1(
 	0x7F, 0x0, 0x7F,
 	0xFF, 0x0, 0xFF, 0x28, 0x28, 0x28);
 
+// S
 Lights1 logo_f3dlite_material_001_lights = gdSPDefLights1(
 	0x0, 0x0, 0x7F,
 	0x0, 0x0, 0xFF, 0x28, 0x28, 0x28);
 
+// A
 Lights1 logo_f3dlite_material_002_lights = gdSPDefLights1(
 	0x7F, 0x0, 0x0,
 	0xFF, 0x0, 0x0, 0x28, 0x28, 0x28);
 
+// U
 Lights1 logo_f3dlite_material_004_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x0,
 	0xFF, 0xFF, 0x0, 0x28, 0x28, 0x28);
 
+// N
 Lights1 logo_f3dlite_material_006_lights = gdSPDefLights1(
 	0x0, 0x7F, 0x7F,
 	0x0, 0xFF, 0xFF, 0x28, 0x28, 0x28);
@@ -4229,23 +4236,23 @@ static const Vtx intro_seg7_vertex_0700B460[] = {
 #ifdef VERSION_EU
 // 0x0700B4A0 - 0x0700B4A2
 ALIGNED8 static const u8 intro_seg7_texture_0700B4A0[] = {
-#include "levels/intro/2_eu_copyright.rgba16.inc.c"
+"levels/intro/2_eu_copyright.rgba16.png"
 };
 
 // 0x0700C4A0 - 0x0700D4A0
 ALIGNED8 static const u8 intro_seg7_texture_0700C4A0[] = {
-#include "levels/intro/3_eu_tm.rgba16.inc.c"
+"levels/intro/3_eu_tm.rgba16.png"
 };
 
 #else
 // 0x0700B4A0 - 0x0700B4A2
 ALIGNED8 static const u8 intro_seg7_texture_0700B4A0[] = {
-#include "levels/intro/2_copyright.rgba16.inc.c"
+"levels/intro/2_copyright.rgba16.png"
 };
 
 // 0x0700C4A0 - 0x0700D4A0
 ALIGNED8 static const u8 intro_seg7_texture_0700C4A0[] = {
-#include "levels/intro/3_tm.rgba16.inc.c"
+"levels/intro/3_tm.rgba16.png"
 };
 #endif
 

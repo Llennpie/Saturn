@@ -26,32 +26,32 @@ static const Lights1 penguin_seg5_lights_05002DC8 = gdSPDefLights1(
 
 // 0x05002DE0
 ALIGNED8 static const u8 penguin_seg5_texture_05002DE0[] = {
-#include "actors/penguin/penguin_eye_open.rgba16.inc.c"
+"actors/penguin/penguin_eye_open.rgba16.png"
 };
 
 // 0x050035E0
 ALIGNED8 static const u8 penguin_seg5_texture_050035E0[] = {
-#include "actors/penguin/penguin_eye_half_closed.rgba16.inc.c"
+"actors/penguin/penguin_eye_half_closed.rgba16.png"
 };
 
 // 0x05003DE0
 ALIGNED8 static const u8 penguin_seg5_texture_05003DE0[] = {
-#include "actors/penguin/penguin_eye_closed.rgba16.inc.c"
+"actors/penguin/penguin_eye_closed.rgba16.png"
 };
 
 // 0x050045E0
 ALIGNED8 static const u8 penguin_seg5_texture_050045E0[] = {
-#include "actors/penguin/penguin_eye_angry.rgba16.inc.c"
+"actors/penguin/penguin_eye_angry.rgba16.png"
 };
 
 // 0x05004DE0
 ALIGNED8 static const u8 penguin_seg5_texture_05004DE0[] = {
-#include "actors/penguin/penguin_eye_angry_unused.rgba16.inc.c"
+"actors/penguin/penguin_eye_angry_unused.rgba16.png"
 };
 
 // 0x050055E0
 ALIGNED8 static const u8 penguin_seg5_texture_050055E0[] = {
-#include "actors/penguin/penguin_beak.rgba16.inc.c"
+"actors/penguin/penguin_beak.rgba16.png"
 };
 
 // 0x05005DE0

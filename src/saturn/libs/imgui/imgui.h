@@ -1887,6 +1887,7 @@ struct ImGuiStyle
     ImVec4      Colors[ImGuiCol_COUNT];
 
     IMGUI_API ImGuiStyle();
+    IMGUI_API void ResetStyle();
     IMGUI_API void ScaleAllSizes(float scale_factor);
 };
 

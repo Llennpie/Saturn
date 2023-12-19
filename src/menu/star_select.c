@@ -110,10 +110,9 @@ void bhv_act_selector_init(void) {
     u8 stars = save_file_get_star_flags(gCurrSaveFileNum - 1, gCurrCourseNum - 1);
 
     sVisibleStars = 0;
-    while (i != sObtainedStars) {
+    while (i != 6) {
         if (stars & (1 << sVisibleStars)) { // Star has been collected
             selectorModelIDs[sVisibleStars] = MODEL_STAR;
-            i++;
         } else { // Star has not been collected
             selectorModelIDs[sVisibleStars] = MODEL_TRANSPARENT_STAR;
             // If this is the first star that has not been collected, set
@@ -123,6 +122,7 @@ void bhv_act_selector_init(void) {
                 sSelectableStarIndex = sVisibleStars;
             }
         }
+        i++;
         sVisibleStars++;
     }
 
@@ -168,27 +168,8 @@ void bhv_act_selector_loop(void) {
     u8 starIndexCounter;
     u8 stars = save_file_get_star_flags(gCurrSaveFileNum - 1, gCurrCourseNum - 1);
 
-    if (sObtainedStars != 6) {
-        // Sometimes, stars are not selectable even if they appear on the screen.
-        // This code filters selectable and non-selectable stars.
-        sSelectedActIndex = 0;
-        handle_menu_scrolling(MENU_SCROLL_HORIZONTAL, &sSelectableStarIndex, 0, sObtainedStars);
-        starIndexCounter = sSelectableStarIndex;
-        for (i = 0; i < sVisibleStars; i++) {
-            // Can the star be selected (is it either already completed or the first non-completed mission)
-            if ((stars & (1 << i)) || i + 1 == sInitSelectedActNum) {
-                if (starIndexCounter == 0) { // We have reached the sSelectableStarIndex-th selectable star.
-                    sSelectedActIndex = i;
-                    break;
-                }
-                starIndexCounter--;
-            }
-        }
-    } else {
-        // If all stars are collected then they are all selectable.
-        handle_menu_scrolling(MENU_SCROLL_HORIZONTAL, &sSelectableStarIndex, 0, sVisibleStars - 1);
-        sSelectedActIndex = sSelectableStarIndex;
-    }
+    handle_menu_scrolling(MENU_SCROLL_HORIZONTAL, &sSelectableStarIndex, 0, sVisibleStars - 1);
+    sSelectedActIndex = sSelectableStarIndex;
 
     // Star selector type handler
     for (i = 0; i < sVisibleStars; i++) {

@@ -38,6 +38,7 @@
 
 #include "saturn/saturn.h"
 #include "saturn/discord/saturn_discord.h"
+#include "saturn/saturn_rom_extract.h"
 
 #ifdef DISCORDRPC
 #include "pc/discord/discordrpc.h"
@@ -303,6 +304,16 @@ void handle_segfault(int signal) {
 int main(int argc, char *argv[]) {
     signal(SIGSEGV, handle_segfault);
     parse_cli_opts(argc, argv);
-    main_func();
+
+    // Extract assets
+    if (gCLIOpts.ExtractOnly) {
+        saturn_extract_rom(EXTRACT_TYPE_ALL);
+        return 0;
+    } else {
+        int result = saturn_extract_rom(EXTRACT_TYPE_SOUND | EXTRACT_TYPE_SATURN | EXTRACT_TYPE_FONT);
+        // Start game
+        if (result == 0)
+            main_func();
+    }
     return 0;
 }

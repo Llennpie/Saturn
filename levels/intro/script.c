@@ -41,7 +41,7 @@ static const LevelScript level_intro_splash[] = {
     TRANSITION(/*transType*/ WARP_TRANSITION_FADE_FROM_STAR, /*time*/ 15, /*color*/ 0x00, 0x00, 0x00),
     SLEEP(/*frames*/ 15),
     CALL(/*arg*/ 0, /*func*/ saturn_do_load),
-    SLEEP(/*frames*/ 15),
+    CALL_LOOP(/*arg*/ 0, /*func*/ saturn_begin_extract_rom_thread),
     TRANSITION(/*transType*/ WARP_TRANSITION_FADE_INTO_COLOR, /*time*/ 10, /*color*/ 0x00, 0x00, 0x00),
     SLEEP(/*frames*/ 15),
     CMD2A(/*unk2*/ 1),

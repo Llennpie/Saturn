@@ -86,7 +86,7 @@ unsigned int configKeyShowMenu[MAX_BINDS]   = { 0x003b,   0x1004,     VK_INVALID
 #ifdef EXTERNAL_DATA
 bool configPrecacheRes = true;
 #endif
-unsigned int configEditorTheme   = 1; // Moon by default
+unsigned int configEditorTheme   = -1;
 unsigned int configMCameraMode   = 0; // keyboard is better
 bool         configEditorFastApply = true;
 bool         configEditorAutoModelCc = false;
@@ -105,6 +105,10 @@ bool         configNoCamShake = false;
 bool         configNoButterflies = false;
 bool         configSaturnSplash = true;
 bool         configNoWater = false;
+bool         configCUpLimit = false;
+bool         configEnableCli = false;
+bool         configUnstableFeatures = false;
+unsigned int configEditorThemeJson = 0x00384A4E; // hash of the "moon" string
 float        camera_fov = 50.0f;
 #ifdef BETTERCAMERA
 // BetterCamera settings
@@ -184,6 +188,10 @@ static const struct ConfigOption options[] = {
     {.name = "no_butterflies", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoButterflies},
     {.name = "show_splash", .type = CONFIG_TYPE_BOOL, .uintValue = &configSaturnSplash},
     {.name = "no_water", .type = CONFIG_TYPE_BOOL, .uintValue = &configNoWater},
+    {.name = "c_up_limit", .type = CONFIG_TYPE_BOOL, .uintValue = &configCUpLimit},
+    {.name = "enable_cli", .type = CONFIG_TYPE_BOOL, .uintValue = &configEnableCli},
+    {.name = "editor_theme_json", .type = CONFIG_TYPE_UINT, .uintValue = &configEditorThemeJson},
+    {.name = "unstable_features", .type = CONFIG_TYPE_UINT, .uintValue = &configUnstableFeatures},
     {.name = "default_fov", .type = CONFIG_TYPE_FLOAT, .floatValue = &camera_fov},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},

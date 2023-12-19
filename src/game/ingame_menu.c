@@ -672,7 +672,7 @@ void print_menu_char_umlaut(s16 x, s16 y, u8 chr) {
 }
 #endif
 
-void print_menu_generic_string(s16 x, s16 y, const u8 *str) {
+void custom_dl_print_menu_generic_string(Gfx** dl, s16 x, s16 y, const u8 *str) {
     UNUSED s8 mark = DIALOG_MARK_NONE; // unused in EU
     s32 strPos = 0;
     s32 curX = x;
@@ -706,10 +706,10 @@ void print_menu_generic_string(s16 x, s16 y, const u8 *str) {
                 curX += 4;
                 break;
             default:
-                gDPSetTextureImage(gDisplayListHead++, G_IM_FMT_IA, G_IM_SIZ_8b, 1, fontLUT[str[strPos]]);
-                gDPLoadSync(gDisplayListHead++);
-                gDPLoadBlock(gDisplayListHead++, G_TX_LOADTILE, 0, 0, 8 * 8 - 1, CALC_DXT(8, G_IM_SIZ_8b_BYTES));
-                gSPTextureRectangle(gDisplayListHead++, curX << 2, curY << 2, (curX + 8) << 2,
+                gDPSetTextureImage((*dl)++, G_IM_FMT_IA, G_IM_SIZ_8b, 1, fontLUT[str[strPos]]);
+                gDPLoadSync((*dl)++);
+                gDPLoadBlock((*dl)++, G_TX_LOADTILE, 0, 0, 8 * 8 - 1, CALC_DXT(8, G_IM_SIZ_8b_BYTES));
+                gSPTextureRectangle((*dl)++, curX << 2, curY << 2, (curX + 8) << 2,
                                     (curY + 8) << 2, G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
 
 #ifndef VERSION_EU
@@ -731,6 +731,10 @@ void print_menu_generic_string(s16 x, s16 y, const u8 *str) {
         }
         strPos++;
     }
+}
+
+void print_menu_generic_string(s16 x, s16 y, const u8 *str) {
+    custom_dl_print_menu_generic_string(&gDisplayListHead, x, y, str);
 }
 
 void print_credits_string(s16 x, s16 y, const u8 *str) {
