@@ -43,12 +43,12 @@ bool custom_eyes_enabled;
 bool show_vmario_emblem;
 
 /* Loads subfolders into an expression */
-std::vector<TexturePath> LoadExpressionFolders(Expression expression) {
+std::vector<TexturePath> LoadExpressionFolders(std::string FolderPath) {
     std::vector<TexturePath> folders;
 
     // Check if the expression's folder exists
-    if (fs::is_directory(fs::path(expression.FolderPath))) {
-        for (const auto & entry : fs::recursive_directory_iterator(expression.FolderPath)) {
+    if (fs::is_directory(fs::path(FolderPath))) {
+        for (const auto & entry : fs::directory_iterator(FolderPath)) {
             if (fs::is_directory(entry.path())) {
                 // Only allow PNG files
                 TexturePath folder;
@@ -62,12 +62,12 @@ std::vector<TexturePath> LoadExpressionFolders(Expression expression) {
 }
 
 /* Loads textures into an expression */
-std::vector<TexturePath> LoadExpressionTextures(Expression expression) {
+std::vector<TexturePath> LoadExpressionTextures(std::string FolderPath) {
     std::vector<TexturePath> textures;
 
     // Check if the expression's folder exists
-    if (fs::is_directory(fs::path(expression.FolderPath))) {
-        for (const auto & entry : fs::recursive_directory_iterator(expression.FolderPath)) {
+    if (fs::is_directory(fs::path(FolderPath))) {
+        for (const auto & entry : fs::directory_iterator(FolderPath)) {
             if (!fs::is_directory(entry.path())) {
                 if (entry.path().extension() == ".png") {
                     // Only allow PNG files
@@ -98,8 +98,8 @@ std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
                     expression.Name = "eyes";
 
                 // Load all PNG files
-                expression.Textures = LoadExpressionTextures(expression);
-                expression.Folders = LoadExpressionFolders(expression);
+                expression.Textures = LoadExpressionTextures(expression.FolderPath);
+                expression.Folders = LoadExpressionFolders(expression.FolderPath);
 
                 // Eyes will always appear first
                 if (expression.Name == "eyes") {
@@ -125,8 +125,8 @@ void LoadEyesFolder() {
     if (fs::is_directory("dynos/eyes")) {
         VanillaEyes.Name = "eyes";
         VanillaEyes.FolderPath = "dynos/eyes";
-        VanillaEyes.Textures = LoadExpressionTextures(VanillaEyes);
-        VanillaEyes.Folders = LoadExpressionFolders(VanillaEyes);
+        VanillaEyes.Textures = LoadExpressionTextures(VanillaEyes.FolderPath);
+        VanillaEyes.Folders = LoadExpressionFolders(VanillaEyes.FolderPath);
     }
     if (current_model.Expressions.size() == 0) current_model.Expressions.push_back(VanillaEyes);
     else if (current_model.UsingVanillaEyes()) current_model.Expressions[0] = VanillaEyes;

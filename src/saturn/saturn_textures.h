@@ -19,18 +19,7 @@ public:
     std::string GetRelativePath() {
         return "../../" + this->FilePath;//.substr(0, this->FilePath.size() - 4);
     }
-
-    /* Returns true if the entry is a subfolder */
-    bool IsFolder() {
-        return this->FileName.find(".png") == std::string::npos;
-    }
-    /* Returns a subfolder file count, or texture length */
-    int Size() {
-        if (this->IsFolder())
-            return std::distance(std::filesystem::directory_iterator(this->FilePath), std::filesystem::directory_iterator{}) - 1;
-        else
-            return FilePath.length();
-    }
+    /* Parent directory, used for subfolders */
     std::string ParentPath() {
         return FilePath.substr(0, this->FilePath.length() - this->FileName.length());
     }
@@ -64,8 +53,8 @@ extern bool custom_eyes_enabled;
 extern Expression VanillaEyes;
 extern void LoadEyesFolder();
 
-std::vector<TexturePath> LoadExpressionTextures(Expression);
-std::vector<TexturePath> LoadExpressionFolders(Expression);
+std::vector<TexturePath> LoadExpressionTextures(std::string);
+std::vector<TexturePath> LoadExpressionFolders(std::string);
 std::vector<Expression> LoadExpressions(std::string);
 
 void saturn_copy_file(std::string from, std::string to);

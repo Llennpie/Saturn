@@ -44,8 +44,8 @@ void ShowExpressionContextMenu(Expression* expression, int id) {
 
         // Refresh Textures
         if (ImGui::Button(ICON_FK_REFRESH " Refresh Textures###refresh_textures")) {
-            expression->Textures = LoadExpressionTextures(*expression);
-            expression->Folders = LoadExpressionFolders(*expression);
+            expression->Textures = LoadExpressionTextures(expression->FolderPath);
+            expression->Folders = LoadExpressionFolders(expression->FolderPath);
             // We attempt to keep each currently-selected texture
             // If our index is out of bounds (e.g. PNG was deleted) reset it
             for (int i = 0; i < expression->Textures.size(); i++) {
@@ -66,38 +66,54 @@ void ShowExpressionContextMenu(Expression* expression, int id) {
     }
 }
 
-void RecursiveSelector(Expression* expression, int recurse_index, std::string parent_path) {
-    // Folders
-    for (int n = recurse_index; n < expression->Folders.size(); n++) {
-        TexturePath folder = expression->Folders[n];
-        if (folder.ParentPath() != parent_path &&
-            folder.ParentPath() != parent_path + "/") continue;
+/* Recursively loads an Expression's folders and textures into a selection tree */
+void RecursiveSelector(Expression* expression, int depth, std::string parent_path) {
+    // Regenerate folder contents
+    expression->Folders = LoadExpressionFolders(parent_path);
+    expression->Textures = LoadExpressionTextures(parent_path);
 
-        if (ImGui::TreeNode(folder.FileName.c_str())) {
-            RecursiveSelector(expression, recurse_index + 1, folder.FilePath);
-            ImGui::TreePop();
+    // Runs for all subfolders
+    for (int i = 0; i < expression->Folders.size(); i++) {
+        TexturePath Folder = expression->Folders[i];
+        // Only show folders in our current subfolder
+        if (Folder.ParentPath() == parent_path || Folder.ParentPath() == parent_path + "/") {
+            // Runs when the tree is open
+            if (ImGui::TreeNode(Folder.FileName.c_str())) {
+                if (ImGui::IsItemClicked())
+                    expression->CurrentIndex = 0;
+                // Repeat
+                RecursiveSelector(expression, depth + 1, Folder.FilePath);
+                ImGui::TreePop();
+            }
         }
     }
-    // Textures
-    for (int i = 0; i < expression->Textures.size(); i++) {
-        TexturePath texture = expression->Textures[i];
-        if (texture.ParentPath() != parent_path &&
-            texture.ParentPath() != parent_path + "/") continue;
 
-        if (ImGui::Selectable(texture.FileName.c_str(), expression->CurrentIndex == i)) {
-            expression->CurrentIndex = i;
+    // Runs for all textures
+    for (int i = 0; i < expression->Textures.size(); i++) {
+        TexturePath Texture = expression->Textures[i];
+        // Failsafe if the index was going out of bounds
+        if (expression->CurrentIndex > expression->Textures.size())
+            expression->CurrentIndex = 0;
+
+        // Only show textures in our current subfolder
+        if (Texture.ParentPath() == parent_path || Texture.ParentPath() == parent_path + "/") {
+            // On select
+            if (ImGui::Selectable(Texture.FileName.c_str(), expression->CurrentIndex == i)) {
+                std::cout << "Clicked texture #" << i << " under folder #" << depth << std::endl; 
+                expression->CurrentIndex = i;
+            }
         }
     }
 }
 
 /* A selection menu for a single Expression; A larger, one-click child window */
 void OpenEyeSelector(Expression* expression) {
-    if (expression->Textures.size() <= 0) {
-        ImGui::TextWrapped("No eye textures found. Place PNG files in /%s.", expression->FolderPath.c_str());
-        return;
-    };
+    //if (expression->Textures.size() <= 0) {
+    //    ImGui::TextWrapped("No eye textures found. Place PNG files in /%s.", expression->FolderPath.c_str());
+    //    return;
+    //};
 
-    ImGui::BeginChild(("###menu_eye_%s", expression->Name.c_str()), ImVec2(200, 125), true);
+    ImGui::BeginChild(("###menu_eye_%s", expression->Name.c_str()), ImVec2(200, 150), true);
     RecursiveSelector(expression, 0, expression->FolderPath);
     ImGui::EndChild();
     ShowExpressionContextMenu(expression, 0);
