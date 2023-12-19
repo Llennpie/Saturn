@@ -109,11 +109,11 @@ std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
                 }
             }
         }
-
-        // If no eyes folder was loaded, load from vanilla eyes
-        if (current_model.UsingVanillaEyes())
-            expressions_list.insert(expressions_list.begin(), VanillaEyes);
     }
+
+    // If no eyes folder was loaded, load from vanilla eyes
+    if (current_model.UsingVanillaEyes())
+        expressions_list.insert(expressions_list.begin(), VanillaEyes);
 
     return expressions_list;
 }
