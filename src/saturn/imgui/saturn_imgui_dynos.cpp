@@ -244,6 +244,11 @@ void OpenModelSelector() {
                     ImGui::SameLine(); imgui_bundled_help_marker("WARNING: Experimental - this will probably lag the game.");
                     ImGui::EndPopup();
                 }
+
+                if (!model.Author.empty()) {
+                    ImGui::SameLine();
+                    ImGui::TextDisabled(model.Author.c_str());
+                }
             }
         }
         ImGui::EndChild();
