@@ -5,6 +5,8 @@
 #include <vector>
 #include <SDL2/SDL.h>
 
+#include "saturn/libs/portable-file-dialogs.h"
+
 #include "saturn/saturn.h"
 #include "saturn/saturn_colors.h"
 #include "saturn/saturn_json.h"
@@ -44,8 +46,8 @@ std::vector<Model> GetModelList(std::string folderPath) {
 
     if (fs::is_directory(folderPath)) {
         for (int i = 0; i < mDynosPacks.Count(); i++) {
-
             std::string packName = fs::path(mDynosPacks[i]->mPath).filename().u8string();
+            std::cout << "Loading model: " << packName << std::endl;
             Model model = LoadModelData(folderPath + "/" + packName);
             model.DynOSId = i;
 
@@ -53,6 +55,7 @@ std::vector<Model> GetModelList(std::string folderPath) {
         }
     }
 
+    std::cout << "Loaded all models!" << std::endl;
     return m_list;
 }
 
@@ -61,6 +64,7 @@ Loads metadata from a model folder's "model.json".
 */
 Model LoadModelData(std::string folderPath) {
     Model model;
+    model.Active = false;
 
     // Create "res/gfx" if it doesn't exist already
     // This is required for expression loading
@@ -80,11 +84,21 @@ Model LoadModelData(std::string folderPath) {
         std::ifstream file(folderPath + "/model.json", std::ios::in | std::ios::binary);
         if (file.good()) {
             Json::Value root;
-            root << file;
+            try { root << file; }
+            catch (const std::runtime_error& e) {
+                pfd::message("JSON Parse Error", "Failed to load \"" + model.FolderName + "\"\nIs the model.json formatted correctly?", pfd::choice::ok, pfd::icon::error);
+                return model;
+            }
+
+            // Required metadata
+            // Return inactive if not present
+            if (!root.isMember("name") || !root.isMember("author") || !root.isMember("version"))
+                return model;
 
             model.Name = root["name"].asString();
             model.Author = root["author"].asString();
             model.Version = root["version"].asString();
+            
             // Description (optional)
             if (root.isMember("description")) {
                 model.Description = root["description"].asString();
