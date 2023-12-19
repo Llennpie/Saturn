@@ -16,6 +16,7 @@ extern "C" {
 #include "pc/platform.h"
 #include "pc/pngutils.h"
 #include "pc/cliopts.h"
+#include "pc/gfx/gfx_pc.h"
 }
 
 std::string currently_extracting = "";
@@ -275,9 +276,9 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
     for (const auto& entry : assets) {
         if ((entry.metadata.size() == 0) && !(type & EXTRACT_TYPE_SOUND)) continue;
         int textype = TEXTYPE_OTHER;
-        if (entry.path.find("font_graphics") != std::string::npos) textype = TEXTYPE_FONT;
+        if (std::find(menu_font.begin(), menu_font.end(), entry.path) != menu_font.end()) textype = TEXTYPE_FONT;
         if (entry.path.find("segment2.0F458.ia8") != std::string::npos ||
-            entry.path.find("segment2.0FC58.ia8") != std::string::npos) textype = TEXTYPE_FONT;
+            entry.path.find("segment2.0FC58.ia8") != std::string::npos) textype = TEXTYPE_TRANSITION;
         if (textype == TEXTYPE_OTHER      && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_TEXTURES  )) continue;
         if (textype == TEXTYPE_FONT       && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_FONT      )) continue;
         if (textype == TEXTYPE_TRANSITION && (entry.metadata.size() != 0) && !(type & EXTRACT_TYPE_TRANSITION)) continue;
@@ -406,5 +407,6 @@ int saturn_extract_rom(int type) {
     }
     extraction_progress = 1;
     std::cout << "extraction finished" << std::endl;
+    gfx_precache_textures();
     return ROM_OK;
 }
