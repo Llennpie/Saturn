@@ -16,6 +16,7 @@ extern "C" {
 #include "pc/platform.h"
 #include "pc/pngutils.h"
 #include "pc/cliopts.h"
+#include "pc/gfx/gfx_pc.h"
 }
 
 std::string currently_extracting = "";
@@ -406,5 +407,6 @@ int saturn_extract_rom(int type) {
     }
     extraction_progress = 1;
     std::cout << "extraction finished" << std::endl;
+    gfx_precache_textures();
     return ROM_OK;
 }
