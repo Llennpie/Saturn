@@ -911,54 +911,54 @@ endif
 
 # RGBA32, RGBA16, IA16, IA8, IA4, IA1, I8, I4
 
-#ifeq ($(EXTERNAL_DATA),1)
-#
-#$(BUILD_DIR)/%: %.png
-#	$(ZEROTERM) "$(patsubst %.png,%,$^)" > $@
-#
-#else
-#
-#$(BUILD_DIR)/%: %.png
-#	$(N64GRAPHICS) -i $@ -g $< -f $(lastword $(subst ., ,$@))
-#
-#endif
-#
-#$(BUILD_DIR)/%.inc.c: $(BUILD_DIR)/% %.png
-#	hexdump -v -e '1/1 "0x%X,"' $< > $@
-#	echo >> $@
-#
-#ifeq ($(EXTERNAL_DATA),0)
-#
-## Color Index CI8
-#$(BUILD_DIR)/%.ci8: %.ci8.png
-#	$(N64GRAPHICS_CI) -i $@ -g $< -f ci8
-#
-## Color Index CI4
-#$(BUILD_DIR)/%.ci4: %.ci4.png
-#	$(N64GRAPHICS_CI) -i $@ -g $< -f ci4
-#
-#endif
+ifeq ($(EXTERNAL_DATA),1)
+
+$(BUILD_DIR)/%: %.png
+	$(ZEROTERM) "$(patsubst %.png,%,$^)" > $@
+
+else
+
+$(BUILD_DIR)/%: %.png
+	$(N64GRAPHICS) -i $@ -g $< -f $(lastword $(subst ., ,$@))
+
+endif
+
+$(BUILD_DIR)/%.inc.c: $(BUILD_DIR)/% %.png
+	hexdump -v -e '1/1 "0x%X,"' $< > $@
+	echo >> $@
+
+ifeq ($(EXTERNAL_DATA),0)
+
+# Color Index CI8
+$(BUILD_DIR)/%.ci8: %.ci8.png
+	$(N64GRAPHICS_CI) -i $@ -g $< -f ci8
+
+# Color Index CI4
+$(BUILD_DIR)/%.ci4: %.ci4.png
+	$(N64GRAPHICS_CI) -i $@ -g $< -f ci4
+
+endif
 
 ################################################################
 
 # compressed segment generation
 
-## PC Area
-#$(BUILD_DIR)/%.table: %.aiff
-#	$(AIFF_EXTRACT_CODEBOOK) $< >$@
-#
-#$(BUILD_DIR)/%.aifc: $(BUILD_DIR)/%.table %.aiff
-#	$(VADPCM_ENC) -c $^ $@
-#
-#$(BUILD_DIR)/rsp/%.bin $(BUILD_DIR)/rsp/%_data.bin: rsp/%.s
-#	$(RSPASM) -sym $@.sym -definelabel $(VERSION_DEF) 1 -definelabel $(GRUCODE_DEF) 1 -strequ CODE_FILE $(BUILD_DIR)/rsp/$*.bin -strequ DATA_FILE $(BUILD_DIR)/rsp/$*_data.bin $<
-#
-#$(ENDIAN_BITWIDTH): tools/determine-endian-bitwidth.c
-#	$(CC) -c $(CFLAGS) -o $@.dummy2 $< 2>$@.dummy1; true
-#	grep -o 'msgbegin --endian .* --bitwidth .* msgend' $@.dummy1 > $@.dummy2
-#	head -n1 <$@.dummy2 | cut -d' ' -f2-5 > $@
-#	@rm $@.dummy1
-#	@rm $@.dummy2
+# PC Area
+$(BUILD_DIR)/%.table: %.aiff
+	$(AIFF_EXTRACT_CODEBOOK) $< >$@
+
+$(BUILD_DIR)/%.aifc: $(BUILD_DIR)/%.table %.aiff
+	$(VADPCM_ENC) -c $^ $@
+
+$(BUILD_DIR)/rsp/%.bin $(BUILD_DIR)/rsp/%_data.bin: rsp/%.s
+	$(RSPASM) -sym $@.sym -definelabel $(VERSION_DEF) 1 -definelabel $(GRUCODE_DEF) 1 -strequ CODE_FILE $(BUILD_DIR)/rsp/$*.bin -strequ DATA_FILE $(BUILD_DIR)/rsp/$*_data.bin $<
+
+$(ENDIAN_BITWIDTH): tools/determine-endian-bitwidth.c
+	$(CC) -c $(CFLAGS) -o $@.dummy2 $< 2>$@.dummy1; true
+	grep -o 'msgbegin --endian .* --bitwidth .* msgend' $@.dummy1 > $@.dummy2
+	head -n1 <$@.dummy2 | cut -d' ' -f2-5 > $@
+	@rm $@.dummy1
+	@rm $@.dummy2
 
 #$(SOUND_BIN_DIR)/sound_data.ctl: sound/sound_banks/ $(SOUND_BANK_FILES) $(SOUND_SAMPLE_AIFCS) $(ENDIAN_BITWIDTH)
 #	$(PYTHON) tools/assemble_sound.py $(BUILD_DIR)/sound/samples/ sound/sound_banks/ $(SOUND_BIN_DIR)/sound_data.ctl $(SOUND_BIN_DIR)/sound_data.tbl $(VERSION_CFLAGS) $$(cat $(ENDIAN_BITWIDTH))
