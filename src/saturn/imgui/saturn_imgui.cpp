@@ -1090,14 +1090,14 @@ void saturn_imgui_update() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glUseProgram(last_program);
 
-    if (was_camera_frozen && !camera_frozen && saturn_timeline_exists("k_c_camera_pos0")) {
+    /*if (was_camera_frozen && !camera_frozen && saturn_timeline_exists("k_c_camera_pos0")) {
         k_frame_keys.erase("k_c_camera_pos0");
         k_frame_keys.erase("k_c_camera_pos1");
         k_frame_keys.erase("k_c_camera_pos2");
         k_frame_keys.erase("k_c_camera_yaw");
         k_frame_keys.erase("k_c_camera_pitch");
         k_frame_keys.erase("k_c_camera_roll");
-    }
+    }*/
     was_camera_frozen = camera_frozen;
 
     //if (!is_gameshark_open) apply_cc_from_editor();
