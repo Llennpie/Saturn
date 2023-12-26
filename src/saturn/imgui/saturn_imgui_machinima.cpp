@@ -369,6 +369,7 @@ void imgui_machinima_quick_options() {
     ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
     imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
     int previous_time_freeze_state = time_freeze_state;
+    ImGui::PushItemWidth(150);
     ImGui::Combo("Time Freeze", &time_freeze_state, "Unfrozen\0Mario-exclusive\0Everything\0");
     if (previous_time_freeze_state != time_freeze_state) {
         if (previous_time_freeze_state == 1) disable_time_stop();
@@ -377,7 +378,6 @@ void imgui_machinima_quick_options() {
         if (time_freeze_state == 2) enable_time_stop_including_mario();
     }
     imgui_bundled_tooltip("Pauses all in-game movement, excluding the camera.");
-    saturn_keyframe_popout("k_time_freeze");
     ImGui::Checkbox("Object Interactions", (bool*)&enable_dialogue);
     imgui_bundled_tooltip("Toggles interactions with some objects; This includes opening/closing doors, triggering dialogue when interacting with an NPC or readable sign, etc.");
     if (mario_exists) {
