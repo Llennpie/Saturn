@@ -61,7 +61,7 @@ int obj_model;
 int obj_beh;
 
 float gravity = 1;
-bool enable_time_freeze = false;
+int time_freeze_state = 0;
 
 int current_location_index = 0;
 char location_name[256];
@@ -153,7 +153,7 @@ void smachinima_imgui_controls(SDL_Event * event) {
 void warp_to_level(int level, int area, int act = -1) {
     is_anim_playing = false;
     is_anim_paused = false;
-    enable_time_freeze = false;
+    time_freeze_state = 0;
 
     if (level != 0) enable_shadows = true;
     else enable_shadows = false;
@@ -368,9 +368,13 @@ void imgui_machinima_quick_options() {
     saturn_keyframe_popout("k_shadows");
     ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);
     imgui_bundled_tooltip("If enabled, Mario will be invulnerable to most enemies and hazards.");
-    if (ImGui::Checkbox("Time Freeze", (bool*)&enable_time_freeze)) {
-        if (enable_time_freeze) enable_time_stop_including_mario();
-        else disable_time_stop_including_mario();
+    int previous_time_freeze_state = time_freeze_state;
+    ImGui::Combo("Time Freeze", &time_freeze_state, "Unfrozen\0Mario-exclusive\0Everything\0");
+    if (previous_time_freeze_state != time_freeze_state) {
+        if (previous_time_freeze_state == 1) disable_time_stop();
+        if (previous_time_freeze_state == 2) disable_time_stop_including_mario();
+        if (time_freeze_state == 1) enable_time_stop();
+        if (time_freeze_state == 2) enable_time_stop_including_mario();
     }
     imgui_bundled_tooltip("Pauses all in-game movement, excluding the camera.");
     saturn_keyframe_popout("k_time_freeze");
