@@ -474,6 +474,7 @@ void saturn_imgui_handle_events(SDL_Event * event) {
                 DynOS_Opt_Init();
                 //model_details = "" + std::to_string(DynOS_Gfx_GetPacks().Count()) + " model pack";
                 //if (DynOS_Gfx_GetPacks().Count() != 1) model_details += "s";
+                splash_finished = false;
 
                 if (gCurrLevelNum > 3 || !mario_exists)
                     DynOS_ReturnToMainMenu();
