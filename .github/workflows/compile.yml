@@ -19,7 +19,12 @@ jobs:
     - name: Fetch Dependencies
       run: pacman -S --noconfirm unzip make git mingw-w64-i686-gcc mingw-w64-x86_64-gcc mingw-w64-i686-glew mingw-w64-x86_64-glew mingw-w64-i686-SDL2 mingw-w64-i686-SDL mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL python3 mingw-w64-x86_64-curl mingw-w64-x86_64-jsoncpp
     - name: Build
-      run: make
+      run: |
+        make
+        cd build/us_pc
+        rm -rf textures text src sound lib levels include data bin assets actors res
+        rm -f level_rules.mk
+        cd ../../
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -34,9 +39,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Fetch Dependencies
-      run: sudo apt install build-essential git python3 libglew-dev libsdl2-dev curl libcurl4-gnutls-dev libjsoncpp-dev
+      run: sudo apt install -y build-essential git python3 libglew-dev libsdl2-dev curl libcurl4-gnutls-dev libjsoncpp-dev
     - name: Build
-      run: make
+      run: |
+        make
+        cd build/us_pc
+        rm -rf textures text src sound lib levels include data bin assets actors res
+        rm -f level_rules.mk
+        cd ../../
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
