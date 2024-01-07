@@ -270,12 +270,11 @@ void OpenModelCCSelector(Model model, std::vector<std::string> list, std::string
 
         // Right-Click Menu
         if (ImGui::BeginPopupContextItem()) {
-            if (label_name_lower != "default" || label_name_lower != "../default") {
-                ImGui::Text("%s.gs", label_name.c_str());
-                imgui_bundled_tooltip((model.FolderPath + "/colorcodes/" + label_name + ".gs").c_str());
-                ImGui::Separator();
+            ImGui::Text("%s.gs", label_name.c_str());
+            imgui_bundled_tooltip((model.FolderPath + "/colorcodes/" + label_name + ".gs").c_str());
 
-                // Delete GS File
+            // Delete GS File
+            if (label_name_lower != "default" && label_name_lower != "../default") {
                 if (ImGui::Button(ICON_FK_TRASH " Delete File"))
                     ImGui::OpenPopup("###delete_m_gs_file");
                 if (ImGui::BeginPopup("###delete_m_gs_file")) {
@@ -293,7 +292,8 @@ void OpenModelCCSelector(Model model, std::vector<std::string> list, std::string
                     ImGui::EndPopup();
                 }
             }
-
+            
+            ImGui::Separator();
             ImGui::TextDisabled("%i color code(s)", list.size());
             if (ImGui::Button(ICON_FK_UNDO " Refresh")) {
                 RefreshColorCodeList();
