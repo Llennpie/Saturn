@@ -62,7 +62,7 @@ std::vector<TexturePath> LoadExpressionFolders(std::string FolderPath) {
 }
 
 /* Loads textures into an expression */
-std::vector<TexturePath> LoadExpressionTextures(std::string FolderPath) {
+std::vector<TexturePath> LoadExpressionTextures(std::string FolderPath, Expression expression) {
     std::vector<TexturePath> textures;
 
     // Check if the expression's folder exists
@@ -77,6 +77,32 @@ std::vector<TexturePath> LoadExpressionTextures(std::string FolderPath) {
                     textures.push_back(texture);
                 }
             }
+        }
+
+        // Attempt to add a default "model texture"
+        // These are exposed saturn_ textures in the model's /mario/ folder
+        std::vector<TexturePath> model_textures;
+        fs::path MarioFolder = fs::path(FolderPath).parent_path().parent_path().append("mario");
+        if (fs::is_directory(MarioFolder)) {
+            for (const auto & entry : fs::directory_iterator(MarioFolder)) {
+                if (entry.path().extension() == ".png") {
+                    // Check if the expression texture exists
+                    if (expression.PathHasReplaceKey(entry.path().generic_u8string(), "")) {
+                        TexturePath default_texture;
+                        default_texture.FileName = entry.path().filename().generic_u8string();
+                        default_texture.FilePath = entry.path().generic_u8string();
+                        default_texture.IsModelTexture = true;
+
+                        if (expression.PathHasReplaceKey(entry.path().generic_u8string(), "saturn_")) {
+                            model_textures.insert(model_textures.begin(), default_texture);
+                        } else {
+                            model_textures.push_back(default_texture);
+                        }
+                    }
+                }
+            }
+
+            textures.insert(textures.end(), model_textures.begin(), model_textures.end());
         }
     }
     return textures;
@@ -98,7 +124,7 @@ std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
                     expression.Name = "eyes";
 
                 // Load all PNG files
-                expression.Textures = LoadExpressionTextures(expression.FolderPath);
+                expression.Textures = LoadExpressionTextures(expression.FolderPath, expression);
                 expression.Folders = LoadExpressionFolders(expression.FolderPath);
 
                 // Eyes will always appear first
@@ -125,7 +151,7 @@ void LoadEyesFolder() {
     if (fs::is_directory("dynos/eyes")) {
         VanillaEyes.Name = "eyes";
         VanillaEyes.FolderPath = "dynos/eyes";
-        VanillaEyes.Textures = LoadExpressionTextures(VanillaEyes.FolderPath);
+        VanillaEyes.Textures = LoadExpressionTextures(VanillaEyes.FolderPath, VanillaEyes);
         VanillaEyes.Folders = LoadExpressionFolders(VanillaEyes.FolderPath);
     }
     if (current_model.Expressions.size() == 0) current_model.Expressions.push_back(VanillaEyes);
@@ -154,9 +180,10 @@ const void* saturn_bind_texture(const void* input) {
     if (current_model.Active && texName.find("saturn_") != std::string::npos) {
         for (int i = 0; i < current_model.Expressions.size(); i++) {
             Expression expression = current_model.Expressions[i];
+            if (expression.CurrentIndex < 0) return input;
             // Checks if the incoming texture has the expression's "key"
             // This could be "saturn_eye", "saturn_mouth", etc.
-            if (expression.PathHasReplaceKey(texName)) {
+            if (expression.PathHasReplaceKey(texName, "saturn_")) {
                 outputTexture = stack_to_heap(expression.Textures[expression.CurrentIndex].GetRelativePath())->c_str();
                 const void* output = static_cast<const void*>(outputTexture);
                 return output;

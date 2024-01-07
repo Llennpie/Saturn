@@ -23,6 +23,8 @@ public:
     std::string ParentPath() {
         return FilePath.substr(0, this->FilePath.length() - this->FileName.length());
     }
+    
+    bool IsModelTexture = false;
 };
 
 class Expression {
@@ -38,13 +40,13 @@ public:
     /* The index of the current selected texture */
     int CurrentIndex = 0;
 
-    /* Returns true if a given path contains the expression's replacement keywords
+    /* Returns true if a given path contains a prefix (saturn_) followed by the expression's replacement keywords
        For example, "/eye" can be "saturn_eye" or "saturn_eyes" */
-    bool PathHasReplaceKey(std::string path) {
+    bool PathHasReplaceKey(std::string path, std::string prefix) {
         // We also append a _ or . to the end, so "saturn_eyebrow" doesn't get read as "saturn_eye"
-        return (path.find("saturn_" + this->Name + "_") != std::string::npos ||
-                path.find("saturn_" + this->Name + "_s") != std::string::npos ||
-                path.find("saturn_" + this->Name.substr(0, this->Name.size() - 1) + "_") != std::string::npos);
+        return (path.find(prefix + this->Name + "_") != std::string::npos ||
+                path.find(prefix + this->Name + "_s") != std::string::npos ||
+                path.find(prefix + this->Name.substr(0, this->Name.size() - 1) + "_") != std::string::npos);
     }
 };
 
@@ -53,7 +55,7 @@ extern bool custom_eyes_enabled;
 extern Expression VanillaEyes;
 extern void LoadEyesFolder();
 
-std::vector<TexturePath> LoadExpressionTextures(std::string);
+std::vector<TexturePath> LoadExpressionTextures(std::string, Expression);
 std::vector<TexturePath> LoadExpressionFolders(std::string);
 std::vector<Expression> LoadExpressions(std::string);
 
