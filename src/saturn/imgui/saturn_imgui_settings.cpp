@@ -161,7 +161,7 @@ void ssettings_imgui_update() {
     ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme.");
 #ifdef DISCORDRPC
     ImGui::Checkbox(ICON_FK_DISCORD " Discord Activity Status", &configDiscordRPC);
-    imgui_bundled_tooltip("Enables/disables Discord Rich Presence. Requires restart.");
+    imgui_bundled_tooltip("Enables/disables Discord Rich Presence; Requires restart.");
 #endif
     std::filesystem::path no_updates_file = std::filesystem::path(sys_user_path()) / "no_updates";
     bool pauseUpdates = std::filesystem::exists(no_updates_file);
@@ -172,11 +172,10 @@ void ssettings_imgui_update() {
         }
         else std::filesystem::remove(no_updates_file);
     }
+    imgui_bundled_tooltip("Pauses automatic updates; Only usable with Saturn Updater.");
 
     ImGui::SetNextItemOpen(true, ImGuiCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Graphics")) {
-        if (ImGui::Checkbox("Fullscreen", &configWindow.fullscreen))
-            configWindow.settings_changed = true;
         if (!configWindow.fullscreen) {
             ImGui::Text("Resolution");
             static int screen_res[2] = { windowWidth, windowHeight };
@@ -194,6 +193,8 @@ void ssettings_imgui_update() {
                 configWindow.h = windowHeight;
             }
         }
+        if (ImGui::Checkbox("Fullscreen", &configWindow.fullscreen))
+            configWindow.settings_changed = true;
 
         ImGui::Dummy(ImVec2(0, 5));
 
@@ -211,19 +212,10 @@ void ssettings_imgui_update() {
         }
         ImGui::PopItemWidth();
 
-        ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
-        imgui_bundled_tooltip("Enables/disables anti-aliasing with OpenGL.");
-
-        ImGui::Checkbox("Disable near-clipping", &configEditorNearClipping);
-        imgui_bundled_tooltip("Enable when some close to the camera starts clipping through. Disable if the level fog goes nuts.");
-
-        ImGui::Dummy(ImVec2(0, 5));
-
         ImGui::Checkbox("Stretched widescreen", &configWindow.jabo_mode);
         imgui_bundled_tooltip("Forces the game into a 4:3 aspect ratio, regardless of window resolution; For classic enthusiasts.");
 
-        ImGui::Checkbox("Show wireframes", &wireframeMode);
-        imgui_bundled_tooltip("Displays wireframes instead of filled polys; For debugging purposes.");
+        ImGui::Dummy(ImVec2(0, 5));
 
         ImGui::Text(ICON_FK_PICTURE_O " Texture Filtering");
         const char* texture_filters[] = { "Nearest", "Linear", "Three-point" };
@@ -231,7 +223,13 @@ void ssettings_imgui_update() {
         ImGui::Combo("###texture_filters", (int*)&configFiltering, texture_filters, IM_ARRAYSIZE(texture_filters));
         ImGui::PopItemWidth();
 
-        if (configFps60) ImGui::Dummy(ImVec2(0, 5));
+        ImGui::Checkbox("Anti-aliasing", &configWindow.enable_antialias);
+        imgui_bundled_tooltip("Enables/disables anti-aliasing with OpenGL.");
+
+        ImGui::Dummy(ImVec2(0, 5));
+
+        ImGui::Checkbox("Show wireframes", &wireframeMode);
+        imgui_bundled_tooltip("Displays wireframes instead of filled polys; For debugging purposes.");
     }
     if (ImGui::CollapsingHeader("Audio")) {
         ImGuiKnobs::KnobInt("Master", (int*)&configMasterVolume, 0, MAX_VOLUME, 0.f, "%i dB", ImGuiKnobVariant_Tick, 0.f, ImGuiKnobFlags_DragHorizontal); ImGui::SameLine();
