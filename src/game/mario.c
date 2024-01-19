@@ -1657,16 +1657,17 @@ u32 update_and_return_cap_flags(struct MarioState *m) {
     u32 flags = m->flags;
     u32 action;
 
-    if (m->capTimer > 0) {
+    if (m->capTimer > 1) {
         action = m->action;
 
         if ((m->capTimer <= 60)
             || ((action != ACT_READING_AUTOMATIC_DIALOG) && (action != ACT_READING_NPC_DIALOG)
                 && (action != ACT_READING_SIGN) && (action != ACT_IN_CANNON))) {
-            m->capTimer -= 1;
+            //m->capTimer -= 1;
         }
 
-        if (m->capTimer == 0) {
+        if (m->capTimer == 1) {
+            m->capTimer = 0;
             stop_cap_music();
 
             m->flags &= ~(MARIO_VANISH_CAP | MARIO_METAL_CAP | MARIO_WING_CAP);

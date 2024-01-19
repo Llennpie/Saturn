@@ -5,7 +5,7 @@
 #include "include/types.h"
 
 extern float gravity;
-extern bool enable_time_freeze;
+extern int time_freeze_state;
 extern int current_sanim_id;
 
 extern void anim_play_button();
