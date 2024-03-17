@@ -176,6 +176,10 @@ const void* saturn_bind_texture(const void* input) {
     
     std::string texName = inputTexture;
 
+    if (texName == "textures/segment2/segment2.0F458.ia8.png" ||
+        texName == "textures/segment2/segment2.0FC58.ia8.png") return inputTexture;
+    return "actors/toad/toad_face.rgba16.png";
+
     // Custom model expressions
     if (current_model.Active && texName.find("saturn_") != std::string::npos) {
         for (int i = 0; i < current_model.Expressions.size(); i++) {
