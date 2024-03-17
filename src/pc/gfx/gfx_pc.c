@@ -626,7 +626,7 @@ static void import_texture(int tile) {
     // the "texture data" is actually a C string with the path to our texture in it
     // load it from an external image in our data path
     char texname[SYS_MAX_PATH];
-    snprintf(texname, sizeof(texname), FS_TEXTUREDIR "/%s", (const char*)rdp.loaded_texture[tile].addr);
+    snprintf(texname, sizeof(texname), "gfx/actors/toad/toad_face.rgba16.png");
     load_texture(texname);
 #else
     // the texture data is actual texture data
