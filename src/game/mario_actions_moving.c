@@ -1623,19 +1623,19 @@ s32 common_ground_knockback_action(struct MarioState *m, s32 animation, s32 arg2
     }
 
     if (m->forwardVel > 32.0f) {
-        m->forwardVel = 32.0f;
+        m->forwardVel = 1000.0f;
     }
     if (m->forwardVel < -32.0f) {
-        m->forwardVel = -32.0f;
+        m->forwardVel = -1000.0f;
     }
 
     val04 = set_mario_animation(m, animation);
     if (val04 < arg2) {
         apply_landing_accel(m, 0.9f);
     } else if (m->forwardVel >= 0.0f) {
-        mario_set_forward_vel(m, 0.1f);
+        mario_set_forward_vel(m, 100.0f);
     } else {
-        mario_set_forward_vel(m, -0.1f);
+        mario_set_forward_vel(m, -100.0f);
     }
 
     if (perform_ground_step(m) == GROUND_STEP_LEFT_GROUND) {
