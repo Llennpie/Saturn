@@ -29,7 +29,7 @@ extern "C" {
 
 bool mario_exists;
 
-bool camera_frozen = true;
+bool camera_frozen = false;
 float camera_speed = 0.0f;
 float camera_focus = 1.f;
 float camera_savestate_mult = 1.f;

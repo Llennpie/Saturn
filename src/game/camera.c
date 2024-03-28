@@ -10037,7 +10037,7 @@ BAD_RETURN(s32) cutscene_intro_peach_handheld_shake_off(UNUSED struct Camera *c)
 }
 
 BAD_RETURN(s32) intro_pipe_exit_text(UNUSED struct Camera *c) {
-    create_dialog_box(DIALOG_033);
+    //create_dialog_box(DIALOG_033);
 }
 
 #ifndef VERSION_JP
