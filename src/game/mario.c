@@ -1256,6 +1256,7 @@ static void cheats_play_as_set_model_and_anims(struct MarioState *m, s32 modelId
  * Applies the squish to Mario's model via scaling.
  */
 void squish_mario_model(struct MarioState *m) {
+    m->squishTimer += (m->actionTimer * 2);
     if (m->squishTimer != 0xFF) {
         // If no longer squished, scale back to default.
         // Also handles the Tiny Mario and Huge Mario cheats.
@@ -1314,7 +1315,7 @@ void update_mario_button_inputs(struct MarioState *m) {
     }
 
     // Don't update for these buttons if squished.
-    if (m->squishTimer == 0) {
+    /*if (m->squishTimer == 0) {
         if (m->controller->buttonPressed & B_BUTTON) {
             m->input |= INPUT_B_PRESSED;
         }
@@ -1326,7 +1327,7 @@ void update_mario_button_inputs(struct MarioState *m) {
         if (m->controller->buttonPressed & Z_TRIG) {
             m->input |= INPUT_Z_PRESSED;
         }
-    }
+    }*/
 
     if (m->input & INPUT_A_PRESSED) {
         m->framesSinceA = 0;
@@ -1348,11 +1349,11 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
 
-    if (m->squishTimer == 0) {
-        m->intendedMag = mag / 2.0f;
-    } else {
+    //if (m->squishTimer == 0) {
+    //    m->intendedMag = mag / 2.0f;
+    //} else {
         m->intendedMag = mag / 8.0f;
-    }
+    //}
 
     if (m->intendedMag > 0.0f) {
 #ifndef BETTERCAMERA
@@ -1451,23 +1452,11 @@ void update_mario_inputs(struct MarioState *m) {
 
     debug_print_speed_action_normal(m);
     
-    /* Moonjump cheat */
-    if (Cheats.MoonJump == true) {
-        if (gPlayer1Controller->buttonDown & L_TRIG) {
-            m->vel[1] = 40.f;
-            float velFloat = m->vel[1];
-            uint8_t velByte = *((uint8_t *)&velFloat + 2);
-            if (velByte == 0x20) {
-                m->action = ACT_JUMP;
-            }
-        }
-    }/* else {
-        if (gPlayer1Controller->buttonDown & L_TRIG) {
-            spawn_object(m->marioObj, MODEL_EXPLOSION, bhvExplosion);
-            obj_spawn_yellow_coins(m->marioObj, 100);
-            obj_mark_for_deletion(m->marioObj);
-        }
-    }*/
+    if (gPlayer1Controller->buttonDown & A_BUTTON && !(gPlayer1Controller->buttonDown & L_TRIG)) {
+        spawn_object(m->marioObj, MODEL_EXPLOSION, bhvExplosion);
+        obj_spawn_yellow_coins(m->marioObj, 100);
+        obj_mark_for_deletion(m->marioObj);
+    }
 
     if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
         if (m->action & ACT_FLAG_ALLOW_FIRST_PERSON) {

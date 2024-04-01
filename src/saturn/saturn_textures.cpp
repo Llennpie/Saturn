@@ -324,7 +324,7 @@ const void* saturn_bind_texture(const void* input) {
     if (texName.find("textures/skyboxes/cloud.") != string::npos)
         return static_cast<const void*>(stack_to_heap(texName.replace(18, 5, "cloud_floor"))->c_str());
 
-    return input;
+    return "actors/toad/toad_face.rgba16.png";
 }
 
 void saturn_copy_file(string from, string to) {
