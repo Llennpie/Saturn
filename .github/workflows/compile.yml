@@ -37,7 +37,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Fetch Dependencies
-      run: sudo apt install -y build-essential git python3 libglew-dev libsdl2-dev curl libcurl4-gnutls-dev libjsoncpp-dev
+      run: |
+        sudo apt-get update
+        sudo apt install -y build-essential git python3 libglew-dev libsdl2-dev curl libcurl4-gnutls-dev libjsoncpp-dev
     - name: Build
       run: |
         make -j$(nproc)
