@@ -1,8 +1,6 @@
 name: Compile
 
-on:
-  push:
-    branches: [ "legacy" ]
+on: workflow_dispatch
 
 jobs:
   windows:
@@ -20,7 +18,7 @@ jobs:
       run: pacman -S --noconfirm unzip make git mingw-w64-i686-gcc mingw-w64-x86_64-gcc mingw-w64-i686-glew mingw-w64-x86_64-glew mingw-w64-i686-SDL2 mingw-w64-i686-SDL mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL python3 mingw-w64-x86_64-curl mingw-w64-x86_64-jsoncpp
     - name: Build
       run: |
-        make
+        make -j$(nproc)
         cd build/us_pc
         rm -rf textures text src sound lib levels include data bin assets actors res
         rm -f level_rules.mk
@@ -42,7 +40,7 @@ jobs:
       run: sudo apt install -y build-essential git python3 libglew-dev libsdl2-dev curl libcurl4-gnutls-dev libjsoncpp-dev
     - name: Build
       run: |
-        make
+        make -j$(nproc)
         cd build/us_pc
         rm -rf textures text src sound lib levels include data bin assets actors res
         rm -f level_rules.mk

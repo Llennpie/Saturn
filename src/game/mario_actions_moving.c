@@ -230,8 +230,8 @@ s32 update_sliding(struct MarioState *m, f32 stopSpeed) {
     s32 stopped = FALSE;
 
     s16 intendedDYaw = m->intendedYaw - m->slideYaw;
-    f32 forward = coss(intendedDYaw);
-    f32 sideward = sins(intendedDYaw);
+    f32 forward = coss(intendedDYaw) * 10;
+    f32 sideward = sins(intendedDYaw) * 10;
 
     //! 10k glitch
     if (forward < 0.0f && m->forwardVel >= 0.0f) {
@@ -452,17 +452,17 @@ void update_walking_speed(struct MarioState *m) {
         targetSpeed *= 6.25 / m->quicksandDepth;
     }
 
+    targetSpeed = 1000.f;
+
     if (m->forwardVel <= 0.0f) {
-        m->forwardVel += 1.1f;
+        m->forwardVel += 5.f;
     } else if (m->forwardVel <= targetSpeed) {
-        m->forwardVel += 1.1f - m->forwardVel / 43.0f;
-    } else if (m->floor->normal.y >= 0.95f) {
-        m->forwardVel -= 1.0f;
+        m->forwardVel += 5.f - m->forwardVel / 43.0f;
     }
 
-    if (m->forwardVel > 48.0f) {
+    /*if (m->forwardVel > 48.0f) {
         m->forwardVel = 48.0f;
-    }
+    }*/
 
     /* Handles the "Super responsive controls" cheat. The content of the "else" is Mario's original code for turning around.*/
 
@@ -1623,19 +1623,19 @@ s32 common_ground_knockback_action(struct MarioState *m, s32 animation, s32 arg2
     }
 
     if (m->forwardVel > 32.0f) {
-        m->forwardVel = 32.0f;
+        m->forwardVel = 1000.0f;
     }
     if (m->forwardVel < -32.0f) {
-        m->forwardVel = -32.0f;
+        m->forwardVel = -1000.0f;
     }
 
     val04 = set_mario_animation(m, animation);
     if (val04 < arg2) {
         apply_landing_accel(m, 0.9f);
     } else if (m->forwardVel >= 0.0f) {
-        mario_set_forward_vel(m, 0.1f);
+        mario_set_forward_vel(m, 100.0f);
     } else {
-        mario_set_forward_vel(m, -0.1f);
+        mario_set_forward_vel(m, -100.0f);
     }
 
     if (perform_ground_step(m) == GROUND_STEP_LEFT_GROUND) {

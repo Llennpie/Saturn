@@ -247,7 +247,7 @@ void main_func(void) {
     #error No rendering API!
     #endif
 
-    char window_title[96] = "Saturn";
+    char window_title[96] = "bup";
 
     gfx_init(wm_api, rendering_api, window_title);
     wm_api->set_keyboard_callbacks(keyboard_on_key_down, keyboard_on_key_up, keyboard_on_all_keys_up);

@@ -787,8 +787,6 @@ void create_next_audio_buffer(s16 *samples, u32 num_samples) {
 void play_sound(s32 soundBits, f32 *pos) {
     u8 bank;
     bank = (soundBits & SOUNDARGS_MASK_BANK) >> SOUNDARGS_SHIFT_BANK;
-    if (bank == 2 && !configVoicesEnabled)
-        return;
 
     if (bank == 10) return;
 

@@ -1112,7 +1112,7 @@ u32 common_air_knockback_step(struct MarioState *m, u32 landAction, u32 hardFall
                 m->vel[1] = 0.0f;
             }
 
-            mario_set_forward_vel(m, -speed);
+            mario_set_forward_vel(m, -speed * speed);
             break;
 
         case AIR_STEP_HIT_LAVA_WALL:
