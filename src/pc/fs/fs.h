@@ -10,7 +10,7 @@
 
 // FS_BASEDIR is usually defined in the build script
 #ifndef FS_BASEDIR
-# define FS_BASEDIR "res_aprilfools"
+# define FS_BASEDIR "res"
 #endif
 
 #ifndef FS_BASEPACK_PREFIX

@@ -381,8 +381,6 @@ Gfx *create_skybox_facing_camera(s8 player, s8 background, f32 fov,
     f32 cameraFaceZ = focZ - posZ;
     s8 colorIndex = 1;
 
-    return NULL;
-
     if ((gCurrLevelNum == LEVEL_SA && colorIndex == 1 || autoChroma) && use_color_background) {
         sSkyboxColors[colorIndex][0] = chromaColor.red[0];
         sSkyboxColors[colorIndex][1] = chromaColor.green[0];

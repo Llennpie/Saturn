@@ -820,102 +820,104 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
 
     switch (action) {
         case ACT_DOUBLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 400.0f, 0.25f);
+            set_mario_y_vel_based_on_fspeed(m, 52.0f, 0.25f);
             m->forwardVel *= 0.8f;
             break;
 
         case ACT_BACKFLIP:
             m->marioObj->header.gfx.unk38.animID = -1;
             m->forwardVel = -16.0f;
-            set_mario_y_vel_based_on_fspeed(m, 400.0f, 0.0f);
+            set_mario_y_vel_based_on_fspeed(m, 62.0f, 0.0f);
             break;
 
         case ACT_TRIPLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 400.0f, 0.0f);
+            set_mario_y_vel_based_on_fspeed(m, 69.0f, 0.0f);
             m->forwardVel *= 0.8f;
             break;
 
         case ACT_FLYING_TRIPLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 500.0f, 0.0f);
+            set_mario_y_vel_based_on_fspeed(m, 82.0f, 0.0f);
             break;
 
         case ACT_WATER_JUMP:
         case ACT_HOLD_WATER_JUMP:
             if (actionArg == 0) {
-                set_mario_y_vel_based_on_fspeed(m, 300.0f, 0.0f);
+                set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.0f);
             }
             break;
 
         case ACT_BURNING_JUMP:
-            m->vel[1] = 1000.0f;
-            m->forwardVel = 100.0f;
+            m->vel[1] = 31.5f;
+            m->forwardVel = 8.0f;
             break;
 
         case ACT_RIDING_SHELL_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 300.0f, 0.25f);
+            set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.25f);
             break;
 
         case ACT_JUMP:
         case ACT_HOLD_JUMP:
             m->marioObj->header.gfx.unk38.animID = -1;
-            set_mario_y_vel_based_on_fspeed(m, 300.0f, 0.25f);
+            set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.25f);
             m->forwardVel *= 0.8f;
             break;
 
         case ACT_WALL_KICK_AIR:
         case ACT_TOP_OF_POLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 300.0f, 0.0f);
+            set_mario_y_vel_based_on_fspeed(m, 62.0f, 0.0f);
             if (m->forwardVel < 24.0f) {
-                m->forwardVel = 1000.0f;
+                m->forwardVel = 24.0f;
             }
             m->wallKickTimer = 0;
             break;
 
         case ACT_SIDE_FLIP:
-            set_mario_y_vel_based_on_fspeed(m, 300.0f, 0.0f);
-            m->forwardVel = 500.0f;
+            set_mario_y_vel_based_on_fspeed(m, 62.0f, 0.0f);
+            m->forwardVel = 8.0f;
             m->faceAngle[1] = m->intendedYaw;
             break;
 
         case ACT_STEEP_JUMP:
             m->marioObj->header.gfx.unk38.animID = -1;
-            set_mario_y_vel_based_on_fspeed(m, 200.0f, 0.25f);
+            set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.25f);
             m->faceAngle[0] = -0x2000;
             break;
 
         case ACT_LAVA_BOOST:
-            m->vel[1] = 1000.0f;
+            m->vel[1] = 84.0f;
             if (actionArg == 0) {
                 m->forwardVel = 0.0f;
             }
             break;
 
         case ACT_DIVE:
-            fowardVel = 500.0f;
+            if ((fowardVel = m->forwardVel + 15.0f) > 48.0f) {
+                fowardVel = 48.0f;
+            }
             mario_set_forward_vel(m, fowardVel);
             break;
 
         case ACT_LONG_JUMP:
             m->marioObj->header.gfx.unk38.animID = -1;
-            m->vel[1] = 100.0f;
+            set_mario_y_vel_based_on_fspeed(m, 30.0f, 0.0f);
             m->marioObj->oMarioLongJumpIsSlow = m->forwardVel > 16.0f ? FALSE : TRUE;
 
             //! (BLJ's) This properly handles long jumps from getting forward speed with
             //  too much velocity, but misses backwards longs allowing high negative speeds.
-            if ((m->forwardVel *= 1.5f) > 1000.0f) {
-                m->forwardVel = 1000.0f;
+            if ((m->forwardVel *= 1.5f) > 48.0f) {
+                m->forwardVel = 48.0f;
             }
             break;
 
         case ACT_SLIDE_KICK:
-            m->vel[1] = 50.0f;
-            if (m->forwardVel < 500.0f) {
-                m->forwardVel = 500.0f;
+            m->vel[1] = 12.0f;
+            if (m->forwardVel < 32.0f) {
+                m->forwardVel = 32.0f;
             }
             break;
 
         case ACT_JUMP_KICK:
-            m->vel[1] = 50.0f;
+            m->vel[1] = 20.0f;
             break;
     }
 
@@ -1254,7 +1256,6 @@ static void cheats_play_as_set_model_and_anims(struct MarioState *m, s32 modelId
  * Applies the squish to Mario's model via scaling.
  */
 void squish_mario_model(struct MarioState *m) {
-    m->squishTimer += (m->actionTimer * 2);
     if (m->squishTimer != 0xFF) {
         // If no longer squished, scale back to default.
         // Also handles the Tiny Mario and Huge Mario cheats.
@@ -1313,7 +1314,7 @@ void update_mario_button_inputs(struct MarioState *m) {
     }
 
     // Don't update for these buttons if squished.
-    /*if (m->squishTimer == 0) {
+    if (m->squishTimer == 0) {
         if (m->controller->buttonPressed & B_BUTTON) {
             m->input |= INPUT_B_PRESSED;
         }
@@ -1325,7 +1326,7 @@ void update_mario_button_inputs(struct MarioState *m) {
         if (m->controller->buttonPressed & Z_TRIG) {
             m->input |= INPUT_Z_PRESSED;
         }
-    }*/
+    }
 
     if (m->input & INPUT_A_PRESSED) {
         m->framesSinceA = 0;
@@ -1347,11 +1348,11 @@ void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
 
-    //if (m->squishTimer == 0) {
-    //    m->intendedMag = mag / 2.0f;
-    //} else {
+    if (m->squishTimer == 0) {
+        m->intendedMag = mag / 2.0f;
+    } else {
         m->intendedMag = mag / 8.0f;
-    //}
+    }
 
     if (m->intendedMag > 0.0f) {
 #ifndef BETTERCAMERA
@@ -1450,11 +1451,23 @@ void update_mario_inputs(struct MarioState *m) {
 
     debug_print_speed_action_normal(m);
     
-    if (gPlayer1Controller->buttonDown & A_BUTTON && !(gPlayer1Controller->buttonDown & L_TRIG)) {
-        spawn_object(m->marioObj, MODEL_EXPLOSION, bhvExplosion);
-        obj_spawn_yellow_coins(m->marioObj, 100);
-        obj_mark_for_deletion(m->marioObj);
-    }
+    /* Moonjump cheat */
+    if (Cheats.MoonJump == true) {
+        if (gPlayer1Controller->buttonDown & L_TRIG) {
+            m->vel[1] = 40.f;
+            float velFloat = m->vel[1];
+            uint8_t velByte = *((uint8_t *)&velFloat + 2);
+            if (velByte == 0x20) {
+                m->action = ACT_JUMP;
+            }
+        }
+    }/* else {
+        if (gPlayer1Controller->buttonDown & L_TRIG) {
+            spawn_object(m->marioObj, MODEL_EXPLOSION, bhvExplosion);
+            obj_spawn_yellow_coins(m->marioObj, 100);
+            obj_mark_for_deletion(m->marioObj);
+        }
+    }*/
 
     if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
         if (m->action & ACT_FLAG_ALLOW_FIRST_PERSON) {

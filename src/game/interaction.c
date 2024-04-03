@@ -584,7 +584,7 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
 
     if (terrainIndex == 2) {
         if (m->forwardVel < 28.0f) {
-            mario_set_forward_vel(m, 1000.0f);
+            mario_set_forward_vel(m, 28.0f);
         }
 
         if (m->pos[1] >= m->interactObj->oPosY) {
@@ -598,7 +598,7 @@ u32 determine_knockback_action(struct MarioState *m, UNUSED s32 arg) {
         }
     } else {
         if (m->forwardVel < 16.0f) {
-            mario_set_forward_vel(m, 1000.0f);
+            mario_set_forward_vel(m, 16.0f);
         }
     }
 

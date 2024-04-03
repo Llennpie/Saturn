@@ -939,8 +939,6 @@ void cur_obj_update(void) {
                 gCurrentObject->oPrevAction = gCurrentObject->oAction);
     }
 
-    gCurrentObject->oOpacity = 255;
-
     // Execute the behavior script.
     gCurBhvCommand = gCurrentObject->curBhvCommand;
 
@@ -992,8 +990,6 @@ void cur_obj_update(void) {
     if (objFlags & OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE) {
         obj_update_gfx_pos_and_angle(gCurrentObject);
     }
-
-    cur_obj_set_model(MODEL_TOAD);
 
     // Handle visibility of object
     if (gCurrentObject->oRoom != -1) {

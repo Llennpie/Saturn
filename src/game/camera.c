@@ -3198,7 +3198,6 @@ void update_camera(struct Camera *c) {
         is_camera_moving = false;
 
         if (machinimaMode) {
-            gLakituState.roll = 16384;
             if (!machinimaKeyframing && !machinimaCopying) {
                 if (configMCameraMode == 0) {
                     // Better Keyboard Controls
@@ -3411,6 +3410,9 @@ void update_camera(struct Camera *c) {
                         }
                     }
                 }
+                if (cameraRollLeft) gLakituState.roll += camVelRSpeed * 512;
+                if (cameraRollRight) gLakituState.roll -= camVelRSpeed * 512;
+                if (cameraRollLeft || cameraRollRight) is_camera_moving = true;
 
                 c->pos[1] += camVelY;
                 c->focus[1] += camVelY;
@@ -3493,7 +3495,6 @@ void update_camera(struct Camera *c) {
                     mode_mario_camera(c);
             }
         } else {
-            gLakituState.roll = 0;
             if (gMarioState->action == ACT_DEBUG_FREE_MOVE) mode_custom_fly(c);
             else if (gCurrAreaIndex == 3 && gCurrLevelNum == LEVEL_SA) mode_8_directions_camera(c);
             else {
@@ -10036,7 +10037,7 @@ BAD_RETURN(s32) cutscene_intro_peach_handheld_shake_off(UNUSED struct Camera *c)
 }
 
 BAD_RETURN(s32) intro_pipe_exit_text(UNUSED struct Camera *c) {
-    //create_dialog_box(DIALOG_033);
+    create_dialog_box(DIALOG_033);
 }
 
 #ifndef VERSION_JP

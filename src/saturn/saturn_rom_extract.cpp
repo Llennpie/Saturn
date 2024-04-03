@@ -1,5 +1,5 @@
 #include "saturn_rom_extract.h"
-#include "assets/saturn_assets.h"
+#include "saturn_assets.h"
 #include "saturn.h"
 
 #include <filesystem>

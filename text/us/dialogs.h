@@ -275,12 +275,12 @@ Shhh! Please walk\n\
 quietly in the hallway!"))
 
 DEFINE_DIALOG(DIALOG_020, 1, 6, 95, 150, _("\
-Dear bup:\n\
-\n\
-Metal pipe falling SFX\n\
-\n\
+Dear Mario:\n\
+Please come to the\n\
+castle. I've baked\n\
+a cake for you.\n\
 Yours truly--\n\
-bup"))
+Princess Toadstool"))
 
 DEFINE_DIALOG(DIALOG_021, 1, 5, 95, 200, _("\
 Welcome.\n\
