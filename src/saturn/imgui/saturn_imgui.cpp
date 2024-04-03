@@ -854,16 +854,12 @@ void saturn_imgui_update() {
                 ImGui::PopItemWidth();
                 ImGui::Checkbox("Smooth###fov_smooth", &camera_fov_smooth);
 
+                ImGui::Separator();
                 ImGui::PushItemWidth(100);
                 ImGui::SliderFloat("Follow", &camera_focus, 0.0f, 1.0f);
                 if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) { camera_focus = 1.f; }
                 saturn_keyframe_popout("k_focus");
                 ImGui::PopItemWidth();
-
-                ImGui::Separator();
-                ImGui::Checkbox("Disable Clipping", &configEditorNearClipping);
-                imgui_bundled_tooltip("Prevents the camera from clipping through Mario and other surfaces; Disable if the level fog goes nuts.");
-
                 ImGui::EndMenu();
             }
 
