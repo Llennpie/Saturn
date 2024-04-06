@@ -144,6 +144,9 @@ void ssettings_imgui_init() {
 }
 
 int current_theme_id = 0;
+int current_texture_id = -1;
+
+extern void split_skyboxes();
 
 void ssettings_imgui_update() {
     std::vector<const char*> theme_names = {};
@@ -156,6 +159,28 @@ void ssettings_imgui_update() {
     if (ImGui::Combo(ICON_FK_PAINT_BRUSH " Theme", &current_theme_id, theme_names.data(), theme_names.size())) {
         configEditorThemeJson = string_hash(theme_list[current_theme_id].first.c_str(), 0, theme_list[current_theme_id].first.length());
         imgui_update_theme();
+    }
+    ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme.");
+    if (ImGui::BeginCombo(ICON_FK_PICTURE_O " Textures", current_texture_id == -1 ? "Vanilla" : textures_list[current_texture_id].c_str())) {
+        if (ImGui::Selectable("Vanilla")) {
+            configEditorTextures = 0;
+            current_texture_id = -1;
+            gfx_precache_textures();
+        }
+        for (int i = 0; i < textures_list.size(); i++) {
+            if (ImGui::Selectable(textures_list[i].c_str())) {
+                configEditorTextures = string_hash(textures_list[i].c_str(), 0, textures_list[i].length());
+                current_texture_id = i;
+                gfx_precache_textures();
+                split_skyboxes();
+            }
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::SameLine(); imgui_bundled_help_marker("Changes the in-game textures.");
+    if (ImGui::Button("Clear Texture Cache")) {
+        gfx_precache_textures();
+        split_skyboxes();
     }
     ImGui::PopItemWidth();
     ImGui::SameLine(); imgui_bundled_help_marker("Changes the UI theme.");

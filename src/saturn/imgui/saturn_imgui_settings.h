@@ -3,6 +3,8 @@
 
 #include "SDL2/SDL.h"
 
+extern int current_texture_id;
+
 extern const char* translate_bind_to_name(int);
 
 #ifdef __cplusplus

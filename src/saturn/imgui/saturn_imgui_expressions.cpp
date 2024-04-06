@@ -45,7 +45,7 @@ bool UpdateExpressionPreview(std::string TexturePath) {
     last_preview_path = TexturePath;
 
     // Load from file
-    unsigned char* image_data = stbi_load(filename, &preview_width, &preview_height, NULL, 4);
+    unsigned char* image_data = pngutils_read_png(filename, &preview_width, &preview_height, NULL, 4);
     if (image_data == NULL)
         return false;
 
@@ -67,7 +67,7 @@ bool UpdateExpressionPreview(std::string TexturePath) {
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, preview_width, preview_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    stbi_image_free(image_data);
+    pngutils_free(image_data);
 
     return true;
 }

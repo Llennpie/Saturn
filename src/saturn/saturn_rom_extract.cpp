@@ -279,6 +279,60 @@ unsigned char* file_processor_apply(unsigned char* data, std::pair<int, unsigned
     return processed;
 }
 
+void join_skyboxes(std::string filename) {
+    unsigned char* joined = (unsigned char*)malloc(32 * 32 * 10 * 8 * 4);
+    std::filesystem::path path = EXTRACT_PATH / std::filesystem::path(filename);
+    std::filesystem::path dest = path.parent_path() / "full" / (path.filename().string() + ".png");
+    if (std::filesystem::exists(dest)) return;
+    for (int i = 0; i < 80; i++) {
+        int x = i % 10 * 32;
+        int y = i / 10 * 32;
+        int w, h, channels;
+        std::cout << (std::filesystem::absolute(path).string() + "." + std::to_string(i) + ".rgba16.png").c_str() << std::endl;
+        unsigned char* tile = pngutils_read_png((std::filesystem::absolute(path).string() + "." + std::to_string(i) + ".rgba16.png").c_str(), &w, &h, &channels, 0);
+        for (int j = 0; j < 32; j++) {
+            int off = x + (y + j) * 32 * 10;
+            memcpy(joined + off * 4, tile + j * 32 * 4, 32 * 4);
+        }
+        pngutils_free(tile);
+    }
+    std::filesystem::create_directories(path.parent_path());
+    write_png(dest.string(), joined, 32 * 10, 32 * 8, 4);
+    free(joined);
+}
+
+void split_skybox(std::filesystem::path path) {
+    std::string name = path.stem().string();
+    std::filesystem::path dest = path.parent_path().parent_path();
+    int w, h, channels;
+    unsigned char* joined = pngutils_read_png(path.string().c_str(), &w, &h, &channels, 0);
+    for (int i = 0; i < 80; i++) {
+        unsigned char* tile = (unsigned char*)malloc(32 * 32 * 4);
+        int x = i % 10 * 32;
+        int y = i / 10 * 32;
+        for (int j = 0; j < 32; j++) {
+            int off = x + (y + j) * 32 * 10;
+            memcpy(tile + j * 32 * 4, joined + off * 4, 32 * 4);
+        }
+        pngutils_write_png((dest / (name + "." + std::to_string(i) + ".rgba16.png")).string().c_str(), 32, 32, 4, tile, 0);
+        free(tile);
+    }
+    pngutils_free(joined);
+}
+
+void split_skyboxes() {
+    for (auto entry : std::filesystem::directory_iterator(EXTRACT_PATH / "gfx" / "textures" / "skyboxes" / "full")) {
+        split_skybox(entry.path());
+    }
+    for (auto texture_pack : std::filesystem::directory_iterator("dynos/textures")) {
+        std::filesystem::path path = texture_pack.path() / "textures" / "skyboxes" / "full";
+        if (!std::filesystem::exists(path)) continue;
+        for (auto entry : std::filesystem::directory_iterator(path)) {
+            split_skybox(entry.path());
+        }
+    }
+}
+
 #define ROM_OK           0
 #define ROM_NEED_EXTRACT 1
 #define ROM_MISSING      2
@@ -383,6 +437,7 @@ int saturn_extract_rom(int type) {
             if (asset.metadata[0] == -1) {
                 unsigned char* img = raw2skybox(buf + asset.pos, asset.len, asset.path == "gfx/textures/skyboxes/bitfs.png");
                 skybox2png(tokens[0], img);
+                join_skyboxes(tokens[0]);
                 continue;
             }
             FormatTableEntry format = format_table[tokens[tokens.size() - 2]];

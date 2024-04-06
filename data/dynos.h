@@ -20,8 +20,7 @@ extern "C" {
 #include "config.h"
 #include "pc/fs/fs.h"
 #include "audio_defines.h"
-#undef STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
+#include "pc/pngutils.h"
 #ifdef __cplusplus
 }
 #endif
