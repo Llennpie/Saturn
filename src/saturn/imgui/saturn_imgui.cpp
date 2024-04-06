@@ -134,13 +134,13 @@ void saturn_load_macros() {
     else current_macro_dir_count = 0;
     for (auto& entry : filesystem::directory_iterator(dir)) {
         if (!filesystem::is_directory(entry)) continue;
-        macro_array.push_back(entry.path().filename().u8string() + "/");
+        macro_array.push_back(entry.path().filename().string() + "/");
         current_macro_dir_count++;
     }
     for (auto& entry : filesystem::directory_iterator(dir)) {
         if (filesystem::is_directory(entry)) continue;
-        if (entry.path().extension().u8string() == ".stm")
-            macro_array.push_back(entry.path().filename().u8string());
+        if (entry.path().extension().string() == ".stm")
+            macro_array.push_back(entry.path().filename().string());
     }
 }
 

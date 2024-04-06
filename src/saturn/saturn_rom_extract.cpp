@@ -233,7 +233,7 @@ void write_png(std::string path, void* data, int width, int height, int depth) {
     std::filesystem::path dst = EXTRACT_PATH / path;
     std::filesystem::create_directories(dst.parent_path());
     std::cout << "exporting " << dst << std::endl;
-    pngutils_write_png(std::filesystem::absolute(dst).u8string().c_str(), width, height, depth, data, 0);
+    pngutils_write_png(std::filesystem::absolute(dst).string().c_str(), width, height, depth, data, 0);
 }
 
 void skybox2png(std::string filename, unsigned char* img) {
