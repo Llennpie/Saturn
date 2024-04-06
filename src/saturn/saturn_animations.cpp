@@ -339,7 +339,10 @@ void run_hex_array(Json::Value array, std::vector<s16>* dest) {
 void saturn_read_mcomp_animation(string json_path) {
     // Load the json file
     std::ifstream file(current_anim_dir_path + json_path + ".json");
-    if (!file.good()) { return; }
+    if (!file.good()) {
+        std::cout << "Failed to load " << current_anim_dir_path << json_path << ".json" << std::endl;
+        return;
+    }
 
     // Check if we should enable chainer
     // This is only the case if we have a followup animation
