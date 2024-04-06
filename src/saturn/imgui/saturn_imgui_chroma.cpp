@@ -64,12 +64,7 @@ void schroma_imgui_update() {
         ImGui::Text(ICON_FK_EYEDROPPER " Auto-chroma Enabled");
         ImGui::SameLine(); imgui_bundled_help_marker("Experimental: Allows CHROMA KEY to be automatically enabled from any stage; Useful for maintaining consistent camera angles.");
         ImGui::Checkbox("Show Level", &autoChromaLevel);
-        if (ImGui::Checkbox("Show Objects", &autoChromaObjects)) {
-            for (int i = 0; i < 960; i++) {
-                if (autoChromaObjects) gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
-                else gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
-            }
-        }
+        ImGui::Checkbox("Show Objects", &autoChromaObjects);
         ImGui::Dummy(ImVec2(0, 5));
     }
 

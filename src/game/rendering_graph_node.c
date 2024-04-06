@@ -1,6 +1,7 @@
 #include <PR/ultratypes.h>
 
 #include "area.h"
+#include "behavior_data.h"
 #include "engine/math_util.h"
 #include "game_init.h"
 #include "gfx_dimensions.h"
@@ -1112,6 +1113,7 @@ static void interpolate_matrix(Mat4 result, Mat4 a, Mat4 b) {
  * Process an object node.
  */
 static void geo_process_object(struct Object *node) {
+    if (node->behavior != bhvMario && autoChroma && !autoChromaObjects) return;
     Mat4 mtxf;
     s32 hasAnimation = (node->header.gfx.node.flags & GRAPH_RENDER_HAS_ANIMATION) != 0;
     Vec3f scaleInterpolated;

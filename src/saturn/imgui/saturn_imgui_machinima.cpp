@@ -319,7 +319,7 @@ void imgui_machinima_quick_options() {
             autoChroma = false;
             camera_frozen = false;
 
-            warp_to_level(current_slevel_index, (s32)currentChromaArea, -1);
+            warp_to_level(current_slevel_index, current_slevel_index == 0 ? (s32)currentChromaArea : 1, -1);
             // Erase existing timelines
             k_frame_keys.clear();
         }

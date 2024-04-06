@@ -881,11 +881,6 @@ void saturn_imgui_update() {
                 autoChroma = !autoChroma;
                 windowCcEditor = false;
                 windowAnimPlayer = false;
-
-                for (int i = 0; i < 960; i++) {
-                    gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
-                    if (autoChroma && !autoChromaObjects) gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
-                }
             }
             ImGui::EndMainMenuBar();
         }
