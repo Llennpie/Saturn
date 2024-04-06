@@ -44,6 +44,24 @@ std::map<std::string, FormatTableEntry> format_table = {
 };
 
 #define EXTRACT_PATH std::filesystem::path(sys_user_path()) / "res"
+#define EXTRACT_ROM "sm64.z64"
+#define ROM_SIZE (8 * 1024 * 1024)
+#define ROM_CHECKSUM 0x3CE60709
+
+// stole from https://stackoverflow.com/a/21001712
+// slightly modified
+unsigned int crc32(unsigned char* buf, size_t len) {
+    unsigned int crc = 0xFFFFFFFF;
+    for (size_t i = 0; i < len; i++) {
+        unsigned int byte = buf[i];
+        crc = crc ^ byte;
+        for (int j = 7; j >= 0; j--) {
+            unsigned int mask = -(crc & 1);
+            crc = (crc >> 1) ^ (0xEDB88320 & mask);
+        }
+    }
+    return ~crc;
+}
 
 struct mio0_header {
     unsigned int dest_size;
@@ -312,7 +330,14 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
         }
     }
     if (!needs_extract) return ROM_OK;
-    if (!std::filesystem::exists("sm64.z64") && needs_rom) return ROM_MISSING;
+    if (!std::filesystem::exists(EXTRACT_ROM) && needs_rom) return ROM_MISSING;
+    if (std::filesystem::file_size(EXTRACT_ROM) != ROM_SIZE) return ROM_INVALID;
+    std::ifstream stream = std::ifstream(EXTRACT_ROM, std::ios::binary);
+    unsigned char* data = (unsigned char*)malloc(ROM_SIZE);
+    stream.read((char*)data, ROM_SIZE);
+    stream.close();
+    unsigned int checksum = crc32(data, ROM_SIZE);
+    if (checksum != ROM_CHECKSUM) return ROM_INVALID;
     return ROM_NEED_EXTRACT;
 }
 
