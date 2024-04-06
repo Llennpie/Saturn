@@ -494,7 +494,7 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndTable();
             }
-            saturn_keyframe_popout("k_mario_headrot");
+            saturn_keyframe_popout_next_line(std::vector<std::string> { "k_mario_headrot_yaw", "k_mario_headrot_pitch" });
             if (gMarioState->action != ACT_FIRST_PERSON) ImGui::EndDisabled();
             ImGui::EndMenu();
         }
