@@ -1,5 +1,6 @@
 #include "saturn_imgui_machinima.h"
 
+#include <filesystem>
 #include <string>
 #include <iostream>
 #include <algorithm>
@@ -278,11 +279,39 @@ void parse_custom_level(char* data) {
     custom_level_finish();
 }
 
+struct AnimEntry {
+    std::string display_name;
+    std::string full_path;
+    std::vector<struct AnimEntry> files;
+};
+struct AnimEntry custom_anim_list;
+
+bool saturn_anim_scan_folder_inner(struct AnimEntry* parent, std::filesystem::path path) {
+    bool added_files = false;
+    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        struct AnimEntry file;
+        file.display_name = entry.path().filename().string();
+        file.full_path = path / file.display_name;
+        bool do_add = true;
+        if (entry.is_directory()) do_add = saturn_anim_scan_folder_inner(&file, entry.path());
+        if (do_add) {
+            parent->files.push_back(file);
+            added_files = true;
+        }
+    }
+    return added_files;
+}
+
+void saturn_anim_scan_folder() {
+    custom_anim_list.files.clear();
+    saturn_anim_scan_folder_inner(&custom_anim_list, "dynos/anims");
+}
+
 void smachinima_imgui_init() {
     Cheats.EnableCheats = true;
     Cheats.GodMode = true;
     Cheats.ExitAnywhere = true;
-    saturn_load_anim_folder("", &custom_anim_index);
+    saturn_anim_scan_folder();
 }
 
 void imgui_machinima_quick_options() {
@@ -319,7 +348,7 @@ void imgui_machinima_quick_options() {
             autoChroma = false;
             camera_frozen = false;
 
-            warp_to_level(current_slevel_index, (s32)currentChromaArea, -1);
+            warp_to_level(current_slevel_index, current_slevel_index == 0 ? (s32)currentChromaArea : 1, -1);
             // Erase existing timelines
             k_frame_keys.clear();
         }
@@ -475,8 +504,169 @@ void imgui_machinima_quick_options() {
 }
 
 static char animSearchTerm[128];
+static bool selected_groups[8] = { true, true, true, true, true, true, true, true };
+
+bool case_insensitive_contains(std::string base, std::string substr) {
+    std::string lower_b = base;
+    std::string lower_s = substr;
+    std::transform(base.begin(), base.end(), lower_b.begin(),
+        [](unsigned char c){ return std::tolower(c); });
+    std::transform(substr.begin(), substr.end(), lower_s.begin(),
+        [](unsigned char c){ return std::tolower(c); });
+    return lower_b.find(lower_s) != std::string::npos;
+}
+
+std::vector<int> get_sorted_anim_list() {
+    std::vector<int> anim_list = {};
+    std::vector<int> fav_anim_list = {};
+    for (int i = 0; i < 8; i++) {
+        if (!selected_groups[i]) continue;
+        for (const auto& entry : sanim_maps[i]) {
+            if (!case_insensitive_contains(entry.first.second, animSearchTerm)) continue;
+            bool contains = std::find(favorite_anims.begin(), favorite_anims.end(), entry.second) != favorite_anims.end();
+            if (contains) fav_anim_list.push_back(entry.second);
+            else anim_list.push_back(entry.second);
+        }
+    }
+    std::reverse(fav_anim_list.begin(), fav_anim_list.end());
+    for (int fav : fav_anim_list) {
+        anim_list.insert(anim_list.begin(), fav);
+    }
+    return anim_list;
+}
+
+bool saturn_build_tree(struct AnimEntry* root, std::filesystem::path* outPath) {
+    if (root->files.empty()) {
+        std::filesystem::path internal_path = root->full_path;
+        std::string internal_path_str = (internal_path.parent_path() / internal_path.stem()).string();
+        if (ImGui::Selectable(root->display_name.c_str(), anim_preview_name == internal_path_str)) {
+            *outPath = root->full_path;
+            return true;
+        }
+        return false;
+    }
+    bool result = false;
+    if (root->display_name.empty()) {
+        for (auto& entry : root->files) {
+            result |= saturn_build_tree(&entry, outPath);
+        }
+    }
+    else {
+        if (ImGui::TreeNode(root->display_name.c_str())) {
+            for (auto& entry : root->files) {
+                result |= saturn_build_tree(&entry, outPath);
+            }
+            ImGui::TreePop();
+        }
+    }
+    return result;
+}
 
 void imgui_machinima_animation_player() {
+    if (ImGui::BeginTabBar("###anim_tab_bar")) {
+        if (ImGui::BeginTabItem("SM64")) {
+            ImGui::PushItemWidth(316);
+            ImGui::InputTextWithHint("###anim_search", ICON_FK_SEARCH " Search...", animSearchTerm, 128);
+            if (ImGui::BeginChild("###anim_box_child", ImVec2(316, 100), true, ImGuiWindowFlags_None)) {
+                std::vector<int> anim_order = get_sorted_anim_list();
+                for (int i : anim_order) {
+                    const bool is_selected = i == current_animation.id && !current_animation.custom;
+                    auto position = std::find(favorite_anims.begin(), favorite_anims.end(), i);
+                    bool contains = position != favorite_anims.end();
+                    if (ImGui::SmallButton((std::string(contains ? ICON_FK_STAR : ICON_FK_STAR_O) + "###anim_fav_" + std::to_string(i)).c_str())) {
+                        if (contains) favorite_anims.erase(position);
+                        else favorite_anims.push_back(i);
+                        saturn_save_favorite_anims();
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Selectable(saturn_animations_list[i], is_selected)) {
+                        current_animation.id = i;
+                        current_animation.custom = false;
+                        anim_preview_name = saturn_animations_list[i];
+                    }
+                }
+                ImGui::EndChild();
+            }
+            ImGui::PopItemWidth();
+            ImGui::Checkbox("Movement",      &selected_groups[0]); ImGui::SameLine();
+            ImGui::Checkbox("Actions",       &selected_groups[1]); ImGui::SameLine();
+            ImGui::Checkbox("Automatic",     &selected_groups[2]);
+            ImGui::Checkbox("Damage/Deaths", &selected_groups[3]); ImGui::SameLine();
+            ImGui::Checkbox("Cutscenes",     &selected_groups[4]);
+            ImGui::Checkbox("Water",         &selected_groups[5]); ImGui::SameLine();
+            ImGui::Checkbox("Climbing",      &selected_groups[6]); ImGui::SameLine();
+            ImGui::Checkbox("Object",        &selected_groups[7]);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Custom")) {
+            if (ImGui::Button(ICON_FK_REFRESH "###anim_refresh")) saturn_anim_scan_folder();
+            ImGui::SameLine();
+            ImGui::InputTextWithHint("###anim_search", ICON_FK_SEARCH " Search...", animSearchTerm, 128);
+            if (ImGui::BeginChild("###anim_picker", ImVec2(0, 120), true, ImGuiWindowFlags_None)) {
+                std::filesystem::path path;
+                if (saturn_build_tree(&custom_anim_list, &path)) {
+                    anim_preview_name = (path.parent_path() / path.stem()).string();
+                    if (std::find(canim_array.begin(), canim_array.end(), path) == canim_array.end()) canim_array.push_back(path);
+                    current_animation.id = std::find(canim_array.begin(), canim_array.end(), path) - canim_array.begin();
+                    current_animation.custom = true;
+                    saturn_read_mcomp_animation(anim_preview_name.c_str());
+                }
+                ImGui::EndChild();
+            }
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+    ImGui::Separator();
+    if (is_anim_playing) {
+        if (current_animation.custom) {
+            ImGui::Text("Now Playing: %s", current_canim_name.c_str());
+            string anim_credit1 = ("By " + current_canim_author);
+            ImGui::SameLine(); imgui_bundled_help_marker(anim_credit1.c_str());
+            if (using_chainer) ImGui::Text("Chainer: Enabled");
+        } else {
+            ImGui::Text("Now Playing: %s", anim_preview_name.c_str());
+        }
+
+        if (ImGui::Button("Stop")) {
+            is_anim_playing = false;
+            is_anim_paused = false;
+            using_chainer = false;
+            chainer_index = 0;
+        }
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &current_animation.loop);
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Hang", &current_animation.hang) && !current_animation.hang) {
+            is_anim_playing = false;
+            is_anim_paused = false;
+            using_chainer = false;
+            chainer_index = 0;
+        }
+        
+        ImGui::PushItemWidth(150);
+        ImGui::SliderInt("Frame###animation_frames", &current_anim_frame, 0, current_anim_length - 1);
+        ImGui::PopItemWidth();
+        ImGui::Checkbox("Paused###animation_paused", &is_anim_paused);
+    } else {
+        if (ImGui::Button("Play")) {
+            anim_play_button();
+        }
+        ImGui::SameLine(); ImGui::Checkbox("Loop", &current_animation.loop);
+        ImGui::SameLine(); ImGui::Checkbox("Hang", &current_animation.hang);
+
+        ImGui::PushItemWidth(150);
+        ImGui::SliderFloat("Speed###anim_speed", &current_animation.speed, 0.1f, 2.0f);
+        ImGui::PopItemWidth();
+        if (current_animation.speed != 1.0f) {
+            if (ImGui::Button("Reset###reset_anim_speed"))
+                current_animation.speed = 1.0f;
+        }
+    }
+    if (keyframe_playing) ImGui::EndDisabled();
+    saturn_keyframe_popout_next_line("k_mario_anim");
+}
+
+/*void imgui_machinima_animation_player() {
     selected_animation = (MarioAnimID)current_sanim_id;
     
     if (is_anim_playing || keyframe_playing)
@@ -779,4 +969,4 @@ void imgui_machinima_animation_player() {
     }
     if (keyframe_playing) ImGui::EndDisabled();
     saturn_keyframe_popout_next_line("k_mario_anim");
-}
+}*/

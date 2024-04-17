@@ -115,6 +115,7 @@ bool splash_finished = false;
 
 std::string editor_theme = "moon";
 std::vector<std::pair<std::string, std::string>> theme_list = {};
+std::vector<std::string> textures_list = {};
 
 std::vector<std::string> macro_array = {};
 std::vector<std::string> macro_dir_stack = {};
@@ -134,13 +135,13 @@ void saturn_load_macros() {
     else current_macro_dir_count = 0;
     for (auto& entry : filesystem::directory_iterator(dir)) {
         if (!filesystem::is_directory(entry)) continue;
-        macro_array.push_back(entry.path().filename().u8string() + "/");
+        macro_array.push_back(entry.path().filename().string() + "/");
         current_macro_dir_count++;
     }
     for (auto& entry : filesystem::directory_iterator(dir)) {
         if (filesystem::is_directory(entry)) continue;
-        if (entry.path().extension().u8string() == ".stm")
-            macro_array.push_back(entry.path().filename().u8string());
+        if (entry.path().extension().string() == ".stm")
+            macro_array.push_back(entry.path().filename().string());
     }
 }
 
@@ -441,6 +442,18 @@ void saturn_load_themes() {
     }
 }
 
+void saturn_load_textures() {
+    if (!std::filesystem::exists("dynos/textures")) {
+        std::filesystem::create_directory("dynos/textures");
+    }
+    for (const auto& entry : std::filesystem::directory_iterator("dynos/textures")) {
+        if (!entry.is_directory()) continue;
+        std::string name = entry.path().filename().string();
+        if (string_hash(name.data(), 0, name.length()) == configEditorTextures) current_texture_id = textures_list.size();
+        textures_list.push_back(entry.path().filename().string());
+    }
+}
+
 void saturn_imgui_init() {
     saturn_load_themes();
     sdynos_imgui_init();
@@ -449,6 +462,7 @@ void saturn_imgui_init() {
     
     saturn_load_project_list();
     saturn_load_macros();
+    saturn_load_textures();
 }
 
 void saturn_imgui_handle_events(SDL_Event * event) {
@@ -855,12 +869,16 @@ void saturn_imgui_update() {
                 ImGui::PopItemWidth();
                 ImGui::Checkbox("Smooth###fov_smooth", &camera_fov_smooth);
 
-                ImGui::Separator();
                 ImGui::PushItemWidth(100);
                 ImGui::SliderFloat("Follow", &camera_focus, 0.0f, 1.0f);
                 if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) { camera_focus = 1.f; }
                 saturn_keyframe_popout("k_focus");
                 ImGui::PopItemWidth();
+
+                ImGui::Separator();
+                ImGui::Checkbox("Disable Clipping", &configEditorNearClipping);
+                imgui_bundled_tooltip("Prevents the camera from clipping through Mario and other surfaces; Disable if the level fog goes nuts.");
+
                 ImGui::EndMenu();
             }
 
@@ -878,11 +896,6 @@ void saturn_imgui_update() {
                 autoChroma = !autoChroma;
                 windowCcEditor = false;
                 windowAnimPlayer = false;
-
-                for (int i = 0; i < 960; i++) {
-                    gObjectPool[i].header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
-                    if (autoChroma && !autoChromaObjects) gObjectPool[i].header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
-                }
             }
             ImGui::EndMainMenuBar();
         }
@@ -1272,6 +1285,23 @@ void saturn_keyframe_popout_next_line(std::vector<std::string> ids) {
 
 bool saturn_disable_sm64_input() {
     return ImGui::GetIO().WantTextInput;
+}
+
+void saturn_get_textures_folder(char* out) {
+    std::string path;
+    if (current_texture_id == -1) path = FS_TEXTUREDIR "/";
+    else path = "../dynos/textures/" + textures_list[current_texture_id] + "/";
+    memcpy(out, path.data(), path.length() + 1);
+}
+
+void saturn_fallback_texture(char* tex, const char* path) {
+    fs_file_t* f = fs_open(tex);
+    if (f) {
+        fs_close(f);
+        return;
+    }
+    std::string fallback = std::string(FS_TEXTUREDIR "/") + path;
+    memcpy(tex, fallback.data(), fallback.length() + 1);
 }
 
 template <typename T>

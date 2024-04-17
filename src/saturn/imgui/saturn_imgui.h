@@ -57,6 +57,7 @@ extern bool splash_finished;
 
 extern std::string editor_theme;
 extern std::vector<std::pair<std::string, std::string>> theme_list;
+extern std::vector<std::string> textures_list;
 
 extern bool k_context_popout_open;
 
@@ -67,6 +68,9 @@ extern "C" {
     void saturn_imgui_handle_events(SDL_Event *);
     void saturn_imgui_update(void);
     bool saturn_disable_sm64_input();
+    void saturn_get_textures_folder(char* out);
+    void saturn_fallback_texture(char* out, const char* path);
+    void saturn_load_textures();
 
     extern SDL_Scancode bind_to_sdl_scancode[512];
 #ifdef __cplusplus

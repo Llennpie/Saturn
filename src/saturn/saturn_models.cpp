@@ -46,7 +46,7 @@ std::vector<Model> GetModelList(std::string folderPath) {
 
     if (fs::is_directory(folderPath)) {
         for (int i = 0; i < mDynosPacks.Count(); i++) {
-            std::string packName = fs::path(mDynosPacks[i]->mPath).filename().u8string();
+            std::string packName = fs::path(mDynosPacks[i]->mPath).filename().string();
             std::cout << "Loading model: " << packName << std::endl;
             Model model = LoadModelData(folderPath + "/" + packName);
             model.DynOSId = i;
@@ -73,8 +73,8 @@ Model LoadModelData(std::string folderPath) {
 
     if (fs::is_directory(folderPath)) {
         // Model folder exists
-        model.FolderName = fs::path(folderPath).filename().u8string();
-        model.FolderPath = fs::path(folderPath).u8string();
+        model.FolderName = fs::path(folderPath).filename().string();
+        model.FolderPath = fs::path(folderPath).string();
 
         // Only load models intended for Mario
         if (!fs::is_directory(folderPath + "/mario") && !fs::exists(folderPath + "/mario_geo.bin"))

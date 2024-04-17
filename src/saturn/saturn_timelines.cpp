@@ -1,4 +1,5 @@
 #include "saturn/saturn_timelines.h"
+#include "saturn/saturn.h"
 
 #define DEFAULT 0
 #define FORCE_WAIT 1
@@ -25,6 +26,8 @@ void saturn_fill_data_table() {
     SATURN_KFENTRY_FLOAT("k_scale_x", marioScaleSizeX, "Mario Scale X");
     SATURN_KFENTRY_FLOAT("k_scale_y", marioScaleSizeY, "Mario Scale Y");
     SATURN_KFENTRY_FLOAT("k_scale_z", marioScaleSizeZ, "Mario Scale Z");
+    SATURN_KFENTRY_FLOAT("k_mario_headrot_yaw", mario_headrot_yaw, "Look Angle Yaw");
+    SATURN_KFENTRY_FLOAT("k_mario_headrot_pitch", mario_headrot_pitch, "Look Angle Pitch");
     SATURN_KFENTRY_BOOL("k_head_rot", enable_head_rotations, "Head Rotations");
     SATURN_KFENTRY_BOOL("k_v_cap_emblem", show_vmario_emblem, "M Cap Emblem");
     SATURN_KFENTRY_FLOAT("k_angle", gMarioState->faceAngle[1], "Mario Angle");

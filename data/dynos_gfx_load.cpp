@@ -100,7 +100,7 @@ static void LoadTextureData(FILE *aFile, GfxData *aGfxData) {
     _Node->mData->mUploaded = false;
     _Node->mData->mPngData.Read(aFile);
     if (!_Node->mData->mPngData.Empty()) {
-        u8 *_RawData = stbi_load_from_memory(_Node->mData->mPngData.begin(), _Node->mData->mPngData.Count(), &_Node->mData->mRawWidth, &_Node->mData->mRawHeight, NULL, 4);
+        u8 *_RawData = pngutils_read_png_from_memory(_Node->mData->mPngData.begin(), _Node->mData->mPngData.Count(), &_Node->mData->mRawWidth, &_Node->mData->mRawHeight, NULL, 4);
         _Node->mData->mRawFormat = G_IM_FMT_RGBA;
         _Node->mData->mRawSize   = G_IM_SIZ_32b;
         _Node->mData->mRawData   = Array<u8>(_RawData, _RawData + (_Node->mData->mRawWidth * _Node->mData->mRawHeight * 4));

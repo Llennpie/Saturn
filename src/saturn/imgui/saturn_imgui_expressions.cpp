@@ -45,7 +45,7 @@ bool UpdateExpressionPreview(std::string TexturePath) {
     last_preview_path = TexturePath;
 
     // Load from file
-    unsigned char* image_data = stbi_load(filename, &preview_width, &preview_height, NULL, 4);
+    unsigned char* image_data = pngutils_read_png(filename, &preview_width, &preview_height, NULL, 4);
     if (image_data == NULL)
         return false;
 
@@ -67,7 +67,7 @@ bool UpdateExpressionPreview(std::string TexturePath) {
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, preview_width, preview_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    stbi_image_free(image_data);
+    pngutils_free(image_data);
 
     return true;
 }
@@ -199,36 +199,41 @@ void OpenExpressionSelector() {
         for (int i = 0; i < current_model.Expressions.size(); i++) {
             Expression expression = current_model.Expressions[i];
             if (expression.Name == "eyes") continue;
+            if (expression.Textures.size() <= 1) continue;
 
             std::string label_name = "###exp_label_" + expression.Name;
             ImGui::Text(expression.Name.c_str());
             ImGui::SameLine(75);
             ImGui::PushItemWidth(120);
 
-            // Use checkbox
-            if (expression.Textures.size() == 2 && (
-                expression.Textures[0].FileName.find("default") != std::string::npos ||
-                expression.Textures[1].FileName.find("default") != std::string::npos )) {
-                    // Check which index "default.png" is (0 or 1) to determine default value
-                    int select_index = (expression.Textures[0].FileName.find("default") != std::string::npos) ? 0 : 1;
-                    int deselect_index = (expression.Textures[0].FileName.find("default") != std::string::npos) ? 1 : 0;
-                    bool is_selected = (expression.CurrentIndex == select_index);
+            if (expression.Textures.size() >= 2) {
+                if (expression.IsToggleFormat() &&
+                    // Use checkbox
+                    (expression.Textures[0].FileName.find("default") != std::string::npos ||
+                    expression.Textures[1].FileName.find("default") != std::string::npos)) {
 
-                    if (ImGui::Checkbox(label_name.c_str(), &is_selected)) {
-                        if (is_selected) current_model.Expressions[i].CurrentIndex = select_index;
-                        else current_model.Expressions[i].CurrentIndex = deselect_index;
+                        // Check which index "default.png" is (0 or 1) to determine default value
+                        int select_index = (expression.Textures[0].FileName.find("default") != std::string::npos) ? 0 : 1;
+                        int deselect_index = (select_index == 0) ? 1 : 0;
+                        bool is_selected = (expression.CurrentIndex == select_index);
+
+                        if (ImGui::Checkbox(label_name.c_str(), &is_selected)) {
+                            if (is_selected) current_model.Expressions[i].CurrentIndex = select_index;
+                            else current_model.Expressions[i].CurrentIndex = deselect_index;
+                        }
+                        // Popout showing the checkbox's actively displayed value
+                        // This is technically the opposite of the dropdowns and selectables, which shows the value-that-will-be, not current
+                        ShowTextureContextMenu(&current_model.Expressions[i], current_model.Expressions[i].Textures[expression.CurrentIndex], i);
+
+                } else {
+                    // Use dropdown
+                    std::string defaultLabel = ((expression.Textures.size() > 0) ? expression.Textures[expression.CurrentIndex].FileName : expression.Name) + "###combo_" + expression.Name.c_str();
+                    if (ImGui::BeginCombo(label_name.c_str(), defaultLabel.c_str(), ImGuiComboFlags_None)) {
+                        RecursiveSelector(&current_model.Expressions[i], 0, expression.FolderPath, i);
+                        ImGui::EndCombo();
                     }
-                    // Popout showing the checkbox's actively displayed value
-                    // This is technically the opposite of the dropdowns and selectables, which shows the value-that-will-be, not current
                     ShowTextureContextMenu(&current_model.Expressions[i], current_model.Expressions[i].Textures[expression.CurrentIndex], i);
-            } else {
-                // Use dropdown
-                std::string defaultLabel = ((expression.Textures.size() > 0) ? expression.Textures[expression.CurrentIndex].FileName : expression.Name) + "###combo_" + expression.Name.c_str();
-                if (ImGui::BeginCombo(label_name.c_str(), defaultLabel.c_str(), ImGuiComboFlags_None)) {
-                    RecursiveSelector(&current_model.Expressions[i], 0, expression.FolderPath, i);
-                    ImGui::EndCombo();
                 }
-                ShowTextureContextMenu(&current_model.Expressions[i], current_model.Expressions[i].Textures[expression.CurrentIndex], i);
             }
             ImGui::PopItemWidth();
         }

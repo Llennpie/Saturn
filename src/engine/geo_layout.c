@@ -266,12 +266,6 @@ void geo_layout_cmd_node_perspective(void) {
     s16 near = cur_geo_cmd_s16(0x04);
     s16 far = cur_geo_cmd_s16(0x06);
 
-    // Near clipping
-    // This is a double edged sword:
-    // It allows Mario to get super close to the camera, but messes with the fog
-    if (configEditorNearClipping || gCurrLevelNum == LEVEL_SA)
-        near = 1;
-
     if (cur_geo_cmd_u8(0x01) != 0) {
         // optional asm function
         frustumFunc = (GraphNodeFunc) cur_geo_cmd_ptr(0x08);

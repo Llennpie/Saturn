@@ -88,7 +88,7 @@ bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_wid
     // Load from file
     int image_width = 0;
     int image_height = 0;
-    unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
+    unsigned char* image_data = pngutils_read_png(filename, &image_width, &image_height, NULL, 4);
     if (image_data == NULL)
         return false;
 
@@ -108,7 +108,7 @@ bool LoadTextureFromFile(const char* filename, GLuint* out_texture, int* out_wid
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    stbi_image_free(image_data);
+    pngutils_free(image_data);
 
     *out_texture = image_texture;
     *out_width = image_width;
@@ -512,7 +512,7 @@ void sdynos_imgui_menu() {
                 }
                 ImGui::EndTable();
             }
-            saturn_keyframe_popout("k_mario_headrot");
+            saturn_keyframe_popout_next_line(std::vector<std::string> { "k_mario_headrot_yaw", "k_mario_headrot_pitch" });
             if (gMarioState->action != ACT_FIRST_PERSON) ImGui::EndDisabled();
             ImGui::EndMenu();
         }

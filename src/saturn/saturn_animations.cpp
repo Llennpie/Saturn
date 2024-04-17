@@ -290,16 +290,16 @@ void saturn_load_anim_folder(string path, int* index) {
     for (const auto & entry : fs::directory_iterator(current_anim_dir_path)) {
         fs::path path = entry.path();
 
-        if (path.extension().u8string() == ".json") {
-            string filename = path.filename().u8string().substr(0, path.filename().u8string().size() - 5);
+        if (path.extension().string() == ".json") {
+            string filename = path.filename().string().substr(0, path.filename().string().size() - 5);
             if (::isdigit(filename.back()) && filename.find("_") != string::npos) {
                 // Ignore
             } else {
-                canim_array.push_back(path.filename().u8string());
+                canim_array.push_back(path.filename().string());
             }
         }
         if (fs::is_directory(entry.path())) {
-            canim_array.push_back(entry.path().stem().u8string() + "/");
+            canim_array.push_back(entry.path().stem().string() + "/");
         }
     }
 
@@ -339,7 +339,10 @@ void run_hex_array(Json::Value array, std::vector<s16>* dest) {
 void saturn_read_mcomp_animation(string json_path) {
     // Load the json file
     std::ifstream file(current_anim_dir_path + json_path + ".json");
-    if (!file.good()) { return; }
+    if (!file.good()) {
+        std::cout << "Failed to load " << current_anim_dir_path << json_path << ".json" << std::endl;
+        return;
+    }
 
     // Check if we should enable chainer
     // This is only the case if we have a followup animation

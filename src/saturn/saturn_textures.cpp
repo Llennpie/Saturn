@@ -52,8 +52,8 @@ std::vector<TexturePath> LoadExpressionFolders(std::string FolderPath) {
             if (fs::is_directory(entry.path())) {
                 // Only allow PNG files
                 TexturePath folder;
-                folder.FileName = entry.path().filename().generic_u8string();
-                folder.FilePath = entry.path().generic_u8string();
+                folder.FileName = entry.path().filename().generic_string();
+                folder.FilePath = entry.path().generic_string();
                 folders.push_back(folder);
             }
         }
@@ -72,8 +72,8 @@ std::vector<TexturePath> LoadExpressionTextures(std::string FolderPath, Expressi
                 if (entry.path().extension() == ".png") {
                     // Only allow PNG files
                     TexturePath texture;
-                    texture.FileName = entry.path().filename().generic_u8string();
-                    texture.FilePath = entry.path().generic_u8string();
+                    texture.FileName = entry.path().filename().generic_string();
+                    texture.FilePath = entry.path().generic_string();
                     textures.push_back(texture);
                 }
             }
@@ -87,13 +87,13 @@ std::vector<TexturePath> LoadExpressionTextures(std::string FolderPath, Expressi
             for (const auto & entry : fs::directory_iterator(MarioFolder)) {
                 if (entry.path().extension() == ".png") {
                     // Check if the expression texture exists
-                    if (expression.PathHasReplaceKey(entry.path().generic_u8string(), "")) {
+                    if (expression.PathHasReplaceKey(entry.path().generic_string(), "")) {
                         TexturePath default_texture;
-                        default_texture.FileName = entry.path().filename().generic_u8string();
-                        default_texture.FilePath = entry.path().generic_u8string();
+                        default_texture.FileName = entry.path().filename().generic_string();
+                        default_texture.FilePath = entry.path().generic_string();
                         default_texture.IsModelTexture = true;
 
-                        if (expression.PathHasReplaceKey(entry.path().generic_u8string(), "saturn_")) {
+                        if (expression.PathHasReplaceKey(entry.path().generic_string(), "saturn_")) {
                             model_textures.insert(model_textures.begin(), default_texture);
                         } else {
                             model_textures.push_back(default_texture);
@@ -118,8 +118,8 @@ std::vector<Expression> LoadExpressions(std::string modelFolderPath) {
             // Load individual expression folders
             if (fs::is_directory(entry.path())) {
                 Expression expression;
-                expression.FolderPath = entry.path().generic_u8string();
-                expression.Name = entry.path().filename().generic_u8string();
+                expression.FolderPath = entry.path().generic_string();
+                expression.Name = entry.path().filename().generic_string();
                 if (expression.Name == "eye")
                     expression.Name = "eyes";
 

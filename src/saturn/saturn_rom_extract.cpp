@@ -44,6 +44,24 @@ std::map<std::string, FormatTableEntry> format_table = {
 };
 
 #define EXTRACT_PATH std::filesystem::path(sys_user_path()) / "res"
+#define EXTRACT_ROM "sm64.z64"
+#define ROM_SIZE (8 * 1024 * 1024)
+#define ROM_CHECKSUM 0x3CE60709
+
+// stole from https://stackoverflow.com/a/21001712
+// slightly modified
+unsigned int crc32(unsigned char* buf, size_t len) {
+    unsigned int crc = 0xFFFFFFFF;
+    for (size_t i = 0; i < len; i++) {
+        unsigned int byte = buf[i];
+        crc = crc ^ byte;
+        for (int j = 7; j >= 0; j--) {
+            unsigned int mask = -(crc & 1);
+            crc = (crc >> 1) ^ (0xEDB88320 & mask);
+        }
+    }
+    return ~crc;
+}
 
 struct mio0_header {
     unsigned int dest_size;
@@ -233,7 +251,7 @@ void write_png(std::string path, void* data, int width, int height, int depth) {
     std::filesystem::path dst = EXTRACT_PATH / path;
     std::filesystem::create_directories(dst.parent_path());
     std::cout << "exporting " << dst << std::endl;
-    pngutils_write_png(std::filesystem::absolute(dst).u8string().c_str(), width, height, depth, data, 0);
+    pngutils_write_png(std::filesystem::absolute(dst).string().c_str(), width, height, depth, data, 0);
 }
 
 void skybox2png(std::string filename, unsigned char* img) {
@@ -259,6 +277,60 @@ unsigned char* file_processor_apply(unsigned char* data, std::pair<int, unsigned
         processed[i] = data[file_processor.second[i]];
     }
     return processed;
+}
+
+void join_skyboxes(std::string filename) {
+    unsigned char* joined = (unsigned char*)malloc(32 * 32 * 10 * 8 * 4);
+    std::filesystem::path path = EXTRACT_PATH / std::filesystem::path(filename);
+    std::filesystem::path dest = path.parent_path() / "full" / (path.filename().string() + ".png");
+    if (std::filesystem::exists(dest)) return;
+    for (int i = 0; i < 80; i++) {
+        int x = i % 10 * 32;
+        int y = i / 10 * 32;
+        int w, h, channels;
+        std::cout << (std::filesystem::absolute(path).string() + "." + std::to_string(i) + ".rgba16.png").c_str() << std::endl;
+        unsigned char* tile = pngutils_read_png((std::filesystem::absolute(path).string() + "." + std::to_string(i) + ".rgba16.png").c_str(), &w, &h, &channels, 0);
+        for (int j = 0; j < 32; j++) {
+            int off = x + (y + j) * 32 * 10;
+            memcpy(joined + off * 4, tile + j * 32 * 4, 32 * 4);
+        }
+        pngutils_free(tile);
+    }
+    std::filesystem::create_directories(path.parent_path());
+    write_png(dest.string(), joined, 32 * 10, 32 * 8, 4);
+    free(joined);
+}
+
+void split_skybox(std::filesystem::path path) {
+    std::string name = path.stem().string();
+    std::filesystem::path dest = path.parent_path().parent_path();
+    int w, h, channels;
+    unsigned char* joined = pngutils_read_png(path.string().c_str(), &w, &h, &channels, 0);
+    for (int i = 0; i < 80; i++) {
+        unsigned char* tile = (unsigned char*)malloc(32 * 32 * 4);
+        int x = i % 10 * 32;
+        int y = i / 10 * 32;
+        for (int j = 0; j < 32; j++) {
+            int off = x + (y + j) * 32 * 10;
+            memcpy(tile + j * 32 * 4, joined + off * 4, 32 * 4);
+        }
+        pngutils_write_png((dest / (name + "." + std::to_string(i) + ".rgba16.png")).string().c_str(), 32, 32, 4, tile, 0);
+        free(tile);
+    }
+    pngutils_free(joined);
+}
+
+void split_skyboxes() {
+    for (auto entry : std::filesystem::directory_iterator(EXTRACT_PATH / "gfx" / "textures" / "skyboxes" / "full")) {
+        split_skybox(entry.path());
+    }
+    for (auto texture_pack : std::filesystem::directory_iterator("dynos/textures")) {
+        std::filesystem::path path = texture_pack.path() / "textures" / "skyboxes" / "full";
+        if (!std::filesystem::exists(path)) continue;
+        for (auto entry : std::filesystem::directory_iterator(path)) {
+            split_skybox(entry.path());
+        }
+    }
 }
 
 #define ROM_OK           0
@@ -312,7 +384,14 @@ int saturn_rom_status(std::filesystem::path extract_dest, std::vector<std::strin
         }
     }
     if (!needs_extract) return ROM_OK;
-    if (!std::filesystem::exists("sm64.z64") && needs_rom) return ROM_MISSING;
+    if (!std::filesystem::exists(EXTRACT_ROM) && needs_rom) return ROM_MISSING;
+    if (std::filesystem::file_size(EXTRACT_ROM) != ROM_SIZE) return ROM_INVALID;
+    std::ifstream stream = std::ifstream(EXTRACT_ROM, std::ios::binary);
+    unsigned char* data = (unsigned char*)malloc(ROM_SIZE);
+    stream.read((char*)data, ROM_SIZE);
+    stream.close();
+    unsigned int checksum = crc32(data, ROM_SIZE);
+    if (checksum != ROM_CHECKSUM) return ROM_INVALID;
     return ROM_NEED_EXTRACT;
 }
 
@@ -358,6 +437,7 @@ int saturn_extract_rom(int type) {
             if (asset.metadata[0] == -1) {
                 unsigned char* img = raw2skybox(buf + asset.pos, asset.len, asset.path == "gfx/textures/skyboxes/bitfs.png");
                 skybox2png(tokens[0], img);
+                join_skyboxes(tokens[0]);
                 continue;
             }
             FormatTableEntry format = format_table[tokens[tokens.size() - 2]];

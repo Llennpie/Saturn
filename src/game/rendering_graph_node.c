@@ -1,6 +1,7 @@
 #include <PR/ultratypes.h>
 
 #include "area.h"
+#include "behavior_data.h"
 #include "engine/math_util.h"
 #include "game_init.h"
 #include "gfx_dimensions.h"
@@ -309,12 +310,17 @@ static void geo_process_perspective(struct GraphNodePerspective *node) {
         f32 aspect = (f32) gCurGraphNodeRoot->width / (f32) gCurGraphNodeRoot->height;
 #endif
 
-        guPerspective(mtx, &perspNorm, node->fov, aspect, node->near, node->far, 1.0f);
+        // Near clipping
+        s16 near = node->near;
+        if (configEditorNearClipping || gCurrLevelNum == LEVEL_SA)
+            near = 1;
+
+        guPerspective(mtx, &perspNorm, node->fov, aspect, near, node->far, 1.0f);
 
         if (gGlobalTimer == node->prevTimestamp + 1 && gGlobalTimer != gLakituState.skipCameraInterpolationTimestamp) {
 
             fovInterpolated = (node->prevFov + node->fov) / 2.0f;
-            guPerspective(mtxInterpolated, &perspNorm, fovInterpolated, aspect, node->near, node->far, 1.0f);
+            guPerspective(mtxInterpolated, &perspNorm, fovInterpolated, aspect, near, node->far, 1.0f);
             gSPPerspNormalize(gDisplayListHead++, perspNorm);
 
             sPerspectivePos = gDisplayListHead;
@@ -1107,6 +1113,7 @@ static void interpolate_matrix(Mat4 result, Mat4 a, Mat4 b) {
  * Process an object node.
  */
 static void geo_process_object(struct Object *node) {
+    if (node->behavior != bhvMario && autoChroma && !autoChromaObjects) return;
     Mat4 mtxf;
     s32 hasAnimation = (node->header.gfx.node.flags & GRAPH_RENDER_HAS_ANIMATION) != 0;
     Vec3f scaleInterpolated;

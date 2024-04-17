@@ -48,6 +48,21 @@ public:
                 path.find(prefix + this->Name + "_s") != std::string::npos ||
                 path.find(prefix + this->Name.substr(0, this->Name.size() - 1) + "_") != std::string::npos);
     }
+
+    /* Returns true if the expression's textures are formatted for a checkbox
+       This is when an expression has two non-model textures and no subfolders */
+    bool IsToggleFormat() {
+        if (this->Textures.size() >= 2 && this->Folders.size() == 0) {
+            int countWithoutModelTextures = 0;
+            for (int i = 0; i < this->Textures.size(); i++) {
+                // Exclude model textures
+                if (this->Textures[i].IsModelTexture) continue;
+                countWithoutModelTextures++;
+            }
+            return(countWithoutModelTextures == 2);
+        }
+        return false;
+    }
 };
 
 extern bool custom_eyes_enabled;

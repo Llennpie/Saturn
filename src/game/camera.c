@@ -2926,7 +2926,7 @@ void set_camera_mode(struct Camera *c, s16 mode, s16 frames) {
         sLakituDist = 0;
         sLakituPitch = 0;
         sAreaYawChange = 0;
-        if (!saturn_timeline_exists("k_mario_headrot_yaw")) {
+        if (!saturn_timeline_exists("k_mario_headrot")) {
             mario_headrot_yaw = 0;
             mario_headrot_pitch = 0;
         }
