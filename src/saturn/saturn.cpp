@@ -728,6 +728,7 @@ s32 saturn_begin_extract_rom_thread() {
         saturn_extract_rom(EXTRACT_TYPE_ALL);
         extraction_finished = true;
     });
+    extract_thread.detach();
     return false;
 }
 
