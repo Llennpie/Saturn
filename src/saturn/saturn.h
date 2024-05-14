@@ -176,7 +176,7 @@ extern void schedule_animation();
 extern "C" {
 #endif
     void saturn_update(void);
-    void saturn_play_animation(MarioAnimID);
+    void saturn_play_animation(enum MarioAnimID id);
     void saturn_play_keyframe();
     void saturn_print(const char*);
     const char* saturn_get_stage_name(int);

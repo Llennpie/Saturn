@@ -119,7 +119,7 @@ s16 force_set_mario_animation(struct MarioState *m, s32 targetAnimID) {
 }
 
 s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
-    if (is_anim_playing) return;
+    if (is_anim_playing) return 0;
     force_set_mario_animation(m, targetAnimID);
 }
 

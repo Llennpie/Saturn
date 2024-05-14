@@ -11,6 +11,7 @@
 #include "textures.h"
 #include "types.h"
 #include "prevent_bss_reordering.h"
+#include "game/rendering_graph_node.h"
 
 #include "gfx_dimensions.h"
 

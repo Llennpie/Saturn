@@ -512,7 +512,7 @@ static void import_texture_ci8(int tile) {
 
 void load_texture(const char *fullpath) {
     int w, h;
-    u64 imgsize = 0;
+    uint64_t imgsize = 0;
 
     u8 *imgdata = fs_load_file(fullpath, &imgsize);
     if (imgdata) {

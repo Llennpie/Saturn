@@ -24,6 +24,7 @@
 #include "skybox.h"
 #include "sound_init.h"
 #include "saturn/saturn_textures.h"
+#include "mario.h"
 
 #include "saturn/saturn.h"
 
