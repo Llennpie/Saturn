@@ -602,8 +602,8 @@ void imgui_machinima_animation_player() {
                 std::filesystem::path path;
                 if (saturn_build_tree(&custom_anim_list, &path)) {
                     anim_preview_name = (path.parent_path() / path.stem()).string();
-                    if (std::find(canim_array.begin(), canim_array.end(), path) == canim_array.end()) canim_array.push_back(path);
-                    current_animation.id = std::find(canim_array.begin(), canim_array.end(), path) - canim_array.begin();
+                    if (std::find(canim_array.begin(), canim_array.end(), path.string()) == canim_array.end()) canim_array.push_back(path.string());
+                    current_animation.id = std::find(canim_array.begin(), canim_array.end(), path.string()) - canim_array.begin();
                     current_animation.custom = true;
                     saturn_read_mcomp_animation(anim_preview_name.c_str());
                 }
