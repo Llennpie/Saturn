@@ -36,6 +36,6 @@ This version of Saturn is trying to be an improved experience. I hightly recomme
 
 ---
 
-In case you feel this project deserves some extra love, check out my Ko-fi-
+Please donate to Llennpie's Ko-fi. This is still her work, so I recommend you do that.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J05B5WR)
