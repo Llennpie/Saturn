@@ -1,13 +1,14 @@
-# Saturn
+# LMG64 Saturn
 
 - **Saturn** is an all-in-one machinima studio for *Super Mario 64*, based on [the PC port](https://github.com/sm64pc/sm64ex).
 - *In order to download or compile the editor, a prior copy of the game is required. This is to avoid including any copyrighted material.*
+This version of Saturn is trying to be an improved experience. I hightly recommend downloading the [original.](https://github.com/Llennpie/Saturn/releases/latest)
 
 ![image](https://github.com/Llennpie/Saturn/assets/44985633/e671b48a-e1c3-446a-9cff-0c76f49d069a)
 
 ### Download
 
-- You can download the latest version from the [Releases](https://github.com/Llennpie/Saturn/releases/latest) page!
+- You can download the latest version from the [Releases](https://github.com/CreepaTate/LMG64-Saturn/releases/latest) page!
 
 ### Features
 
@@ -31,7 +32,7 @@
 ```
 
 - For advanced compilation instructions, please refer to the [Wiki](https://github.com/Llennpie/Saturn/wiki).
-- Also join the [Discord](https://discord.gg/rGqREG2kYv) for news, model releases, support and more!
+- Also join Llennpie's [Discord](https://discord.gg/rGqREG2kYv) for news, model releases, support and more!
 
 ---
 
