@@ -291,7 +291,7 @@ bool saturn_anim_scan_folder_inner(struct AnimEntry* parent, std::filesystem::pa
     for (const auto& entry : std::filesystem::directory_iterator(path)) {
         struct AnimEntry file;
         file.display_name = entry.path().filename().string();
-        file.full_path = path / file.display_name;
+        file.full_path = (path / file.display_name).string();
         bool do_add = true;
         if (entry.is_directory()) do_add = saturn_anim_scan_folder_inner(&file, entry.path());
         if (do_add) {
