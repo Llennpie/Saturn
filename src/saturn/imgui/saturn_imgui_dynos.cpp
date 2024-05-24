@@ -415,7 +415,7 @@ void sdynos_imgui_menu() {
                 if (mario_exists) {
                     ImGui::Dummy(ImVec2(0, 5));
                     ImGui::Text("Position");
-                    ImGui::InputFloat3("###mario_set_pos", (float*)&gMarioState->pos);
+                    ImGui::DragFloat3("###mario_set_pos", (float*)&gMarioState->pos);
                     if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_mario")) {
                         vec3f_copy(stored_mario_pos, gMarioState->pos);
                         vec3s_copy(stored_mario_angle, gMarioState->faceAngle);
