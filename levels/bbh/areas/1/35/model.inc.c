@@ -995,6 +995,7 @@ static const Gfx bbh_seg7_dl_0701E430[] = {
 };
 
 // 0x0701E4B0 - 0x0701E4E0
+// why the fuck does this even exist
 static const Gfx bbh_seg7_dl_0701E4B0[] = {
     gsSPLight(&bbh_seg7_lights_0701B838.l, 1),
     gsSPLight(&bbh_seg7_lights_0701B838.a, 2),
@@ -1033,7 +1034,7 @@ const Gfx bbh_seg7_dl_0701E4E0[] = {
     gsSPTexture(0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_OFF),
     gsDPPipeSync(),
     gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
-    gsSPDisplayList(bbh_seg7_dl_0701E4B0),
+    //gsSPDisplayList(bbh_seg7_dl_0701E4B0),
     gsSPSetGeometryMode(G_SHADING_SMOOTH),
     gsSPEndDisplayList(),
 };
