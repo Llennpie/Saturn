@@ -36,6 +36,7 @@
 #include "pc/configfile.h"
 #include "pc/cheats.h"
 #include "saturn/saturn.h"
+#include "obj_behaviors.h"
 #ifdef BETTERCAMERA
 #include "bettercamera.h"
 #endif
@@ -1436,6 +1437,8 @@ void update_mario_geometry_inputs(struct MarioState *m) {
     }
 }
 
+int explosion_coins = 1;
+
 /**
  * Handles Mario's input flags as well as a couple timers.
  */
@@ -1461,13 +1464,13 @@ void update_mario_inputs(struct MarioState *m) {
                 m->action = ACT_JUMP;
             }
         }
-    }/* else {
+    } else if (configMarioExplode) {
         if (gPlayer1Controller->buttonDown & L_TRIG) {
             spawn_object(m->marioObj, MODEL_EXPLOSION, bhvExplosion);
-            obj_spawn_yellow_coins(m->marioObj, 100);
+            obj_spawn_yellow_coins(m->marioObj, explosion_coins);
             obj_mark_for_deletion(m->marioObj);
         }
-    }*/
+    }
 
     if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
         if (m->action & ACT_FLAG_ALLOW_FIRST_PERSON) {

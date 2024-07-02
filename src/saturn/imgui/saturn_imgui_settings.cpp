@@ -148,6 +148,8 @@ int current_texture_id = -1;
 
 extern void split_skyboxes();
 
+extern int explosion_coins;
+
 void ssettings_imgui_update() {
     std::vector<const char*> theme_names = {};
     for (int i = 0; i < theme_list.size(); i++) {
@@ -346,6 +348,9 @@ void ssettings_imgui_update() {
         imgui_bundled_tooltip("Makes it so you have non-water controls in water.");
         ImGui::Checkbox("Disable Neck Breaks", &configCUpLimit);
         imgui_bundled_tooltip("Limits the C-Up head rotations, just like in vanilla.\nMario's neck will be happy.");
+        ImGui::Checkbox("Explode Mario with Left Trigger", &configMarioExplode);
+        imgui_bundled_tooltip("Makes Mario explode when you press the left trigger.");
+        ImGui::SliderInt("Coins", &explosion_coins, 0, 100);
     }
     if (ImGui::CollapsingHeader("Editor###editor_settings")) {
         ImGui::Checkbox("Show tooltips", &configEditorShowTips);

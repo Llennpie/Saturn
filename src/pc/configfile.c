@@ -108,6 +108,7 @@ bool         configNoWater = false;
 bool         configCUpLimit = false;
 bool         configEnableCli = false;
 bool         configUnstableFeatures = false;
+bool         configMarioExplode = false;
 unsigned int configEditorThemeJson = 0x00384A4E; // hash of the "moon" string
 unsigned int configEditorTextures = 0;
 float        camera_fov = 50.0f;
@@ -194,6 +195,7 @@ static const struct ConfigOption options[] = {
     {.name = "editor_theme_json", .type = CONFIG_TYPE_UINT, .uintValue = &configEditorThemeJson},
     {.name = "editor_textures", .type = CONFIG_TYPE_UINT, .uintValue = &configEditorTextures},
     {.name = "unstable_features", .type = CONFIG_TYPE_UINT, .boolValue = &configUnstableFeatures},
+    {.name = "explode_mario_cheat_code", .type = CONFIG_TYPE_BOOL, .boolValue = &configMarioExplode},
     {.name = "default_fov", .type = CONFIG_TYPE_FLOAT, .floatValue = &camera_fov},
     #ifdef BETTERCAMERA
     {.name = "bettercam_enable",     .type = CONFIG_TYPE_BOOL, .boolValue = &configEnableCamera},
