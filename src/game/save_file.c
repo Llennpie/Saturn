@@ -379,6 +379,15 @@ void save_file_erase(s32 fileIndex) {
 
     touch_high_score_ages(fileIndex);
     bzero(&gSaveBuffer.files[fileIndex][0], sizeof(gSaveBuffer.files[fileIndex][0]));
+    gSaveBuffer.files[fileIndex][0].flags = SAVE_FLAG_EVERYTHING;
+    for (int i = 0; i < COURSE_COUNT; i++) {
+        gSaveBuffer.files[fileIndex][0].courseStars[i] = 0xFF;
+    }
+    save_file_clear_flags(SAVE_FLAG_CAP_ON_GROUND);
+    save_file_clear_flags(SAVE_FLAG_CAP_ON_KLEPTO);
+    save_file_clear_flags(SAVE_FLAG_CAP_ON_UKIKI);
+    save_file_clear_flags(SAVE_FLAG_CAP_ON_MR_BLIZZARD);
+    save_file_clear_flags(SAVE_FLAG_TALKED_TO_ALL_TOADS);
 
     gSaveFileModified = TRUE;
     save_file_do_save(fileIndex);

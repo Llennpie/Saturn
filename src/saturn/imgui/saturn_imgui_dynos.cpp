@@ -41,6 +41,7 @@ extern "C" {
 #include <mario_animation_ids.h>
 #include "pc/cheats.h"
 #include "include/sm64.h"
+#include "game/sound_init.h"
 }
 
 Array<PackData *> &sDynosPacks = DynOS_Gfx_GetPacks();
@@ -339,6 +340,23 @@ void sdynos_imgui_menu() {
                 ImGui::Combo("Cap###cap_state", &scrollCapState, caps, IM_ARRAYSIZE(caps));
                 const char* powerups[] = { "Default", "Metal", "Vanish", "Metal & Vanish" };
                 ImGui::Combo("Powerup###powerup_state", &saturnModelState, powerups, IM_ARRAYSIZE(powerups));
+                bool wing_cap = gMarioState->flags & MARIO_WING_CAP;
+                if (ImGui::Checkbox("Wing Cap", &wing_cap)) {
+                    if (wing_cap) {
+                        gMarioState->capTimer = 1800;
+                        gMarioState->flags |= MARIO_WING_CAP;
+                    }
+                    else {
+                        gMarioState->capTimer = 0;
+                        gMarioState->flags &= ~MARIO_WING_CAP;
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Clear Cap State")) {
+                    gMarioState->capTimer = 0;
+                    gMarioState->flags &= ~(MARIO_WING_CAP | MARIO_METAL_CAP | MARIO_VANISH_CAP);
+                    stop_cap_music();
+                }
                 if (AnyModelsEnabled()) ImGui::BeginDisabled();
                 ImGui::Checkbox("M Cap Emblem", &show_vmario_emblem);
                 imgui_bundled_tooltip("Enables the signature \"M\" logo on Mario's cap.");
