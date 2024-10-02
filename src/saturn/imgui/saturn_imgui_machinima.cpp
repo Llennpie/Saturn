@@ -7,11 +7,13 @@
 #include <map>
 #include <fstream>
 
+#include "engine/graph_node.h"
 #include "saturn/libs/imgui/imgui.h"
 #include "saturn/libs/imgui/imgui_internal.h"
 #include "saturn/libs/imgui/imgui_impl_sdl.h"
 #include "saturn/libs/imgui/imgui_impl_opengl3.h"
 #include "saturn/saturn.h"
+#include "saturn/saturn_models.h"
 #include "saturn/saturn_textures.h"
 #include "saturn/saturn_animation_ids.h"
 #include "saturn/saturn_animations.h"
@@ -42,7 +44,7 @@ extern "C" {
 #include "src/game/interaction.h"
 #include "include/behavior_data.h"
 #include "game/object_helpers.h"
-#include "game/custom_level.h"
+#include "engine/surface_load.h"
 }
 
 using namespace std;
@@ -191,92 +193,92 @@ int get_saturn_level_id(int level) {
     }
 }
 
-std::vector<std::string> split(std::string input, char character) {
-    std::vector<std::string> tokens = {};
-    std::string token = "";
-    for (int i = 0; i < input.length(); i++) {
-        if (input[i] == '\r') continue;
-        if (input[i] == character) {
-            tokens.push_back(token);
-            token = "";
-        }
-        else token += input[i];
+bool override_level = false;
+bool custom_level_loaded = false;
+struct GraphNode* override_level_geolayout;
+Collision* override_level_collision;
+
+Gfx* geo_switch_override_model(s32 callContext, struct GraphNode *node, UNUSED Mat4 *mtx) {
+    struct GraphNodeSwitchCase* switchCase = (struct GraphNodeSwitchCase*)node;
+    if (callContext == GEO_CONTEXT_RENDER) {
+        switchCase->selectedCase = override_level && override_level_geolayout;
     }
-    tokens.push_back(token);
-    return tokens;
-}
-std::vector<std::vector<std::string>> tokenize(std::string input) {
-    std::vector<std::vector<std::string>> tokens = {};
-    auto lines = split(input, '\n');
-    for (auto line : lines) {
-        tokens.push_back(split(line, ' '));
-    }
-    return tokens;
+    return NULL;
 }
 
-int textureIndex = 0;
-std::filesystem::path customlvl_texdir = std::filesystem::path(sys_user_path()) / "res" / "gfx" / "customlevel";
-bool custom_level_flip_normals = false;
-
-void parse_materials(char* data, std::map<std::string, filesystem::path>* materials) {
-    auto tokens = tokenize(std::string(data));
-    std::string matname = "";
-    for (auto line : tokens) {
-        if (line[0] == "newmtl") matname = line[1];
-        if (line[0] == "map_Kd" && matname != "") {
-            std::string path = std::to_string(textureIndex++) + ".png";
-            std::filesystem::path raw = std::filesystem::path(line[1]);
-            std::filesystem::path src = raw.is_absolute() ? raw : std::filesystem::path(custom_level_path).parent_path() / raw;
-            std::filesystem::path dst = customlvl_texdir / path;
-            std::filesystem::remove(dst);
-            std::filesystem::copy_file(src, dst);
-            materials->insert({ matname, "customlevel/" + path });
+#define C0(pos, width) ((dl->words.w0 >> (pos)) & ((1U << width) - 1))
+#define C1(pos, width) ((dl->words.w1 >> (pos)) & ((1U << width) - 1))
+void append_collision_data(Gfx* dl, int* cur, int* nvt, std::map<void*, int>* off, std::vector<float>* vtx, std::vector<int>* tri) {
+    bool running = true;
+    while (running) {
+        int opcode = dl->words.w0 >> 24;
+        switch (opcode) {
+            case G_DL: {
+                append_collision_data((Gfx*)dl->words.w1, cur, nvt, off, vtx, tri);
+            } break;
+            case G_VTX: {
+                Vtx* verts = (Vtx*)dl->words.w1;
+                if (off->find(verts) == off->end()) {
+                    off->insert({ verts, *nvt });
+                    int num = C0(12, 8);
+                    *nvt += num;
+                    for (int i = 0; i < num; i++) {
+                        vtx->push_back(verts[i].v.ob[0]);
+                        vtx->push_back(verts[i].v.ob[1]);
+                        vtx->push_back(verts[i].v.ob[2]);
+                    }
+                }
+                *cur = (*off)[verts];
+            } break;
+            case G_TRI1: {
+                tri->push_back(C0(16, 8) / 2 + *cur);
+                tri->push_back(C0( 8, 8) / 2 + *cur);
+                tri->push_back(C0( 0, 8) / 2 + *cur);
+            } break;
+            case G_TRI2: {
+                tri->push_back(C0(16, 8) / 2 + *cur);
+                tri->push_back(C0( 8, 8) / 2 + *cur);
+                tri->push_back(C0( 0, 8) / 2 + *cur);
+                tri->push_back(C1(16, 8) / 2 + *cur);
+                tri->push_back(C1( 8, 8) / 2 + *cur);
+                tri->push_back(C1( 0, 8) / 2 + *cur);
+            } break;
+            case G_ENDDL: {
+                running = false;
+            } break;
         }
+        dl++;
     }
 }
 
-void parse_custom_level(char* data) {
-    auto tokens = tokenize(std::string(data));
-    textureIndex = 0;
-    if (std::filesystem::exists(customlvl_texdir)) std::filesystem::remove_all(customlvl_texdir);
-    std::filesystem::create_directories(customlvl_texdir);
-    custom_level_new();
-    std::vector<std::array<float, 3>> vertices = {};
-    std::vector<std::array<float, 2>> uv = {};
-    std::map<std::string, filesystem::path> materials = {};
-    for (auto line : tokens) {
-        if (line.size() == 0) continue;
-        if (line[0] == "mtllib") {
-            filesystem::path path = filesystem::absolute(std::filesystem::path(custom_level_dirname) / line[1]);
-            if (!filesystem::exists(path)) continue;
-            auto size = filesystem::file_size(path);
-            char* mtldata = (char*)malloc(size);
-            std::ifstream file = std::ifstream(path, std::ios::binary);
-            file.read(mtldata, size);
-            parse_materials(mtldata, &materials);
-            free(mtldata);
+Collision* create_collision_mesh(struct GraphNode* node) {
+    if (node == NULL) return NULL;
+    if (node->type == GRAPH_NODE_TYPE_DISPLAY_LIST) {
+        struct GraphNodeDisplayList* dlnode = (struct GraphNodeDisplayList*)node;
+        Gfx* dl = (Gfx*)dlnode->displayList;
+        std::vector<float>   vtx = {};
+        std::vector<int>     tri = {};
+        std::map<void*, int> off = {};
+        int                  nvt = 0;
+        int                  cur = 0;
+        append_collision_data(dl, &cur, &nvt, &off, &vtx, &tri);
+        Collision* coll = (Collision*)malloc(sizeof(s16) * (6 + vtx.size() + tri.size()));
+        int ptr = 0;
+        coll[ptr++] = TERRAIN_LOAD_VERTICES;
+        coll[ptr++] = vtx.size() / 3;
+        for (int i = 0; i < vtx.size(); i++) {
+            coll[ptr++] = vtx[i];
         }
-        if (line[0] == "v") vertices.push_back({ std::stof(line[1]), std::stof(line[2]), std::stof(line[3]) });
-        if (line[0] == "vt") uv.push_back({ std::stof(line[1]), std::stof(line[2]) });
-        if (line[0] == "usemtl") {
-            if (materials.find(line[1]) == materials.end()) continue; 
-            custom_level_texture((char*)materials[line[1]].c_str());
+        coll[ptr++] = SURFACE_DEFAULT;
+        coll[ptr++] = tri.size() / 3;
+        for (int i = 0; i < tri.size(); i++) {
+            coll[ptr++] = tri[i];
         }
-        if (line[0] == "f") {
-            for (int i = 1; i < line.size(); i++) {
-                int idx = i;
-                if      (custom_level_flip_normals && idx == 1) idx = 3;
-                else if (custom_level_flip_normals && idx == 3) idx = 1;
-                auto indexes = split(line[idx], '/');
-                int v = std::stoi(indexes[0]) - 1;
-                int vt = std::stoi(indexes[1]) - 1;
-                custom_level_vertex(vertices[v][0] * custom_level_scale, vertices[v][1] * custom_level_scale, vertices[v][2] * custom_level_scale, uv[vt][0] * 1024, uv[vt][1] * 1024);
-            }
-            custom_level_face();
-        }
+        coll[ptr++] = TERRAIN_LOAD_CONTINUE;
+        coll[ptr++] = TERRAIN_LOAD_END;
+        return coll;
     }
-    gfx_precache_textures();
-    custom_level_finish();
+    return create_collision_mesh(node->children);
 }
 
 struct AnimEntry {
@@ -351,6 +353,45 @@ void imgui_machinima_quick_options() {
             warp_to_level(current_slevel_index, current_slevel_index == 0 ? (s32)currentChromaArea : 1, -1);
             // Erase existing timelines
             k_frame_keys.clear();
+        }
+
+        if (gCurrLevelNum == LEVEL_SA) {
+            if (ImGui::Checkbox("Load Level Model", &override_level)) {
+                gCurrentArea->terrainData = 
+                    override_level && override_level_collision ?
+                        override_level_collision :
+                        gAreas[gCurrAreaIndex].terrainDataOrig;
+                load_area_terrain(gCurrAreaIndex, gCurrentArea->terrainData, gCurrentArea->surfaceRooms, NULL);
+            }
+            if (override_level) {
+                Array<PackData*>& sDynosPacks = DynOS_Gfx_GetPacks();
+                ImGui::BeginChild("##level_model_select", ImVec2(0, 120), true);
+                for (Model& model : model_list) {
+                    if (model.Type != "level") continue;
+                    GfxData* gfx = DynOS_Gfx_LoadFromBinary(sDynosPacks[model.DynOSId]->mPath, "mario_geo");
+                    GraphNode* geo = (GraphNode*)DynOS_Geo_GetGraphNode((*(gfx->mGeoLayouts.end() - 1))->mData, true);
+                    bool selected = geo == override_level_geolayout;
+                    if (ImGui::Selectable(model.Name.c_str(), selected)) {
+                        if (override_level_collision) {
+                            free(override_level_collision);
+                            override_level_collision = NULL;
+                        }
+                        override_level_geolayout = geo;
+                        override_level_collision = create_collision_mesh(geo);
+                        gCurrentArea->terrainData = override_level_collision;
+                        load_area_terrain(gCurrAreaIndex, gCurrentArea->terrainData, gCurrentArea->surfaceRooms, NULL);
+                    }
+                    if (ImGui::IsItemHovered()) {
+                        ImGui::BeginTooltip();
+                        ImGui::TextDisabled("%s - by", model.Version.c_str());
+                        ImGui::SameLine();
+                        ImGui::Text("%s", model.Author.c_str());
+                        ImGui::Text("%s", model.Description.c_str());
+                        ImGui::EndTooltip();
+                    }
+                }
+                ImGui::EndChild();
+            }
         }
 
         auto locations = saturn_get_locations();
@@ -464,38 +505,6 @@ void imgui_machinima_quick_options() {
             }
             ImGui::EndMenu();
         }
-    }
-
-    UNSTABLE
-    if (ImGui::BeginMenu("(!) Custom Level")) {
-        bool in_custom_level = gCurrLevelNum == LEVEL_SA && gCurrAreaIndex == 3;
-        ImGui::PushItemWidth(80);
-        ImGui::InputFloat("Scale###cl_scale", &custom_level_scale);
-        ImGui::PopItemWidth();
-        if (!is_custom_level_loaded || in_custom_level) ImGui::BeginDisabled();
-        if (ImGui::Button("Load Level")) {
-            auto size = filesystem::file_size(custom_level_path);
-            char* data = (char*)malloc(size);
-            std::ifstream file = std::ifstream((char*)custom_level_path.c_str(), std::ios::binary);
-            file.read(data, size);
-            parse_custom_level(data);
-            free(data);
-            warp_to_level(0, 3);
-        }
-        if (!is_custom_level_loaded || in_custom_level) ImGui::EndDisabled();
-        ImGui::SameLine();
-        if (ImGui::Button("Load .obj")) {
-            auto selection = choose_file_dialog("Select a model", { "Wavefront Model (.obj)", "*.obj", "All Files", "*" }, false);
-            if (selection.size() != 0) {
-                filesystem::path path = selection[0];
-                is_custom_level_loaded = true;
-                custom_level_path = path.string();
-                custom_level_dirname = path.parent_path().string();
-                custom_level_filename = path.filename().string();
-            }
-        }
-        ImGui::Text(is_custom_level_loaded ? custom_level_filename.c_str() : "No model loaded!");
-        ImGui::EndMenu();
     }
 }
 

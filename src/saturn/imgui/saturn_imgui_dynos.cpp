@@ -154,6 +154,7 @@ void OpenModelSelector() {
         ImGui::BeginChild("###menu_model_selector", ImVec2(-FLT_MIN, 125), true);
         for (int i = 0; i < model_list.size(); i++) {
             Model model = model_list[i];
+            if (model.Type != "mario") continue;
             if (model.Active) {
                 bool is_selected = DynOS_Opt_GetValue(String("dynos_pack_%d", i));
 

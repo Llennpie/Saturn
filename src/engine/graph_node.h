@@ -369,10 +369,15 @@ extern struct GraphNodeCamera *gCurGraphNodeCamera;
 extern struct GraphNodeHeldObject *gCurGraphNodeHeldObject;
 extern u16 gAreaUpdateCounter;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern struct GraphNode *gCurRootGraphNode;
 extern struct GraphNode *gCurGraphNodeList[];
-
 extern s16 gCurGraphNodeIndex;
+#ifdef __cplusplus
+}
+#endif
 
 extern Vec3f gVec3fZero;
 extern Vec3s gVec3sZero;

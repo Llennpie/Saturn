@@ -612,6 +612,7 @@ static void level_cmd_set_terrain_data(void) {
         data = segmented_to_virtual(CMD_GET(void *, 4));
         size = get_area_terrain_size(data) * sizeof(Collision);
         gAreas[sCurrAreaIndex].terrainData = alloc_only_pool_alloc(sLevelPool, size);
+        gAreas[sCurrAreaIndex].terrainDataOrig = gAreas[sCurrAreaIndex].terrainData;
         memcpy(gAreas[sCurrAreaIndex].terrainData, data, size);
     }
     sCurrentCmd = CMD_NEXT;

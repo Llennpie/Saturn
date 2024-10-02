@@ -24,6 +24,7 @@ class Model {
         std::string Author;
         std::string Version = "1.0.0"; // String, so version format can be anything
         std::string Description;
+        std::string Type = "mario";
 
         // Expressions
         std::vector<Expression> Expressions;

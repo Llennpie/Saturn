@@ -98,6 +98,8 @@ Model LoadModelData(std::string folderPath) {
             model.Name = root["name"].asString();
             model.Author = root["author"].asString();
             model.Version = root["version"].asString();
+            if (root.isMember("type")) model.Type = root["type"].asString();
+            std::transform(model.Type.begin(), model.Type.end(), model.Type.begin(), [](unsigned char c){ return std::tolower(c); });
             
             // Description (optional)
             if (root.isMember("description")) {

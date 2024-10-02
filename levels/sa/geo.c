@@ -9,6 +9,8 @@
 #include "game/screen_transition.h"
 #include "game/paintings.h"
 
+#include "saturn/imgui/saturn_imgui_machinima.h"
+
 #include "make_const_nonconst.h"
 
 #include "levels/sa/header.h"
