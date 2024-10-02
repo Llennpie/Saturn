@@ -513,6 +513,14 @@ static void import_texture_ci8(int tile) {
 void load_texture(const char *fullpath) {
     int w, h;
     uint64_t imgsize = 0;
+    
+
+    extern char* ModelTextureGet(char* id, int* w, int* h);
+    char* model_data = ModelTextureGet(fullpath, &w, &h);
+    if (model_data) {
+        gfx_rapi->upload_texture(model_data, w, h);
+        return;
+    }
 
     u8 *imgdata = fs_load_file(fullpath, &imgsize);
     if (imgdata) {

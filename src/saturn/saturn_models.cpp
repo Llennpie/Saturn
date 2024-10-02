@@ -165,3 +165,49 @@ Model LoadModelData(std::string folderPath) {
     }
     return model;
 }
+
+struct ModelTexture {
+    struct ModelTexture* next;
+    char* id;
+    char* data;
+    int w, h;
+};
+struct ModelTexture* gModelTextureList;
+
+void ModelTextureAdd(char* id, char* data, int w, int h) {
+    struct ModelTexture* curr = gModelTextureList;
+    while (curr) {
+        if (strcmp(curr->id, id) == 0) return;
+        curr = curr->next;
+    }
+    struct ModelTexture* tex = (struct ModelTexture*)malloc(sizeof(struct ModelTexture));
+    int texid_len = strlen(id) + 1;
+    char* texid = (char*)malloc(texid_len);
+    char* texdata = (char*)malloc(w * h * 4);
+    memcpy(texid, id, texid_len);
+    memcpy(texdata, data, w * h * 4);
+    tex->w = w;
+    tex->h = h;
+    tex->id = texid;
+    tex->data = texdata;
+    tex->next = nullptr;
+    if (gModelTextureList) {
+        struct ModelTexture* prev = gModelTextureList;
+        while (prev->next) prev = prev->next;
+        prev->next = tex;
+    }
+    else gModelTextureList = tex;
+}
+
+extern "C" char* ModelTextureGet(char* id, int* w, int* h) {
+    struct ModelTexture* curr = gModelTextureList;
+    while (curr) {
+        if (strcmp(curr->id, id) == 0) {
+            *w = curr->w;
+            *h = curr->h;
+            return curr->data;
+        }
+        curr = curr->next;
+    }
+    return nullptr;
+}
