@@ -815,8 +815,24 @@ void saturn_imgui_update() {
                         camera_savestate_mult = 0.f;
                         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
                         ImGui::BeginChild("###model_metadata", ImVec2(200, 90), true, ImGuiWindowFlags_NoScrollbar);
-                        ImGui::TextDisabled("pos %.f, %.f, %.f", gCamera->pos[0], gCamera->pos[1], gCamera->pos[2]);
-                        ImGui::TextDisabled("foc %.f, %.f, %.f", gCamera->focus[0], gCamera->focus[1], gCamera->focus[2]);
+                        float dist;
+                        s16 yaw, pitch;
+                        vec3f_get_dist_and_angle(gCamera->pos, gCamera->focus, &dist, &pitch, &yaw);
+                        float rot[] = { (float)yaw, (float)pitch, (float)gLakituState.roll };
+                        ImGui::PushItemWidth(200);
+                        ImGui::DragFloat3("pos", gCamera->pos, 5.f);
+                        ImGui::DragFloat3("rot", rot, 128.f);
+                        ImGui::PopItemWidth();
+                        yaw = rot[0];
+                        pitch = rot[1];
+                        gLakituState.roll = rot[2];
+                        vec3f_set_dist_and_angle(gCamera->pos, gCamera->focus, dist, pitch, yaw);
+                        vec3f_copy(gLakituState.pos, gCamera->pos);
+                        vec3f_copy(gLakituState.focus, gCamera->focus);
+                        vec3f_copy(gLakituState.goalPos, gCamera->pos);
+                        vec3f_copy(gLakituState.goalFocus, gCamera->focus);
+                        gCamera->yaw = calculate_yaw(gCamera->focus, gCamera->pos);
+                        gLakituState.yaw = gCamera->yaw;
                         if (ImGui::Button(ICON_FK_FILES_O " Copy###copy_camera")) {
                             saturn_copy_camera(copy_relative);
                             if (copy_relative) saturn_paste_camera();
