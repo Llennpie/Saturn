@@ -5,7 +5,8 @@
 
 default: all
 
-ifeq ($(shell ./pcbuilder.sh || echo FAIL))
+PCBUILDER_CHECK = $(shell ./pcbuilder.sh || echo FAIL)
+ifeq ($(PCBUILDER_CHECK),FAIL)
 	$(error Terminated)
 endif
 
