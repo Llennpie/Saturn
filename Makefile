@@ -5,6 +5,10 @@
 
 default: all
 
+ifeq ($(shell ./pcbuilder.sh || echo FAIL))
+	$(error Terminated)
+endif
+
 ### Build Options ###
 
 # These options can either be changed by modifying the makefile, or
