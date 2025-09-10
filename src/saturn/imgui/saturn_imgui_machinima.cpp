@@ -158,8 +158,8 @@ void warp_to_level(int level, int area, int act = -1) {
     is_anim_paused = false;
     enable_time_freeze = false;
 
-    if (level != 0) enable_shadows = true;
-    else enable_shadows = false;
+    if (level != 0) configShadows = true;
+    else configShadows = false;
 
     s32 levelID = levelList[level];
     s32 warpnode = 0x0A;
@@ -433,7 +433,7 @@ void imgui_machinima_quick_options() {
     ImGui::Checkbox("HUD", &configHUD);
     imgui_bundled_tooltip("Controls the in-game HUD visibility.");
     saturn_keyframe_popout("k_hud");
-    ImGui::Checkbox("Shadows", &enable_shadows);
+    ImGui::Checkbox("Shadows", &configShadows);
     imgui_bundled_tooltip("Displays the shadows of various objects.");
     saturn_keyframe_popout("k_shadows");
     ImGui::Checkbox("Invulnerability", (bool*)&enable_immunity);

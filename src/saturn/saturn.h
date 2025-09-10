@@ -28,8 +28,6 @@ extern int camera_view_move_y;
 extern int current_eye_state;
 
 extern bool enable_head_rotations;
-extern bool enable_shadows;
-extern bool enable_dust_particles;
 extern bool enable_torso_rotation;
 extern float run_speed;
 extern bool can_fall_asleep;

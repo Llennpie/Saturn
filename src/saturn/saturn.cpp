@@ -44,8 +44,6 @@ int camera_view_move_x;
 int camera_view_move_y;
 
 bool enable_head_rotations = false;
-bool enable_shadows = false;
-bool enable_dust_particles = false;
 bool enable_torso_rotation = true;
 float run_speed = 127.0f;
 bool can_fall_asleep = false;
@@ -290,18 +288,18 @@ void saturn_update() {
     //if (gCurrLevelNum == LEVEL_SA && !is_chroma_keying) {
         //is_chroma_keying = true;
         // Called once when entering Chroma Key Stage
-        //prev_quicks[0] = enable_shadows;
-        //prev_quicks[1] = enable_dust_particles;
+        //prev_quicks[0] = configShadows;
+        //prev_quicks[1] = configDustParticles;
         //prev_quicks[2] = configHUD;
-        //enable_shadows = false;
-        //enable_dust_particles = false;
+        //configShadows = false;
+        //configDustParticles = false;
         //configHUD = false;
     //}
     if (gCurrLevelNum != LEVEL_SA && !autoChroma) {
         if (!is_chroma_keying) is_chroma_keying = false;
         // Called once when exiting Chroma Key Stage
-        //enable_shadows = prev_quicks[0];
-        //enable_dust_particles = prev_quicks[1];
+        //configShadows = prev_quicks[0];
+        //configDustParticles = prev_quicks[1];
         //configHUD = prev_quicks[2];
     }
 

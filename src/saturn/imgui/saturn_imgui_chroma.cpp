@@ -113,9 +113,9 @@ void schroma_imgui_update() {
 
     ImGui::Dummy(ImVec2(0, 5));
 
-    ImGui::Checkbox("Shadows###chroma_shadows", &enable_shadows);
+    ImGui::Checkbox("Shadows###chroma_shadows", &configShadows);
     saturn_keyframe_popout("k_shadows");
-    ImGui::Checkbox("Dust Particles###chroma_dust", &enable_dust_particles);
+    ImGui::Checkbox("Dust Particles###chroma_dust", &configDustParticles);
     imgui_bundled_tooltip("Displays dust particles when Mario moves; Better to leave off when chroma keying.");
     
     const char* mEnvSettings[] = { "Default", "None", "Snow", "Blizzard" };

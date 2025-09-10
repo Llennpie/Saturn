@@ -443,7 +443,7 @@ void sdynos_imgui_menu() {
         if (ImGui::BeginTable("misc_table", 2)) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
-            ImGui::Checkbox("Dust Particles", &enable_dust_particles);
+            ImGui::Checkbox("Dust Particles", &configDustParticles);
             imgui_bundled_tooltip("Displays dust particles when Mario moves.");
             ImGui::Checkbox("Torso Rotations", &enable_torso_rotation);
             imgui_bundled_tooltip("Tilts Mario's torso when he moves; Disable for a \"beta running\" effect.");

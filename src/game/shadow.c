@@ -13,6 +13,7 @@
 #include "shadow.h"
 #include "sm64.h"
 #include "saturn/saturn.h"
+#include "pc/configfile.h"
 
 // Avoid Z-fighting
 #define find_floor_height_and_data 0.4 + find_floor_height_and_data
@@ -853,7 +854,7 @@ Gfx *create_shadow_hardcoded_rectangle(f32 xPos, f32 yPos, f32 zPos, UNUSED s16 
 Gfx *create_shadow_below_xyz(f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, u8 shadowSolidity,
                              s8 shadowType) {
     
-    if (!enable_shadows) {
+    if (!configShadows) {
         return NULL;
     }
     

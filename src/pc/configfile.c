@@ -132,6 +132,9 @@ bool         configDiscordRPC    = false;
 #endif
 unsigned int configAutosaveDelay = 60; // seconds
 
+bool configDustParticles = false;
+bool configShadows = false;
+
 static const struct ConfigOption options[] = {
     {.name = "fullscreen",           .type = CONFIG_TYPE_BOOL, .boolValue = &configWindow.fullscreen},
     {.name = "window_x",             .type = CONFIG_TYPE_UINT, .uintValue = &configWindow.x},
@@ -168,6 +171,8 @@ static const struct ConfigOption options[] = {
     #ifdef EXTERNAL_DATA
     {.name = "precache",             .type = CONFIG_TYPE_BOOL, .boolValue = &configPrecacheRes},
     #endif
+    {.name = "dust_particles",       .type = CONFIG_TYPE_BOOL, .boolValue = &configDustParticles},
+    {.name = "shadows",              .type = CONFIG_TYPE_BOOL, .boolValue = &configShadows},
     {.name = "key_freeze",           .type = CONFIG_TYPE_BIND, .uintValue = configKeyFreeze},
     {.name = "key_anim_play",        .type = CONFIG_TYPE_BIND, .uintValue = configKeyPlayAnim},
     {.name = "key_anim_pause",       .type = CONFIG_TYPE_BIND, .uintValue = configKeyLoopAnim},

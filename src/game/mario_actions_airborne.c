@@ -1708,7 +1708,7 @@ s32 act_shot_from_cannon(struct MarioState *m) {
     }
 
     if (m->vel[1] > 0.0f) {
-        if (enable_dust_particles)
+        if (configDustParticles)
             m->particleFlags |= PARTICLE_DUST;
     }
 
@@ -1869,7 +1869,7 @@ s32 act_flying(struct MarioState *m) {
     }
 
     if (m->faceAngle[0] > 0x800 && m->forwardVel >= 48.0f) {
-        if (enable_dust_particles)
+        if (configDustParticles)
             m->particleFlags |= PARTICLE_DUST;
     }
 

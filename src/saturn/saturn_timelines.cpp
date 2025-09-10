@@ -1,5 +1,6 @@
 #include "saturn/saturn_timelines.h"
 #include "saturn/saturn.h"
+#include "pc/configfile.h"
 
 #define DEFAULT 0
 #define FORCE_WAIT 1
@@ -17,7 +18,7 @@ std::map<std::string, std::tuple<void*, KeyframeType, char, std::string, int, in
 // { id, { variable_ptr, type, behavior, name, precision, num_values } }
 void saturn_fill_data_table() {
     SATURN_KFENTRY_BOOL("k_skybox_mode", use_color_background, "Skybox Mode");
-    SATURN_KFENTRY_BOOL("k_shadows", enable_shadows, "Shadows");
+    SATURN_KFENTRY_BOOL("k_shadows", configShadows, "Shadows");
     SATURN_KFENTRY_FLOAT("k_shade_x", world_light_dir1, "Mario Shade X");
     SATURN_KFENTRY_FLOAT("k_shade_y", world_light_dir2, "Mario Shade Y");
     SATURN_KFENTRY_FLOAT("k_shade_z", world_light_dir3, "Mario Shade Z");
