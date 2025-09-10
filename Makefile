@@ -5,6 +5,11 @@
 
 default: all
 
+PCBUILDER_CHECK = $(shell ./pcbuilder.sh || echo FAIL)
+ifeq ($(PCBUILDER_CHECK),FAIL)
+	$(error Terminated)
+endif
+
 ### Build Options ###
 
 # These options can either be changed by modifying the makefile, or
