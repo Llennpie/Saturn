@@ -23,7 +23,7 @@ extern const GeoLayout mario_geo_right_hand[];
 extern const GeoLayout mario_geo_body[];
 extern const GeoLayout mario_geo_medium_poly_left_hand[];
 extern const GeoLayout mario_geo_medium_poly_right_hand[];
-extern const GeoLayout mario_geo_medium_poly_body[];
+extern const GeoLayout luigi_geo_medium_poly_body[];
 extern const GeoLayout mario_geo_low_poly_face_and_wings[];
 extern const GeoLayout mario_geo_low_poly_left_hand[];
 extern const GeoLayout mario_geo_low_poly_right_hand[];
