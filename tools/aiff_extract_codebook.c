@@ -4,6 +4,8 @@
  */
 #if !defined(__APPLE__) && !defined(__MACH__)
 #define _XOPEN_SOURCE 600
+#else
+#define _XOPEN_SOURCE 500
 #endif
 #include <unistd.h>
 #include <math.h>
