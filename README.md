@@ -43,4 +43,4 @@ This was not tested on intel based mac but it probably works
 
 Support developer behind saturn legacy
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J05B5WR)
+[![ko-fi](https://ko-fi.com/J3J05B5WR)
