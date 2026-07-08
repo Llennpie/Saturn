@@ -26,6 +26,7 @@
 ...and more!
 ```
 This fork basically changed lines in some files to make saturn compilable for macOS.
+
 You will not have discord integration with this fork
 Heres how to compile saturn for mac:
 1. git clone https://github.com/Pracargithub/Saturn-macOSfix
