@@ -2,7 +2,7 @@
  * Create an ADPCM codebook either by extracting it from an AIFF section, or
  * by executing tabledesign.
  */
-#if !defined(__APPLE__) && !defined(__MACH__)
+#if defined(__APPLE_) || defined(__MACH__)
 #define _XOPEN_SOURCE 600
 #else
 #define _XOPEN_SOURCE 500
