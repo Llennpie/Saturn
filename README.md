@@ -28,6 +28,7 @@
 This fork basically changed lines in some files to make saturn compilable for macOS.
 
 You will not have discord integration with this fork
+
 Heres how to compile saturn for mac:
 1. git clone https://github.com/Pracargithub/Saturn-macOSfix
 2. Copy an unmodified, vanilla ROM into the repo's directory and rename it to baserom.us.z64
