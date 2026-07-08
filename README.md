@@ -5,10 +5,6 @@
 
 ![image](https://github.com/Llennpie/Saturn/assets/44985633/e671b48a-e1c3-446a-9cff-0c76f49d069a)
 
-### Download
-
-- You can download the latest version from the [Releases](https://github.com/Llennpie/Saturn/releases/latest) page!
-
 ### Features
 
 ```
@@ -29,12 +25,22 @@
   
 ...and more!
 ```
+This fork basically changed lines in some files to make saturn compilable for macOS.
+You will not have discord integration with this fork
+Heres how to compile saturn for mac:
+1. git clone https://github.com/Pracargithub/Saturn-macOSfix
+2. Copy an unmodified, vanilla ROM into the repo's directory and rename it to baserom.us.z64
+3. in Terminal using homebrew package manager (https://brew.sh/) install these packages by typing
+**brew install coreutils make mingw-w64 gcc sdl2 pkg-config glew glfw3 libusb adamstark-audiofile**
+4. type cd Saturn-macOSfix
+5. Finally, compile via:
+**gmake OSX_BUILD=1 CPP="clang -E -x c -P" DISCORDGAMESDK=0 DISCORDRPC=0 -j$(nproc)**
+When finished, an executable will be created in /build/us_pc/
+to launch the app cd into repos directory and drag binary file saturn.us.f3dex2e into terminal and saturn will launch
 
-- For advanced compilation instructions, please refer to the [Wiki](https://github.com/Llennpie/Saturn/wiki).
-- Also join the [Discord](https://discord.gg/rGqREG2kYv) for news, model releases, support and more!
-
+This was not tested on intel based mac but it probably works
 ---
 
-In case you feel this project deserves some extra love, check out my Ko-fi-
+Support developer behind saturn legacy
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/J3J05B5WR)
