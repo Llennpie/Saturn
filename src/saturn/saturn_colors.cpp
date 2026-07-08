@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <sstream>
 #include <SDL2/SDL.h>
 
 #include "saturn/saturn.h"

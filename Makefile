@@ -60,7 +60,10 @@ DISCORDGAMESDK ?= 1
 DISCORDRPC ?= 1
 # Enable Game ICON
 ICON ?= 1
-
+ifeq ($(OSX_BUILD),1)
+DISCORDGAMESDK = 0
+DISCORDRPC = 0
+endif
 # Various workarounds for weird toolchains
 
 NO_BZERO_BCOPY ?= 0
@@ -467,6 +470,9 @@ SEG_FILES := $(SEGMENT_ELF_FILES) $(ACTOR_ELF_FILES) $(LEVEL_ELF_FILES)
 
 ##################### Compiler Options #######################
 INCLUDE_CFLAGS := -I include -I $(BUILD_DIR) -I $(BUILD_DIR)/include -I src -I .
+ifeq ($(OSX_BUILD),1)
+    INCLUDE_CFLAGS += -I/opt/homebrew/include
+endif
 ENDIAN_BITWIDTH := $(BUILD_DIR)/endian-and-bitwidth
 include dynos.mk
 
@@ -519,7 +525,7 @@ ifeq ($(WINDOWS_BUILD),1) # fixes compilation in MXE on Linux and WSL
   OBJCOPY := objcopy
   OBJDUMP := $(CROSS)objdump
 else ifeq ($(OSX_BUILD),1)
-  CPP := cpp-9 -P
+  CPP := clang -E -x c -P
   OBJDUMP := i686-w64-mingw32-objdump
   OBJCOPY := i686-w64-mingw32-objcopy
 else # Linux & other builds
@@ -1099,3 +1105,4 @@ MAKEFLAGS += --no-builtin-rules
 -include $(DEP_FILES)
 
 print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
+
