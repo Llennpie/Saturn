@@ -466,7 +466,10 @@ DEP_FILES := $(O_FILES:.o=.d) $(ULTRA_O_FILES:.o=.d) $(GODDARD_O_FILES:.o=.d) $(
 SEG_FILES := $(SEGMENT_ELF_FILES) $(ACTOR_ELF_FILES) $(LEVEL_ELF_FILES)
 
 ##################### Compiler Options #######################
-INCLUDE_CFLAGS := -I include -I $(BUILD_DIR) -I $(BUILD_DIR)/include -I src -I . -I/opt/homebrew/include
+INCLUDE_CFLAGS := -I include -I $(BUILD_DIR) -I $(BUILD_DIR)/include -I src -I .
+ifeq ($(OSX_BUILD),1)
+    INCLUDE_CFLAGS += -I/opt/homebrew/include
+endif
 ENDIAN_BITWIDTH := $(BUILD_DIR)/endian-and-bitwidth
 include dynos.mk
 
