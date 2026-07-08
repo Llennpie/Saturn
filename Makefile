@@ -60,7 +60,10 @@ DISCORDGAMESDK ?= 1
 DISCORDRPC ?= 1
 # Enable Game ICON
 ICON ?= 1
-
+ifeq ($(OSX_BUILD),1)
+DISCORDGAMESDK = 0
+DISCORDRPC = 0
+endif
 # Various workarounds for weird toolchains
 
 NO_BZERO_BCOPY ?= 0
